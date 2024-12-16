@@ -22,6 +22,5 @@ pub fn get_workspace(args: GetWorkspaceArgs) -> Result<Workspace, String> {
         Ok(Some(workspace)) => Ok(workspace),
         Ok(None) => Err(format!("Workspace not found for slug: {}", args.workspace_slug_name)),
         Err(e) => Err(e.to_string()),
-
     }
 }

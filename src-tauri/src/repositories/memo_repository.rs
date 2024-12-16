@@ -1,5 +1,5 @@
 use crate::models::memo::{MemoDetail, MemoIndexItem};
-use rusqlite::{Connection, Result, OptionalExtension};
+use rusqlite::{Connection, OptionalExtension, Result};
 
 pub struct MemoRepository;
 
@@ -64,7 +64,13 @@ impl MemoRepository {
         Ok(memo)
     }
 
-    pub fn create(conn: &Connection, workspace_id: i32, slug_title: &str, title: &str, content: &str) -> Result<MemoDetail> {
+    pub fn create(
+        conn: &Connection,
+        workspace_id: i32,
+        slug_title: &str,
+        title: &str,
+        content: &str,
+    ) -> Result<MemoDetail> {
         conn.execute(
             "INSERT INTO memo (workspace_id, slug_title, title, content)
             VALUES (?, ?, ?, ?)",
@@ -93,5 +99,71 @@ impl MemoRepository {
         })?;
 
         Ok(memo)
+    }
+
+    pub fn save(
+        conn: &mut Connection,
+        workspace_id: i32,
+        workspace_slug: &str,
+        target_slug_title: &str,
+        slug_title: &str,
+        title: &str,
+        content: &str,
+        description: &str,
+    ) -> Result<()> {
+        let tx = conn.transaction()?;
+
+        tx.execute(
+            "UPDATE memo
+            SET slug_title = ?, title = ?, content = ?, description = ?
+            WHERE workspace_id = ? AND slug_title = ?",
+            (slug_title, title, content, description, workspace_id, target_slug_title),
+        )?;
+
+        tx.execute(
+            "UPDATE memo
+            SET content = REPLACE(content, ?, ?)
+            WHERE id IN (
+                SELECT from_memo_id
+                FROM link
+                WHERE to_memo_id = ?
+            )",
+            (
+                format!(r#""href":"/{}/{}""#, workspace_slug, target_slug_title),
+                format!(r#""href":"/{}/{}""#, workspace_slug, slug_title),
+                tx.last_insert_rowid() as i32
+            )
+        )?;
+
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn delete(
+        conn: &mut Connection,
+        workspace_id: i32,
+        memo_slug_title: &str,
+    ) -> Result<()> {
+        let tx = conn.transaction()?;
+
+        tx.execute(
+            "DELETE FROM link
+            WHERE from_memo_id = (
+                SELECT id FROM memo WHERE workspace_id = ? AND slug_title = ?
+            )
+            OR to_memo_id = (
+                SELECT id FROM memo WHERE workspace_id = ? AND slug_title = ?
+            )",
+            (workspace_id, memo_slug_title, workspace_id, memo_slug_title)
+        )?;
+
+        tx.execute(
+            "DELETE FROM memo
+            WHERE workspace_id = ? AND slug_title = ?",
+            (workspace_id, memo_slug_title),
+        )?;
+
+        tx.commit()?;
+        Ok(())
     }
 }
