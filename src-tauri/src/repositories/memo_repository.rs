@@ -141,26 +141,20 @@ impl MemoRepository {
 
     pub fn delete(
         conn: &mut Connection,
-        workspace_id: i32,
-        memo_slug_title: &str,
+        memo_id: i32,
     ) -> Result<()> {
         let tx = conn.transaction()?;
 
         tx.execute(
             "DELETE FROM link
-            WHERE from_memo_id = (
-                SELECT id FROM memo WHERE workspace_id = ? AND slug_title = ?
-            )
-            OR to_memo_id = (
-                SELECT id FROM memo WHERE workspace_id = ? AND slug_title = ?
-            )",
-            (workspace_id, memo_slug_title, workspace_id, memo_slug_title)
+            WHERE from_memo_id = ? OR to_memo_id = ?
+            ",
+            (memo_id, memo_id)
         )?;
 
         tx.execute(
-            "DELETE FROM memo
-            WHERE workspace_id = ? AND slug_title = ?",
-            (workspace_id, memo_slug_title),
+            "DELETE FROM memo WHERE id = ?",
+            (memo_id,),
         )?;
 
         tx.commit()?;

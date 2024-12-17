@@ -121,15 +121,14 @@ pub fn delete_memo(args: DeleteMemoArgs) -> Result<(), String> {
 
     let workspace = WorkspaceRepository::find_by_slug(&conn, &args.workspace_slug_name)
         .map_err(|e| e.to_string())?
-        .ok_or_else(|| {
-            format!(
-                "Workspace not found for slug: {}",
-                &args.workspace_slug_name
-            )
-        })?;
+        .ok_or_else(|| format!( "Workspace not found for slug: {}", &args.workspace_slug_name))?;
 
-    MemoRepository::delete(&mut conn, workspace.id, &args.memo_slug_title)
-    .map_err(|e| e.to_string())?;
+    let memo = MemoRepository::find_by_slug(&conn, workspace.id, &args.memo_slug_title)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
+
+    MemoRepository::delete(&mut conn, memo.id)
+        .map_err(|e| e.to_string())?;
 
     Ok(())
 }
