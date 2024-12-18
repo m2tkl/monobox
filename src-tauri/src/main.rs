@@ -27,6 +27,7 @@ fn main() {
             // Link
             commands::link::get_links,
             commands::link::create_link,
+            commands::link::delete_link,
 
             // Asset
         ])

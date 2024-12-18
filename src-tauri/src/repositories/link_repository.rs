@@ -1,5 +1,5 @@
-use rusqlite::{Connection, OptionalExtension, Result};
 use crate::models::link::{Link, LinkId};
+use rusqlite::{Connection, Result};
 
 pub struct LinkRepository;
 
@@ -62,20 +62,20 @@ impl LinkRepository {
 
         let mut stmt = conn.prepare(query).map_err(|e| e.to_string())?;
 
-        let links = stmt.query_map([memo_id], |row| {
-            Ok(Link {
-                id: row.get(0)?,
-                slug_title: row.get(1)?,
-                title: row.get(2)?,
-                description: row.get(3)?,
-                link_type: row.get(4)?,
-                link_id: row.get(5)?,
+        let links = stmt
+            .query_map([memo_id], |row| {
+                Ok(Link {
+                    id: row.get(0)?,
+                    slug_title: row.get(1)?,
+                    title: row.get(2)?,
+                    description: row.get(3)?,
+                    link_type: row.get(4)?,
+                    link_id: row.get(5)?,
+                })
             })
-        })
-        .map_err(|e| e.to_string())?
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| e.to_string())?;
-
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
 
         Ok(links)
     }
@@ -86,7 +86,7 @@ impl LinkRepository {
             SELECT ?, id
             FROM memo
             WHERE slug_title = ?",
-            (memo_id, to_memo_slug_title)
+            (memo_id, to_memo_slug_title),
         )?;
 
         let link_id: i32 = conn.last_insert_rowid() as i32;
@@ -94,7 +94,7 @@ impl LinkRepository {
         let mut stmt = conn.prepare(
             "SELECT id, from_memo_id, to_memo_id
             FROM link
-            WHERE id = ?"
+            WHERE id = ?",
         )?;
         let link = stmt.query_row([link_id], |row| {
             Ok(LinkId {
@@ -105,5 +105,15 @@ impl LinkRepository {
         })?;
 
         Ok(link)
+    }
+
+    pub fn delete(
+        conn: &Connection,
+        from_memo_id: i32,
+        to_memo_id: i32,
+    ) -> Result<()> {
+      let query = "DELETE FROM link WHERE from_memo_id = ? AND to_memo_id = ?";
+      conn.execute(query, [from_memo_id, to_memo_id])?;
+      Ok(())
     }
 }
