@@ -1,5 +1,5 @@
 use rusqlite::{Connection, OptionalExtension, Result};
-use crate::models::Link;
+use crate::models::link::{Link, LinkId};
 
 pub struct LinkRepository;
 
@@ -78,5 +78,32 @@ impl LinkRepository {
 
 
         Ok(links)
+    }
+
+    pub fn create(conn: &Connection, memo_id: i32, to_memo_slug_title: &str) -> Result<LinkId> {
+        conn.execute(
+            "INSERT INTO link (from_memo_id, to_memo_id)
+            SELECT ?, id
+            FROM memo
+            WHERE slug_title = ?",
+            (memo_id, to_memo_slug_title)
+        )?;
+
+        let link_id: i32 = conn.last_insert_rowid() as i32;
+
+        let mut stmt = conn.prepare(
+            "SELECT id, from_memo_id, to_memo_id
+            FROM link
+            WHERE id = ?"
+        )?;
+        let link = stmt.query_row([link_id], |row| {
+            Ok(LinkId {
+                id: row.get(0)?,
+                from_memo_id: row.get(1)?,
+                to_memo_id: row.get(2)?,
+            })
+        })?;
+
+        Ok(link)
     }
 }

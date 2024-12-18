@@ -26,6 +26,7 @@ fn main() {
             commands::memo::delete_memo,
             // Link
             commands::link::get_links,
+            commands::link::create_link,
 
             // Asset
         ])

@@ -9,3 +9,10 @@ pub struct Link {
     pub link_id: i32,
     pub link_type: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct LinkId {
+    pub id: i32,
+    pub from_memo_id: i32,
+    pub to_memo_id: i32,
+}
