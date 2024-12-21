@@ -1,5 +1,5 @@
-use rusqlite::{Connection, Result, OptionalExtension};
 use crate::models::Workspace;
+use rusqlite::{Connection, OptionalExtension, Result};
 
 pub struct WorkspaceRepository;
 
@@ -31,7 +31,7 @@ impl WorkspaceRepository {
             "SELECT id, slug_name, name, created_at, updated_at
             FROM workspace
             WHERE slug_name = ?
-            "
+            ",
         )?;
 
         let workspace = stmt

@@ -1,6 +1,6 @@
 use crate::database::get_conn;
 use crate::models::{Link, LinkId};
-use crate::repositories::{MemoRepository, WorkspaceRepository, LinkRepository};
+use crate::repositories::{LinkRepository, MemoRepository, WorkspaceRepository};
 use serde::Deserialize;
 use tauri::command;
 
@@ -46,8 +46,8 @@ pub fn create_link(args: CreateLinkArgs) -> Result<LinkId, String> {
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
 
-    let link = LinkRepository::create(&conn, memo.id, &args.to_memo_slug_title)
-        .map_err(|e| e.to_string());
+    let link =
+        LinkRepository::create(&conn, memo.id, &args.to_memo_slug_title).map_err(|e| e.to_string());
 
     link
 }
@@ -72,16 +72,17 @@ pub fn delete_link(args: DeleteLinkArgs) -> Result<(), String> {
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
 
-    let linked_workspace = WorkspaceRepository::find_by_slug(&conn, &args.linked_workspace_slug_name)
-        .map_err(|e| e.to_string())?
-        .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
+    let linked_workspace =
+        WorkspaceRepository::find_by_slug(&conn, &args.linked_workspace_slug_name)
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
 
-    let linked_memo = MemoRepository::find_by_slug(&conn, linked_workspace.id, &args.linked_memo_slug_title)
-        .map_err(|e| e.to_string())?
-        .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
+    let linked_memo =
+        MemoRepository::find_by_slug(&conn, linked_workspace.id, &args.linked_memo_slug_title)
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
 
-    LinkRepository::delete(&conn, memo.id, linked_memo.id)
-        .map_err(|e| e.to_string())?;
+    LinkRepository::delete(&conn, memo.id, linked_memo.id).map_err(|e| e.to_string())?;
 
     Ok(())
 }

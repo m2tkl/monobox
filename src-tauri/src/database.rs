@@ -55,8 +55,9 @@ pub fn initialize_database() -> Result<(), String> {
         BEGIN
             UPDATE memo SET updated_at = CURRENT_TIMESTAMP WHERE id == NEW.id;
         END",
-        []
-    ).map_err(|e| e.to_string())?;
+        [],
+    )
+    .map_err(|e| e.to_string())?;
 
     conn.execute(
         "CREATE TABLE if not exists link (
@@ -68,8 +69,9 @@ pub fn initialize_database() -> Result<(), String> {
             FOREIGN KEY (to_memo_id) REFERENCES memo(id) ON DELETE CASCADE,
             UNIQUE (from_memo_id, to_memo_id)
         )",
-        []
-    ).map_err(|e| e.to_string())?;
+        [],
+    )
+    .map_err(|e| e.to_string())?;
 
     Ok(())
 }

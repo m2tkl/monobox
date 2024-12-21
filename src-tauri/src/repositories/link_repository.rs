@@ -107,13 +107,9 @@ impl LinkRepository {
         Ok(link)
     }
 
-    pub fn delete(
-        conn: &Connection,
-        from_memo_id: i32,
-        to_memo_id: i32,
-    ) -> Result<()> {
-      let query = "DELETE FROM link WHERE from_memo_id = ? AND to_memo_id = ?";
-      conn.execute(query, [from_memo_id, to_memo_id])?;
-      Ok(())
+    pub fn delete(conn: &Connection, from_memo_id: i32, to_memo_id: i32) -> Result<()> {
+        let query = "DELETE FROM link WHERE from_memo_id = ? AND to_memo_id = ?";
+        conn.execute(query, [from_memo_id, to_memo_id])?;
+        Ok(())
     }
 }

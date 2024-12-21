@@ -1,7 +1,7 @@
-pub mod workspace;
-pub mod memo;
 pub mod link;
+pub mod memo;
+pub mod workspace;
 
-pub use workspace::Workspace;
-pub use memo::MemoIndexItem;
 pub use link::{Link, LinkId};
+pub use memo::MemoIndexItem;
+pub use workspace::Workspace;

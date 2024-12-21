@@ -117,7 +117,14 @@ impl MemoRepository {
             "UPDATE memo
             SET slug_title = ?, title = ?, content = ?, description = ?
             WHERE workspace_id = ? AND slug_title = ?",
-            (slug_title, title, content, description, workspace_id, target_slug_title),
+            (
+                slug_title,
+                title,
+                content,
+                description,
+                workspace_id,
+                target_slug_title,
+            ),
         )?;
 
         tx.execute(
@@ -131,31 +138,25 @@ impl MemoRepository {
             (
                 format!(r#""href":"/{}/{}""#, workspace_slug, target_slug_title),
                 format!(r#""href":"/{}/{}""#, workspace_slug, slug_title),
-                tx.last_insert_rowid() as i32
-            )
+                tx.last_insert_rowid() as i32,
+            ),
         )?;
 
         tx.commit()?;
         Ok(())
     }
 
-    pub fn delete(
-        conn: &mut Connection,
-        memo_id: i32,
-    ) -> Result<()> {
+    pub fn delete(conn: &mut Connection, memo_id: i32) -> Result<()> {
         let tx = conn.transaction()?;
 
         tx.execute(
             "DELETE FROM link
             WHERE from_memo_id = ? OR to_memo_id = ?
             ",
-            (memo_id, memo_id)
+            (memo_id, memo_id),
         )?;
 
-        tx.execute(
-            "DELETE FROM memo WHERE id = ?",
-            (memo_id,),
-        )?;
+        tx.execute("DELETE FROM memo WHERE id = ?", (memo_id,))?;
 
         tx.commit()?;
         Ok(())
