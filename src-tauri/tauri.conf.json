@@ -15,11 +15,18 @@
       {
         "title": "tauri-app",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "dragDropEnabled": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "**/*"
+        ]
+      }
     }
   },
   "bundle": {
