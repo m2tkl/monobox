@@ -101,6 +101,7 @@ import * as Memo from "~/domain/memo"
 import { EditorContent } from '@tiptap/vue-3';
 import SearchPalette from '~/components/SearchPalette.vue';
 import { unsetLink } from '~/domain/editor';
+import { imageExtention } from '~/domain/extensions/image';
 
 const LOG_PREFIX = '[pages/[workspace]/[memo]/index]'
 const logger = useConsoleLogger(LOG_PREFIX)
@@ -178,7 +179,7 @@ const editor = useEditor({
       // Unset link after link text
       inclusive: false
     }),
-    // imageExtention(),
+    imageExtention(),
     headingExtension(),
   ],
   editorProps: {

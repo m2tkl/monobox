@@ -1,6 +1,7 @@
 import Image from "@tiptap/extension-image";
 import type { EditorView } from "@tiptap/pm/view";
 import { Plugin } from "prosemirror-state";
+import { invoke } from "@tauri-apps/api/core";
 
 export const imageExtention = () => {
   return Image.configure({ inline: true }).extend({
@@ -89,15 +90,29 @@ export const imageExtention = () => {
 };
 
 async function uploadImage(image: File) {
-  const formData = new FormData();
-  formData.append("file", image);
+  const reader = new FileReader();
 
-  const uploadedImageUrl = await $fetch(
-    "/api/v2/assets/uploads",
-    {
-      method: "post",
-      body: formData,
-    },
-  );
-  return uploadedImageUrl[0];
+  return new Promise((resolve, reject) => {
+    reader.onload = async (event) => {
+      try {
+        const base64Data = (event.target?.result as string).split(",")[1];
+        const _fileName = image.name;
+        const mimeType = image.type;
+
+        const response = await invoke("save_image", {
+          args: {
+            data: base64Data,
+            mime_type: mimeType,
+          },
+        });
+
+        resolve(response as string);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    reader.onerror = () => reject("Failed to read file");
+    reader.readAsDataURL(image);
+  });
 }

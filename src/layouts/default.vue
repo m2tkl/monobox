@@ -20,7 +20,7 @@
           </NuxtLink>
         </h1>
       </div>
-      (For debug: {{ $route.path }})
+      <!-- (For debug: {{ $route.path }}) -->
     </header>
 
     <main class="h-[calc(100%-56px)]">
