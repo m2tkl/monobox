@@ -52,6 +52,13 @@ import SearchPalette from '~/components/SearchPalette.vue';
 
 const route = useRoute()
 
+definePageMeta({
+  validate(route) {
+    console.log(route.params.workspace)
+    return route.params.workspace !== "settings";
+  },
+});
+
 const workspace = ref<Workspace>()
 const memos = ref<Array<MemoIndexItem>>()
 
