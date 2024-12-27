@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{PathBuf,Path};
 use std::{env, fs};
+use std::io::Write;
+
+
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
@@ -51,4 +54,56 @@ impl Config {
             path.to_string()
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AppConfig {
+    pub database_path: String,
+    pub asset_dir_path: String,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        AppConfig {
+            database_path: "./data.db".to_string(),
+            asset_dir_path: "./_assets/".to_string(),
+        }
+    }
+}
+
+pub fn load_or_create_config(config_dir: &Path) -> Result<AppConfig, String> {
+    let config_path = config_dir.join("config.json");
+    ensure_config_directory_exists(&config_path)?;
+
+    if config_path.exists() {
+        let content = fs::read_to_string(&config_path)
+            .map_err(|e| format!("Failed to read config file: {}", e))?;
+        serde_json::from_str(&content).map_err(|e| format!("Failed to parse config: {}", e))
+    } else {
+        let default_config = AppConfig::default();
+        save_config(&default_config, &config_path)?;
+        Ok(default_config)
+    }
+}
+
+pub fn save_config(config: &AppConfig, config_path: &PathBuf) -> Result<(), String> {
+    let json = serde_json::to_string_pretty(config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+
+    let mut file = fs::File::create(config_path)
+        .map_err(|e| format!("Failed to create config file: {}", e))?;
+    file.write_all(json.as_bytes())
+        .map_err(|e| format!("Failed to write config file: {}", e))?;
+
+    Ok(())
+}
+
+pub fn ensure_config_directory_exists(config_path: &Path) -> Result<(), String> {
+    if let Some(parent_dir) = config_path.parent() {
+        if !parent_dir.exists() {
+            fs::create_dir_all(parent_dir)
+                .map_err(|e| format!("Failed to create config directory: {}", e))?;
+        }
+    }
+    Ok(())
 }
