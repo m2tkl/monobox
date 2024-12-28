@@ -1,8 +1,8 @@
 [package]
-name = "tauri-app"
+name = "monobox"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Local memo app liked scrapbox"
+authors = ["m2tkl"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -27,3 +27,4 @@ tauri-plugin-fs = "2"
 base64 = "0.21.0"
 mime_guess = "2.0"
 uuid = { version = "1.3", features = ["v4"] }
+directories = "5.0"

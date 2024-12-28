@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::AppConfig;
 use base64::{self, engine::general_purpose, Engine};
 use std::fs::{self, File};
 use std::io::Write;
@@ -14,7 +14,7 @@ pub struct SaveImageArgs {
 }
 
 #[command]
-pub fn save_image(args: SaveImageArgs, config: State<Config>) -> Result<String, String> {
+pub fn save_image(args: SaveImageArgs, config: State<AppConfig>) -> Result<String, String> {
     // Generate UUID
     let uuid = Uuid::new_v4();
 

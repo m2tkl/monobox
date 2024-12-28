@@ -1,10 +1,15 @@
-use crate::config::Config;
+use crate::config::load_config;
 use crate::errors::AppError;
 use rusqlite::Connection;
 
 pub fn get_conn() -> Result<Connection, AppError> {
-    let config = Config::load().map_err(AppError::ConfigLoadError)?;
-    Connection::open(&config.database_path).map_err(AppError::DatabaseError)
+    let proj_dirs = directories::ProjectDirs::from("com", "m2tkl", "monobox")
+        .expect("Failed to determine project directories");
+
+    let app_config = load_config(proj_dirs.config_dir())
+        .expect("Failed to load or create config");
+
+    Connection::open(&app_config.database_path).map_err(AppError::DatabaseError)
 }
 
 pub fn initialize_database() -> Result<(), String> {

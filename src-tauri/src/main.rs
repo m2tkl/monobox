@@ -8,31 +8,29 @@ mod errors;
 mod models;
 mod repositories;
 
-use tauri::{UriSchemeContext, Wry};
-
 use mime_guess;
 use std::{fs, path::PathBuf};
 use tauri::http::{Request, Response};
 
-use crate::config::Config;
-use crate::database::initialize_database;
-
 fn main() {
-    let config = Config::load().unwrap();
+    database::initialize_database().expect("Failed to initialize database");
 
-    initialize_database().expect("Failed to initialize database");
+    let proj_dirs = directories::ProjectDirs::from("com", "m2tkl", "monobox")
+        .expect("Failed to determine project directories");
+    let app_config =
+        config::load_config(proj_dirs.config_dir()).expect("Failed to load or create config");
 
     tauri::Builder::default()
-        .manage(config.clone())
+        .manage(app_config.clone())
         .register_uri_scheme_protocol(
             "asset",
-            move |_context: UriSchemeContext<Wry>, request: Request<Vec<u8>>| {
+            move |_context: tauri::UriSchemeContext<tauri::Wry>, request: Request<Vec<u8>>| {
                 // According to the specification of PathBuf::join, if the path passed to join
                 // starts with a root (e.g., / or C:\), the result will be the input path itself
                 // instead of being joined with the base path.
                 let asset_file_name = request.uri().path().strip_prefix("/monobox/").unwrap_or("");
 
-                let base_dir = PathBuf::from(&config.asset_dir_path);
+                let base_dir = PathBuf::from(&app_config.asset_dir_path);
                 let file_path = base_dir.join(asset_file_name);
 
                 if file_path.exists() {
