@@ -61,6 +61,9 @@ fn main() {
             // Workspace
             commands::workspace::get_workspaces,
             commands::workspace::get_workspace,
+            commands::workspace::create_workspace,
+            commands::workspace::save_workspace,
+            commands::workspace::delete_workspace,
             // Memo
             commands::memo::get_workspace_memos,
             commands::memo::get_memo,
