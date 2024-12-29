@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::fs;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AppConfig {
@@ -44,21 +44,6 @@ pub fn load_config(config_dir: &Path) -> Result<AppConfig, String> {
         default_config.asset_dir_path =
             replace_placeholders(&default_config.asset_dir_path, config_dir);
 
-        save_config(&default_config, &config_path)?;
-        Ok(default_config)
-    }
-}
-
-pub fn load_or_create_config(config_dir: &Path) -> Result<AppConfig, String> {
-    let config_path = config_dir.join("config.json");
-    ensure_config_directory_exists(&config_path)?;
-
-    if config_path.exists() {
-        let content = fs::read_to_string(&config_path)
-            .map_err(|e| format!("Failed to read config file: {}", e))?;
-        serde_json::from_str(&content).map_err(|e| format!("Failed to parse config: {}", e))
-    } else {
-        let default_config = AppConfig::default();
         save_config(&default_config, &config_path)?;
         Ok(default_config)
     }
