@@ -34,7 +34,7 @@
       <!-- New memo action button -->
       <div class="fixed bottom-10 right-10 z-50">
         <NuxtLink :to="`/${$route.params.workspace}/new`">
-          <UButton icon="i-heroicons-plus" square variant="solid" size="xl" color="indigo" class="bg-slate-600" />
+          <UButton :icon="iconKey.add" square variant="solid" size="xl" color="indigo" class="bg-slate-600" />
         </NuxtLink>
       </div>
     </UContainer>

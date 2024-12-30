@@ -22,16 +22,16 @@
           <EditorToolbarButton @exec="toggleHeading(editor, { h: 2 })" label="H2" />
           <EditorToolbarButton @exec="toggleHeading(editor, { h: 3 })" label="H3" />
 
-          <EditorToolbarButton @exec="toggleStyle(editor, 'bold')" icon="carbon:text-bold" />
-          <EditorToolbarButton @exec="toggleStyle(editor, 'italic')" icon="carbon:text-italic" />
-          <EditorToolbarButton @exec="toggleStyle(editor, 'strike')" icon="carbon:text-strikethrough" />
-          <EditorToolbarButton @exec="toggleBulletList(editor)" icon="carbon:list-bulleted" />
-          <EditorToolbarButton @exec="toggleOrderedList(editor)" icon="carbon:list-numbered" />
-          <EditorToolbarButton @exec="toggleBlockQuote(editor)" icon="carbon:quotes" />
-          <EditorToolbarButton @exec="toggleCode(editor)" icon="carbon:string-text" />
+          <EditorToolbarButton @exec="toggleStyle(editor, 'bold')" :icon="iconKey.textBold" />
+          <EditorToolbarButton @exec="toggleStyle(editor, 'italic')" :icon="iconKey.textItalic" />
+          <EditorToolbarButton @exec="toggleStyle(editor, 'strike')" :icon="iconKey.textStrikeThrough" />
+          <EditorToolbarButton @exec="toggleBulletList(editor)" :icon="iconKey.listBulletted" />
+          <EditorToolbarButton @exec="toggleOrderedList(editor)" :icon="iconKey.listNumbered" />
+          <EditorToolbarButton @exec="toggleBlockQuote(editor)" :icon="iconKey.quotes" />
+          <EditorToolbarButton @exec="toggleCode(editor)" :icon="iconKey.inlineCode" />
 
-          <EditorToolbarButton @exec="openLinkPalette()" icon="carbon:link" />
-          <EditorToolbarButton @exec="unsetLink(editor)" icon="carbon:unlink" />
+          <EditorToolbarButton @exec="openLinkPalette()" :icon="iconKey.link" />
+          <EditorToolbarButton @exec="unsetLink(editor)" :icon="iconKey.unlink" />
 
 
           <EditorToolbarButton @exec="resetStyle(editor)" label="Reset" />
@@ -72,7 +72,7 @@
 
     <!-- Operation Buttons -->
     <div class="fixed bottom-10 right-10 z-50">
-      <UButton icon="i-heroicons-trash" square variant="solid" size="xl" color="indigo" class="bg-slate-600"
+      <UButton :icon="iconKey.trash" square variant="solid" size="xl" color="indigo" class="bg-slate-600"
         @click="deleteMemo"></UButton>
     </div>
 
@@ -329,7 +329,7 @@ async function saveMemo() {
     toast.add({
       title: "Saved!",
       timeout: 1000,
-      icon: "i-heroicons-check-circle",
+      icon: iconKey.success,
     });
 
     // Go to updated title page
@@ -339,7 +339,7 @@ async function saveMemo() {
       title: "Failed to save.",
       description: "Please save again.",
       color: "red",
-      icon: "i-heroicons-exclamation-triangle"
+      icon: iconKey.failed,
     })
   }
 };
@@ -354,7 +354,7 @@ async function deleteMemo() {
     toast.add({
       title: "Delete memo successfully.",
       timeout: 1000,
-      icon: "i-heroicons-check-circle",
+      icon: iconKey.success,
     });
 
     router.replace(`/${workspaceSlug}`)
@@ -363,7 +363,7 @@ async function deleteMemo() {
       title: "Failed to delete.",
       description: "Please delete again.",
       color: "red",
-      icon: "i-heroicons-exclamation-triangle"
+      icon: iconKey.failed,
     })
   }
 }

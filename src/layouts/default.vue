@@ -5,7 +5,7 @@
       <!-- Home -->
       <div v-if="!$route.params.workspace" class="flex items-center w-full">
         <NuxtLink to="/" class="flex items-center gap-2.5">
-          <UIcon name="i-carbon:area" class="h-6 w-6 bg-slate-500" />
+          <UIcon :name="iconKey.area" class="h-6 w-6 bg-slate-500" />
           <h1 v-if="!$route.params.workspace" class="font-mono text-xl font-semibold text-slate-500">
             monobox
           </h1>
@@ -13,7 +13,7 @@
 
         <div class="ml-auto">
           <NuxtLink to="/_setting" class="flex items-center gap-2.5">
-            <UIcon name="carbon:settings" class="h-6 w-6" />
+            <UIcon :name="iconKey.setting" class="h-6 w-6" />
           </NuxtLink>
         </div>
       </div>
@@ -22,7 +22,7 @@
       <div v-else="$route.params.workspace" class="flex items-center w-full">
         <div class="flex items-center gap-2.5">
           <NuxtLink to="/" class="flex items-center">
-            <UIcon name="i-carbon:area" class="h-6 w-6 bg-slate-500" />
+            <UIcon :name="iconKey.area" class="h-6 w-6 bg-slate-500" />
           </NuxtLink>
 
           <h1 class="font-mono text-xl font-semibold text-slate-500">
@@ -35,7 +35,7 @@
 
         <div class="ml-auto">
           <NuxtLink :to="`/${$route.params.workspace}/_setting`" class="flex items-center gap-2.5">
-            <UIcon name="carbon:overflow-menu-vertical" class="h-6 w-6" />
+            <UIcon :name="iconKey.dotMenuVertical" class="h-6 w-6" />
           </NuxtLink>
         </div>
       </div>

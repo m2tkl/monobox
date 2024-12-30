@@ -3,7 +3,7 @@
     <div
       class="flex items-center gap-2 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-800"
     >
-      <UIcon name="i-heroicons-bars-3-center-left" />
+      <UIcon :name="iconKey.toc"/>
       Table of Contents
     </div>
 

@@ -11,6 +11,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@iconify-json/carbon": "^1.2.5",
     "@nuxt/ui": "^2.20.0",
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/cli": "^2",

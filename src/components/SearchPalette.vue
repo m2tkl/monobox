@@ -8,11 +8,11 @@
         it remains cleared the next time it is opened, so there is no issue).
     -->
     <UCommandPalette v-model="selected" :groups="commandPaletteItems" class="min-h-[calc(60vh)]" :autoclear="false"
-      :icon="type === 'link' ? 'carbon:link' : 'carbon:search'"
+      :icon="type === 'link' ? iconKey.link : iconKey.search"
       placeholder="Type something to see the empty label change"
       :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 10 }" command-attribute="title"
       @update:model-value="onSearchPaletteSelect" ref="commandPaletteRef" :empty-state="{
-        icon: 'i-heroicons-magnifying-glass-20-solid',
+        icon: iconKey.search,
         label: 'We couldn\'t find any items.',
         queryLabel: 'We couldn\'t find any items with that term.',
       }" />

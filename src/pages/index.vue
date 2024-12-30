@@ -93,7 +93,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
     toast.add({
       title: `Workspace ${created?.name} created successfully!`,
       timeout: 1000,
-      icon: "i-heroicons-check-circle",
+      icon: iconKey.success,
     });
 
     isOpen.value = false;
@@ -104,7 +104,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
       title: "Failed to create.",
       description: "Please create again.",
       color: "red",
-      icon: "i-heroicons-exclamation-triangle"
+      icon: iconKey.failed,
     })
   }
 }
