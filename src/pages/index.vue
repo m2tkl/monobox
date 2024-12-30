@@ -13,7 +13,7 @@
         </div>
 
         <!-- Project collection -->
-        <div v-if="workspaces == null">No workspace</div>
+        <div v-if="!workspaces || workspaces && workspaces.length === 0">No workspace</div>
         <div v-else>
           <ul class="border border-gray-400 divide-y divide-gray-400 rounded-md">
             <li v-for="workspace in workspaces" class="hover:bg-slate-300">
@@ -60,14 +60,14 @@
 </template>
 
 <script setup lang="ts">
-import { getWorkspaces, createWorkspace } from '~/domain/workspace';
 import type { FormError, FormSubmitEvent } from '#ui/types'
 
 const toast = useToast()
+const command = useCommand()
 
 const workspaces = ref()
 const loadWorkspaces = async () => {
-  workspaces.value = await getWorkspaces()
+  workspaces.value = await command.workspace.list()
 }
 await loadWorkspaces()
 
@@ -89,7 +89,7 @@ const validate = (state: any): FormError[] => {
 
 async function onSubmit(event: FormSubmitEvent<any>) {
   try {
-    const created = await createWorkspace({ name: event.data.name })
+    const created = await command.workspace.create({ name: event.data.name })
     toast.add({
       title: `Workspace ${created?.name} created successfully!`,
       timeout: 1000,

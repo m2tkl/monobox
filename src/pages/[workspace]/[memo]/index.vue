@@ -98,7 +98,6 @@ import { headingExtension } from '~/domain/extensions/heading';
 import ToCList from '~/components/ToCList.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import { toggleHeading, toggleStyle, toggleBulletList, toggleOrderedList, toggleCode, toggleBlockQuote, resetStyle } from '~/domain/editor';
-import * as Memo from "~/domain/memo"
 import { EditorContent } from '@tiptap/vue-3';
 import SearchPalette from '~/components/SearchPalette.vue';
 import { unsetLink } from '~/domain/editor';
@@ -116,6 +115,7 @@ const logger = useConsoleLogger(LOG_PREFIX)
 const route = useRoute()
 const router = useRouter()
 const toast = useToast();
+const command = useCommand()
 
 
 const workspaceSlug = route.params.workspace as string;
@@ -123,9 +123,7 @@ const memoSlug = route.params.memo as string;
 
 async function fetchWorkspace() {
   try {
-    const workspaceDetail = await invoke<Workspace>('get_workspace', {
-      args: { workspace_slug_name: workspaceSlug }
-    })
+    const workspaceDetail = await command.workspace.get({ slugName: workspaceSlug })
     return workspaceDetail
   } catch (error) {
     console.error('Error fetching workspace:', error);
@@ -134,12 +132,7 @@ async function fetchWorkspace() {
 
 async function fetcthMemo() {
   try {
-    const memoDetail = await invoke<MemoDetail>('get_memo', {
-      args: {
-        workspace_slug_name: workspaceSlug,
-        memo_slug_title: encodeForSlug(memoSlug),
-      }
-    })
+    const memoDetail = await command.memo.get({ workspaceSlugName: workspaceSlug, memoSlugTitle: memoSlug })
     return memoDetail
   } catch (error) {
     console.error('Error fetching memo:', error);
@@ -148,9 +141,7 @@ async function fetcthMemo() {
 
 async function fetchWorkspaceMemosIndex() {
   try {
-    const memosIndex = await invoke<MemoIndexItem[]>('get_workspace_memos',
-      { args: { workspace_slug_name: route.params.workspace, } }
-    )
+    const memosIndex = await command.memo.list({ slugName: workspaceSlug })
     return memosIndex
   } catch (error) {
     console.error('Error fetching memos:', error);
@@ -286,19 +277,19 @@ const toc = computed(() => {
 
 async function createLink(href: string) {
   await safeExecute(async () => {
-    await Memo.createLink({ workspaceSlug, memoSlug }, href)
+    await command.link.create({ workspaceSlug, memoSlug }, href)
   }, `${LOG_PREFIX}/createLink`)()
 }
 
 async function deleteLink(href: string) {
   await safeExecute(async () => {
-    await Memo.deleteLink({ workspaceSlug, memoSlug }, href)
+    await command.link.delete({ workspaceSlug, memoSlug }, href)
   }, `${LOG_PREFIX}/deleteLink`)()
 }
 
 async function reloadLinks() {
   await safeExecute(async () => {
-    const newLinks = await Memo.getLinks({ workspaceSlug, memoSlug })
+    const newLinks = await command.link.list({ workspaceSlug, memoSlug })
     if (newLinks) {
       linksData.value = newLinks
     }
@@ -324,7 +315,7 @@ async function saveMemo() {
 
   // Send a request for the memo title before the update
   const result = await safeExecute(async () => {
-    await Memo.save(
+    await command.memo.save(
       { workspaceSlug, memoSlug },
       {
         slugTitle: encodeForSlug(updatedTitle),
@@ -356,10 +347,27 @@ async function saveMemo() {
 };
 
 async function deleteMemo() {
-  await safeExecute(async () => {
-    await Memo.trash({ workspaceSlug, memoSlug })
-    router.replace(`/${workspaceSlug}`)
+  const result = await safeExecute(async () => {
+    await command.memo.trash({ workspaceSlug, memoSlug })
   }, `${LOG_PREFIX}/deleteMemo`)()
+
+  if (result.ok) {
+    toast.clear()
+    toast.add({
+      title: "Delete memo successfully.",
+      timeout: 1000,
+      icon: "i-heroicons-check-circle",
+    });
+
+    router.replace(`/${workspaceSlug}`)
+  } else {
+    toast.add({
+      title: "Failed to delete.",
+      description: "Please delete again.",
+      color: "red",
+      icon: "i-heroicons-exclamation-triangle"
+    })
+  }
 }
 
 /******************************************

@@ -38,16 +38,15 @@
 </template>
 
 <script setup lang="ts">
-import { getWorkspace, deleteWorkspace } from "~/domain/workspace"
 import type { Workspace } from "~/models/workspace"
 
 const route = useRoute()
 const router = useRouter()
-
 const toast = useToast();
+const command = useCommand()
 
 const workspace = ref<Workspace>()
-workspace.value = await getWorkspace({ slugName: route.params.workspace as string })
+workspace.value = await command.workspace.get({ slugName: route.params.workspace as string })
 
 const { setWorkspace } = useWorkspace()
 setWorkspace(workspace.value!)
@@ -59,7 +58,7 @@ const openDeleteConfirmation = () => {
 
 const _deleteWorkspace = async () => {
   try {
-    await deleteWorkspace({slugName: workspace.value!.slug_name})
+    await command.workspace.delete({ slugName: workspace.value!.slug_name })
 
     toast.add({
       title: "Delete successfully.",

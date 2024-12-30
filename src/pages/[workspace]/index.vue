@@ -48,10 +48,10 @@
 <script lang="ts" setup>
 import { type Workspace } from '~/models/workspace';
 import { type MemoIndexItem } from '~/models/memo';
-import { invoke } from '@tauri-apps/api/core';
 import SearchPalette from '~/components/SearchPalette.vue';
 
 const route = useRoute()
+const command = useCommand()
 
 definePageMeta({
   validate(route) {
@@ -62,14 +62,9 @@ definePageMeta({
 const workspace = ref<Workspace>()
 const memos = ref<Array<MemoIndexItem>>()
 
-// For command palette
-const boxMemos = ref()
-
 async function fetchWorkspace() {
   try {
-    const workspaceDetail = await invoke<Workspace>('get_workspace', {
-      args: { workspace_slug_name: route.params.workspace }
-    })
+    const workspaceDetail = await command.workspace.get({ slugName: route.params.workspace as string })
     return workspaceDetail
   } catch (error) {
     console.error('Error fetching workspace:', error);
@@ -78,9 +73,7 @@ async function fetchWorkspace() {
 
 async function fetchWorkspaceMemosIndex() {
   try {
-    const memosIndex = await invoke<MemoIndexItem[]>('get_workspace_memos',
-      { args: { workspace_slug_name: route.params.workspace, } }
-    )
+    const memosIndex = await command.memo.list({slugName: route.params.workspace as string})
     return memosIndex
   } catch (error) {
     console.error('Error fetching memos:', error);
