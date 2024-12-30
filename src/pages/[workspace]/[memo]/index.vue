@@ -18,9 +18,9 @@
 
         <!-- Memo title -->
         <div class="flex gap-0.5 py-1 px-2 sticky top-0 left-0 z-50 bg-slate-200 overflow-auto" v-if="editor">
-          <EditorToolbarButton @exec="toggleHeading(editor, {h: 1})" label="H1" />
-          <EditorToolbarButton @exec="toggleHeading(editor, {h: 2})" label="H2" />
-          <EditorToolbarButton @exec="toggleHeading(editor, {h: 3})" label="H3" />
+          <EditorToolbarButton @exec="toggleHeading(editor, { h: 1 })" label="H1" />
+          <EditorToolbarButton @exec="toggleHeading(editor, { h: 2 })" label="H2" />
+          <EditorToolbarButton @exec="toggleHeading(editor, { h: 3 })" label="H3" />
 
           <EditorToolbarButton @exec="toggleStyle(editor, 'bold')" icon="carbon:text-bold" />
           <EditorToolbarButton @exec="toggleStyle(editor, 'italic')" icon="carbon:text-italic" />
@@ -77,7 +77,8 @@
     </div>
 
     <div v-if="memos">
-      <SearchPalette :workspace="workspace" :memos="memos" type="link" shortcut-symbol="i" :editor="editor" ref="linkPaletteRef" />
+      <SearchPalette :workspace="workspace" :memos="memos" type="link" shortcut-symbol="i" :editor="editor"
+        ref="linkPaletteRef" />
       <SearchPalette :workspace="workspace" :memos="memos" type="search" shortcut-symbol="k" :editor="editor" />
     </div>
   </div>
@@ -103,12 +104,19 @@ import SearchPalette from '~/components/SearchPalette.vue';
 import { unsetLink } from '~/domain/editor';
 import { imageExtention } from '~/domain/extensions/image';
 
+definePageMeta({
+  validate(route) {
+    return route.params.memo !== "_settings";
+  },
+});
+
 const LOG_PREFIX = '[pages/[workspace]/[memo]/index]'
 const logger = useConsoleLogger(LOG_PREFIX)
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast();
+
 
 const workspaceSlug = route.params.workspace as string;
 const memoSlug = route.params.memo as string;

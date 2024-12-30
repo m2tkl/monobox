@@ -8,7 +8,7 @@
         <div class="flex justify-between pt-2 pb-4 space-x-3">
           <UInput placeholder="Search" class="flex-1 max-w-lg" />
           <div>
-            <UButton>New</UButton>
+            <UButton color="indigo" class="bg-slate-600" @click="openNewWorkspaceModal">New</UButton>
           </div>
         </div>
 
@@ -29,23 +29,83 @@
         </div>
       </div>
     </UContainer>
+
+    <!-- Create workspace form modal -->
+    <UModal v-model="isOpen">
+      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+        <template #header>
+          <div class="h-8">
+            <h2 class="text-lg font-bold text-gray-600">Create new workspace</h2>
+          </div>
+        </template>
+
+        <div class="h-24">
+          <UForm id="create-workspace-form" :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
+            <UFormGroup label="Name" name="name">
+              <UInput v-model="state.name" />
+            </UFormGroup>
+          </UForm>
+        </div>
+
+        <template #footer>
+          <div class="h-8">
+            <UButton form="create-workspace-form" type="submit" class="bg-slate-600" color="indigo">
+              Submit
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { invoke } from '@tauri-apps/api/core';
-import { type Workspace } from '~/models/workspace';
+import { getWorkspaces, createWorkspace } from '~/domain/workspace';
+import type { FormError, FormSubmitEvent } from '#ui/types'
 
-async function fetchWorkspaces() {
-  try {
-    const workspaces = await invoke<Workspace[]>('get_workspaces');
-    console.log('Fetched workspaces:', workspaces);
-    return workspaces
-  } catch (error) {
-    console.error('Error fetching workspaces:', error);
-  }
-}
+const toast = useToast()
 
 const workspaces = ref()
-workspaces.value = await fetchWorkspaces()
+const loadWorkspaces = async () => {
+  workspaces.value = await getWorkspaces()
+}
+await loadWorkspaces()
+
+const isOpen = ref(false)
+const openNewWorkspaceModal = () => {
+  isOpen.value = true
+}
+
+
+const state = reactive({
+  name: undefined,
+})
+
+const validate = (state: any): FormError[] => {
+  const errors = []
+  if (!state.name) errors.push({ path: 'name', message: 'Required' })
+  return errors
+}
+
+async function onSubmit(event: FormSubmitEvent<any>) {
+  try {
+    const created = await createWorkspace({ name: event.data.name })
+    toast.add({
+      title: `Workspace ${created?.name} created successfully!`,
+      timeout: 1000,
+      icon: "i-heroicons-check-circle",
+    });
+
+    isOpen.value = false;
+    await loadWorkspaces()
+  } catch (error) {
+    console.error(error)
+    toast.add({
+      title: "Failed to create.",
+      description: "Please create again.",
+      color: "red",
+      icon: "i-heroicons-exclamation-triangle"
+    })
+  }
+}
 </script>

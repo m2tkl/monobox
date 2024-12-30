@@ -3,6 +3,7 @@
     <UContainer>
       <div class="pt-4 pb-8">
         <!-- Memo List -->
+        <p v-if="memos && memos.length === 0">No memos</p>
         <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
           <li v-for="memo in memos" class="aspect-[1/1] overflow-hidden rounded-lg">
             <NuxtLink :to="`/${$route.params.workspace}/${memo.slug_title}`">
@@ -54,8 +55,7 @@ const route = useRoute()
 
 definePageMeta({
   validate(route) {
-    console.log(route.params.workspace)
-    return route.params.workspace !== "settings";
+    return route.params.workspace !== "_setting";
   },
 });
 
