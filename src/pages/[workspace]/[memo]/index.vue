@@ -85,10 +85,8 @@
 </template>
 
 <script lang="ts" setup>
-import { type Workspace } from '~/models/workspace';
-import { type MemoDetail, type MemoIndexItem } from '~/models/memo';
+import { type MemoIndexItem } from '~/models/memo';
 import { type Link as LinkType } from '~/models/link';
-import { invoke } from '@tauri-apps/api/core';
 import { useEditor } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
