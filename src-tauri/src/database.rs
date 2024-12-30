@@ -9,7 +9,12 @@ pub fn get_conn() -> Result<Connection, AppError> {
     let app_config = load_config(proj_dirs.config_dir())
         .expect("Failed to load or create config");
 
-    Connection::open(&app_config.database_path).map_err(AppError::DatabaseError)
+    let conn = Connection::open(&app_config.database_path).map_err(AppError::DatabaseError)?;
+
+    conn.execute("PRAGMA foreign_keys = ON;", [])
+        .map_err(AppError::DatabaseError)?;
+
+    Ok(conn)
 }
 
 pub fn initialize_database() -> Result<(), String> {
