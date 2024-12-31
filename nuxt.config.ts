@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   // Change nuxt app root dir
-  srcDir: 'src/',
+  srcDir: "src/",
 
   // Enable SSG
   ssr: false,
@@ -25,5 +25,36 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxt/ui"],
+  modules: ["@nuxt/ui", "@nuxt/icon"],
+
+  icon: {
+    serverBundle: false,
+    clientBundle: {
+      icons: [
+        "carbon:checkmark-outline",
+        "carbon:warning-alt",
+        "carbon:table-of-contents",
+        "carbon:add-large",
+        "carbon:search",
+        "carbon:link",
+        "carbon:unlink",
+        "carbon:trash-can",
+        "carbon:area",
+        "carbon:settings",
+        "carbon:overflow-menu-vertical",
+
+        // For editor toolbar
+        "carbon:text-bold",
+        "carbon:text-italic",
+        "carbon:text-strikethrough",
+        "carbon:list-bulleted",
+        "carbon:list-numbered",
+        "carbon:quotes",
+        "carbon:string-text",
+
+        "heroicons:x-mark-20-solid"
+      ],
+      scan: true,
+    },
+  },
 });
