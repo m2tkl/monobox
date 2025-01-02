@@ -1,0 +1,137 @@
+name: "Release Workflow"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Release version (e.g., v0.1.0)"
+        required: true
+        default: "v0.1.0"
+
+jobs:
+  # Step 1: Create a GitHub release
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create-release.outputs.result }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+
+    - name: Update versions
+      run: |
+        VERSION="${{ github.event.inputs.release_version }}"
+        VERSION=${VERSION#v} # Remove `v` prefix
+
+        # Update version in package.json
+        jq ".version = \"${VERSION}\"" package.json > package.json.tmp && mv package.json.tmp package.json
+
+        # Update version in tauri.conf.json
+        jq ".version = \"${VERSION}\"" src-tauri/tauri.conf.json > src-tauri/tauri.conf.json.tmp && mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json
+
+        echo "Updated package.json and tauri.conf.json to version ${VERSION}"
+
+    - name: Commit and push changes
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add package.json src-tauri/tauri.conf.json
+        git commit -m "Update version to ${{ github.event.inputs.release_version }}"
+        git tag ${{ github.event.inputs.release_version }}
+        git push origin ${{ github.event.inputs.release_version }}
+
+    - name: Create GitHub Release
+      id: create-release
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data } = await github.rest.repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag_name: context.payload.inputs.release_version,
+            name: `Release ${context.payload.inputs.release_version}`,
+            body: 'See the assets to download and install this app.',
+            draft: true,
+            prerelease: false
+          })
+          return data.id
+
+  # Step 2: Build the application
+  build-tauri:
+    needs: create-release
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - platform: "macos-latest"
+          args: "--target aarch64-apple-darwin"
+        - platform: "macos-latest"
+          args: "--target x86_64-apple-darwin"
+        - platform: "ubuntu-22.04"
+          args: ""
+        - platform: "windows-latest"
+          args: ""
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+
+    - name: Install Rust stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+    - name: Install dependencies (Linux only)
+      if: matrix.platform == 'ubuntu-22.04'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+    - name: Install frontend dependencies
+      run: npm install
+
+    - uses: tauri-apps/tauri-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        releaseId: ${{ needs.create-release.outputs.release_id }}
+        args: ${{ matrix.args }}
+
+  # Step 3: Publish the release
+  publish-release:
+    needs: [ create-release, build-tauri ]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Publish GitHub Release
+      uses: actions/github-script@v6
+      env:
+        release_id: ${{ needs.create-release.outputs.release_id }}
+      with:
+        script: |
+          github.rest.repos.updateRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: process.env.release_id,
+            draft: false,
+            prerelease: false
+          })
