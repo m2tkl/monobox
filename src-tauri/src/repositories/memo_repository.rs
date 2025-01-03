@@ -103,7 +103,7 @@ impl MemoRepository {
 
     pub fn save(
         conn: &mut Connection,
-        workspace_id: i32,
+        memo_id: i32,
         workspace_slug: &str,
         target_slug_title: &str,
         slug_title: &str,
@@ -116,14 +116,13 @@ impl MemoRepository {
         tx.execute(
             "UPDATE memo
             SET slug_title = ?, title = ?, content = ?, description = ?
-            WHERE workspace_id = ? AND slug_title = ?",
+            WHERE id = ?",
             (
                 slug_title,
                 title,
                 content,
                 description,
-                workspace_id,
-                target_slug_title,
+                memo_id,
             ),
         )?;
 
@@ -138,7 +137,7 @@ impl MemoRepository {
             (
                 format!(r#""href":"/{}/{}""#, workspace_slug, target_slug_title),
                 format!(r#""href":"/{}/{}""#, workspace_slug, slug_title),
-                tx.last_insert_rowid() as i32,
+                memo_id,
             ),
         )?;
 
