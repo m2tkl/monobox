@@ -96,11 +96,16 @@ pub fn save_memo(args: SaveMemoArgs) -> Result<(), String> {
             )
         })?;
 
+    let memo = MemoRepository::find_by_slug(&conn, workspace.id, &args.target_slug_title)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Memo not found for slug: {}", args.target_slug_title))?;
+
     MemoRepository::save(
         &mut conn,
-        workspace.id,
+        memo.id,
         &args.workspace_slug_name,
-        &args.target_slug_title,
+        &memo.slug_title,
+
         &args.new_slug_title,
         &args.new_title,
         &args.new_content,
