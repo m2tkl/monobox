@@ -20,4 +20,12 @@ export const iconKey = {
   quotes: "carbon:quotes",
   inlineCode: "carbon:string-text",
   memoLink: "carbon:ibm-cloud-direct-link-1-connect",
+
+  // Titlebar
+  arrowLeft: "carbon:arrow-left",
+  arrowRight: "carbon:arrow-right",
+  menu: "carbon:menu",
+
+  bookmark: "carbon:bookmark",
+  recent: "carbon:recently-viewed",
 }
