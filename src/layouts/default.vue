@@ -1,49 +1,61 @@
 <template>
-  <div class="h-screen w-full">
-    <header class="sticky top-0 z-50 flex h-14 items-center gap-3 bg-slate-200 px-6">
+  <div>
+    <TitleBar :workspace-title="wspace?.name" />
 
-      <!-- Home -->
-      <div v-if="!$route.params.workspace" class="flex items-center w-full">
-        <NuxtLink to="/" class="flex items-center gap-2.5">
-          <UIcon :name="iconKey.area" class="h-6 w-6 bg-slate-500" />
-          <h1 v-if="!$route.params.workspace" class="font-mono text-xl font-semibold text-slate-500">
-            monobox
-          </h1>
-        </NuxtLink>
+    <div class="h-screen w-screen flex pt-[30px]">
+      <!-- Sidebar -->
+      <aside class="sidebar-area w-[250px] h-[calc(100vh-30px)]">
+        <SidebarMenu />
+      </aside>
 
-        <div class="ml-auto">
-          <NuxtLink to="/_setting" class="flex items-center gap-2.5">
-            <UIcon :name="iconKey.setting" class="h-6 w-6" />
-          </NuxtLink>
-        </div>
-      </div>
+      <!-- Main content -->
+      <div class="w-[calc(100%-250px)] h-[calc(100vh-30px)]">
+        <header class="sticky top-0 z-50 flex h-14 items-center gap-3 bg-slate-200 px-6">
 
-      <!-- Workspace/**  -->
-      <div v-else="$route.params.workspace" class="flex items-center w-full">
-        <div class="flex items-center gap-2.5">
-          <NuxtLink to="/" class="flex items-center">
-            <UIcon :name="iconKey.area" class="h-6 w-6 bg-slate-500" />
-          </NuxtLink>
-
-          <h1 class="font-mono text-xl font-semibold text-slate-500">
-            <USkeleton class="h-6 w-[250px]" v-if="!wspace" />
-            <NuxtLink v-else :to="`/${$route.params.workspace}`">
-              {{ wspace.name }}
+          <!-- Home -->
+          <div v-if="!$route.params.workspace" class="flex items-center w-full">
+            <NuxtLink to="/" class="flex items-center gap-2.5">
+              <UIcon :name="iconKey.area" class="h-6 w-6 bg-slate-500" />
+              <h1 v-if="!$route.params.workspace" class="font-mono text-xl font-semibold text-slate-500">
+                monobox
+              </h1>
             </NuxtLink>
-          </h1>
-        </div>
 
-        <div class="ml-auto">
-          <NuxtLink :to="`/${$route.params.workspace}/_setting`" class="flex items-center gap-2.5">
-            <UIcon :name="iconKey.dotMenuVertical" class="h-6 w-6" />
-          </NuxtLink>
-        </div>
+            <div class="ml-auto">
+              <NuxtLink to="/_setting" class="flex items-center gap-2.5">
+                <UIcon :name="iconKey.setting" class="h-6 w-6" />
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Workspace/**  -->
+          <div v-else="$route.params.workspace" class="flex items-center w-full">
+            <div class="flex items-center gap-2.5">
+              <NuxtLink to="/" class="flex items-center">
+                <UIcon :name="iconKey.area" class="h-6 w-6 bg-slate-500" />
+              </NuxtLink>
+
+              <h1 class="font-mono text-xl font-semibold text-slate-500">
+                <USkeleton class="h-6 w-[250px]" v-if="!wspace" />
+                <NuxtLink v-else :to="`/${$route.params.workspace}`">
+                  {{ wspace.name }}
+                </NuxtLink>
+              </h1>
+            </div>
+
+            <div class="ml-auto">
+              <NuxtLink :to="`/${$route.params.workspace}/_setting`" class="flex items-center gap-2.5">
+                <UIcon :name="iconKey.dotMenuVertical" class="h-6 w-6" />
+              </NuxtLink>
+            </div>
+          </div>
+        </header>
+
+        <main class="h-[calc(100%-56px)] w-full overflow-y-auto">
+          <slot />
+        </main>
       </div>
-    </header>
-
-    <main class="h-[calc(100%-56px)] overflow-y-auto">
-      <slot />
-    </main>
+    </div>
   </div>
 </template>
 
@@ -52,7 +64,15 @@ const { workspace: wspace } = useWorkspace()
 </script>
 
 <style>
+html,
 body {
   background-color: rgb(226 232 240);
+  overscroll-behavior: none;
+}
+</style>
+
+<style scoped>
+.sidebar-area {
+  border-right: 1px solid rgb(180, 187, 195);
 }
 </style>

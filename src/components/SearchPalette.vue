@@ -1,5 +1,5 @@
 <template>
-  <UModal v-model="isSearchPaletteOpen" class="relative" fullscreen>
+  <UModal v-model="isSearchPaletteOpen" class="relative">
     <!-- NOTE:
       - autoclear: false
         When input is entered in the input field, the items are filtered, but upon selection,
@@ -7,7 +7,7 @@
         Setting autoclear to false prevents the filter from being cleared (since it is manually cleared,
         it remains cleared the next time it is opened, so there is no issue).
     -->
-    <UCommandPalette v-model="selected" :groups="commandPaletteItems" class="min-h-[calc(60vh)]" :autoclear="false"
+    <UCommandPalette v-model="selected" :groups="commandPaletteItems" class="min-h-[calc(60vh)] max-h-[calc(60vh)]" :autoclear="false"
       :icon="type === 'link' ? iconKey.link : iconKey.search"
       placeholder="Type something to see the empty label change"
       :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 10 }" command-attribute="title"
