@@ -52,7 +52,14 @@ export default defineNuxtConfig({
         "carbon:quotes",
         "carbon:string-text",
 
-        "heroicons:x-mark-20-solid"
+        "carbon:arrow-left",
+        "carbon:arrow-right",
+        "carbon:menu",
+        "carbon:bookmark",
+        "carbon:recently-viewed",
+
+        // Nuxt
+        "heroicons:x-mark-20-solid",
       ],
       scan: true,
     },

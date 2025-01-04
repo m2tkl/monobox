@@ -19,4 +19,12 @@ export const iconKey = {
   listNumbered: "carbon:list-numbered",
   quotes: "carbon:quotes",
   inlineCode: "carbon:string-text",
+
+  // Titlebar
+  arrowLeft: "carbon:arrow-left",
+  arrowRight: "carbon:arrow-right",
+  menu: "carbon:menu",
+
+  bookmark: "carbon:bookmark",
+  recent: "carbon:recently-viewed",
 }
