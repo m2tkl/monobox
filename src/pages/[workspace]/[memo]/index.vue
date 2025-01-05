@@ -38,14 +38,7 @@
         </div>
 
         <div class="bg-slate-50 p-8" @click.self="editor?.chain().focus('end').run()">
-          <UInput v-model="title" placeholder="Title" autocomplete="off" size="xl" variant="none" rounded
-            :padded="false" :ui="{
-              size: { xl: 'text-2xl' },
-              padding: {
-                xs: 'p-0',
-              },
-              rounded: 'rounded-none',
-            }" />
+          <TitleFieldAutoResize v-model="title" />
 
           <UDivider class="py-6" />
 
