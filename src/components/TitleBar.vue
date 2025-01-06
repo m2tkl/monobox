@@ -3,22 +3,21 @@
 
     <!-- Left section -->
     <div class="flex-1 pl-16 flex items-center gap-1" data-tauri-drag-region>
-      <IconButton :icon="iconKey.menu" />
-    </div>
-
-    <!-- Navigation section -->
-    <div class="flex items-center gap-1">
-      <IconButton :icon="iconKey.arrowLeft" @click="goBack"/>
-      <IconButton :icon="iconKey.arrowRight" @click="goNext" />
+      <IconButton :icon="iconKey.menu" @click="toggleSidebar" />
     </div>
 
     <!-- Center section -->
-    <div class="flex items-center max-w-[360px] min-w-[calc(30%)]">
+    <div class="flex items-center max-w-[360px] min-w-[calc(30%)] gap-1">
+      <div class="flex items-center ">
+        <IconButton :icon="iconKey.arrowLeft" @click="goBack" />
+        <IconButton :icon="iconKey.arrowRight" @click="goNext" />
+      </div>
       <UButton :icon="iconKey.search" variant="solid" color="gray" square size="2xs" block>
         <span class="text-gray-500">
           {{ workspaceTitle || "monobox" }}
         </span>
       </UButton>
+      <IconButton :icon="iconKey.home" @click="goHome" />
     </div>
 
     <!-- Right section -->
@@ -31,9 +30,13 @@ defineProps<{
   workspaceTitle?: string;
 }>()
 
+const route = useRoute();
 const router = useRouter();
 const goBack = () => router.go(-1);
 const goNext = () => router.go(1);
+const goHome = () => router.push(`/${route.params.workspace}`)
+
+const { toggleSidebar, ui } = useUIState()
 </script>
 
 <style scoped>

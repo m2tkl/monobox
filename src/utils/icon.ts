@@ -28,4 +28,8 @@ export const iconKey = {
 
   bookmark: "carbon:bookmark",
   recent: "carbon:recently-viewed",
+  switch: "carbon:arrows-horizontal",
+  database: "carbon:db2-database",
+  chevronDown: "carbon:chevron-down",
+  home: "carbon:home",
 }
