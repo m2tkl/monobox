@@ -6,8 +6,7 @@ pub fn get_conn() -> Result<Connection, AppError> {
     let proj_dirs = directories::ProjectDirs::from("com", "m2tkl", "monobox")
         .expect("Failed to determine project directories");
 
-    let app_config = load_config(proj_dirs.config_dir())
-        .expect("Failed to load or create config");
+    let app_config = load_config(proj_dirs.config_dir()).expect("Failed to load or create config");
 
     let conn = Connection::open(&app_config.database_path).map_err(AppError::DatabaseError)?;
 

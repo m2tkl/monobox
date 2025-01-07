@@ -1,11 +1,11 @@
 use crate::config::AppConfig;
 use base64::{self, engine::general_purpose, Engine};
+use mime_guess::get_mime_extensions;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
 use tauri::{command, State};
 use uuid::Uuid;
-use mime_guess::get_mime_extensions;
 
 #[derive(serde::Deserialize)]
 pub struct SaveImageArgs {
@@ -19,7 +19,10 @@ pub fn save_image(args: SaveImageArgs, config: State<AppConfig>) -> Result<Strin
     let uuid = Uuid::new_v4();
 
     // Get ext from mime type
-    let mime_type = &args.mime_type.parse().map_err(|_| "Invalid MIME type".to_string())?;
+    let mime_type = &args
+        .mime_type
+        .parse()
+        .map_err(|_| "Invalid MIME type".to_string())?;
     let extension = get_mime_extensions(&mime_type)
         .and_then(|exts| exts.first().cloned())
         .unwrap_or("bin"); // default "bin"
