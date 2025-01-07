@@ -2152,7 +2152,6 @@ version = "0.1.0"
 dependencies = [
  "base64 0.21.7",
  "directories",
- "libsqlite3-sys",
  "mime_guess",
  "rusqlite",
  "serde",
