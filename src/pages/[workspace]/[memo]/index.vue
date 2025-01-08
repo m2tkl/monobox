@@ -30,9 +30,9 @@
           <EditorToolbarButton @exec="toggleBlockQuote(editor)" :icon="iconKey.quotes" />
           <EditorToolbarButton @exec="toggleCode(editor)" :icon="iconKey.inlineCode" />
 
-          <EditorToolbarButton @exec="openLinkPalette()" :icon="iconKey.link" />
+          <EditorToolbarButton @exec="openLinkPalette()" :icon="iconKey.memoLink" />
+          <EditorToolbarButton @exec="setLinkManually()" :icon="iconKey.link" />
           <EditorToolbarButton @exec="unsetLink(editor)" :icon="iconKey.unlink" />
-
 
           <EditorToolbarButton @exec="resetStyle(editor)" label="Reset" />
         </div>
@@ -74,6 +74,27 @@
         ref="linkPaletteRef" />
       <SearchPalette :workspace="workspace" :memos="memos" type="search" shortcut-symbol="k" :editor="editor" />
     </div>
+
+    <!-- Link modal -->
+    <UModal v-model="linkDialogOn">
+      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+        <div class="h-24">
+          <UForm id="set-link" :state="state" class="space-y-4" @submit="setLink">
+            <UFormGroup label="URL" name="url">
+              <UInput v-model="state.url" />
+            </UFormGroup>
+          </UForm>
+        </div>
+
+        <template #footer>
+          <div class="h-8">
+            <UButton form="set-link" type="submit" class="bg-slate-600" color="indigo">
+              Save
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>
 
@@ -163,7 +184,7 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
       HTMLAttributes: {
-        target: null,
+        target: null
       },
     }).extend({
       // Unset link after link text
@@ -285,6 +306,38 @@ async function reloadLinks() {
       linksData.value = newLinks
     }
   }, `${LOG_PREFIX}/reloadLinks`)()
+}
+
+const linkDialogOn = ref(false)
+const state = reactive({
+  url: undefined
+})
+const openLinkDialog = () => {
+  linkDialogOn.value = true
+}
+const closeLinkDialog = () => {
+  linkDialogOn.value = false
+}
+
+const setLinkManually = () => {
+  const previousUrl = editor.value?.getAttributes('link').href
+  state.url = previousUrl
+  openLinkDialog()
+}
+
+const setLink = () => {
+  if (!state.url) {
+    editor.value?.chain().focus().extendMarkRange('link').unsetLink()
+    return
+  }
+
+  if (isInternalLink(state.url)) {
+    editor.value?.chain().focus().extendMarkRange('link').setLink({ href: state.url, target: null }).run()
+  } else {
+    editor.value?.chain().focus().extendMarkRange('link').setLink({ href: state.url, target: "_blank" }).run()
+  }
+
+  closeLinkDialog()
 }
 
 /********************************
