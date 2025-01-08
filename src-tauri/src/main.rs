@@ -21,6 +21,7 @@ fn main() {
         config::load_config(proj_dirs.config_dir()).expect("Failed to load or create config");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .manage(app_config.clone())
         .register_uri_scheme_protocol(
             "asset",

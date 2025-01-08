@@ -117,13 +117,7 @@ impl MemoRepository {
             "UPDATE memo
             SET slug_title = ?, title = ?, content = ?, description = ?
             WHERE id = ?",
-            (
-                slug_title,
-                title,
-                content,
-                description,
-                memo_id,
-            ),
+            (slug_title, title, content, description, memo_id),
         )?;
 
         tx.execute(

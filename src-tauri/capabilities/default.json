@@ -15,6 +15,7 @@
           "path": "$APPDATA/*"
         }
       ]
-    }
+    },
+    "shell:allow-open"
   ]
 }

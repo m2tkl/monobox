@@ -51,8 +51,9 @@ export default defineNuxtConfig({
         "carbon:list-numbered",
         "carbon:quotes",
         "carbon:string-text",
+        "carbon:ibm-cloud-direct-link-1-connect",
 
-        "heroicons:x-mark-20-solid"
+        "heroicons:x-mark-20-solid",
       ],
       scan: true,
     },

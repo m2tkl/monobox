@@ -19,4 +19,5 @@ export const iconKey = {
   listNumbered: "carbon:list-numbered",
   quotes: "carbon:quotes",
   inlineCode: "carbon:string-text",
+  memoLink: "carbon:ibm-cloud-direct-link-1-connect",
 }
