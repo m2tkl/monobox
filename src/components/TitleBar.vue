@@ -21,7 +21,7 @@
     </div>
 
     <!-- Right section -->
-    <div class="flex-1 items-center gap-1"></div>
+    <div class="flex-1 items-center gap-1 pr-20"></div>
   </div>
 </template>
 
