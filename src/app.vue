@@ -17,6 +17,36 @@
   --white: white;
   --gray-3: #555;
   --gray-2: #888;
+  --slate: rgb(226, 232, 240);
+}
+
+html,
+body {
+  background-color: rgb(226 232 240);
+  /* Disable bounce */
+  overscroll-behavior: none;
+}
+
+/* Scrollbar customize */
+/* Webkit（Chrome, Edge, Safariなど） */
+::-webkit-scrollbar {
+  /* For vertical scrollbar */
+  width: 6px;
+  /* For horizontal scrollbar */
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(73, 73, 73, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(83, 83, 83, 0.3);
 }
 
 /* Basic editor styles */
@@ -157,7 +187,7 @@
       position: relative;
       vertical-align: top;
 
-      > * {
+      >* {
         margin-bottom: 0;
       }
     }
@@ -171,7 +201,10 @@
     .selectedCell:after {
       background: var(--gray-2);
       content: "";
-      left: 0; right: 0; top: 0; bottom: 0;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
       pointer-events: none;
       position: absolute;
       z-index: 2;
