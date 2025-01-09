@@ -1,19 +1,8 @@
 <template>
-  <div>
-    <div class="flex h-[calc(100vh-56px)] justify-center gap-3 px-4 pb-8 pt-4">
-      <!-- Table of Contents -->
-      <div class="w-[300px] overflow-y-auto">
-        <ToCList v-if="toc" :items="toc.map((item) => {
-          return {
-            id: item.attrs ? (item.attrs.id as string) : '',
-            text: item.content ? (item.content[0].text as string) : '',
-            level: item.attrs ? (item.attrs.level as number) : 1,
-          };
-        })" @click="(id: any) => scrollToElementWithOffset(id, 128)" />
-      </div>
-
+  <div class="h-full w-full">
+    <div class="flex h-full w-full justify-center gap-3 px-4 pb-4">
       <!-- Editor -->
-      <div class="w-full max-w-[780px] overflow-y-auto border border-slate-300 bg-slate-50" id="editor-main"
+      <div class="w-full overflow-y-auto border border-slate-300 bg-slate-50" id="editor-main"
         @click.self="editor?.chain().focus('end').run()">
 
         <!-- Memo title -->
@@ -56,8 +45,16 @@
         </div>
       </div>
 
-      <!-- Links -->
-      <div class="flex w-[300px] flex-col overflow-y-auto">
+      <!-- Right section -->
+      <div class="w-[300px] overflow-y-auto flex flex-col gap-3">
+        <ToCList v-if="toc" :items="toc.map((item) => {
+          return {
+            id: item.attrs ? (item.attrs.id as string) : '',
+            text: item.content ? (item.content[0].text as string) : '',
+            level: item.attrs ? (item.attrs.level as number) : 1,
+          };
+        })" @click="(id: any) => scrollToElementWithOffset(id, 128)" />
+
         <MemoLinkList v-if="linksData" :links="linksData" />
       </div>
 

@@ -53,6 +53,17 @@ export default defineNuxtConfig({
         "carbon:string-text",
         "carbon:ibm-cloud-direct-link-1-connect",
 
+        "carbon:arrow-left",
+        "carbon:arrow-right",
+        "carbon:menu",
+        "carbon:bookmark",
+        "carbon:recently-viewed",
+        "carbon:arrows-horizontal",
+        "carbon:db2-database",
+        "carbon:chevron-down",
+        "carbon:home",
+
+        // Nuxt
         "heroicons:x-mark-20-solid",
       ],
       scan: true,

@@ -3,13 +3,9 @@
     <UContainer>
       <div>
         <!-- Project collection header -->
-        <h2 class="font-bold text-gray-600 pl-1">Workspace</h2>
-
-        <div class="flex justify-between pt-2 pb-4 space-x-3">
-          <UInput placeholder="Search" class="flex-1 max-w-lg" />
-          <div>
-            <UButton color="indigo" class="bg-slate-600" @click="openNewWorkspaceModal">New</UButton>
-          </div>
+        <div class="flex justify-between pt-2 pb-4 space-x-3 items-center">
+          <h2 class="pl-1 font-bold text-gray-600 text-2xl">Workspace</h2>
+          <UButton color="indigo" class="bg-slate-600" @click="openNewWorkspaceModal">New</UButton>
         </div>
 
         <!-- Project collection -->
@@ -50,7 +46,7 @@
         <template #footer>
           <div class="h-8">
             <UButton form="create-workspace-form" type="submit" class="bg-slate-600" color="indigo">
-              Submit
+              Create
             </UButton>
           </div>
         </template>
@@ -61,6 +57,10 @@
 
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '#ui/types'
+
+definePageMeta({
+  layout: 'workspace-entry'
+})
 
 const toast = useToast()
 const command = useCommand()
