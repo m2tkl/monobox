@@ -7,10 +7,10 @@ impl MemoRepository {
     pub fn list(conn: &Connection, workspace_id: i32) -> Result<Vec<MemoIndexItem>, String> {
         let mut stmt = conn
             .prepare(
-                "SELECT id, slug_title, title, description, created_at, updated_at
+                "SELECT id, slug_title, title, description, created_at, updated_at, modified_at
                 FROM memo
                 WHERE workspace_id = ?
-                ORDER BY updated_at DESC",
+                ORDER BY modified_at DESC",
             )
             .map_err(|e| e.to_string())?;
 
@@ -23,6 +23,7 @@ impl MemoRepository {
                     description: row.get(3)?,
                     created_at: row.get(4)?,
                     updated_at: row.get(5)?,
+                    modified_at: row.get(6)?,
                 })
             })
             .map_err(|e| e.to_string())?
@@ -39,7 +40,7 @@ impl MemoRepository {
     ) -> Result<Option<MemoDetail>> {
         let mut stmt = conn
             .prepare(
-                "SELECT id, slug_title, title, json(content) AS content, description, workspace_id, created_at, updated_at
+                "SELECT id, slug_title, title, json(content) AS content, description, workspace_id, created_at, updated_at, modified_at
                 FROM memo
                 WHERE
                   workspace_id = ?
@@ -57,6 +58,7 @@ impl MemoRepository {
                     workspace_id: row.get(5)?,
                     created_at: row.get(6)?,
                     updated_at: row.get(7)?,
+                    modified_at: row.get(7)?,
                 })
             })
             .optional()?;
@@ -72,15 +74,15 @@ impl MemoRepository {
         content: &str,
     ) -> Result<MemoDetail> {
         conn.execute(
-            "INSERT INTO memo (workspace_id, slug_title, title, content)
-            VALUES (?, ?, ?, ?)",
+            "INSERT INTO memo (workspace_id, slug_title, title, content, modified_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
             (workspace_id, slug_title, title, content),
         )?;
 
         let memo_id = conn.last_insert_rowid() as i32;
 
         let mut stmt = conn.prepare(
-            "SELECT id, slug_title, title, json(content) AS content, description, workspace_id, created_at, updated_at
+            "SELECT id, slug_title, title, json(content) AS content, description, workspace_id, created_at, updated_at, modified_at
             FROM memo
             WHERE id = ?",
         )?;
@@ -95,6 +97,7 @@ impl MemoRepository {
                 workspace_id: row.get(5)?,
                 created_at: row.get(6)?,
                 updated_at: row.get(7)?,
+                modified_at: row.get(8)?,
             })
         })?;
 
@@ -115,7 +118,7 @@ impl MemoRepository {
 
         tx.execute(
             "UPDATE memo
-            SET slug_title = ?, title = ?, content = ?, description = ?
+            SET slug_title = ?, title = ?, content = ?, description = ?, modified_at = CURRENT_TIMESTAMP
             WHERE id = ?",
             (slug_title, title, content, description, memo_id),
         )?;

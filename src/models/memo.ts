@@ -7,6 +7,7 @@ export type MemoDetail = {
   workspace_id: number;
   created_at: string;
   updated_at: string;
+  modified_at: string;
 };
 
 export type MemoIndexItem = {
@@ -16,4 +17,5 @@ export type MemoIndexItem = {
   description?: string;
   created_at: string;
   updated_at: string;
+  modified_at: string;
 }
