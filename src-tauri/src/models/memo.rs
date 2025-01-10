@@ -10,6 +10,7 @@ pub struct MemoDetail {
     pub workspace_id: i32,
     pub created_at: String,
     pub updated_at: String,
+    pub modified_at: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -20,4 +21,5 @@ pub struct MemoIndexItem {
     pub description: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    pub modified_at: String,
 }
