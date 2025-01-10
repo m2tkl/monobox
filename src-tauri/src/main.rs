@@ -7,6 +7,7 @@ mod database;
 mod errors;
 mod models;
 mod repositories;
+mod migrations;
 
 use mime_guess;
 use std::{fs, path::PathBuf};
