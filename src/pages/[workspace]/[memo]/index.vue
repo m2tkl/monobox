@@ -101,6 +101,7 @@ import { type Link as LinkType } from '~/models/link';
 import { useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Focus from '@tiptap/extension-focus'
 import { EditorView } from '@tiptap/pm/view';
 import { getChangedLinks, getLinkFromMouseClickEvent, isInternalLink, isModifierKeyPressed } from '~/domain/editor';
 import { headingExtension } from '~/domain/extensions/heading';
@@ -215,7 +216,11 @@ const editor = useEditor({
           }
         }
       }
-    }).configure({ lowlight })
+    }).configure({ lowlight }),
+    Focus.configure({
+      className: 'has-focus',
+      mode: 'deepest'
+    }),
   ],
   editorProps: {
     /**
