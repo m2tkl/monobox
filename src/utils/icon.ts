@@ -32,4 +32,5 @@ export const iconKey = {
   database: "carbon:db2-database",
   chevronDown: "carbon:chevron-down",
   home: "carbon:home",
+  copy: "carbon:copy",
 }

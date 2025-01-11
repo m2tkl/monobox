@@ -127,7 +127,7 @@ body {
     border-radius: 0.5rem;
     color: var(--white);
     font-family: "JetBrainsMono", monospace;
-    margin: 1.5rem 0;
+    margin: 1rem 0;
     padding: 0.75rem 1rem;
   }
 
@@ -138,98 +138,150 @@ body {
     padding: 0;
   }
 
-  blockquote {
-    border-left: 3px solid var(--gray-3);
-    margin: 1.5rem 0;
-    padding-left: 1rem;
+  pre code .hljs-comment,
+  pre code .hljs-quote {
+    color: #ccc;
   }
 
-  hr {
-    border: none;
-    border-top: 1px solid var(--gray-2);
-    margin: 2rem 0;
+  pre code .hljs-variable,
+  pre code .hljs-template-variable,
+  pre code .hljs-attribute,
+  pre code .hljs-tag,
+  pre code .hljs-name,
+  pre code .hljs-regexp,
+  pre code .hljs-link,
+  pre code .hljs-name,
+  pre code .hljs-selector-id,
+  pre code .hljs-selector-class {
+    color: #f98181;
   }
 
-  a {
-    color: blue;
-    cursor: pointer;
+  pre code .hljs-number,
+  pre code .hljs-meta,
+  pre code .hljs-built_in,
+  pre code .hljs-builtin-name,
+  pre code .hljs-literal,
+  pre code .hljs-type,
+  pre code .hljs-params {
+    color: #fbbc88;
   }
 
-  a:hover {
-    color: red;
+  pre code .hljs-string,
+  pre code .hljs-symbol,
+  pre code .hljs-bullet {
+    color: #b9f18d;
   }
 
-  p {
-    margin: 16px 0;
-    line-height: 1.5;
+  pre code .hljs-title,
+  pre code .hljs-section {
+    color: #faf594;
   }
 
-  p br {
-    line-height: 1;
-    display: block;
-    margin: 4px 0;
+  pre code .hljs-keyword,
+  pre code .hljs-selector-tag {
+    color: #70cff8;
   }
 
-  /* Table-specific styling */
-  table {
-    border-collapse: collapse;
-    margin: 0;
-    overflow: hidden;
-    table-layout: fixed;
-    width: 100%;
+  pre code .hljs-emphasis {
+    font-style: italic;
+  }
 
-    td,
-    th {
-      border: 1px solid var(--gray-3);
-      box-sizing: border-box;
-      min-width: 1em;
-      padding: 6px 8px;
-      position: relative;
-      vertical-align: top;
+  pre code .hljs-strong {
+    font-weight: 700;
+  }
 
-      >* {
-        margin-bottom: 0;
-      }
+blockquote {
+  border-left: 3px solid var(--gray-3);
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--gray-2);
+  margin: 2rem 0;
+}
+
+a {
+  color: blue;
+  cursor: pointer;
+}
+
+a:hover {
+  color: red;
+}
+
+p {
+  margin: 16px 0;
+  line-height: 1.5;
+}
+
+p br {
+  line-height: 1;
+  display: block;
+  margin: 4px 0;
+}
+
+/* Table-specific styling */
+table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+
+  td,
+  th {
+    border: 1px solid var(--gray-3);
+    box-sizing: border-box;
+    min-width: 1em;
+    padding: 6px 8px;
+    position: relative;
+    vertical-align: top;
+
+    >* {
+      margin-bottom: 0;
     }
-
-    th {
-      background-color: var(--gray-1);
-      font-weight: bold;
-      text-align: left;
-    }
-
-    .selectedCell:after {
-      background: var(--gray-2);
-      content: "";
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      pointer-events: none;
-      position: absolute;
-      z-index: 2;
-    }
-
-    .column-resize-handle {
-      background-color: var(--purple);
-      bottom: -2px;
-      pointer-events: none;
-      position: absolute;
-      right: -2px;
-      top: 0;
-      width: 4px;
-    }
   }
 
-  .tableWrapper {
-    margin: 1.5rem 0;
-    overflow-x: auto;
+  th {
+    background-color: var(--gray-1);
+    font-weight: bold;
+    text-align: left;
   }
 
-  &.resize-cursor {
-    cursor: ew-resize;
-    cursor: col-resize;
+  .selectedCell:after {
+    background: var(--gray-2);
+    content: "";
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 2;
   }
+
+  .column-resize-handle {
+    background-color: var(--purple);
+    bottom: -2px;
+    pointer-events: none;
+    position: absolute;
+    right: -2px;
+    top: 0;
+    width: 4px;
+  }
+}
+
+.tableWrapper {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+&.resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}
 }
 
 /* Remove focus outline of editor */
