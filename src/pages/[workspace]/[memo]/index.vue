@@ -98,7 +98,7 @@
 <script lang="ts" setup>
 import { type MemoIndexItem } from '~/models/memo';
 import { type Link as LinkType } from '~/models/link';
-import { useEditor } from '@tiptap/vue-3';
+import { useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { EditorView } from '@tiptap/pm/view';
@@ -111,6 +111,11 @@ import { EditorContent } from '@tiptap/vue-3';
 import SearchPalette from '~/components/SearchPalette.vue';
 import { unsetLink } from '~/domain/editor';
 import { imageExtention } from '~/domain/extensions/image';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import { all, createLowlight } from 'lowlight'
+import CodeBlockComponent from "~/components/CodeBlock.vue"
+
+import xml from 'highlight.js/lib/languages/xml';
 
 definePageMeta({
   validate(route) {
@@ -126,6 +131,9 @@ const router = useRouter()
 const toast = useToast();
 const command = useCommand()
 
+const lowlight = createLowlight(all)
+lowlight.register('html', xml)
+lowlight.register('vue', xml)
 
 const workspaceSlug = route.params.workspace as string;
 const memoSlug = route.params.memo as string;
@@ -177,7 +185,7 @@ setWorkspace(workspace.value)
 const editor = useEditor({
   content: memo.value ? JSON.parse(memo.value.content) : "",
   extensions: [
-    StarterKit.configure({ heading: false }),
+    StarterKit.configure({ heading: false, codeBlock: false }),
     Link.configure({
       openOnClick: false,
       HTMLAttributes: {
@@ -189,6 +197,25 @@ const editor = useEditor({
     }),
     imageExtention(),
     headingExtension(),
+    CodeBlockLowlight.extend({
+      addNodeView() {
+        return VueNodeViewRenderer(CodeBlockComponent)
+      },
+      addAttributes() {
+        return {
+          ...this.parent?.(),
+          name: {
+            default: "",
+            parseHTML: (element) => element.getAttribute("name"),
+            renderHTML: (attributes) => {
+              return {
+                name: attributes.name,
+              }
+            }
+          }
+        }
+      }
+    }).configure({ lowlight })
   ],
   editorProps: {
     /**

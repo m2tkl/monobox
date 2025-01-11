@@ -62,6 +62,7 @@ export default defineNuxtConfig({
         "carbon:db2-database",
         "carbon:chevron-down",
         "carbon:home",
+        "carbon:copy",
 
         // Nuxt
         "heroicons:x-mark-20-solid",
