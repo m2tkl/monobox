@@ -116,7 +116,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         releaseId: ${{ needs.create-release.outputs.release_id }}
-        args: ${{ matrix.args }}
+        args: "--debug ${{ matrix.args }}"
 
   # Step 3: Publish the release
   publish-release:
