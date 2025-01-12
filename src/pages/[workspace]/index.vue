@@ -20,7 +20,8 @@
                   {{ truncateString(memo.title, 32) }}
                 </h3>
               </template>
-              <p class="truncate-multiline text-sm text-gray-500"
+              <img v-if="memo.thumbnail_image" :src="memo.thumbnail_image" />
+              <p v-else class="truncate-multiline text-sm text-gray-500"
                 v-for="p in truncateString(memo.description ? memo.description : '', 128)?.split('\n')">
                 {{ p }}
               </p>

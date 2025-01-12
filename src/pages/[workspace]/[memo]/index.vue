@@ -259,7 +259,7 @@ const editor = useEditor({
       editor.view.dom.removeEventListener("click", handleLinkClick);
     };
   },
-  onTransaction: async ({ transaction }) => {
+  onTransaction: async ({ editor: _editor, transaction }) => {
     const { deletedLinks, addedLinks } = getChangedLinks(transaction)
     await Promise.all(
       deletedLinks.map(async (href) => {
@@ -280,12 +280,18 @@ const editor = useEditor({
       logger.log("Link updated successfully.")
     }
 
-    // Assign an ID to the Heading
-    const { state } = editor.value!;
-    const tr = state.tr; // Get new transaction
-    let modified = false;
 
+    const { state } = _editor!;
+
+    const tr = state.tr;
+
+    let modified = false;
+    let foundFirstImage: string | undefined = undefined;
+
+    // TODO: The processing for headings and images is mixed, so they need to be separated.
+    // The logic for headings should be achievable using only transactions.
     state.doc.descendants((node, pos) => {
+      // Assign an ID to the Heading
       if (node.type.name === "heading" && !node.attrs.id) {
         const newId = `heading-${Math.floor(Math.random() * 100000)}`;
         tr.setNodeMarkup(pos, undefined, {
@@ -294,13 +300,26 @@ const editor = useEditor({
         });
         modified = true;
       }
+
+      // Update image for thumbnail
+      if (node.type.name === "image") {
+        if (!foundFirstImage) {
+          foundFirstImage = node.attrs.src
+        }
+      }
     });
 
     if (modified) {
       editor.value?.view.dispatch(tr);
     }
+
+    if (foundFirstImage !== headImageRef.value) {
+      headImageRef.value = foundFirstImage
+    }
   },
 });
+
+const headImageRef = ref()
 
 const toc = computed(() => {
   const content = editor.value?.getJSON().content;
@@ -389,7 +408,8 @@ async function saveMemo() {
         slugTitle: encodeForSlug(updatedTitle),
         title: updatedTitle,
         content: JSON.stringify(editorInstance.getJSON()),
-        description: truncateString(editorInstance.getText(), 256)
+        description: truncateString(editorInstance.getText(), 256),
+        thumbnailImage: headImageRef.value,
       }
     )
   }, `${LOG_PREFIX}/saveMemo`)()

@@ -34,6 +34,7 @@ export const memoCommand = {
       title: string;
       content: string;
       description: string;
+      thumbnailImage?: string;
     },
   ) => {
     try {
@@ -45,6 +46,7 @@ export const memoCommand = {
           new_title: newMemo.title,
           new_content: newMemo.content,
           new_description: newMemo.description,
+          new_thumbnail_image: newMemo.thumbnailImage || ""
         },
       });
       console.log("Memo saved successfully!");

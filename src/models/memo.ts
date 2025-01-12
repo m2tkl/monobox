@@ -4,6 +4,7 @@ export type MemoDetail = {
   title: string;
   content: string; // JSON
   description?: string;
+  thumbnail_image?: string;
   workspace_id: number;
   created_at: string;
   updated_at: string;
@@ -15,6 +16,7 @@ export type MemoIndexItem = {
   slug_title: string;
   title: string;
   description?: string;
+  thumbnail_image?: string;
   created_at: string;
   updated_at: string;
   modified_at: string;
