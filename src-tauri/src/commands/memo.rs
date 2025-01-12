@@ -81,6 +81,7 @@ pub struct SaveMemoArgs {
     pub new_title: String,
     pub new_content: String,
     pub new_description: String,
+    pub new_thumbnail_image: String,
 }
 
 #[command]
@@ -109,6 +110,7 @@ pub fn save_memo(args: SaveMemoArgs) -> Result<(), String> {
         &args.new_title,
         &args.new_content,
         &args.new_description,
+        &args.new_thumbnail_image,
     )
     .map_err(|e| e.to_string())
 }

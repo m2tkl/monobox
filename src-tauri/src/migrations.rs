@@ -58,6 +58,12 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         ALTER TABLE memo ADD COLUMN modified_at TEXT;
         UPDATE memo SET modified_at = updated_at;
         "
+    ),
+    (
+        "20250112_add_thumbnail_to_memo",
+        "
+        ALTER TABLE memo ADD COLUMN thumbnail_image TEXT;
+        "
     )
 ];
 
