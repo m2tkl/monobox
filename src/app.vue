@@ -190,98 +190,110 @@ body {
     font-weight: 700;
   }
 
-blockquote {
-  border-left: 3px solid var(--gray-3);
-  margin: 1.5rem 0;
-  padding-left: 1rem;
-}
+  blockquote {
+    border-left: 3px solid var(--gray-3);
+    margin: 1.5rem 0;
+    padding-left: 1rem;
+  }
 
-hr {
-  border: none;
-  border-top: 1px solid var(--gray-2);
-  margin: 2rem 0;
-}
+  hr {
+    border: none;
+    border-top: 1px solid var(--gray-2);
+    margin: 2rem 0;
+  }
 
-a {
-  color: blue;
-  cursor: pointer;
-}
+  a {
+    color: blue;
+    cursor: pointer;
+  }
 
-a:hover {
-  color: red;
-}
+  a:hover {
+    color: red;
+  }
 
-p {
-  margin: 16px 0;
-  line-height: 1.5;
-}
+  p {
+    margin: 16px 0;
+    line-height: 1.5;
+  }
 
-p br {
-  line-height: 1;
-  display: block;
-  margin: 4px 0;
-}
+  p br {
+    line-height: 1;
+    display: block;
+    margin: 4px 0;
+  }
 
-/* Table-specific styling */
-table {
-  border-collapse: collapse;
-  margin: 0;
-  overflow: hidden;
-  table-layout: fixed;
-  width: 100%;
+  /* Focus highlight */
+  .has-focus {
+    box-shadow: 0 0 0 1px #b3c8f5;
+    background-color: var(--slate);
+  }
 
-  td,
-  th {
-    border: 1px solid var(--gray-3);
-    box-sizing: border-box;
-    min-width: 1em;
-    padding: 6px 8px;
-    position: relative;
-    vertical-align: top;
+  /* Override background color for focused code blocks */
+  pre.has-focus {
+    background-color: var(--black);
+  }
 
-    >* {
-      margin-bottom: 0;
+  /* Table-specific styling */
+  table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+
+    td,
+    th {
+      border: 1px solid var(--gray-3);
+      box-sizing: border-box;
+      min-width: 1em;
+      padding: 6px 8px;
+      position: relative;
+      vertical-align: top;
+
+      >* {
+        margin-bottom: 0;
+      }
     }
+
+    th {
+      background-color: var(--gray-1);
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .selectedCell:after {
+      background: var(--gray-2);
+      content: "";
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: 2;
+    }
+
+    .column-resize-handle {
+      background-color: var(--purple);
+      bottom: -2px;
+      pointer-events: none;
+      position: absolute;
+      right: -2px;
+      top: 0;
+      width: 4px;
+    }
+
   }
 
-  th {
-    background-color: var(--gray-1);
-    font-weight: bold;
-    text-align: left;
+  .tableWrapper {
+    margin: 1.5rem 0;
+    overflow-x: auto;
   }
 
-  .selectedCell:after {
-    background: var(--gray-2);
-    content: "";
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    pointer-events: none;
-    position: absolute;
-    z-index: 2;
+  &.resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
   }
-
-  .column-resize-handle {
-    background-color: var(--purple);
-    bottom: -2px;
-    pointer-events: none;
-    position: absolute;
-    right: -2px;
-    top: 0;
-    width: 4px;
-  }
-}
-
-.tableWrapper {
-  margin: 1.5rem 0;
-  overflow-x: auto;
-}
-
-&.resize-cursor {
-  cursor: ew-resize;
-  cursor: col-resize;
-}
 }
 
 /* Remove focus outline of editor */
