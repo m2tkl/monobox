@@ -115,8 +115,11 @@ import { imageExtention } from '~/domain/extensions/image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { all, createLowlight } from 'lowlight'
 import CodeBlockComponent from "~/components/CodeBlock.vue"
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
 
 import xml from 'highlight.js/lib/languages/xml';
+import { open } from '@tauri-apps/plugin-shell';
 
 definePageMeta({
   validate(route) {
@@ -221,6 +224,10 @@ const editor = useEditor({
       className: 'has-focus',
       mode: 'deepest'
     }),
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
   ],
   editorProps: {
     /**
@@ -243,20 +250,23 @@ const editor = useEditor({
     },
   },
   onCreate({ editor }) {
-    const handleLinkClick = (event: MouseEvent) => {
-      event.preventDefault()
-
+    const handleLinkClick = async (event: MouseEvent) => {
       const url = getLinkFromMouseClickEvent(event)
+
+      // If clicked element is not link, do nothing.
       if (!url) {
         return;
       }
+
+      // Prevent browser default navigation
+      event.preventDefault()
 
       if (isInternalLink(url) && !isModifierKeyPressed(event)) {
         router.push({ path: url })
         return;
       }
 
-      window.open(url);
+      await open(url)
     }
 
     editor.view.dom.addEventListener("click", handleLinkClick);

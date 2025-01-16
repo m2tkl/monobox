@@ -294,6 +294,36 @@ body {
     cursor: ew-resize;
     cursor: col-resize;
   }
+
+  /* Task list specific styles */
+  ul[data-type="taskList"] {
+    /* list-style: none; */
+    margin-left: 0;
+    padding: 0;
+
+    li {
+      align-items: flex-start;
+      display: flex;
+
+      >label {
+        flex: 0 0 auto;
+        margin-right: 0.5rem;
+        user-select: none;
+      }
+
+      >div {
+        flex: 1 1 auto;
+      }
+    }
+
+    input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    ul[data-type="taskList"] {
+      margin: 0;
+    }
+  }
 }
 
 /* Remove focus outline of editor */
