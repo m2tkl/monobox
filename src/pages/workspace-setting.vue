@@ -40,6 +40,10 @@
 <script setup lang="ts">
 import type { Workspace } from "~/models/workspace"
 
+definePageMeta({
+  path: "/:workspace/_setting"
+})
+
 const route = useRoute()
 const router = useRouter()
 const toast = useToast();

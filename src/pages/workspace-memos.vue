@@ -49,6 +49,10 @@ import { type Workspace } from '~/models/workspace';
 import { type MemoIndexItem } from '~/models/memo';
 import SearchPalette from '~/components/SearchPalette.vue';
 
+definePageMeta({
+  path: "/:workspace"
+})
+
 const route = useRoute()
 const command = useCommand()
 

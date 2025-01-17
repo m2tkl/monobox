@@ -122,6 +122,7 @@ import xml from 'highlight.js/lib/languages/xml';
 import { open } from '@tauri-apps/plugin-shell';
 
 definePageMeta({
+  path: "/:workspace/:memo",
   validate(route) {
     return route.params.memo !== "_settings";
   },

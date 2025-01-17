@@ -12,5 +12,9 @@
 <script setup lang="ts">
 import { readTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
 
+definePageMeta({
+  path: "/_setting"
+})
+
 const _appConfig = JSON.parse(await readTextFile('config.json', { baseDir: BaseDirectory.AppData }));
 </script>

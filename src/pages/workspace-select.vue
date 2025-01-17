@@ -59,6 +59,7 @@
 import type { FormError, FormSubmitEvent } from '#ui/types'
 
 definePageMeta({
+  path: '/',
   layout: 'workspace-entry'
 })
 
