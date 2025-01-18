@@ -1,7 +1,9 @@
 <template>
   <div>
     <UContainer>
-      <h2 class="text-lg font-bold text-gray-600"> Settings </h2>
+      <h2 class="text-lg font-bold text-gray-600">
+        Settings
+      </h2>
       <p>
         🚧 Under construction
       </p>
@@ -13,8 +15,8 @@
 import { readTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
 
 definePageMeta({
-  path: "/_setting"
-})
+  path: '/_setting',
+});
 
 const _appConfig = JSON.parse(await readTextFile('config.json', { baseDir: BaseDirectory.AppData }));
 </script>

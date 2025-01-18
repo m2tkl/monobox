@@ -1,5 +1,12 @@
 <template>
-  <UButton :icon="icon" variant="ghost" color="gray" square size="2xs" @click="$emit('click')"></UButton>
+  <UButton
+    :icon="icon"
+    variant="ghost"
+    color="gray"
+    square
+    size="2xs"
+    @click="$emit('click')"
+  />
 </template>
 
 <script setup lang="ts">
@@ -8,6 +15,6 @@ defineProps<{
 }>();
 
 defineEmits<{
-  click: () => void
-}>()
+  click: () => void;
+}>();
 </script>

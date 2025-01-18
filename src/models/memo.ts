@@ -20,4 +20,4 @@ export type MemoIndexItem = {
   created_at: string;
   updated_at: string;
   modified_at: string;
-}
+};

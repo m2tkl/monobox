@@ -1,16 +1,21 @@
 <template>
-  <UButton @click="$emit('exec')" variant="ghost" color="gray" size="2xs" square
-  :icon="icon"
+  <UButton
+    variant="ghost"
+    color="gray"
+    size="2xs"
+    square
+    :icon="icon"
+    @click="$emit('exec')"
   >
-  {{ label }}
+    {{ label }}
   </UButton>
 </template>
 
 <script setup lang="ts">
 defineProps<{
-  icon?: string
-  label?: string
-}>()
+  icon?: string;
+  label?: string;
+}>();
 
-defineEmits<{exec: void}>()
+defineEmits<{ exec: () => void }>();
 </script>

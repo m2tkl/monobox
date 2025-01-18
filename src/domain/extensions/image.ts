@@ -1,7 +1,7 @@
-import Image from "@tiptap/extension-image";
-import type { EditorView } from "@tiptap/pm/view";
-import { Plugin } from "prosemirror-state";
-import { invoke } from "@tauri-apps/api/core";
+import Image from '@tiptap/extension-image';
+import type { EditorView } from '@tiptap/pm/view';
+import { Plugin } from 'prosemirror-state';
+import { invoke } from '@tauri-apps/api/core';
 
 export const imageExtention = () => {
   return Image.configure({ inline: true }).extend({
@@ -11,15 +11,15 @@ export const imageExtention = () => {
           props: {
             handleDOMEvents: {
               drop(view: EditorView, event: DragEvent) {
-                const hasFiles = event.dataTransfer &&
-                  event.dataTransfer.files &&
-                  event.dataTransfer.files.length;
+                const hasFiles = event.dataTransfer
+                  && event.dataTransfer.files
+                  && event.dataTransfer.files.length;
 
                 if (!hasFiles) {
                   return;
                 }
                 const images = Array.from(event.dataTransfer.files).filter(
-                  (file) => /image/i.test(file.type),
+                  file => /image/i.test(file.type),
                 );
                 if (images.length === 0) {
                   return;
@@ -42,15 +42,16 @@ export const imageExtention = () => {
                       node,
                     );
                     view.dispatch(transaction);
-                  } catch (error) {
-                    console.error("Image upload failed", error);
+                  }
+                  catch (error) {
+                    console.error('Image upload failed', error);
                   }
                 });
               },
               paste(view: EditorView, event: ClipboardEvent) {
-                const hasFiles = event.clipboardData &&
-                  event.clipboardData.files &&
-                  event.clipboardData.files.length;
+                const hasFiles = event.clipboardData
+                  && event.clipboardData.files
+                  && event.clipboardData.files.length;
 
                 if (!hasFiles) {
                   return;
@@ -58,7 +59,7 @@ export const imageExtention = () => {
 
                 const images = Array.from(
                   event.clipboardData.files,
-                ).filter((file) => /image/i.test(file.type));
+                ).filter(file => /image/i.test(file.type));
 
                 if (images.length === 0) {
                   return;
@@ -76,8 +77,9 @@ export const imageExtention = () => {
                       node,
                     );
                     view.dispatch(transaction);
-                  } catch (error) {
-                    console.error("Image upload failed", error);
+                  }
+                  catch (error) {
+                    console.error('Image upload failed', error);
                   }
                 });
               },
@@ -95,11 +97,11 @@ async function uploadImage(image: File) {
   return new Promise((resolve, reject) => {
     reader.onload = async (event) => {
       try {
-        const base64Data = (event.target?.result as string).split(",")[1];
+        const base64Data = (event.target?.result as string).split(',')[1];
         const _fileName = image.name;
         const mimeType = image.type;
 
-        const response = await invoke("save_image", {
+        const response = await invoke('save_image', {
           args: {
             data: base64Data,
             mime_type: mimeType,
@@ -107,12 +109,13 @@ async function uploadImage(image: File) {
         });
 
         resolve(response as string);
-      } catch (error) {
+      }
+      catch (error) {
         reject(error);
       }
     };
 
-    reader.onerror = () => reject("Failed to read file");
+    reader.onerror = () => reject('Failed to read file');
     reader.readAsDataURL(image);
   });
 }

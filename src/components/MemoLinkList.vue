@@ -11,7 +11,10 @@
     <!-- Backlinks -->
     <div v-if="backLinks.length !== 0">
       <ul class="flex flex-col">
-        <li v-for="link in backLinks">
+        <li
+          v-for="link in backLinks"
+          :key="link.link_id"
+        >
           <div
             class="border-b border-slate-300 bg-slate-50 px-2 py-0.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
           >
@@ -22,7 +25,7 @@
               <span
                 v-if="previousRoute?.params.memo === link.title"
                 class="text-xs font-semibold"
-                >[From]
+              >[From]
               </span>
               {{ link.title }}
             </NuxtLink>
@@ -35,7 +38,10 @@
     <div>
       <div v-if="forwardLinks.length !== 0">
         <ul class="flex flex-col gap-0">
-          <li v-for="link in forwardLinks">
+          <li
+            v-for="link in forwardLinks"
+            :key="link.link_id"
+          >
             <!-- Direct forward link -->
             <div
               class="border-b-2 border-blue-500 bg-blue-200 px-2 py-0.5 text-sm font-semibold text-gray-700 hover:bg-blue-300 hover:text-gray-800"
@@ -47,7 +53,7 @@
                 <span
                   v-if="previousRoute?.params.memo === link.title"
                   class="text-xs font-bold"
-                  >[From]
+                >[From]
                 </span>
                 {{ link.title }}
               </NuxtLink>
@@ -57,8 +63,9 @@
             <ul>
               <li
                 v-for="thl in twoHopLinks.filter(
-                  (thl) => thl.link_id === link.link_id
+                  (thl) => thl.link_id === link.link_id,
                 )"
+                :key="thl.link_id"
               >
                 <div
                   class="border-b border-slate-300 bg-slate-50 px-2 py-0.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
@@ -70,7 +77,7 @@
                     <span
                       v-if="previousRoute?.params.memo === thl.title"
                       class="text-xs font-bold"
-                      >[From]
+                    >[From]
                     </span>
                     {{ thl.title }}
                   </NuxtLink>
@@ -85,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Link } from '~/models/link';
+import type { Link } from '~/models/link';
 
 const props = defineProps<{
   links: Array<Link>;
@@ -94,12 +101,12 @@ const props = defineProps<{
 const previousRoute = usePreviousRoute();
 
 const forwardLinks = computed(() =>
-  props.links.filter((link) => link.link_type === "Forward")
+  props.links.filter(link => link.link_type === 'Forward'),
 );
 const backLinks = computed(() =>
-  props.links.filter((link) => link.link_type === "Backward")
+  props.links.filter(link => link.link_type === 'Backward'),
 );
 const twoHopLinks = computed(() =>
-  props.links.filter((link) => link.link_type === "TwoHop")
+  props.links.filter(link => link.link_type === 'TwoHop'),
 );
 </script>

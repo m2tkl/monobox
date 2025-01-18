@@ -7,11 +7,11 @@
  */
 export const encodeForSlug = (title: string) => {
   // Replace space to '_'
-  const titleEncodedSpace = title.replaceAll(" ", "_");
+  const titleEncodedSpace = title.replaceAll(' ', '_');
 
   // Replace symbols to '_'
   // " < > # % { } | \ ^ ~ [ ] `
-  const charsToReplace = /["`;\/?:@&=+$,<>\#%{}|\^~\[\]]/g;
-  const titleEncodedOnlySybols = titleEncodedSpace.replace(charsToReplace, (char) => encodeURIComponent(char));
-  return titleEncodedOnlySybols
-}
+  const charsToReplace = /["`;/:@&=+$,<>#%{}|^~[\]]/g;
+  const titleEncodedOnlySybols = titleEncodedSpace.replace(charsToReplace, char => encodeURIComponent(char));
+  return titleEncodedOnlySybols;
+};

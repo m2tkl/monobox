@@ -1,4 +1,4 @@
-import { Heading } from "@tiptap/extension-heading";
+import { Heading } from '@tiptap/extension-heading';
 
 export const headingExtension = () => {
   return Heading.extend({
@@ -7,7 +7,7 @@ export const headingExtension = () => {
         ...this.parent?.(),
         id: {
           default: null,
-          parseHTML: (element) => element.getAttribute("id"),
+          parseHTML: element => element.getAttribute('id'),
           renderHTML: (attributes) => {
             return {
               id: attributes.id,
@@ -16,7 +16,7 @@ export const headingExtension = () => {
         },
         level: {
           default: 1,
-          parseHTML: (element) => parseInt(element.tagName[1], 10),
+          parseHTML: element => parseInt(element.tagName[1], 10),
           renderHTML: (attributes) => {
             return {
               level: attributes.level,

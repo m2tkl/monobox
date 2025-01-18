@@ -1,10 +1,10 @@
-import type { Editor } from "@tiptap/vue-3";
-import type { EditorView } from "@tiptap/pm/view";
-import type { Level } from "@tiptap/extension-heading";
-import { Transaction } from "@tiptap/pm/state";
+import type { Editor } from '@tiptap/vue-3';
+import type { EditorView } from '@tiptap/pm/view';
+import type { Level } from '@tiptap/extension-heading';
+import type { Transaction } from '@tiptap/pm/state';
 
 export const unsetLink = (editor: Editor) => {
-  editor.chain().focus().extendMarkRange("link").unsetLink().run();
+  editor.chain().focus().extendMarkRange('link').unsetLink().run();
 };
 
 export const toggleHeading = (
@@ -16,12 +16,12 @@ export const toggleHeading = (
 
 export const toggleStyle = (
   editor: Editor,
-  style: "bold" | "italic" | "strike",
+  style: 'bold' | 'italic' | 'strike',
 ) => {
   const styleMap = {
-    "bold": () => editor.chain().focus().toggleBold(),
-    "italic": () => editor.chain().focus().toggleItalic(),
-    "strike": () => editor.chain().focus().toggleStrike(),
+    bold: () => editor.chain().focus().toggleBold(),
+    italic: () => editor.chain().focus().toggleItalic(),
+    strike: () => editor.chain().focus().toggleStrike(),
   };
   styleMap[style]().run();
 };
@@ -63,7 +63,7 @@ export const resetStyle = (
 export const getChangedLinks = (transaction: Transaction) => {
   const beforeLinks = new Set<string>();
   transaction.before.descendants((node) => {
-    const linkMark = node.marks.find((mark) => mark.type.name === "link");
+    const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
       beforeLinks.add(linkMark.attrs.href);
     }
@@ -72,7 +72,7 @@ export const getChangedLinks = (transaction: Transaction) => {
   // The updated links (list of href)
   const afterLinks = new Set<string>();
   transaction.doc.descendants((node) => {
-    const linkMark = node.marks.find((mark) => mark.type.name === "link");
+    const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
       afterLinks.add(linkMark.attrs.href);
     }
@@ -106,7 +106,9 @@ export const isInternalLink = (url: string): boolean => {
   try {
     const linkHost = new URL(url, appHost).origin;
     return linkHost === appHost;
-  } catch (e) {
+  }
+  catch (error) {
+    console.error(error);
     return false;
   }
 };
@@ -118,12 +120,12 @@ export const getLinkFromMouseClickEvent = (
     return;
   }
 
-  const link = (event.target as HTMLElement).closest("a");
+  const link = (event.target as HTMLElement).closest('a');
   if (!link) {
     return;
   }
 
-  const url = link.getAttribute("href");
+  const url = link.getAttribute('href');
   if (!url) {
     return;
   }
@@ -143,9 +145,9 @@ export const isModifierKeyPressed = (event: MouseEvent) => {
  */
 export function getSelectedTextV2(editorView: EditorView): string {
   const { from, to } = editorView.state.selection;
-  const selectedText = editorView.state.doc.textBetween(from, to, "");
+  const selectedText = editorView.state.doc.textBetween(from, to, '');
 
-  return selectedText
+  return selectedText;
 }
 
 /**
@@ -155,23 +157,27 @@ export function getSelectedTextV2(editorView: EditorView): string {
  * @param displayText
  * @param link
  */
-export function insertLinkToMemo(editor: Editor, displayText: string, link: string): void {
+export function insertLinkToMemo(
+  editor: Editor,
+  displayText: string,
+  link: string,
+): void {
   // NOTE:
   //   Ideally, I wanted to use chain, but I couldn't insert the text. The reason is unknown.
   editor.commands.insertContent({
-    type: "text",
+    type: 'text',
     text: displayText,
     marks: [
       {
-        type: "link",
+        type: 'link',
         attrs: {
-          href: link
-        }
-      }
-    ]
-  })
+          href: link,
+        },
+      },
+    ],
+  });
 
   // NOTE:
   //   Explicitly unset the link input to prevent subsequent input from being linked after inserting a link.
-  editor.commands.unsetMark("link")
+  editor.commands.unsetMark('link');
 }

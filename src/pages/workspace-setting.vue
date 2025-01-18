@@ -3,7 +3,9 @@
     <UContainer>
       <UCard>
         <template #header>
-          <h2 class="text-lg font-bold text-gray-600">Workspace setting</h2>
+          <h2 class="text-lg font-bold text-gray-600">
+            Workspace setting
+          </h2>
         </template>
         <p>
           🚧 Under construction...
@@ -12,9 +14,16 @@
 
       <UCard class="mt-6">
         <template #header>
-          <h2 class="text-lg font-bold text-gray-600">Danger zone</h2>
+          <h2 class="text-lg font-bold text-gray-600">
+            Danger zone
+          </h2>
         </template>
-        <UButton color="red" @click="openDeleteConfirmation">Delete this workspace</UButton>
+        <UButton
+          color="red"
+          @click="openDeleteConfirmation"
+        >
+          Delete this workspace
+        </UButton>
       </UCard>
     </UContainer>
 
@@ -27,7 +36,12 @@
 
         <template #footer>
           <div class="h-8">
-            <UButton form="create-workspace-form" type="submit" color="red" @click="_deleteWorkspace">
+            <UButton
+              form="create-workspace-form"
+              type="submit"
+              color="red"
+              @click="_deleteWorkspace"
+            >
               Delete
             </UButton>
           </div>
@@ -38,46 +52,47 @@
 </template>
 
 <script setup lang="ts">
-import type { Workspace } from "~/models/workspace"
+import type { Workspace } from '~/models/workspace';
 
 definePageMeta({
-  path: "/:workspace/_setting"
-})
+  path: '/:workspace/_setting',
+});
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 const toast = useToast();
-const command = useCommand()
+const command = useCommand();
 
-const workspace = ref<Workspace>()
-workspace.value = await command.workspace.get({ slugName: route.params.workspace as string })
+const workspace = ref<Workspace>();
+workspace.value = await command.workspace.get({ slugName: route.params.workspace as string });
 
-const { setWorkspace } = useWorkspace()
-setWorkspace(workspace.value!)
+const { setWorkspace } = useWorkspace();
+setWorkspace(workspace.value!);
 
-const isOpen = ref(false)
+const isOpen = ref(false);
 const openDeleteConfirmation = () => {
-  isOpen.value = true
-}
+  isOpen.value = true;
+};
 
 const _deleteWorkspace = async () => {
   try {
-    await command.workspace.delete({ slugName: workspace.value!.slug_name })
+    await command.workspace.delete({ slugName: workspace.value!.slug_name });
 
     toast.add({
-      title: "Delete successfully.",
+      title: 'Delete successfully.',
       timeout: 1000,
       icon: iconKey.success,
     });
-    router.replace("/")
-  } catch (error) {
-    console.error(error)
-    toast.add({
-      title: "Failed to delete.",
-      description: "Please delete again.",
-      color: "red",
-      icon: iconKey.failed,
-    })
+    router.replace('/');
   }
-}
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to delete.',
+      description: 'Please delete again.',
+      color: 'red',
+      icon: iconKey.failed,
+    });
+  }
+};
 </script>

@@ -3,13 +3,26 @@
     <!-- Header Section -->
     <div class="code-block-header pb-2">
       <!-- Language Selector -->
-      <USelect v-model="selectedLanguage" :options="languages" size="2xs" class="text-gray-600" />
+      <USelect
+        v-model="selectedLanguage"
+        :options="languages"
+        size="2xs"
+        class="text-gray-600"
+      />
 
       <!-- Name Input -->
-      <UInput v-model="codeBlockName" size="xs" class="flex-1 pr-2 text-gray-600 font-semibold" variant="none" />
+      <UInput
+        v-model="codeBlockName"
+        size="xs"
+        class="flex-1 pr-2 text-gray-600 font-semibold"
+        variant="none"
+      />
 
       <!-- Copy Button -->
-      <IconButton :icon="iconKey.copy" @click="copyToClipboard" />
+      <IconButton
+        :icon="iconKey.copy"
+        @click="copyToClipboard"
+      />
     </div>
 
     <!-- Code Content -->
@@ -20,27 +33,27 @@
 </template>
 
 <script lang="ts">
-import { type NodeViewProps } from "@tiptap/vue-3";
-
-export default defineComponent({
-  props: nodeViewProps
-}) as Component<NodeViewProps>;
+import type { NodeViewProps } from '@tiptap/vue-3';
 </script>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
-import { NodeViewContent, nodeViewProps, NodeViewWrapper } from "@tiptap/vue-3";
+import { ref, computed } from 'vue';
+import { NodeViewContent, nodeViewProps, NodeViewWrapper } from '@tiptap/vue-3';
+
+defineComponent({
+  props: nodeViewProps,
+}) as Component<NodeViewProps>;
 
 const props = defineProps(nodeViewProps);
-const toast = useToast()
+const toast = useToast();
 
 const languages = ref(
   props.extension.options.lowlight
     .listLanguages()
-    .sort((a: string, b: string) => a.localeCompare(b))
+    .sort((a: string, b: string) => a.localeCompare(b)),
 );
 
-const codeBlockRef = ref()
+const codeBlockRef = ref();
 
 const selectedLanguage = computed({
   get: () => props.node.attrs.language,
@@ -50,7 +63,7 @@ const selectedLanguage = computed({
 });
 
 const codeBlockName = computed({
-  get: () => props.node.attrs.name || "",
+  get: () => props.node.attrs.name || '',
   set: (name: string) => {
     props.updateAttributes({ name });
   },
@@ -58,24 +71,25 @@ const codeBlockName = computed({
 
 const copyToClipboard = async () => {
   try {
-    const codeElement = codeBlockRef.value.querySelector("pre code");
-    const codeContent = (codeElement ? codeElement.innerText : "").trimEnd();
+    const codeElement = codeBlockRef.value.querySelector('pre code');
+    const codeContent = (codeElement ? codeElement.innerText : '').trimEnd();
 
     await navigator.clipboard.writeText(codeContent);
 
     toast.add({
-      title: "Copied!",
+      title: 'Copied!',
       timeout: 1000,
       icon: iconKey.success,
     });
-  } catch (error) {
-    console.error("Failed to copy code:", error);
+  }
+  catch (error) {
+    console.error('Failed to copy code:', error);
 
     toast.add({
-      title: "Failed to copy.",
-      color: "red",
+      title: 'Failed to copy.',
+      color: 'red',
       icon: iconKey.failed,
-    })
+    });
   }
 };
 </script>

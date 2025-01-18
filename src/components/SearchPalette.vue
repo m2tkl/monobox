@@ -1,5 +1,8 @@
 <template>
-  <UModal v-model="isSearchPaletteOpen" class="relative">
+  <UModal
+    v-model="isSearchPaletteOpen"
+    class="relative"
+  >
     <!-- NOTE:
       - autoclear: false
         When input is entered in the input field, the items are filtered, but upon selection,
@@ -7,72 +10,80 @@
         Setting autoclear to false prevents the filter from being cleared (since it is manually cleared,
         it remains cleared the next time it is opened, so there is no issue).
     -->
-    <UCommandPalette v-model="selected" :groups="commandPaletteItems" class="min-h-[calc(60vh)] max-h-[calc(60vh)]" :autoclear="false"
+    <UCommandPalette
+      ref="commandPaletteRef"
+      v-model="selected"
+      :groups="commandPaletteItems"
+      class="min-h-[calc(60vh)] max-h-[calc(60vh)]"
+      :autoclear="false"
       :icon="type === 'link' ? iconKey.link : iconKey.search"
       placeholder="Type something to see the empty label change"
-      :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 10 }" command-attribute="title"
-      @update:model-value="onSearchPaletteSelect" ref="commandPaletteRef" :empty-state="{
+      :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 10 }"
+      command-attribute="title"
+      :empty-state="{
         icon: iconKey.search,
         label: 'We couldn\'t find any items.',
         queryLabel: 'We couldn\'t find any items with that term.',
-      }" />
+      }"
+      @update:model-value="onSearchPaletteSelect"
+    />
   </UModal>
 </template>
 
 <script setup lang="ts">
-import { Editor } from '@tiptap/vue-3';
-import { type Workspace } from '~/models/workspace';
-import { type MemoDetail, type MemoIndexItem } from '~/models/memo';
+import type { Editor } from '@tiptap/vue-3';
+import { invoke } from '@tauri-apps/api/core';
+import type { Workspace } from '~/models/workspace';
+import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 import type { LinkPaletteItem, LinkPaletteItems } from '~/models/link';
 import { getSelectedTextV2, insertLinkToMemo } from '~/domain/editor';
-import { invoke } from '@tauri-apps/api/core';
 
 const props = defineProps<{
-  type: "search" | "link";
-  workspace: Workspace,
-  memos: MemoIndexItem[],
+  type: 'search' | 'link';
+  workspace: Workspace;
+  memos: MemoIndexItem[];
   editor?: Editor;
   shortcutSymbol: string;
-}>()
+}>();
 
 defineExpose({
   openCommandPalette,
-})
+});
 
-const router = useRouter()
-const logger = useConsoleLogger("[components/Search/SearchPalette]:")
+const router = useRouter();
+const logger = useConsoleLogger('[components/Search/SearchPalette]:');
 
-const selected = ref([])
-const isSearchPaletteOpen = ref(false)
+const selected = ref([]);
+const isSearchPaletteOpen = ref(false);
 const commandPaletteRef = ref();
 
 const commandPaletteItems = computed<LinkPaletteItems>(() => {
   if (!props.memos) {
-    return []
+    return [];
   }
 
   // NOTE: Add label for command palette
   const existingMemos = props.memos
     .toSorted()
-    .map((memo) => ({ ...memo, label: memo.title }))
+    .map(memo => ({ ...memo, label: memo.title }));
 
   const linkPaletteCommands: LinkPaletteItems = [{
-    key: "existing-memos",
-    label: "Existing memos",
-    commands: existingMemos.map((memo) => ({ ...memo, tag: 'existing' }))
-  }]
+    key: 'existing-memos',
+    label: 'Existing memos',
+    commands: existingMemos.map(memo => ({ ...memo, tag: 'existing' })),
+  }];
 
   // While entering a query, if there is no existing memo with a title matching the query string,
   // a new command item is added at the top for creating a new memo.
   const query = commandPaletteRef.value?.query as string;
-  if (query && !existingMemos.map((memo) => memo.title).includes(query)) {
+  if (query && !existingMemos.map(memo => memo.title).includes(query)) {
     const _ = linkPaletteCommands.unshift(
       {
-        key: "new",
-        label: "Or new memo",
-        commands: [{ id: "", slug_title: query, title: query, tag: 'new' }],
-      }
-    )
+        key: 'new',
+        label: 'Or new memo',
+        commands: [{ id: '', slug_title: query, title: query, tag: 'new' }],
+      },
+    );
   }
 
   return linkPaletteCommands;
@@ -83,10 +94,10 @@ const commandPaletteItems = computed<LinkPaletteItems>(() => {
  * @param option
  */
 async function onSearchPaletteSelect(option: LinkPaletteItem | null) {
-  logger.log("onSearchPaletteSelect() start.")
+  logger.log('onSearchPaletteSelect() start.');
 
   if (!isSearchPaletteOpen.value) {
-    logger.warn("onSearchPalatteSelect()", "palette is closed.")
+    logger.warn('onSearchPalatteSelect()', 'palette is closed.');
     return;
   }
 
@@ -94,38 +105,38 @@ async function onSearchPaletteSelect(option: LinkPaletteItem | null) {
     option == null
     || commandPaletteRef.value?.query == null
   ) {
-    logger.warn("onSearchPaletteSelect() validation failed.")
+    logger.warn('onSearchPaletteSelect() validation failed.');
     return;
   }
 
-  let linkMemoSlug = option.slug_title
-  let linkMemoTitle = option.title
+  let linkMemoSlug = option.slug_title;
+  let linkMemoTitle = option.title;
 
-  console.log(linkMemoSlug, linkMemoTitle)
+  console.log(linkMemoSlug, linkMemoTitle);
 
-  if (option.tag === "new") {
+  if (option.tag === 'new') {
     // Create new memo
     const newMemo = await invoke<MemoDetail>('create_memo', {
       args: {
         workspace_slug_name: props.workspace.slug_name,
         slug_title: encodeForSlug(commandPaletteRef.value.query),
         title: commandPaletteRef.value.query,
-        content: JSON.stringify(""),
-      }
-    })
+        content: JSON.stringify(''),
+      },
+    });
 
-    linkMemoSlug = newMemo.slug_title
-    linkMemoTitle = newMemo.title
+    linkMemoSlug = newMemo.slug_title;
+    linkMemoTitle = newMemo.title;
   }
 
   /**
    * Before modal closes
    */
 
-  if (props.type === "link") {
+  if (props.type === 'link') {
     if (props.editor) {
-      console.log("insertLinkToMemo")
-      insertLinkToMemo(props.editor, linkMemoTitle, `/${props.workspace.slug_name}/${linkMemoSlug}`)
+      console.log('insertLinkToMemo');
+      insertLinkToMemo(props.editor, linkMemoTitle, `/${props.workspace.slug_name}/${linkMemoSlug}`);
     }
   }
 
@@ -139,10 +150,10 @@ async function onSearchPaletteSelect(option: LinkPaletteItem | null) {
   //   and closing it.
   //   Ideally, the open and close processes should be paired properly.
   //   Perhaps the concern lies in the fact that onSelect is performing actions unrelated to selection?
-  await nextTick()
-  closeCommandPalette([isSearchPaletteOpen])
+  await nextTick();
+  closeCommandPalette([isSearchPaletteOpen]);
 
-  logger.log("onSearchPaletteSelect() end.")
+  logger.log('onSearchPaletteSelect() end.');
 
   /**
    * After modal closed
@@ -151,32 +162,32 @@ async function onSearchPaletteSelect(option: LinkPaletteItem | null) {
   // Navigate to a new page
   // NOTE: Using the format {name: 'workspace-memo', params: { workspace: ..., memo: ... }}
   // automatically encodes the parameters, so the path format is used instead.
-  if (props.type === "search") {
-    router.push(`/${props.workspace.slug_name}/${linkMemoSlug}`)
+  if (props.type === 'search') {
+    router.push(`/${props.workspace.slug_name}/${linkMemoSlug}`);
   }
 }
 
 async function openCommandPalette() {
-  logger.log("openCommandPalette() start.")
-  isSearchPaletteOpen.value = true
-  selected.value = []
+  logger.log('openCommandPalette() start.');
+  isSearchPaletteOpen.value = true;
+  selected.value = [];
 
   // If text is selected in the editor, set the text in the input field.
   if (props.editor && commandPaletteRef) {
-    const selectedText = getSelectedTextV2(props.editor.view)
-    await nextTick()
+    const selectedText = getSelectedTextV2(props.editor.view);
+    await nextTick();
     commandPaletteRef.value.query = selectedText;
   }
 
-  logger.log("openCommandPalette() end.")
+  logger.log('openCommandPalette() end.');
 }
 
 function closeCommandPalette(paletteRefs: Array<Ref<boolean>>) {
-  logger.log("closeCommandPalette() start.")
+  logger.log('closeCommandPalette() start.');
 
   // Close command palette
   for (const paletteRef of paletteRefs) {
-    paletteRef.value = false
+    paletteRef.value = false;
   }
 
   /**
@@ -194,9 +205,9 @@ function closeCommandPalette(paletteRefs: Array<Ref<boolean>>) {
   }
 
   if (props.editor) {
-    props.editor.commands.focus()
+    props.editor.commands.focus();
   }
-  logger.log("closeCommandPalette() end.")
+  logger.log('closeCommandPalette() end.');
 }
 
 const handleKeydownShortcut = (event: KeyboardEvent) => {
@@ -205,15 +216,15 @@ const handleKeydownShortcut = (event: KeyboardEvent) => {
     openCommandPalette();
     return;
   }
-}
+};
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydownShortcut)
-})
+  window.addEventListener('keydown', handleKeydownShortcut);
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydownShortcut)
-})
+  window.removeEventListener('keydown', handleKeydownShortcut);
+});
 
 defineShortcuts({
   /**
@@ -228,8 +239,8 @@ defineShortcuts({
     usingInput: true,
     whenever: [isSearchPaletteOpen], // Triggered only when the modal is open
     handler: () => {
-      closeCommandPalette([isSearchPaletteOpen])
-    }
+      closeCommandPalette([isSearchPaletteOpen]);
+    },
   },
-})
+});
 </script>
