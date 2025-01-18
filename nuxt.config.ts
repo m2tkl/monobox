@@ -63,6 +63,7 @@ export default defineNuxtConfig({
         "carbon:chevron-down",
         "carbon:home",
         "carbon:copy",
+        "carbon:text-clear-format",
 
         // Nuxt
         "heroicons:x-mark-20-solid",

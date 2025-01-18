@@ -33,4 +33,5 @@ export const iconKey = {
   chevronDown: "carbon:chevron-down",
   home: "carbon:home",
   copy: "carbon:copy",
+  clearFormat: "carbon:text-clear-format",
 }

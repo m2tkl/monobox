@@ -6,25 +6,14 @@
         @click.self="editor?.chain().focus('end').run()">
 
         <!-- Memo title -->
-        <div class="flex gap-0.5 py-1 px-2 sticky top-0 left-0 z-50 bg-slate-200 overflow-auto" v-if="editor">
-          <EditorToolbarButton @exec="toggleHeading(editor, { h: 1 })" label="H1" />
-          <EditorToolbarButton @exec="toggleHeading(editor, { h: 2 })" label="H2" />
-          <EditorToolbarButton @exec="toggleHeading(editor, { h: 3 })" label="H3" />
+        <EditorToolbar :editor="editor" v-if="editor" class="sticky top-0 left-0 z-50" />
 
-          <EditorToolbarButton @exec="toggleStyle(editor, 'bold')" :icon="iconKey.textBold" />
-          <EditorToolbarButton @exec="toggleStyle(editor, 'italic')" :icon="iconKey.textItalic" />
-          <EditorToolbarButton @exec="toggleStyle(editor, 'strike')" :icon="iconKey.textStrikeThrough" />
-          <EditorToolbarButton @exec="toggleBulletList(editor)" :icon="iconKey.listBulletted" />
-          <EditorToolbarButton @exec="toggleOrderedList(editor)" :icon="iconKey.listNumbered" />
-          <EditorToolbarButton @exec="toggleBlockQuote(editor)" :icon="iconKey.quotes" />
-          <EditorToolbarButton @exec="toggleCode(editor)" :icon="iconKey.inlineCode" />
-
+        <BubbleMenu :editor="editor" v-if="editor"
+          class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400">
           <EditorToolbarButton @exec="openLinkPalette()" :icon="iconKey.memoLink" />
           <EditorToolbarButton @exec="setLinkManually()" :icon="iconKey.link" />
           <EditorToolbarButton @exec="unsetLink(editor)" :icon="iconKey.unlink" />
-
-          <EditorToolbarButton @exec="resetStyle(editor)" label="Reset" />
-        </div>
+        </BubbleMenu>
 
         <div class="bg-slate-50 p-8" @click.self="editor?.chain().focus('end').run()">
           <TitleFieldAutoResize v-model="title" />
@@ -98,7 +87,7 @@
 <script lang="ts" setup>
 import { type MemoIndexItem } from '~/models/memo';
 import { type Link as LinkType } from '~/models/link';
-import { useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
+import { BubbleMenu, Editor, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Focus from '@tiptap/extension-focus'
@@ -107,7 +96,6 @@ import { getChangedLinks, getLinkFromMouseClickEvent, isInternalLink, isModifier
 import { headingExtension } from '~/domain/extensions/heading';
 import ToCList from '~/components/ToCList.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
-import { toggleHeading, toggleStyle, toggleBulletList, toggleOrderedList, toggleCode, toggleBlockQuote, resetStyle } from '~/domain/editor';
 import { EditorContent } from '@tiptap/vue-3';
 import SearchPalette from '~/components/SearchPalette.vue';
 import { unsetLink } from '~/domain/editor';
