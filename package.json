@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@iconify-json/carbon": "^1.2.5",
+    "@nuxt/eslint": "^0.7.5",
     "@nuxt/ui": "^2.20.0",
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/cli": "^2",
@@ -26,6 +27,7 @@
     "@tiptap/pm": "^2.10.3",
     "@tiptap/starter-kit": "^2.10.3",
     "@tiptap/vue-3": "^2.10.3",
+    "eslint": "^9.18.0",
     "lowlight": "^3.3.0",
     "nuxt": "^3.14.1592",
     "vue": "latest",

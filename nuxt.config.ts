@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxt/ui", "@nuxt/icon"],
+  modules: ["@nuxt/ui", "@nuxt/icon", "@nuxt/eslint"],
 
   icon: {
     serverBundle: false,
@@ -69,6 +69,12 @@ export default defineNuxtConfig({
         "heroicons:x-mark-20-solid",
       ],
       scan: true,
+    },
+  },
+
+  eslint: {
+    config: {
+      stylistic: true, // <---
     },
   },
 });
