@@ -5,7 +5,6 @@
   >
     <div class="p-4 h-full w-full">
       <!-- Workspace section -->
-      <!-- <div class="pb-3 sticky top-0 z-10"> -->
       <div class="pb-3 h-10">
         <UDropdown
           :items="workspaceMenuItems"
@@ -32,14 +31,37 @@
       <div class="h-[calc(100%-2.5rem)] overflow-y-auto">
         <!-- Bookmark section -->
         <!-- 🚧 TODO: Implement bookmark feature -->
-        <!-- <section>
+        <section
+          v-if="favoriteMemos"
+          class="pb-2"
+        >
           <div class="sticky top-0 z-10 bg-[--slate]">
             <div class="pb-2 flex items-center">
-              <UIcon :name="iconKey.bookmark" class="mr-1" />
-              <h2 class="font-bold text-gray-600">Favorites</h2>
+              <UIcon
+                :name="iconKey.bookmark"
+                class="mr-1"
+              />
+              <h2 class="font-bold text-gray-600">
+                Favorites
+              </h2>
             </div>
           </div>
-        </section> -->
+
+          <ul class="flex flex-col">
+            <li
+              v-for="memo in favoriteMemos"
+              :key="memo.id"
+            >
+              <NuxtLink
+                :to="`/${workspaceSlug}/${memo.slug_title}`"
+                class="block px-2 py-1 rounded-md hover:bg-slate-100 hover:text-blue-700 text-gray-600 text-sm"
+                active-class="bg-slate-100 font-bold"
+              >
+                {{ memo.title }}
+              </NuxtLink>
+            </li>
+          </ul>
+        </section>
 
         <!-- Recently viewed memos section -->
         <section>
@@ -84,6 +106,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useWorkspace } from '~/composables/useWorkspace'; // 既存のuseWorkspaceがある前提
+import type { Link } from '~/models/link';
 import type { MemoIndexItem } from '~/models/memo';
 
 const router = useRouter();
@@ -96,11 +119,19 @@ const workspaceSlug = computed(() => workspace.value?.slug_name || '');
 const command = useCommand();
 
 const recentMemos = ref<MemoIndexItem[]>();
+const favoriteMemos = ref<Link[]>();
+
 watch([workspaceSlug, route], async () => {
   if (workspaceSlug.value) {
     const memos = await command.memo.list({ slugName: workspaceSlug.value });
     if (memos) {
       recentMemos.value = memos;
+    }
+
+    const favoriteMemosData = await command.link.list({ workspaceSlug: workspaceSlug.value, memoSlug: '#favorite' });
+    if (favoriteMemosData) {
+      favoriteMemos.value = favoriteMemosData.filter(link => link.link_type !== 'TwoHop');
+      favoriteMemos.value.sort((a, b) => a.description! < b.description! ? -1 : 1);
     }
   }
 });
