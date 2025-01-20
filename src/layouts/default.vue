@@ -13,7 +13,8 @@
 
       <!-- Main content -->
       <div
-        class="flex-1 h-full flex w-[calc(100%-254px)]"
+        id="main-content"
+        class="flex-1 h-full flex w-[calc(100%-250px)] overflow-x-hidden"
         :class="{ 'justify-center w-full': !ui.isSidebarOpen }"
       >
         <div
