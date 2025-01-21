@@ -88,6 +88,16 @@ export const imageExtention = () => {
         }),
       ];
     },
+    renderHTML({ HTMLAttributes }) {
+      const transformedSrc = transformImageSrc(HTMLAttributes.src);
+      return [
+        'img',
+        {
+          ...HTMLAttributes,
+          src: transformedSrc,
+        },
+      ];
+    },
   });
 };
 
