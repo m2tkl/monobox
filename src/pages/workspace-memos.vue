@@ -31,7 +31,7 @@
               </template>
               <img
                 v-if="memo.thumbnail_image"
-                :src="memo.thumbnail_image"
+                :src="transformImageSrc(memo.thumbnail_image)"
               >
               <p
                 v-for="p in truncateString(memo.description ? memo.description : '', 128)?.split('\n')"
