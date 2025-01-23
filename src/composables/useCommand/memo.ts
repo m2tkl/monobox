@@ -11,6 +11,7 @@ export const memoCommand = {
     }
     catch (error) {
       console.error('Error fetching memos:', error);
+      throw error;
     }
   },
 
@@ -26,6 +27,7 @@ export const memoCommand = {
     }
     catch (error) {
       console.error('Error fetching memo:', error);
+      throw error;
     }
   },
 
@@ -55,6 +57,7 @@ export const memoCommand = {
     }
     catch (error) {
       console.error('Falied to save memo:', error);
+      throw error;
     }
   },
 
@@ -70,6 +73,7 @@ export const memoCommand = {
     }
     catch (error) {
       console.error('Failed to delete memo:', error);
+      throw error;
     }
   },
 };

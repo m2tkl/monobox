@@ -21,6 +21,7 @@ export const workspaceCommand = {
     }
     catch (error) {
       console.error('Error fetching workspace:', error);
+      throw error;
     }
   },
 

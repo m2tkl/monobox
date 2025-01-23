@@ -17,6 +17,7 @@ export const linkCommand = {
     }
     catch (error) {
       console.error('Failed to reload links:', error);
+      throw error;
     }
   },
 

@@ -1,5 +1,6 @@
 <template>
   <div class="h-full w-full">
+    <!-- {{ store.memo }} -->
     <div class="flex h-full w-full justify-center gap-3 px-4 pb-4">
       <!-- Editor -->
       <div
@@ -37,12 +38,15 @@
           class="bg-slate-50 p-8"
           @click.self="editor?.chain().focus('end').run()"
         >
-          <TitleFieldAutoResize v-model="title" />
+          <TitleFieldAutoResize
+            v-if="store.memo"
+            v-model="store.memo.title"
+          />
 
           <UDivider class="py-6" />
 
           <!-- Memo contents -->
-          <div v-if="editor && memo">
+          <div v-if="editor">
             <editor-content
               v-if="editor"
               :editor="editor"
@@ -76,8 +80,8 @@
         />
 
         <MemoLinkList
-          v-if="linksData"
-          :links="linksData"
+          v-if="store.links"
+          :links="store.links"
         />
       </div>
     </div>
@@ -95,18 +99,18 @@
       />
     </div>
 
-    <div v-if="memos">
+    <div v-if="store.workspaceMemos && store.workspace">
       <SearchPalette
         ref="linkPaletteRef"
-        :workspace="workspace"
-        :memos="memos"
+        :workspace="store.workspace"
+        :memos="store.workspaceMemos"
         type="link"
         shortcut-symbol="i"
         :editor="editor"
       />
       <SearchPalette
-        :workspace="workspace"
-        :memos="memos"
+        :workspace="store.workspace"
+        :memos="store.workspaceMemos"
         type="search"
         shortcut-symbol="k"
         :editor="editor"
@@ -169,9 +173,6 @@ import SearchPalette from '~/components/SearchPalette.vue';
 import { imageExtention } from '~/domain/extensions/image';
 import CodeBlockComponent from '~/components/CodeBlock.vue';
 
-import type { Link as LinkType } from '~/models/link';
-import type { MemoIndexItem } from '~/models/memo';
-
 definePageMeta({
   path: '/:workspace/:memo',
   validate(route) {
@@ -185,64 +186,31 @@ const logger = useConsoleLogger(LOG_PREFIX);
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const command = useCommand();
 
 const lowlight = createLowlight(all);
 lowlight.register('html', xml);
 lowlight.register('vue', xml);
 
-const workspaceSlug = route.params.workspace as string;
-const memoSlug = route.params.memo as string;
+const workspaceSlug = computed(() => route.params.workspace as string);
+const memoSlug = computed(() => route.params.memo as string);
 
-async function fetchWorkspace() {
-  try {
-    const workspaceDetail = await command.workspace.get({ slugName: workspaceSlug });
-    return workspaceDetail;
-  }
-  catch (error) {
-    console.error('Error fetching workspace:', error);
-  }
-}
+const { store, loadMemo, loadWorkspace } = useWorkspaceLoader();
 
-async function fetcthMemo() {
-  try {
-    const memoDetail = await command.memo.get({ workspaceSlugName: workspaceSlug, memoSlugTitle: memoSlug });
-    return memoDetail;
-  }
-  catch (error) {
-    console.error('Error fetching memo:', error);
-  }
-}
+watch([workspaceSlug], async () => {
+  await loadWorkspace(workspaceSlug.value);
+});
+watch([workspaceSlug, memoSlug], async () => {
+  await loadMemo(workspaceSlug.value, memoSlug.value);
+});
 
-async function fetchWorkspaceMemosIndex() {
-  try {
-    const memosIndex = await command.memo.list({ slugName: workspaceSlug });
-    return memosIndex;
-  }
-  catch (error) {
-    console.error('Error fetching memos:', error);
-  }
-}
-
-const workspace = ref();
-workspace.value = await fetchWorkspace();
-
-const memo = ref();
-memo.value = await fetcthMemo();
-
-const title = ref(memo.value?.title);
-
-const memos = ref<Array<MemoIndexItem>>();
-memos.value = await fetchWorkspaceMemosIndex();
-
-const linksData = ref<LinkType[]>([]);
-await reloadLinks();
+await loadWorkspace(workspaceSlug.value);
+await loadMemo(workspaceSlug.value, memoSlug.value);
 
 const { setWorkspace } = useWorkspace();
-setWorkspace(workspace.value);
+setWorkspace(store.workspace!);
 
 const editor = useEditor({
-  content: memo.value ? JSON.parse(memo.value.content) : '',
+  content: store.memo ? JSON.parse(store.memo.content) : '',
   extensions: [
     StarterKit.configure({ heading: false, codeBlock: false }),
     Link.configure({
@@ -333,18 +301,18 @@ const editor = useEditor({
     const { deletedLinks, addedLinks } = getChangedLinks(transaction);
     await Promise.all(
       deletedLinks.map(async (href) => {
-        await deleteLink(href);
+        await store.deleteLink(workspaceSlug.value, memoSlug.value, href);
       }),
     );
     await Promise.all(
       addedLinks.map(async (href) => {
-        await createLink(href);
+        await store.createLink(workspaceSlug.value, memoSlug.value, href);
       }),
     );
 
     if (deletedLinks.length > 0 || addedLinks.length > 0) {
       await Promise.all([
-        reloadLinks(),
+        store.loadLinks(workspaceSlug.value, memoSlug.value),
         saveMemo(),
       ]);
       logger.log('Link updated successfully.');
@@ -398,28 +366,6 @@ const toc = computed(() => {
 /********************************
  * Link operation
  ********************************/
-
-async function createLink(href: string) {
-  await safeExecute(async () => {
-    await command.link.create({ workspaceSlug, memoSlug }, href);
-  }, `${LOG_PREFIX}/createLink`)();
-}
-
-async function deleteLink(href: string) {
-  await safeExecute(async () => {
-    await command.link.delete({ workspaceSlug, memoSlug }, href);
-  }, `${LOG_PREFIX}/deleteLink`)();
-}
-
-async function reloadLinks() {
-  await safeExecute(async () => {
-    const newLinks = await command.link.list({ workspaceSlug, memoSlug });
-    if (newLinks) {
-      linksData.value = newLinks;
-    }
-  }, `${LOG_PREFIX}/reloadLinks`)();
-}
-
 const linkDialogOn = ref(false);
 const state = reactive({
   url: undefined,
@@ -456,9 +402,8 @@ const setLink = () => {
 /********************************
  * Memo operation
  ********************************/
-
 async function saveMemo() {
-  const updatedTitle = title.value;
+  const updatedTitle = store.memo?.title;
   if (!updatedTitle) {
     window.alert('Please set title.');
     return;
@@ -470,21 +415,14 @@ async function saveMemo() {
     return;
   }
 
-  // Send a request for the memo title before the update
-  const result = await safeExecute(async () => {
-    await command.memo.save(
-      { workspaceSlug, memoSlug },
-      {
-        slugTitle: encodeForSlug(updatedTitle),
-        title: updatedTitle,
-        content: JSON.stringify(editorInstance.getJSON()),
-        description: truncateString(editorInstance.getText(), 256),
-        thumbnailImage: headImageRef.value,
-      },
-    );
-  }, `${LOG_PREFIX}/saveMemo`)();
+  try {
+    await store.saveMemo(workspaceSlug.value, memoSlug.value, {
+      title: updatedTitle,
+      content: JSON.stringify(editorInstance.getJSON()),
+      description: truncateString(editorInstance.getText(), 256),
+      thumbnailImage: headImageRef.value,
+    });
 
-  if (result.ok) {
     toast.clear();
     toast.add({
       title: 'Saved!',
@@ -493,9 +431,11 @@ async function saveMemo() {
     });
 
     // Go to updated title page
-    router.replace(`/${workspaceSlug}/${encodeForSlug(updatedTitle)}`);
+    router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}`);
   }
-  else {
+  catch (error) {
+    logger.error(error);
+
     toast.add({
       title: 'Failed to save.',
       description: 'Please save again.',
@@ -506,11 +446,9 @@ async function saveMemo() {
 };
 
 async function deleteMemo() {
-  const result = await safeExecute(async () => {
-    await command.memo.trash({ workspaceSlug, memoSlug });
-  }, `${LOG_PREFIX}/deleteMemo`)();
+  try {
+    await store.deleteMemo(workspaceSlug.value, memoSlug.value);
 
-  if (result.ok) {
     toast.clear();
     toast.add({
       title: 'Delete memo successfully.',
@@ -518,9 +456,10 @@ async function deleteMemo() {
       icon: iconKey.success,
     });
 
-    router.replace(`/${workspaceSlug}`);
+    router.replace(`/${workspaceSlug.value}`);
   }
-  else {
+  catch (error) {
+    logger.error(error);
     toast.add({
       title: 'Failed to delete.',
       description: 'Please delete again.',
