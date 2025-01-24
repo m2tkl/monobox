@@ -44,7 +44,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       favoriteMemos.value.sort((a, b) => a.description! < b.description! ? -1 : 1);
     }
     catch (error) {
-      console.error(error);
+      console.log(error);
     }
   };
 
@@ -95,6 +95,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     workspaceMemos,
     memo,
     links,
+    favoriteMemos,
 
     // Loaders
     loadWorkspace,

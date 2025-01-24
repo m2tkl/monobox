@@ -5,6 +5,7 @@ export const useWorkspaceLoader = () => {
     await Promise.all([
       store.loadWorkspace(workspaceSlug),
       store.loadWorkspaceMemos(workspaceSlug),
+      store.loadFavoriteMemos(workspaceSlug),
     ]);
   };
 

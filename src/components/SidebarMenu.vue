@@ -30,9 +30,8 @@
 
       <div class="h-[calc(100%-2.5rem)] overflow-y-auto">
         <!-- Bookmark section -->
-        <!-- 🚧 TODO: Implement bookmark feature -->
         <section
-          v-if="favoriteMemos"
+          v-if="store.favoriteMemos"
           class="pb-2"
         >
           <div class="sticky top-0 z-10 bg-[--slate]">
@@ -49,7 +48,7 @@
 
           <ul class="flex flex-col">
             <li
-              v-for="memo in favoriteMemos"
+              v-for="memo in store.favoriteMemos"
               :key="memo.id"
             >
               <NuxtLink
@@ -83,9 +82,12 @@
             </div>
           </div>
 
-          <ul class="flex flex-col">
+          <ul
+            v-if="store.workspaceMemos"
+            class="flex flex-col"
+          >
             <li
-              v-for="memo in recentMemos"
+              v-for="memo in store.workspaceMemos"
               :key="memo.id"
             >
               <NuxtLink
@@ -105,35 +107,21 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useWorkspace } from '~/composables/useWorkspace'; // 既存のuseWorkspaceがある前提
-import type { Link } from '~/models/link';
-import type { MemoIndexItem } from '~/models/memo';
-
-const router = useRouter();
-const route = useRoute();
 
 defineProps<{ isOpen: boolean }>();
 
-const { workspace } = useWorkspace();
-const workspaceSlug = computed(() => workspace.value?.slug_name || '');
-const command = useCommand();
+const router = useRouter();
+const route = useRoute();
+const workspaceSlug = computed(() => route.params.workspace as string);
 
-const recentMemos = ref<MemoIndexItem[]>();
-const favoriteMemos = ref<Link[]>();
+const { store, loadWorkspace } = useWorkspaceLoader();
 
-watch([workspaceSlug, route], async () => {
-  if (workspaceSlug.value) {
-    const memos = await command.memo.list({ slugName: workspaceSlug.value });
-    if (memos) {
-      recentMemos.value = memos;
-    }
+if (workspaceSlug.value) {
+  await loadWorkspace(workspaceSlug.value);
+}
 
-    const favoriteMemosData = await command.link.list({ workspaceSlug: workspaceSlug.value, memoSlug: '#favorite' });
-    if (favoriteMemosData) {
-      favoriteMemos.value = favoriteMemosData.filter(link => link.link_type !== 'TwoHop');
-      favoriteMemos.value.sort((a, b) => a.description! < b.description! ? -1 : 1);
-    }
-  }
+watch([workspaceSlug], async () => {
+  await loadWorkspace(workspaceSlug.value);
 });
 
 const workspaceMenuItems = [
