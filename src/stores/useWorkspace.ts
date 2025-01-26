@@ -9,11 +9,11 @@ export const useWorkspaceStore = defineStore('workspace', () => {
    * States
    */
   const workspace = ref<Workspace>();
-  const workspaceMemos = ref<MemoIndexItem[]>();
+  const workspaceMemos = ref<MemoIndexItem[]>([]);
   const memo = ref<MemoDetail>();
   const links = ref<LinkType[]>();
 
-  const favoriteMemos = ref<LinkType[]>();
+  const favoriteMemos = ref<LinkType[]>([]);
 
   /**
    * Loader
@@ -24,7 +24,13 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   };
 
   const loadWorkspaceMemos = async (workspaceSlug: string) => {
-    workspaceMemos.value = await command.memo.list({ slugName: workspaceSlug });
+    try {
+      workspaceMemos.value = await command.memo.list({ slugName: workspaceSlug });
+    }
+    catch (error) {
+      console.error(error);
+      workspaceMemos.value = [];
+    }
   };
 
   const loadMemo = async (workspaceSlug: string, memoSlug: string) => {
@@ -44,6 +50,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       favoriteMemos.value.sort((a, b) => a.description! < b.description! ? -1 : 1);
     }
     catch (error) {
+      favoriteMemos.value = [];
       console.log(error);
     }
   };

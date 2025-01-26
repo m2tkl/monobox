@@ -31,7 +31,7 @@
       <div class="h-[calc(100%-2.5rem)] overflow-y-auto">
         <!-- Bookmark section -->
         <section
-          v-if="store.favoriteMemos"
+          v-if="favoriteMemos.length > 0"
           class="pb-2"
         >
           <div class="sticky top-0 z-10 bg-[--slate]">
@@ -48,7 +48,7 @@
 
           <ul class="flex flex-col">
             <li
-              v-for="memo in store.favoriteMemos"
+              v-for="memo in favoriteMemos"
               :key="memo.id"
             >
               <NuxtLink
@@ -83,11 +83,11 @@
           </div>
 
           <ul
-            v-if="store.workspaceMemos"
+            v-if="recentMemos.length > 0"
             class="flex flex-col"
           >
             <li
-              v-for="memo in store.workspaceMemos"
+              v-for="memo in recentMemos"
               :key="memo.id"
             >
               <NuxtLink
@@ -99,6 +99,13 @@
               </NuxtLink>
             </li>
           </ul>
+
+          <p
+            v-else
+            class="text-gray-600 text-sm pl-2"
+          >
+            No memos
+          </p>
         </section>
       </div>
     </div>
@@ -122,6 +129,14 @@ if (workspaceSlug.value) {
 
 watch([workspaceSlug], async () => {
   await loadWorkspace(workspaceSlug.value);
+});
+
+const favoriteMemos = computed(() => {
+  return store.favoriteMemos ? store.favoriteMemos : [];
+});
+
+const recentMemos = computed(() => {
+  return store.workspaceMemos.filter(memo => !store.favoriteMemos?.map(item => item.title).includes(memo.title));
 });
 
 const workspaceMenuItems = [
