@@ -80,13 +80,13 @@ impl LinkRepository {
         Ok(links)
     }
 
-    pub fn create(conn: &Connection, memo_id: i32, to_memo_slug_title: &str) -> Result<LinkId> {
+    pub fn create(conn: &Connection, memo_id: i32, to_memo_id: i32) -> Result<LinkId> {
         conn.execute(
             "INSERT INTO link (from_memo_id, to_memo_id)
             SELECT ?, id
             FROM memo
-            WHERE slug_title = ?",
-            (memo_id, to_memo_slug_title),
+            WHERE id = ?",
+            (memo_id, to_memo_id),
         )?;
 
         let link_id: i32 = conn.last_insert_rowid() as i32;
