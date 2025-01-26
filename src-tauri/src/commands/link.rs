@@ -46,8 +46,11 @@ pub fn create_link(args: CreateLinkArgs) -> Result<LinkId, String> {
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
 
-    let link =
-        LinkRepository::create(&conn, memo.id, &args.to_memo_slug_title).map_err(|e| e.to_string());
+    let to_memo = MemoRepository::find_by_slug(&conn, workspace.id, &args.to_memo_slug_title)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Memo to link not found for slug: {}", args.memo_slug_title))?;
+
+    let link = LinkRepository::create(&conn, memo.id, to_memo.id).map_err(|e| e.to_string());
 
     link
 }
