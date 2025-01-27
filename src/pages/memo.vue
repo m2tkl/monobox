@@ -1,6 +1,19 @@
 <template>
+  <NuxtLayout name="default">
+    <template #context-menu>
+      <UDropdown
+        :items="menuItems"
+        :popper="{ placement: 'bottom-start' }"
+      >
+        <div class="flex items-center">
+          <UIcon
+            :name="iconKey.dotMenuVertical"
+          />
+        </div>
+      </UDropdown>
+    </template>
+
   <div class="h-full w-full">
-    <!-- {{ store.memo }} -->
     <div class="flex h-full w-full justify-center gap-3 px-4 pb-4">
       <!-- Editor -->
       <div
@@ -151,6 +164,7 @@
       </UCard>
     </UModal>
   </div>
+  </NuxtLayout>
 </template>
 
 <script lang="ts" setup>
@@ -179,6 +193,18 @@ definePageMeta({
     return route.params.memo !== '_settings';
   },
 });
+
+const menuItems = [
+  [
+    {
+      label: 'Delete',
+      icon: iconKey.trash,
+      click: async () => {
+        await deleteMemo();
+      },
+    },
+  ],
+];
 
 const LOG_PREFIX = '[pages/[workspace]/[memo]/index]';
 const logger = useConsoleLogger(LOG_PREFIX);

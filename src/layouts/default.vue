@@ -48,15 +48,7 @@
               </div>
 
               <div class="ml-auto">
-                <NuxtLink
-                  :to="`/${$route.params.workspace}/_setting`"
-                  class="flex items-center gap-2.5"
-                >
-                  <UIcon
-                    :name="iconKey.dotMenuVertical"
-                    class="h-6 w-6"
-                  />
-                </NuxtLink>
+                <slot name="context-menu" />
               </div>
             </div>
           </header>

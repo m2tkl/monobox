@@ -136,7 +136,7 @@ const favoriteMemos = computed(() => {
 });
 
 const recentMemos = computed(() => {
-  return store.workspaceMemos.filter(memo => !store.favoriteMemos?.map(item => item.title).includes(memo.title));
+  return store.workspaceMemos.filter(memo => !store.favoriteMemos?.map(item => item.title).includes(memo.title)).slice(0, 5);
 });
 
 const workspaceMenuItems = [
@@ -146,6 +146,13 @@ const workspaceMenuItems = [
       icon: iconKey.switch,
       click: () => {
         router.push('/');
+      },
+    },
+    {
+      label: 'Workspace setting',
+      icon: iconKey.setting,
+      click: () => {
+        router.push(`/${workspaceSlug.value}/_setting`);
       },
     },
   ],

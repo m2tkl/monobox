@@ -1,54 +1,56 @@
 <template>
-  <div class="py-4">
-    <UContainer>
-      <UCard>
-        <template #header>
-          <h2 class="text-lg font-bold text-gray-600">
-            Workspace setting
-          </h2>
-        </template>
-        <p>
-          🚧 Under construction...
-        </p>
-      </UCard>
+  <NuxtLayout name="default">
+    <div class="py-4">
+      <UContainer>
+        <UCard>
+          <template #header>
+            <h2 class="text-lg font-bold text-gray-600">
+              Workspace setting
+            </h2>
+          </template>
+          <p>
+            🚧 Under construction...
+          </p>
+        </UCard>
 
-      <UCard class="mt-6">
-        <template #header>
-          <h2 class="text-lg font-bold text-gray-600">
-            Danger zone
-          </h2>
-        </template>
-        <UButton
-          color="red"
-          @click="openDeleteConfirmation"
-        >
-          Delete this workspace
-        </UButton>
-      </UCard>
-    </UContainer>
+        <UCard class="mt-6">
+          <template #header>
+            <h2 class="text-lg font-bold text-gray-600">
+              Danger zone
+            </h2>
+          </template>
+          <UButton
+            color="red"
+            @click="openDeleteConfirmation"
+          >
+            Delete this workspace
+          </UButton>
+        </UCard>
+      </UContainer>
 
-    <!-- Delete workspace confirmation modal -->
-    <UModal v-model="isOpen">
-      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-        <div class="h-24">
-          Once you delete a workspace, there is no going back. Please be certain.
-        </div>
-
-        <template #footer>
-          <div class="h-8">
-            <UButton
-              form="create-workspace-form"
-              type="submit"
-              color="red"
-              @click="_deleteWorkspace"
-            >
-              Delete
-            </UButton>
+      <!-- Delete workspace confirmation modal -->
+      <UModal v-model="isOpen">
+        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+          <div class="h-24">
+            Once you delete a workspace, there is no going back. Please be certain.
           </div>
-        </template>
-      </UCard>
-    </UModal>
-  </div>
+
+          <template #footer>
+            <div class="h-8">
+              <UButton
+                form="create-workspace-form"
+                type="submit"
+                color="red"
+                @click="_deleteWorkspace"
+              >
+                Delete
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </UModal>
+    </div>
+  </NuxtLayout>
 </template>
 
 <script setup lang="ts">
