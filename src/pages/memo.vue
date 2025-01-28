@@ -13,157 +13,157 @@
       </UDropdown>
     </template>
 
-  <div class="h-full w-full">
-    <div class="flex h-full w-full justify-center gap-3 px-4 pb-4">
-      <!-- Editor -->
-      <div
-        id="editor-main"
-        class="w-full overflow-y-auto border border-slate-300 bg-slate-50"
-        @click.self="editor?.chain().focus('end').run()"
-      >
-        <!-- Memo title -->
-        <EditorToolbar
-          v-if="editor"
-          :editor="editor"
-          class="sticky top-0 left-0 z-50"
-        />
-
-        <BubbleMenu
-          v-if="editor"
-          :editor="editor"
-          class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400"
-        >
-          <EditorToolbarButton
-            :icon="iconKey.memoLink"
-            @exec="openLinkPalette()"
-          />
-          <EditorToolbarButton
-            :icon="iconKey.link"
-            @exec="setLinkManually()"
-          />
-          <EditorToolbarButton
-            :icon="iconKey.unlink"
-            @exec="unsetLink(editor)"
-          />
-        </BubbleMenu>
-
+    <div class="h-full w-full">
+      <div class="flex h-full w-full justify-center gap-3 px-4 pb-4">
+        <!-- Editor -->
         <div
-          class="bg-slate-50 p-8"
+          id="editor-main"
+          class="w-full overflow-y-auto border border-slate-300 bg-slate-50"
           @click.self="editor?.chain().focus('end').run()"
         >
-          <TitleFieldAutoResize
-            v-if="store.memo"
-            v-model="store.memo.title"
+          <!-- Memo title -->
+          <EditorToolbar
+            v-if="editor"
+            :editor="editor"
+            class="sticky top-0 left-0 z-50"
           />
 
-          <UDivider class="py-6" />
+          <BubbleMenu
+            v-if="editor"
+            :editor="editor"
+            class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400"
+          >
+            <EditorToolbarButton
+              :icon="iconKey.memoLink"
+              @exec="openLinkPalette()"
+            />
+            <EditorToolbarButton
+              :icon="iconKey.link"
+              @exec="setLinkManually()"
+            />
+            <EditorToolbarButton
+              :icon="iconKey.unlink"
+              @exec="unsetLink(editor)"
+            />
+          </BubbleMenu>
 
-          <!-- Memo contents -->
-          <div v-if="editor">
-            <editor-content
-              v-if="editor"
-              :editor="editor"
+          <div
+            class="bg-slate-50 p-8"
+            @click.self="editor?.chain().focus('end').run()"
+          >
+            <TitleFieldAutoResize
+              v-if="store.memo"
+              v-model="store.memo.title"
             />
 
-            <!-- Editor contents skeleton -->
-            <div
-              v-else
-              class="space-y-2"
-            >
-              <USkeleton class="h-4 w-[350px]" />
-              <USkeleton class="h-4 w-[200px]" />
-              <USkeleton class="h-4 w-[250px]" />
+            <UDivider class="py-6" />
+
+            <!-- Memo contents -->
+            <div v-if="editor">
+              <editor-content
+                v-if="editor"
+                :editor="editor"
+              />
+
+              <!-- Editor contents skeleton -->
+              <div
+                v-else
+                class="space-y-2"
+              >
+                <USkeleton class="h-4 w-[350px]" />
+                <USkeleton class="h-4 w-[200px]" />
+                <USkeleton class="h-4 w-[250px]" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Right section -->
-      <div class="w-[300px] overflow-y-auto flex flex-col gap-3">
-        <ToCList
-          v-if="toc"
-          :items="toc.map((item) => {
-            return {
-              id: item.attrs ? (item.attrs.id as string) : '',
-              text: item.content ? (item.content[0].text as string) : '',
-              level: item.attrs ? (item.attrs.level as number) : 1,
-            };
-          })"
-          @click="(id: any) => scrollToElementWithOffset(id, 128)"
-        />
+        <!-- Right section -->
+        <div class="w-[300px] overflow-y-auto flex flex-col gap-3">
+          <ToCList
+            v-if="toc"
+            :items="toc.map((item) => {
+              return {
+                id: item.attrs ? (item.attrs.id as string) : '',
+                text: item.content ? (item.content[0].text as string) : '',
+                level: item.attrs ? (item.attrs.level as number) : 1,
+              };
+            })"
+            @click="(id: any) => scrollToElementWithOffset(id, 128)"
+          />
 
-        <MemoLinkList
-          v-if="store.links"
-          :links="store.links"
-        />
-      </div>
-    </div>
-
-    <!-- Operation Buttons -->
-    <div class="fixed bottom-10 right-10 z-50">
-      <UButton
-        :icon="iconKey.trash"
-        square
-        variant="solid"
-        size="xl"
-        color="indigo"
-        class="bg-slate-600"
-        @click="deleteMemo"
-      />
-    </div>
-
-    <div v-if="store.workspaceMemos && store.workspace">
-      <SearchPalette
-        ref="linkPaletteRef"
-        :workspace="store.workspace"
-        :memos="store.workspaceMemos"
-        type="link"
-        shortcut-symbol="i"
-        :editor="editor"
-      />
-      <SearchPalette
-        :workspace="store.workspace"
-        :memos="store.workspaceMemos"
-        type="search"
-        shortcut-symbol="k"
-        :editor="editor"
-      />
-    </div>
-
-    <!-- Link modal -->
-    <UModal v-model="linkDialogOn">
-      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-        <div class="h-24">
-          <UForm
-            id="set-link"
-            :state="state"
-            class="space-y-4"
-            @submit="setLink"
-          >
-            <UFormGroup
-              label="URL"
-              name="url"
-            >
-              <UInput v-model="state.url" />
-            </UFormGroup>
-          </UForm>
+          <MemoLinkList
+            v-if="store.links"
+            :links="store.links"
+          />
         </div>
+      </div>
 
-        <template #footer>
-          <div class="h-8">
-            <UButton
-              form="set-link"
-              type="submit"
-              class="bg-slate-600"
-              color="indigo"
+      <!-- Operation Buttons -->
+      <div class="fixed bottom-10 right-10 z-50">
+        <UButton
+          :icon="iconKey.trash"
+          square
+          variant="solid"
+          size="xl"
+          color="indigo"
+          class="bg-slate-600"
+          @click="deleteMemo"
+        />
+      </div>
+
+      <div v-if="store.workspaceMemos && store.workspace">
+        <SearchPalette
+          ref="linkPaletteRef"
+          :workspace="store.workspace"
+          :memos="store.workspaceMemos"
+          type="link"
+          shortcut-symbol="i"
+          :editor="editor"
+        />
+        <SearchPalette
+          :workspace="store.workspace"
+          :memos="store.workspaceMemos"
+          type="search"
+          shortcut-symbol="k"
+          :editor="editor"
+        />
+      </div>
+
+      <!-- Link modal -->
+      <UModal v-model="linkDialogOn">
+        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+          <div class="h-24">
+            <UForm
+              id="set-link"
+              :state="state"
+              class="space-y-4"
+              @submit="setLink"
             >
-              Save
-            </UButton>
+              <UFormGroup
+                label="URL"
+                name="url"
+              >
+                <UInput v-model="state.url" />
+              </UFormGroup>
+            </UForm>
           </div>
-        </template>
-      </UCard>
-    </UModal>
-  </div>
+
+          <template #footer>
+            <div class="h-8">
+              <UButton
+                form="set-link"
+                type="submit"
+                class="bg-slate-600"
+                color="indigo"
+              >
+                Save
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </UModal>
+    </div>
   </NuxtLayout>
 </template>
 
@@ -179,6 +179,8 @@ import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import xml from 'highlight.js/lib/languages/xml';
 import { open } from '@tauri-apps/plugin-shell';
+import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdown';
+import { nodes } from '@tiptap/pm/schema-basic';
 import { getChangedLinks, getLinkFromMouseClickEvent, isInternalLink, isModifierKeyPressed, unsetLink } from '~/domain/editor';
 import { headingExtension } from '~/domain/extensions/heading';
 import ToCList from '~/components/ToCList.vue';
@@ -195,13 +197,17 @@ definePageMeta({
 });
 
 const menuItems = [
+  [{
+    label: 'Copy as markdown',
+    icon: iconKey.copy,
+    click: async () => {
+      await copyAsMarkdown();
+    },
+  }],
   [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      click: async () => {
-        await deleteMemo();
-      },
     },
   ],
 ];
@@ -537,6 +543,87 @@ onBeforeUnmount(() => {
   // Destroy editor
   editor.value?.destroy();
 });
+
+const customMarkdownSerializer = new MarkdownSerializer(
+  {
+    ...defaultMarkdownSerializer.nodes,
+    /**
+     * Adjust the heading levels for output
+     */
+    heading(state, node) {
+      const adjustedLevel = Math.min(node.attrs.level + 1, 6);
+      state.write(`${'#'.repeat(adjustedLevel)} `);
+      state.renderInline(node);
+      state.closeBlock(node);
+    },
+    hardBreak(state, _node) {
+      state.write('  \n');
+    },
+    codeBlock(state, node) {
+      // Get code block language and add ```{extension}
+      const language = node.attrs.language || '';
+      state.write(`\`\`\`${language}\n`);
+
+      // Write code block text
+      state.text(node.textContent, false);
+
+      // Close code block
+      state.write('\n```');
+      state.closeBlock(node);
+    },
+    bulletList(state, node) {
+      state.renderList(node, '  ', () => '- ');
+    },
+    orderedList(state, node) {
+      state.renderList(node, '  ', index => `${index + 1}. `);
+    },
+    listItem(state, node) {
+      state.renderInline(node);
+      state.ensureNewLine();
+    },
+    taskList(state, node) {
+      node.forEach((child, _, index) => {
+        state.render(child, node, index);
+      });
+    },
+    taskItem(state, node) {
+      const checked = node.attrs.checked ? 'x' : ' ';
+      state.write(`- [${checked}] `);
+      state.renderInline(node);
+      state.ensureNewLine();
+    },
+  },
+  defaultMarkdownSerializer.marks,
+);
+
+const copyAsMarkdown = async () => {
+  if (!editor.value || !store.memo) {
+    return;
+  }
+
+  const titleMarkdown = `# ${store.memo.title}\n\n`;
+  const contentMarkdown = customMarkdownSerializer.serialize(editor.value.state.doc);
+
+  const markdown = titleMarkdown + contentMarkdown;
+
+  try {
+    await navigator.clipboard.writeText(markdown);
+    toast.add({
+      title: 'Markdown dopied to clipboard!',
+      timeout: 1000,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error('Failed to copy markdown:', error);
+    toast.add({
+      title: 'Failed to copy.',
+      description: 'Please try again.',
+      color: 'red',
+      icon: iconKey.failed,
+    });
+  }
+};
 </script>
 
 <style>
