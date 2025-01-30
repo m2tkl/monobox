@@ -43,7 +43,7 @@
             />
             <EditorToolbarButton
               :icon="iconKey.unlink"
-              @exec="unsetLink(editor)"
+              @exec="EditorCommand.unsetLink(editor)"
             />
           </BubbleMenu>
 
@@ -186,9 +186,8 @@ import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import ToCList from '~/components/ToCList.vue';
-import { getChangedLinks, getLinkFromMouseClickEvent, isInternalLink, isModifierKeyPressed, unsetLink } from '~/domain/editor';
-import { headingExtension } from '~/domain/extensions/heading';
-import { imageExtention } from '~/domain/extensions/image';
+import * as EditorCommand from '~/lib/editor/command.js';
+import * as CustomExtension from '~/lib/editor/extensions';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -255,8 +254,8 @@ const editor = useEditor({
       // Unset link after link text
       inclusive: false,
     }),
-    imageExtention(),
-    headingExtension(),
+    CustomExtension.imageExtention(),
+    CustomExtension.headingExtension(),
     CodeBlockLowlight.extend({
       addNodeView() {
         return VueNodeViewRenderer(CodeBlockComponent as Component<NodeViewProps>);
@@ -307,7 +306,7 @@ const editor = useEditor({
   },
   onCreate({ editor }) {
     const handleLinkClick = async (event: MouseEvent) => {
-      const url = getLinkFromMouseClickEvent(event);
+      const url = EditorCommand.getLinkFromMouseClickEvent(event);
 
       // If clicked element is not link, do nothing.
       if (!url) {
@@ -331,7 +330,7 @@ const editor = useEditor({
     };
   },
   onTransaction: async ({ editor: _editor, transaction }) => {
-    const { deletedLinks, addedLinks } = getChangedLinks(transaction);
+    const { deletedLinks, addedLinks } = EditorCommand.getChangedLinks(transaction);
     await Promise.all(
       deletedLinks.map(async (href) => {
         await store.deleteLink(workspaceSlug.value, memoSlug.value, href);

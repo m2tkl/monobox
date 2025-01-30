@@ -133,10 +133,6 @@ export const getLinkFromMouseClickEvent = (
   return url;
 };
 
-export const isModifierKeyPressed = (event: MouseEvent) => {
-  return event.shiftKey || event.ctrlKey || event.altKey || event.metaKey;
-};
-
 /**
  * Return selected text in editor
  *

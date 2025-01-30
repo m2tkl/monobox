@@ -38,7 +38,7 @@ import type { LinkPaletteItem, LinkPaletteItems } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
 
-import { getSelectedTextV2, insertLinkToMemo } from '~/domain/editor';
+import * as EditorCommand from '~/lib/editor/command.js';
 
 const props = defineProps<{
   type: 'search' | 'link';
@@ -138,7 +138,7 @@ async function onSearchPaletteSelect(option: LinkPaletteItem | null) {
   if (props.type === 'link') {
     if (props.editor) {
       console.log('insertLinkToMemo');
-      insertLinkToMemo(props.editor, linkMemoTitle, `/${props.workspace.slug_name}/${linkMemoSlug}`);
+      EditorCommand.insertLinkToMemo(props.editor, linkMemoTitle, `/${props.workspace.slug_name}/${linkMemoSlug}`);
     }
   }
 
@@ -176,7 +176,7 @@ async function openCommandPalette() {
 
   // If text is selected in the editor, set the text in the input field.
   if (props.editor && commandPaletteRef) {
-    const selectedText = getSelectedTextV2(props.editor.view);
+    const selectedText = EditorCommand.getSelectedTextV2(props.editor.view);
     await nextTick();
     commandPaletteRef.value.query = selectedText;
   }

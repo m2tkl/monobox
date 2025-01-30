@@ -5,48 +5,48 @@
   >
     <EditorToolbarButton
       label="H1"
-      @exec="toggleHeading(editor, { h: 1 })"
+      @exec="EditorCommand.toggleHeading(editor, { h: 1 })"
     />
     <EditorToolbarButton
       label="H2"
-      @exec="toggleHeading(editor, { h: 2 })"
+      @exec="EditorCommand.toggleHeading(editor, { h: 2 })"
     />
     <EditorToolbarButton
       label="H3"
-      @exec="toggleHeading(editor, { h: 3 })"
+      @exec="EditorCommand.toggleHeading(editor, { h: 3 })"
     />
 
     <EditorToolbarButton
       :icon="iconKey.textBold"
-      @exec="toggleStyle(editor, 'bold')"
+      @exec="EditorCommand.toggleStyle(editor, 'bold')"
     />
     <EditorToolbarButton
       :icon="iconKey.textItalic"
-      @exec="toggleStyle(editor, 'italic')"
+      @exec="EditorCommand.toggleStyle(editor, 'italic')"
     />
     <EditorToolbarButton
       :icon="iconKey.textStrikeThrough"
-      @exec="toggleStyle(editor, 'strike')"
+      @exec="EditorCommand.toggleStyle(editor, 'strike')"
     />
     <EditorToolbarButton
       :icon="iconKey.listBulletted"
-      @exec="toggleBulletList(editor)"
+      @exec="EditorCommand.toggleBulletList(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.listNumbered"
-      @exec="toggleOrderedList(editor)"
+      @exec="EditorCommand.toggleOrderedList(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.quotes"
-      @exec="toggleBlockQuote(editor)"
+      @exec="EditorCommand.toggleBlockQuote(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.inlineCode"
-      @exec="toggleCode(editor)"
+      @exec="EditorCommand.toggleCode(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.clearFormat"
-      @exec="resetStyle(editor)"
+      @exec="EditorCommand.resetStyle(editor)"
     />
   </div>
 </template>
@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3';
 
-import { resetStyle, toggleBlockQuote, toggleBulletList, toggleCode, toggleHeading, toggleOrderedList, toggleStyle } from '~/domain/editor';
+import * as EditorCommand from '~/lib/editor/command.js';
 
 defineProps<{ editor: Editor }>();
 </script>
