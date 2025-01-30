@@ -53,7 +53,8 @@
 
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3';
-import { toggleHeading, toggleStyle, toggleBulletList, toggleOrderedList, toggleBlockQuote, toggleCode, resetStyle } from '~/domain/editor';
+
+import { resetStyle, toggleBlockQuote, toggleBulletList, toggleCode, toggleHeading, toggleOrderedList, toggleStyle } from '~/domain/editor';
 
 defineProps<{ editor: Editor }>();
 </script>

@@ -33,13 +33,13 @@
 </template>
 
 <script lang="ts">
+import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3';
+import { computed, ref } from 'vue';
+
 import type { NodeViewProps } from '@tiptap/vue-3';
 </script>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
-import { NodeViewContent, nodeViewProps, NodeViewWrapper } from '@tiptap/vue-3';
-
 defineComponent({
   props: nodeViewProps,
 }) as Component<NodeViewProps>;

@@ -168,25 +168,27 @@
 </template>
 
 <script lang="ts" setup>
-import { BubbleMenu, useEditor, VueNodeViewRenderer, EditorContent, type NodeViewProps } from '@tiptap/vue-3';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import Focus from '@tiptap/extension-focus';
-import type { EditorView } from '@tiptap/pm/view';
+import { open } from '@tauri-apps/plugin-shell';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { all, createLowlight } from 'lowlight';
+import Focus from '@tiptap/extension-focus';
+import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
-import xml from 'highlight.js/lib/languages/xml';
-import { open } from '@tauri-apps/plugin-shell';
 import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdown';
-import { getChangedLinks, getLinkFromMouseClickEvent, isInternalLink, isModifierKeyPressed, unsetLink } from '~/domain/editor';
-import { headingExtension } from '~/domain/extensions/heading';
-import ToCList from '~/components/ToCList.vue';
+import StarterKit from '@tiptap/starter-kit';
+import { BubbleMenu, EditorContent, type NodeViewProps, VueNodeViewRenderer, useEditor } from '@tiptap/vue-3';
+import xml from 'highlight.js/lib/languages/xml';
+import { all, createLowlight } from 'lowlight';
+
+import type { EditorView } from '@tiptap/pm/view';
+
+import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
+import ToCList from '~/components/ToCList.vue';
+import { getChangedLinks, getLinkFromMouseClickEvent, isInternalLink, isModifierKeyPressed, unsetLink } from '~/domain/editor';
+import { headingExtension } from '~/domain/extensions/heading';
 import { imageExtention } from '~/domain/extensions/image';
-import CodeBlockComponent from '~/components/CodeBlock.vue';
 
 definePageMeta({
   path: '/:workspace/:memo',

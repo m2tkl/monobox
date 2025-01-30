@@ -31,11 +31,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3';
 import { invoke } from '@tauri-apps/api/core';
-import type { Workspace } from '~/models/workspace';
-import type { MemoDetail, MemoIndexItem } from '~/models/memo';
+
+import type { Editor } from '@tiptap/vue-3';
 import type { LinkPaletteItem, LinkPaletteItems } from '~/models/link';
+import type { MemoDetail, MemoIndexItem } from '~/models/memo';
+import type { Workspace } from '~/models/workspace';
+
 import { getSelectedTextV2, insertLinkToMemo } from '~/domain/editor';
 
 const props = defineProps<{

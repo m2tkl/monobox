@@ -1,7 +1,8 @@
-import Image from '@tiptap/extension-image';
-import type { EditorView } from '@tiptap/pm/view';
-import { Plugin } from 'prosemirror-state';
 import { invoke } from '@tauri-apps/api/core';
+import Image from '@tiptap/extension-image';
+import { Plugin } from 'prosemirror-state';
+
+import type { EditorView } from '@tiptap/pm/view';
 
 export const imageExtention = () => {
   return Image.configure({ inline: true }).extend({

@@ -1,6 +1,6 @@
+import type { Link as LinkType } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
-import type { Link as LinkType } from '~/models/link';
 
 export const useWorkspaceStore = defineStore('workspace', () => {
   const command = useCommand();

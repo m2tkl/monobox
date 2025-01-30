@@ -1,7 +1,7 @@
-import type { Editor } from '@tiptap/vue-3';
-import type { EditorView } from '@tiptap/pm/view';
 import type { Level } from '@tiptap/extension-heading';
 import type { Transaction } from '@tiptap/pm/state';
+import type { EditorView } from '@tiptap/pm/view';
+import type { Editor } from '@tiptap/vue-3';
 
 export const unsetLink = (editor: Editor) => {
   editor.chain().focus().extendMarkRange('link').unsetLink().run();

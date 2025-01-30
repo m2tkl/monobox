@@ -75,8 +75,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { Workspace } from '~/models/workspace';
 import type { MemoIndexItem } from '~/models/memo';
+import type { Workspace } from '~/models/workspace';
+
 import SearchPalette from '~/components/SearchPalette.vue';
 
 definePageMeta({

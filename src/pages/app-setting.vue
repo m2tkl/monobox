@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { readTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
+import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
 definePageMeta({
   path: '/_setting',
