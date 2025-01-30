@@ -180,7 +180,6 @@ import TaskList from '@tiptap/extension-task-list';
 import xml from 'highlight.js/lib/languages/xml';
 import { open } from '@tauri-apps/plugin-shell';
 import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdown';
-import { nodes } from '@tiptap/pm/schema-basic';
 import { getChangedLinks, getLinkFromMouseClickEvent, isInternalLink, isModifierKeyPressed, unsetLink } from '~/domain/editor';
 import { headingExtension } from '~/domain/extensions/heading';
 import ToCList from '~/components/ToCList.vue';
