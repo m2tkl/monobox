@@ -168,7 +168,7 @@
 </template>
 
 <script lang="ts" setup>
-import { BubbleMenu, useEditor, VueNodeViewRenderer, EditorContent } from '@tiptap/vue-3';
+import { BubbleMenu, useEditor, VueNodeViewRenderer, EditorContent, type NodeViewProps } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Focus from '@tiptap/extension-focus';
@@ -257,7 +257,7 @@ const editor = useEditor({
     headingExtension(),
     CodeBlockLowlight.extend({
       addNodeView() {
-        return VueNodeViewRenderer(CodeBlockComponent);
+        return VueNodeViewRenderer(CodeBlockComponent as Component<NodeViewProps>);
       },
       addAttributes() {
         return {
