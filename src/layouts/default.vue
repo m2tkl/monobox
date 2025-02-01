@@ -6,14 +6,14 @@
       <!-- Sidebar -->
       <aside
         class="sidebar-area h-[calc(100vh-30px)] overflow-auto"
-        :class="{ 'w-[250px] flex-shrink-0': ui.isSidebarOpen, 'w-0 overflow-hidden': !ui.isSidebarOpen }"
+        :class="{ 'w-[250px] flex-shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
       >
         <SidebarMenu :is-open="ui.isSidebarOpen" />
       </aside>
 
       <!-- Main content -->
       <div
-        class="flex-1 h-full flex w-[calc(100%-254px)]"
+        class="flex-1 h-full flex w-[calc(100%-250px)] min-w-0"
         :class="{ 'justify-center w-full': !ui.isSidebarOpen }"
       >
         <div
@@ -70,6 +70,5 @@ const { ui } = useUIState();
 <style scoped>
 .sidebar-area {
   border-right: 1px solid rgb(180, 187, 195);
-  transition: width 0.3s ease;
 }
 </style>
