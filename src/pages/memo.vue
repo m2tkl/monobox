@@ -27,12 +27,11 @@
                 level: item.attrs ? (item.attrs.level as number) : 1,
               };
             })"
-            @click="(id: any) => scrollToElementWithOffset(id, 128)"
+            @click="(id: any) => scrollToElementWithOffset(id, 148)"
           />
         </div>
 
         <!-- Editor -->
-        <!-- class="flex-1 min-w-0 border-b border-r border-slate-300 bg-slate-50" -->
         <div
           id="editor-main"
           class="flex-1 min-w-0 bg-slate-50"

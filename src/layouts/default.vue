@@ -23,7 +23,7 @@
           <header class="sticky top-0 z-50 flex h-14 items-center gap-3 bg-slate-200 px-6">
             <!-- Workspace/**  -->
             <div
-              v-if="$route.params.workspace"
+              v-if="route.params.workspace"
               class="flex items-center w-full"
             >
               <div class="flex items-center gap-2.5 w-full">
@@ -34,7 +34,7 @@
                   />
                   <NuxtLink
                     v-else
-                    :to="`/${$route.params.workspace}`"
+                    :to="`/${route.params.workspace}`"
                     class="flex items-center"
                   >
                     <UIcon
@@ -43,7 +43,7 @@
                     />
                   </NuxtLink>
                   <span class="text-md">/</span>
-                  <span class="text-md">{{ $route.params.memo ? "Detail" : "" }}</span>
+                  <span class="text-md">{{ route.params.memo ? "Detail" : "" }}</span>
                 </h1>
               </div>
 
@@ -53,7 +53,10 @@
             </div>
           </header>
 
-          <main class="h-[calc(100%-56px)] w-full overflow-y-auto">
+          <main
+            id="main"
+            class="h-[calc(100%-56px)] w-full overflow-y-auto"
+          >
             <slot />
           </main>
         </div>
@@ -65,6 +68,8 @@
 <script setup lang="ts">
 const { workspace: wspace } = useWorkspace();
 const { ui } = useUIState();
+
+const route = useRoute();
 </script>
 
 <style scoped>
