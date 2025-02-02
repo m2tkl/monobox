@@ -14,41 +14,38 @@
     </template>
 
     <div class="h-full w-full">
-      <div class="flex h-full w-full justify-center gap-3 px-4 pb-4">
+      <div class="flex w-full min-w-0 justify-center px-4 pb-4 gap-4">
+        <!-- ToC section -->
+        <div class="w-[300px] flex flex-col gap-3 flex-shrink-0 bg-slate-100 ">
+          <ToCList
+            v-if="toc"
+            class="sticky top-0 left-0 z-50"
+            :items="toc.map((item) => {
+              return {
+                id: item.attrs ? (item.attrs.id as string) : '',
+                text: item.content ? (item.content[0].text as string) : '',
+                level: item.attrs ? (item.attrs.level as number) : 1,
+              };
+            })"
+            @click="(id: any) => scrollToElementWithOffset(id, 148)"
+          />
+        </div>
+
         <!-- Editor -->
         <div
           id="editor-main"
-          class="w-full overflow-y-auto border border-slate-300 bg-slate-50"
+          class="flex-1 min-w-0 bg-slate-50"
           @click.self="editor?.chain().focus('end').run()"
         >
-          <!-- Memo title -->
           <EditorToolbar
             v-if="editor"
             :editor="editor"
-            class="sticky top-0 left-0 z-50"
+            class="sticky top-0 left-0 z-50 bg-slate-300 border-b-2 border-slate-400 h-8"
           />
 
-          <BubbleMenu
-            v-if="editor"
-            :editor="editor"
-            class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400"
-          >
-            <EditorToolbarButton
-              :icon="iconKey.memoLink"
-              @exec="openLinkPalette()"
-            />
-            <EditorToolbarButton
-              :icon="iconKey.link"
-              @exec="setLinkManually()"
-            />
-            <EditorToolbarButton
-              :icon="iconKey.unlink"
-              @exec="EditorCommand.unsetLink(editor)"
-            />
-          </BubbleMenu>
-
+          <!-- Editor content -->
           <div
-            class="bg-slate-50 p-8"
+            class="bg-slate-100 p-6"
             @click.self="editor?.chain().focus('end').run()"
           >
             <TitleFieldAutoResize
@@ -59,7 +56,7 @@
             <UDivider class="py-6" />
 
             <!-- Memo contents -->
-            <div v-if="editor">
+            <div class="">
               <editor-content
                 v-if="editor"
                 :editor="editor"
@@ -77,26 +74,13 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Right section -->
-        <div class="w-[300px] overflow-y-auto flex flex-col gap-3">
-          <ToCList
-            v-if="toc"
-            :items="toc.map((item) => {
-              return {
-                id: item.attrs ? (item.attrs.id as string) : '',
-                text: item.content ? (item.content[0].text as string) : '',
-                level: item.attrs ? (item.attrs.level as number) : 1,
-              };
-            })"
-            @click="(id: any) => scrollToElementWithOffset(id, 128)"
-          />
-
-          <MemoLinkList
-            v-if="store.links"
-            :links="store.links"
-          />
-        </div>
+      <div class="px-4 pb-4">
+        <MemoLinkCardView
+          v-if="store.links"
+          :links="store.links"
+        />
       </div>
 
       <!-- Operation Buttons -->
@@ -111,6 +95,26 @@
           @click="deleteMemo"
         />
       </div>
+
+      <!-- Bubble Menu -->
+      <BubbleMenu
+        v-if="editor"
+        :editor="editor"
+        class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400"
+      >
+        <EditorToolbarButton
+          :icon="iconKey.memoLink"
+          @exec="openLinkPalette()"
+        />
+        <EditorToolbarButton
+          :icon="iconKey.link"
+          @exec="setLinkManually()"
+        />
+        <EditorToolbarButton
+          :icon="iconKey.unlink"
+          @exec="EditorCommand.unsetLink(editor)"
+        />
+      </BubbleMenu>
 
       <div v-if="store.workspaceMemos && store.workspace">
         <SearchPalette

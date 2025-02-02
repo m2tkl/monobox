@@ -13,7 +13,7 @@ const LOG_PREFIX = '[utils/dom]:';
  */
 export function scrollToElementWithOffset(elementId: string, offset = 0) {
   const element = document.getElementById(elementId);
-  const editorElem = document.getElementById('editor-main');
+  const editorElem = document.getElementById('main');
 
   if (!element || !editorElem) {
     console.warn(LOG_PREFIX, 'scrollToElementWithOffset() element not found.');

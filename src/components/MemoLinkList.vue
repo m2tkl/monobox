@@ -2,7 +2,7 @@
   <div class="border-x border-t border-slate-300 bg-slate-100 p-0">
     <!-- Link Header -->
     <div
-      class="flex items-center gap-2 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-800"
+      class="sticky top-0 left-0 z-50 flex items-center gap-2 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-800"
     >
       <UIcon :name="iconKey.link" />
       Links

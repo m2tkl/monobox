@@ -3,6 +3,7 @@ export type Link = {
   slug_title: string;
   title: string;
   description: string | null;
+  thumbnail_image: string | null;
   link_id: number;
   link_type: string;
 };
