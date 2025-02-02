@@ -1,7 +1,7 @@
 <template>
-  <div class="border-x border-t border-slate-300 bg-slate-50">
+  <div class="bg-slate-100">
     <div
-      class="flex items-center gap-2 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-800"
+      class="sticky top-0 left-0 z-50 flex items-center gap-1 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-700 h-8 "
     >
       <UIcon :name="iconKey.toc" />
       Table of Contents
@@ -14,11 +14,11 @@
         :key="item.text"
       >
         <div
-          class="flex cursor-pointer items-center border-b border-slate-300 px-2 py-1 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
+          class="flex cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
           @click="item.id && emits('click', item.id)"
         >
           <span :class="indent(item.level)" />
-          <span class="pr-1 text-xs font-semibold text-gray-400">h{{ item.level }}</span>
+          <span class="pr-1 text-xs font-semibold text-gray-400">{{ '#'.repeat(item.level) }}</span>
           <span v-if="item">
             {{ item.text }}
           </span>
