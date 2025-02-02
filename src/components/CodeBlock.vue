@@ -2,25 +2,28 @@
   <node-view-wrapper class="code-block">
     <!-- Header Section -->
     <div class="code-block-header pb-2">
+      <!-- Name Input -->
+      <UInput
+        v-model="codeBlockName"
+        size="xs"
+        class="flex-1 pr-2 text-slate-300 font-semibold"
+        variant="none"
+        placeholder="Untitled"
+      />
+
       <!-- Language Selector -->
       <USelect
         v-model="selectedLanguage"
         :options="languages"
         size="2xs"
-        class="text-gray-600"
-      />
-
-      <!-- Name Input -->
-      <UInput
-        v-model="codeBlockName"
-        size="xs"
-        class="flex-1 pr-2 text-gray-600 font-semibold"
+        class="text-slate-300 font-semibold"
         variant="none"
       />
 
       <!-- Copy Button -->
       <IconButton
         :icon="iconKey.copy"
+        class="text-slate-300"
         @click="copyToClipboard"
       />
     </div>
@@ -98,18 +101,21 @@ const copyToClipboard = async () => {
 .tiptap {
   .code-block {
     position: relative;
-
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 0 1rem;
-    padding-top: 12px;
-    margin-bottom: 1rem;
   }
 
   .code-block-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: #232B3B;
+    transition: background 0.2s ease-in-out, border-bottom 0.2s ease-in-out;
+    border-radius: 8px 8px 0 0;
+    padding: 6px 10px;
+    border-bottom: 2px solid #424851;
+  }
+
+  .code-block-header:hover {
+    border-bottom: 2px solid #4285F4;
   }
 }
 </style>

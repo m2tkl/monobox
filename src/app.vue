@@ -121,8 +121,9 @@ body {
   }
 
   pre {
-    background: var(--black);
-    border-radius: 0.5rem;
+    background: #232B3B;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
     color: var(--white);
     font-family: "JetBrainsMono", monospace;
     margin: 1rem 0;
@@ -222,8 +223,9 @@ body {
 
   /* Focus highlight */
   .has-focus {
-    box-shadow: 0 0 0 1px #b3c8f5;
+    box-shadow: 0 0 0 2px #b3c8f5;
     background-color: var(--slate);
+    border-radius: 8px;
   }
 
   /* Override background color for focused code blocks */
