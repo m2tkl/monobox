@@ -16,7 +16,7 @@
     <div class="h-full w-full">
       <div class="flex w-full min-w-0 justify-center px-4 pb-4 gap-4">
         <!-- ToC section -->
-        <div class="w-[300px] flex flex-col gap-3 flex-shrink-0 bg-slate-100 ">
+        <div class="w-[250px] flex flex-col gap-3 flex-shrink-0 bg-slate-100 ">
           <ToCList
             v-if="toc"
             class="sticky top-0 left-0 z-50"
