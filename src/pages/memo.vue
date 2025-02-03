@@ -103,7 +103,8 @@
         class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400"
       >
         <EditorToolbarButton
-          :icon="iconKey.memoLink"
+          :icon="
+            iconKey.memoLink"
           @exec="openLinkPalette()"
         />
         <EditorToolbarButton
@@ -113,6 +114,31 @@
         <EditorToolbarButton
           :icon="iconKey.unlink"
           @exec="EditorCommand.unsetLink(editor)"
+        />
+
+        <span class="text-slate-600 font-thin mx-">|</span>
+
+        <EditorToolbarButton
+          :icon="iconKey.textBold"
+          @exec="EditorCommand.toggleStyle(editor, 'bold')"
+        />
+        <EditorToolbarButton
+          :icon="iconKey.textItalic"
+          @exec="EditorCommand.toggleStyle(editor, 'italic')"
+        />
+        <EditorToolbarButton
+          :icon="iconKey.textStrikeThrough"
+          @exec="EditorCommand.toggleStyle(editor, 'strike')"
+        />
+
+        <EditorToolbarButton
+          :icon="iconKey.inlineCode"
+          @exec="EditorCommand.toggleCode(editor)"
+        />
+
+        <EditorToolbarButton
+          :icon="iconKey.clearFormat"
+          @exec="EditorCommand.resetStyle(editor)"
         />
       </BubbleMenu>
 
