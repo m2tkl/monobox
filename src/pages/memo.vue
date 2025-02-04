@@ -596,8 +596,32 @@ const customMarkdownSerializer = new MarkdownSerializer(
       state.renderInline(node);
       state.ensureNewLine();
     },
+    horizontalRule(state, _node) {
+      state.write('\n---\n');
+      state.closeBlock(_node);
+    },
   },
-  defaultMarkdownSerializer.marks,
+  {
+    ...defaultMarkdownSerializer.marks,
+    bold: {
+      open: '**',
+      close: '**',
+      mixable: true,
+      expelEnclosingWhitespace: true,
+    },
+    italic: {
+      open: '_',
+      close: '_',
+      mixable: true,
+      expelEnclosingWhitespace: true,
+    },
+    strike: {
+      open: '~~',
+      close: '~~',
+      mixable: true,
+      expelEnclosingWhitespace: true,
+    },
+  },
 );
 
 const copyAsMarkdown = async () => {
