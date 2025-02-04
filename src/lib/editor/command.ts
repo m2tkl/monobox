@@ -4,7 +4,7 @@ import type { EditorView } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/vue-3';
 
 export const unsetLink = (editor: Editor) => {
-  editor.chain().focus().extendMarkRange('link').unsetLink().run();
+  editor.chain().focus().unsetMark('link').run();
 };
 
 export const toggleHeading = (
@@ -19,9 +19,9 @@ export const toggleStyle = (
   style: 'bold' | 'italic' | 'strike',
 ) => {
   const styleMap = {
-    bold: () => editor.chain().focus().toggleBold(),
-    italic: () => editor.chain().focus().toggleItalic(),
-    strike: () => editor.chain().focus().toggleStrike(),
+    bold: () => editor.chain().focus().toggleMark('bold'),
+    italic: () => editor.chain().focus().toggleMark('italic'),
+    strike: () => editor.chain().focus().toggleMark('strike'),
   };
   styleMap[style]().run();
 };
@@ -29,25 +29,30 @@ export const toggleStyle = (
 export const toggleBulletList = (
   editor: Editor,
 ) => {
-  editor.chain().focus().toggleBulletList().run();
+  editor.chain().focus().toggleList('bulletList', 'listItem').run();
 };
 
 export const toggleOrderedList = (
   editor: Editor,
 ) => {
-  editor.chain().focus().toggleOrderedList().run();
+  editor.chain().focus().toggleList('orderedList', 'listItem').run();
 };
 
 export const toggleBlockQuote = (
   editor: Editor,
 ) => {
-  editor.chain().focus().toggleBlockquote().run();
+  if (editor.isActive('blockquote')) {
+    editor.chain().focus().lift('blockquote').run();
+  }
+  else {
+    editor.chain().focus().wrapIn('blockquote').run();
+  }
 };
 
 export const toggleCode = (
   editor: Editor,
 ) => {
-  editor.chain().focus().toggleCode().run();
+  editor.chain().focus().toggleMark('code').run();
 };
 
 export const resetStyle = (
