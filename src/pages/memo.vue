@@ -27,6 +27,7 @@
                 level: item.attrs ? (item.attrs.level as number) : 1,
               };
             })"
+            :active-heading-id="activeHeadingId"
             @click="(id: any) => scrollToElementWithOffset(id, 148)"
           />
         </div>
@@ -184,6 +185,7 @@ import { BubbleMenu, EditorContent, type NodeViewProps, VueNodeViewRenderer, use
 import xml from 'highlight.js/lib/languages/xml';
 import { all, createLowlight } from 'lowlight';
 
+import type { Editor } from '@tiptap/core';
 import type { EditorView } from '@tiptap/pm/view';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
@@ -390,7 +392,67 @@ const editor = useEditor({
       headImageRef.value = foundFirstImage;
     }
   },
+  onSelectionUpdate: ({ editor }) => {
+    const caretVisible = isCaretVisible(editor);
+
+    if (caretVisible) {
+      // When a cursor operation is performed and the cursor is visible on the screen,
+      // prioritize the heading based on the cursor position
+      // and set a flag to skip heading identification based on scrolling.
+      wasCaretOut.value = false;
+
+      // If the cursor is currently inside a heading, prioritaize it.
+      const { $anchor } = editor.state.selection;
+      for (let depth = $anchor.depth; depth >= 0; depth--) {
+        const node = $anchor.node(depth);
+        if (node.type.name === 'heading') {
+          // updateStickyScroll(node.attrs.id);
+          activeHeadingId.value = node.attrs.id;
+          return;
+        }
+      }
+
+      // If the cursor is not inside a heading node, find the preceding heading.
+      const { state } = editor;
+      const { from } = state.selection;
+      let foundHeadingId: string | null = null;
+      state.doc.nodesBetween(0, from, (node) => {
+        if (node.type.name === 'heading') {
+          foundHeadingId = node.attrs.id ?? null;
+        }
+      });
+
+      if (foundHeadingId) {
+        activeHeadingId.value = foundHeadingId;
+      }
+    }
+  },
 });
+
+/**
+ * Determine whether the cursor is within the visible range of the editor
+ */
+function isCaretVisible(editor: Editor): boolean {
+  const { state, view } = editor;
+  const pos = state.selection.from;
+
+  // Get the absolute coordinates on the screen
+  // e.g. { top: 123, bottom: 137, left: 50, right: 60 }
+  const caretCoords = view.coordsAtPos(pos);
+
+  // Get the editor's scroll container
+  const container = document.getElementById('main');
+  if (!container) return false;
+
+  const containerRect = container.getBoundingClientRect();
+
+  // Determine whether it is within the screen vertically.
+  const isVisible
+    = caretCoords.top >= containerRect.top
+      && caretCoords.bottom <= containerRect.bottom;
+
+  return isVisible;
+}
 
 const headImageRef = ref();
 
@@ -652,6 +714,58 @@ const copyAsMarkdown = async () => {
     });
   }
 };
+
+const activeHeadingId = ref<string>();
+const wasCaretOut = ref(false);
+
+function onScroll() {
+  const editorContainer = document.getElementById('main');
+  if (!editorContainer) return;
+
+  // Set a flag to disable heading identification based on the cursor position
+  // when scrolling moves the cursor out of the screen.
+  if (!isCaretVisible(editor.value!)) {
+    wasCaretOut.value = true;
+  }
+
+  if (wasCaretOut.value) {
+    const headings = editorContainer.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]') as NodeListOf<HTMLElement>;
+    if (!headings.length) return;
+
+    const containerRect = editorContainer.getBoundingClientRect();
+
+    // Record headings that are positioned above the top of the container (containerRect.top),
+    // meaning they have been pushed up by scrolling.
+    //
+    // For example, if the top of a heading is above the top of the screen, it means the heading has been pushed up.
+    // Among such headings, the last one found (i.e., the lowest one) will be set as activeId.
+    //
+    // Adjust as needed by adding an offset.
+    let activeId: string | null = null;
+    headings.forEach((heading) => {
+      const rect = heading.getBoundingClientRect();
+      if (rect.top < containerRect.top + 100) {
+        activeId = heading.getAttribute('id');
+      }
+    });
+
+    activeHeadingId.value = activeId ?? undefined;
+  }
+}
+
+onMounted(() => {
+  const editorContainer = document.getElementById('main');
+  if (!editorContainer) return;
+
+  editorContainer.addEventListener('scroll', onScroll, { passive: true });
+});
+
+onUnmounted(() => {
+  const editorContainer = document.getElementById('main');
+  if (!editorContainer) return;
+
+  editorContainer.removeEventListener('scroll', onScroll);
+});
 </script>
 
 <style>
