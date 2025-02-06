@@ -15,6 +15,7 @@
       >
         <div
           class="flex cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
+          :class="{ 'font-bold bg-blue-200': activeHeadingId === item.id }"
           @click="item.id && emits('click', item.id)"
         >
           <span :class="indent(item.level)" />
@@ -35,6 +36,7 @@ defineProps<{
     text: string;
     level: number;
   }>;
+  activeHeadingId?: string;
 }>();
 
 const emits = defineEmits<{
