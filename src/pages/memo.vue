@@ -1,5 +1,5 @@
 <template>
-  <NuxtLayout name="default">
+  <NuxtLayout name="memo-editor">
     <template #context-menu>
       <UDropdown
         :items="menuItems"
@@ -13,77 +13,77 @@
       </UDropdown>
     </template>
 
-    <div class="h-full w-full">
-      <div class="flex w-full min-w-0 justify-center px-4 pb-4 gap-4">
-        <!-- ToC section -->
-        <div class="w-[250px] flex flex-col gap-3 flex-shrink-0 bg-slate-100 ">
-          <ToCList
-            v-if="toc"
-            class="sticky top-0 left-0 z-50"
-            :items="toc.map((item) => {
-              return {
-                id: item.attrs ? (item.attrs.id as string) : '',
-                text: item.content ? (item.content[0].text as string) : '',
-                level: item.attrs ? (item.attrs.level as number) : 1,
-              };
-            })"
-            :active-heading-id="activeHeadingId"
-            @click="(id: any) => scrollToElementWithOffset(id, 148)"
-          />
-        </div>
+    <template #side>
+      <ToCList
+        v-if="toc"
+        :items="toc.map((item) => {
+          return {
+            id: item.attrs ? (item.attrs.id as string) : '',
+            text: item.content ? (item.content[0].text as string) : '',
+            level: item.attrs ? (item.attrs.level as number) : 1,
+          };
+        })"
+        :active-heading-id="activeHeadingId"
+        @click="(id: any) => scrollToElementWithOffset(id, 148)"
+      />
+    </template>
 
-        <!-- Editor -->
+    <template #main>
+      <!-- Editor -->
+      <div
+        class="pb-4"
+        @click.self="editor?.chain().focus('end').run()"
+      >
+        <!-- Toolbar -->
+        <EditorToolbar
+          v-if="editor"
+          :editor="editor"
+          class="sticky top-0 left-0 z-50 bg-slate-300 border-b-2 border-slate-400 h-8"
+        />
+
+        <!-- Content area -->
         <div
-          id="editor-main"
-          class="flex-1 min-w-0 bg-slate-50"
+          class="bg-slate-100 p-6"
           @click.self="editor?.chain().focus('end').run()"
         >
-          <EditorToolbar
-            v-if="editor"
-            :editor="editor"
-            class="sticky top-0 left-0 z-50 bg-slate-300 border-b-2 border-slate-400 h-8"
+          <!-- Title -->
+          <TitleFieldAutoResize
+            v-if="store.memo"
+            v-model="store.memo.title"
           />
 
-          <!-- Editor content -->
-          <div
-            class="bg-slate-100 p-6"
-            @click.self="editor?.chain().focus('end').run()"
-          >
-            <TitleFieldAutoResize
-              v-if="store.memo"
-              v-model="store.memo.title"
+          <UDivider class="py-6" />
+
+          <!-- Content -->
+          <div>
+            <editor-content
+              v-if="editor"
+              :editor="editor"
             />
 
-            <UDivider class="py-6" />
-
-            <!-- Memo contents -->
-            <div class="">
-              <editor-content
-                v-if="editor"
-                :editor="editor"
-              />
-
-              <!-- Editor contents skeleton -->
-              <div
-                v-else
-                class="space-y-2"
-              >
-                <USkeleton class="h-4 w-[350px]" />
-                <USkeleton class="h-4 w-[200px]" />
-                <USkeleton class="h-4 w-[250px]" />
-              </div>
+            <!-- skeleton -->
+            <div
+              v-else
+              class="space-y-2"
+            >
+              <USkeleton class="h-4 w-[350px]" />
+              <USkeleton class="h-4 w-[200px]" />
+              <USkeleton class="h-4 w-[250px]" />
             </div>
           </div>
         </div>
       </div>
 
-      <div class="px-4 pb-4">
+      <!-- Links -->
+      <div class="pb-4">
         <MemoLinkCardView
           v-if="store.links"
           :links="store.links"
         />
       </div>
+    </template>
 
+    <template #actions>
       <!-- Operation Buttons -->
       <div class="fixed bottom-10 right-10 z-50">
         <UButton
@@ -168,7 +168,7 @@
           </template>
         </UCard>
       </UModal>
-    </div>
+    </template>
   </NuxtLayout>
 </template>
 
