@@ -16,13 +16,7 @@
     <template #side>
       <ToCList
         v-if="toc"
-        :items="toc.map((item) => {
-          return {
-            id: item.attrs ? (item.attrs.id as string) : '',
-            text: item.content ? (item.content[0].text as string) : '',
-            level: item.attrs ? (item.attrs.level as number) : 1,
-          };
-        })"
+        :items="toc"
         :active-heading-id="activeHeadingId"
         @click="(id: any) => scrollToElementWithOffset(id, 148)"
       />
@@ -456,9 +450,30 @@ function isCaretVisible(editor: Editor): boolean {
 
 const headImageRef = ref();
 
-const toc = computed(() => {
+type _Heading = {
+  type: 'heading';
+  attrs?: { level: number; id: string };
+  content?: Array<{ type: 'text'; text: string }>;
+};
+type Heading = {
+  level: number;
+  id: string;
+  text: string;
+};
+
+const toc = computed<Heading[]>(() => {
   const content = editor.value?.getJSON().content;
-  return content?.filter(c => c.type === 'heading');
+
+  const headings = content?.filter(c => c.type === 'heading') as _Heading[] | undefined;
+  if (headings === undefined) {
+    return [];
+  }
+
+  return headings.map(h => ({
+    id: h.attrs ? (h.attrs.id as string) : '',
+    text: h.content ? (h.content[0].text as string) : '',
+    level: h.attrs ? (h.attrs.level as number) : 1,
+  }));
 });
 
 /********************************
