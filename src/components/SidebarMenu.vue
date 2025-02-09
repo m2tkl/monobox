@@ -6,26 +6,7 @@
     <div class="p-4 h-full w-full">
       <!-- Workspace section -->
       <div class="pb-3 h-10">
-        <UDropdown
-          :items="workspaceMenuItems"
-          :popper="{ placement: 'bottom-start' }"
-          class="border"
-        >
-          <div class="flex items-center">
-            <UIcon
-              :name="iconKey.database"
-              class="mr-1"
-            />
-            <span class="font-bold text-gray-600 text-lg">
-              {{ workspaceSlug }}
-            </span>
-            <UIcon
-              :name="iconKey.chevronDown"
-              class="ml-1"
-              size="xs"
-            />
-          </div>
-        </UDropdown>
+        <WorkspaceMenu :workspace-slug="workspaceSlug" />
       </div>
 
       <div class="h-[calc(100%-2.5rem)] overflow-y-auto">
@@ -117,7 +98,6 @@ import { computed, ref } from 'vue';
 
 defineProps<{ isOpen: boolean }>();
 
-const router = useRouter();
 const route = useRoute();
 const workspaceSlug = computed(() => route.params.workspace as string);
 
@@ -138,25 +118,6 @@ const favoriteMemos = computed(() => {
 const recentMemos = computed(() => {
   return store.workspaceMemos.filter(memo => !store.favoriteMemos?.map(item => item.title).includes(memo.title)).slice(0, 5);
 });
-
-const workspaceMenuItems = [
-  [
-    {
-      label: 'Switch workspace',
-      icon: iconKey.switch,
-      click: () => {
-        router.push('/');
-      },
-    },
-    {
-      label: 'Workspace setting',
-      icon: iconKey.setting,
-      click: () => {
-        router.push(`/${workspaceSlug.value}/_setting`);
-      },
-    },
-  ],
-];
 
 const recentMenuItems = [
   'Modified',
