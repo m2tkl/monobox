@@ -11,16 +11,7 @@
   },
   "app": {
     "withGlobalTauri": true,
-    "windows": [
-      {
-        "title": "",
-        "width": 800,
-        "height": 600,
-        "dragDropEnabled": true,
-        "resizable": true,
-        "titleBarStyle": "Overlay"
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost file: data:; style-src 'self' 'unsafe-inline';",
       "assetProtocol": {

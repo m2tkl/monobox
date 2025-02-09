@@ -8,6 +8,21 @@
   </div>
 </template>
 
+<script setup lang="ts">
+import { getCurrentWindow } from '@tauri-apps/api/window';
+
+const appWindow = getCurrentWindow();
+const store = useWorkspaceStore();
+watch(() => store.workspace, async () => {
+  if (store.workspace) {
+    await appWindow.setTitle(store.workspace.name);
+  }
+  else {
+    await appWindow.setTitle('monobox');
+  }
+});
+</script>
+
 <style>
 :root {
   --purple-light: rgb(227, 199, 255);
