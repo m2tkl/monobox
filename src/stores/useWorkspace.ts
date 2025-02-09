@@ -59,6 +59,10 @@ export const useWorkspaceStore = defineStore('workspace', () => {
    * Actions
    */
 
+  const exitWorkspace = () => {
+    workspace.value = undefined;
+  };
+
   const saveMemo = async (workspaceSlug: string, memoSlug: string, newContent: {
     title: string;
     content: string;
@@ -112,6 +116,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     loadFavoriteMemos,
 
     // Actions
+    exitWorkspace,
     saveMemo,
     deleteMemo,
     createLink,

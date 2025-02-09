@@ -98,6 +98,9 @@ definePageMeta({
 const toast = useToast();
 const command = useCommand();
 
+const store = useWorkspaceStore();
+store.exitWorkspace();
+
 const workspaces = ref<Workspace[]>([]);
 const loadWorkspaces = async () => {
   const workspacesData = await command.workspace.list();
