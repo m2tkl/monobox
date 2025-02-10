@@ -5,17 +5,13 @@
     class="border"
   >
     <div class="flex items-center">
-      <UIcon
-        :name="iconKey.database"
-        class="mr-1"
-      />
-      <span class="font-bold text-gray-600 text-lg">
+      <span class="font-bold text-gray-600 text-md">
         {{ workspaceSlug }}
       </span>
       <UIcon
         :name="iconKey.chevronDown"
         class="ml-1"
-        size="xs"
+        size="2xs"
       />
     </div>
   </UDropdown>
