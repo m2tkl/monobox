@@ -1,14 +1,12 @@
 <template>
   <div>
-    <TitleBar :workspace-title="wspace?.name" />
-
-    <div class="h-screen w-full flex pt-[30px]">
+    <div class="h-[calc(100vh-1px)] w-full flex top-border">
       <!-- Sidebar -->
       <aside
-        class="sidebar-area h-[calc(100vh-30px)] overflow-auto"
+        class="sidebar-area h-[calc(100vh-1px)] overflow-auto"
         :class="{ 'w-[250px] flex-shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
       >
-        <SidebarMenu :is-open="ui.isSidebarOpen" />
+        <SidebarMenu :is-open="true" />
       </aside>
 
       <!-- Main content -->
@@ -20,31 +18,51 @@
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
           class="h-full w-full"
         >
-          <header class="sticky top-0 z-50 flex h-14 items-center gap-3 bg-slate-200 px-6">
+          <header class="sticky top-0 z-[100] flex h-10 items-center gap-2 bg-slate-200 px-2 bottom-border">
             <!-- Workspace/**  -->
             <div
               v-if="route.params.workspace"
               class="flex items-center w-full"
             >
               <div class="flex items-center gap-2.5 w-full">
-                <h1 class="font-mono text-xl text-slate-500 gap-1.5 flex items-center w-full">
-                  <USkeleton
-                    v-if="!wspace"
-                    class="h-6 w-[250px]"
+                <div class=" text-slate-500 gap-1 flex items-center w-full">
+                  <IconButton
+                    v-if="!ui.isSidebarOpen"
+                    :icon="iconKey.sidebarOpen"
+                    @click="toggleSidebar"
                   />
-                  <NuxtLink
-                    v-else
-                    :to="`/${route.params.workspace}`"
-                    class="flex items-center"
+
+                  <WorkspaceMenu
+                    v-if="!ui.isSidebarOpen"
+                    :workspace-slug="workspaceSlug"
+                  />
+
+                  <IconButton
+                    :icon="iconKey.arrowLeft"
+                    @click="goBack"
+                  />
+                  <IconButton
+                    :icon="iconKey.arrowRight"
+                    @click="goNext"
+                  />
+                  <IconButton
+                    :icon="iconKey.home"
+                    @click="goHome"
+                  />
+
+                  <!-- <span class="text-xs">/</span> -->
+
+                  <!-- <UButton
+                    color="gray"
+                    variant="ghost"
+                    size="2xs"
+                    @click="goHome"
                   >
-                    <UIcon
-                      :name="iconKey.home"
-                      class="h-6 w-6"
-                    />
-                  </NuxtLink>
-                  <span class="text-md">/</span>
-                  <span class="text-md">{{ route.params.memo ? "Detail" : "" }}</span>
-                </h1>
+                    {{ workspaceSlug }}
+                  </UButton> -->
+                  <span class="text-xs">/</span>
+                  <span class="text-xs text-slate-800">{{ store.memo ? store.memo.title : "" }}</span>
+                </div>
               </div>
 
               <div class="ml-auto">
@@ -54,15 +72,17 @@
           </header>
 
           <main
-            class="h-[calc(100%-56px)] w-full flex justify-center px-4 pb-4 gap-4"
+            class="h-[calc(100%-40px)] w-full flex justify-center"
           >
-            <div class="hide-scrollbar disable-bounce w-[250px] flex flex-col gap-3 flex-shrink-0  max-h-full overflow-y-auto">
+            <div
+              class="hide-scrollbar disable-bounce w-[250px] flex flex-col gap-3 flex-shrink-0  max-h-full overflow-y-auto right-border"
+            >
               <slot name="side" />
             </div>
 
             <div
               id="main"
-              class="disable-bounce flex-1 min-w-0 bg-slate-30 h-full overflow-y-auto"
+              class="disable-bounce flex-1 min-w-0 bg-slate-30 h-full overflow-y-auto hide-scrollbar"
             >
               <slot name="main" />
             </div>
@@ -77,13 +97,32 @@
 </template>
 
 <script setup lang="ts">
-const { workspace: wspace } = useWorkspace();
-const { ui } = useUIState();
+const { ui, toggleSidebar } = useUIState();
 
 const route = useRoute();
+const workspaceSlug = computed(() => route.params.workspace as string);
+
+const store = useWorkspaceStore();
+
+const router = useRouter();
+const goBack = () => router.go(-1);
+const goNext = () => router.go(1);
+const goHome = () => router.push(`/${workspaceSlug.value}`);
 </script>
 
 <style scoped>
+.top-border {
+  border-top: 1px solid rgb(180, 187, 195);
+}
+
+.bottom-border {
+  border-bottom: 1px solid rgb(180, 187, 195);
+}
+
+.right-border {
+  border-right: 1px solid rgb(180, 187, 195);
+}
+
 .sidebar-area {
   border-right: 1px solid rgb(180, 187, 195);
 }

@@ -2,15 +2,18 @@
   <div class="border-t border-slate-300 p-0">
     <!-- Link Header -->
     <div
-      class="sticky top-0 left-0 z-50 flex items-center gap-2 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-800 mb-4"
+      class=" h-8 sticky top-0 left-0 z-50 flex items-center gap-2 border-b-2 border-slate-400 bg-[--slate] px-2 py-1 text-sm font-semibold text-gray-800"
     >
       <UIcon :name="iconKey.link" />
       Links
     </div>
 
     <!-- Backlinks -->
-    <div v-if="backLinks.length !== 0">
-      <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 pb-4">
+    <div
+      v-if="backLinks.length !== 0"
+      class="my-4"
+    >
+      <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 pb-4 px-4">
         <li
           v-for="memo in backLinks"
           :key="memo.id"
@@ -62,7 +65,7 @@
           >
             <!-- Direct forward link -->
             <div
-              class="border-b-2 border-blue-500 bg-blue-200 px-2 py-1 text-sm font-semibold text-gray-700 hover:bg-blue-300 hover:text-gray-800  sticky top-[28px] left-0 z-40"
+              class="h-8 border-b-2 border-blue-500 bg-blue-200 px-2 py-1 text-sm font-semibold text-gray-700 hover:bg-blue-300 hover:text-gray-800  sticky top-[32px] left-0 z-40"
             >
               <NuxtLink
                 :to="`/${route.params.workspace}/${link.slug_title}`"
@@ -72,7 +75,7 @@
               </NuxtLink>
             </div>
 
-            <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 my-4">
+            <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 my-4 px-4">
               <!-- 2hop-link -->
               <li
                 v-for="thl in twoHopLinks.filter(

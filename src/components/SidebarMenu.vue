@@ -3,23 +3,32 @@
     v-if="isOpen"
     class="h-full w-full"
   >
-    <div class="p-4 h-full w-full">
+    <div class="h-full w-full">
       <!-- Workspace section -->
-      <div class="pb-3 h-10">
+      <div class="px-2 flex items-center h-10 gap-1 bottom-border">
+        <UIcon
+          :name="iconKey.memoLink"
+          class="mx-1"
+        />
         <WorkspaceMenu :workspace-slug="workspaceSlug" />
+        <div class="flex-1" />
+        <IconButton
+          :icon="iconKey.sidebarClose"
+          @click="toggleSidebar"
+        />
       </div>
 
-      <div class="h-[calc(100%-2.5rem)] overflow-y-auto">
+      <div class="h-[calc(100%-40px)] overflow-y-auto px-3">
         <!-- Bookmark section -->
         <section
           v-if="favoriteMemos.length > 0"
           class="pb-2"
         >
           <div class="sticky top-0 z-10 bg-[--slate]">
-            <div class="pb-2 flex items-center">
+            <div class="pb-2 pt-2 flex items-center">
               <UIcon
                 :name="iconKey.bookmark"
-                class="mr-1"
+                class="mr-2"
               />
               <h2 class="font-bold text-gray-600">
                 Favorites
@@ -46,10 +55,10 @@
         <!-- Recently viewed memos section -->
         <section>
           <div class="sticky top-0 z-10 bg-[--slate]">
-            <div class="pb-2 flex items-center">
+            <div class="pb-2 pt-1 flex items-center">
               <UIcon
                 :name="iconKey.recent"
-                class="mr-1"
+                class="mr-2"
               />
               <h2 class="font-bold text-gray-600">
                 Recent
@@ -101,6 +110,8 @@ defineProps<{ isOpen: boolean }>();
 const route = useRoute();
 const workspaceSlug = computed(() => route.params.workspace as string);
 
+const { toggleSidebar } = useUIState();
+
 const { store, loadWorkspace } = useWorkspaceLoader();
 
 if (workspaceSlug.value) {
@@ -140,5 +151,9 @@ const sortTypeSelected = ref(recentMenuItems[0]);
 
 .sidebar.is-open {
   transform: translateX(0);
+}
+
+.bottom-border {
+  border-bottom: 1px solid rgb(180, 187, 195);
 }
 </style>

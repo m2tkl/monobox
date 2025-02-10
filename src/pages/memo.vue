@@ -3,7 +3,6 @@
     <template #context-menu>
       <UDropdown
         :items="menuItems"
-        :popper="{ placement: 'bottom-start' }"
       >
         <div class="flex items-center">
           <UIcon
@@ -25,14 +24,13 @@
     <template #main>
       <!-- Editor -->
       <div
-        class="pb-4"
         @click.self="editor?.chain().focus('end').run()"
       >
         <!-- Toolbar -->
         <EditorToolbar
           v-if="editor"
           :editor="editor"
-          class="sticky top-0 left-0 z-50 bg-slate-300 border-b-2 border-slate-400 h-8"
+          class="sticky top-0 left-0 z-50 border-b-2 border-slate-400 h-8"
         />
 
         <!-- Content area -->
@@ -69,11 +67,15 @@
       </div>
 
       <!-- Links -->
-      <div class="pb-4">
+      <div>
         <MemoLinkCardView
           v-if="store.links"
           :links="store.links"
         />
+      </div>
+
+      <div>
+        <MarginForEditorScroll />
       </div>
     </template>
 
