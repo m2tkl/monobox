@@ -38,6 +38,12 @@ body {
   background-color: rgb(226 232 240);
   /* Disable bounce */
   overscroll-behavior: none;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+  overscroll-behavior: none;
 }
 
 /* Utilities */

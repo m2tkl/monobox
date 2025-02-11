@@ -3,101 +3,99 @@
     v-if="isOpen"
     class="h-full w-full"
   >
-    <div class="h-full w-full">
-      <!-- Workspace section -->
-      <div class="px-2 flex items-center h-10 gap-1 bottom-border">
-        <UIcon
-          :name="iconKey.memoLink"
-          class="mx-1"
-        />
-        <WorkspaceMenu :workspace-slug="workspaceSlug" />
-        <div class="flex-1" />
-        <IconButton
-          :icon="iconKey.sidebarClose"
-          @click="toggleSidebar"
-        />
-      </div>
+    <!-- Workspace section -->
+    <div class="px-2 flex items-center h-10 gap-1 border-bottom">
+      <UIcon
+        :name="iconKey.memoLink"
+        class="mx-1"
+      />
+      <WorkspaceMenu :workspace-slug="workspaceSlug" />
+      <div class="flex-1" />
+      <IconButton
+        :icon="iconKey.sidebarClose"
+        @click="toggleSidebar"
+      />
+    </div>
 
-      <div class="h-[calc(100%-40px)] overflow-y-auto px-3">
-        <!-- Bookmark section -->
-        <section
-          v-if="favoriteMemos.length > 0"
-          class="pb-2"
+    <div class="h-[calc(100%-40px)] overflow-y-auto px-3">
+      <!-- Bookmark section -->
+      <section
+        v-if="favoriteMemos.length > 0"
+        class="pb-2"
+      >
+        <div class="sticky top-0 z-10 bg-[--slate]">
+          <div class="pb-2 pt-2 flex items-center">
+            <UIcon
+              :name="iconKey.bookmark"
+              class="mr-2"
+            />
+            <h2 class="font-bold text-gray-600">
+              Favorites
+            </h2>
+          </div>
+        </div>
+
+        <ul class="flex flex-col">
+          <li
+            v-for="memo in favoriteMemos"
+            :key="memo.id"
+          >
+            <NuxtLink
+              :to="`/${workspaceSlug}/${memo.slug_title}`"
+              class="block px-2 py-1 rounded-md hover:bg-slate-100 hover:text-blue-700 text-gray-600 text-sm"
+              active-class="bg-slate-100 font-bold"
+            >
+              {{ memo.title }}
+            </NuxtLink>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Recently viewed memos section -->
+      <section>
+        <div class="sticky top-0 z-10 bg-[--slate]">
+          <div class="pb-2 pt-1 flex items-center">
+            <UIcon
+              :name="iconKey.recent"
+              class="mr-2"
+            />
+            <h2 class="font-bold text-gray-600">
+              Recent
+            </h2>
+            <USelect
+              v-model="sortTypeSelected"
+              :options="recentMenuItems"
+              variant="none"
+              class="text-gray-500"
+            />
+          </div>
+        </div>
+
+        <ul
+          v-if="recentMemos.length > 0"
+          class="flex flex-col"
         >
-          <div class="sticky top-0 z-10 bg-[--slate]">
-            <div class="pb-2 pt-2 flex items-center">
-              <UIcon
-                :name="iconKey.bookmark"
-                class="mr-2"
-              />
-              <h2 class="font-bold text-gray-600">
-                Favorites
-              </h2>
-            </div>
-          </div>
-
-          <ul class="flex flex-col">
-            <li
-              v-for="memo in favoriteMemos"
-              :key="memo.id"
-            >
-              <NuxtLink
-                :to="`/${workspaceSlug}/${memo.slug_title}`"
-                class="block px-2 py-1 rounded-md hover:bg-slate-100 hover:text-blue-700 text-gray-600 text-sm"
-                active-class="bg-slate-100 font-bold"
-              >
-                {{ memo.title }}
-              </NuxtLink>
-            </li>
-          </ul>
-        </section>
-
-        <!-- Recently viewed memos section -->
-        <section>
-          <div class="sticky top-0 z-10 bg-[--slate]">
-            <div class="pb-2 pt-1 flex items-center">
-              <UIcon
-                :name="iconKey.recent"
-                class="mr-2"
-              />
-              <h2 class="font-bold text-gray-600">
-                Recent
-              </h2>
-              <USelect
-                v-model="sortTypeSelected"
-                :options="recentMenuItems"
-                variant="none"
-                class="text-gray-500"
-              />
-            </div>
-          </div>
-
-          <ul
-            v-if="recentMemos.length > 0"
-            class="flex flex-col"
+          <li
+            v-for="memo in recentMemos"
+            :key="memo.id"
           >
-            <li
-              v-for="memo in recentMemos"
-              :key="memo.id"
+            <NuxtLink
+              :to="`/${workspaceSlug}/${memo.slug_title}`"
+              class="block px-2 py-1 rounded-md hover:bg-slate-100 hover:text-blue-700 text-gray-600 text-sm"
+              active-class="bg-slate-100 font-bold"
             >
-              <NuxtLink
-                :to="`/${workspaceSlug}/${memo.slug_title}`"
-                class="block px-2 py-1 rounded-md hover:bg-slate-100 hover:text-blue-700 text-gray-600 text-sm"
-                active-class="bg-slate-100 font-bold"
-              >
-                {{ memo.title }}
-              </NuxtLink>
-            </li>
-          </ul>
+              {{ memo.title }}
+            </NuxtLink>
+          </li>
+        </ul>
 
-          <p
-            v-else
-            class="text-gray-600 text-sm pl-2"
-          >
-            No memos
-          </p>
-        </section>
-      </div>
+        <p
+          v-else
+          class="text-gray-600 text-sm pl-2"
+        >
+          No memos
+        </p>
+      </section>
     </div>
   </div>
 </template>
@@ -151,9 +149,5 @@ const sortTypeSelected = ref(recentMenuItems[0]);
 
 .sidebar.is-open {
   transform: translateX(0);
-}
-
-.bottom-border {
-  border-bottom: 1px solid rgb(180, 187, 195);
 }
 </style>

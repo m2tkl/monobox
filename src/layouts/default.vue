@@ -1,11 +1,12 @@
 <template>
   <div>
-    <div class="h-[calc(100vh-1px)] w-full flex border-top">
+    <div class="h-screen w-full flex border-top">
       <!-- Sidebar -->
       <aside
-        class="border-right h-[calc(100vh-1px)] overflow-auto"
+        class="border-right h-full"
         :class="{ 'w-[250px] flex-shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
       >
+        <!-- TODO: Since the display is toggled using hidden, control with v-if is unnecessary. -->
         <SidebarMenu :is-open="ui.isSidebarOpen" />
       </aside>
 
@@ -18,48 +19,44 @@
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
           class="h-full w-full"
         >
-          <header class="sticky top-0 z-50 flex h-10 items-center gap-2 bg-slate-200 px-2 border-bottom">
-            <!-- Workspace/**  -->
-            <div
-              v-if="route.params.workspace"
-              class="flex items-center w-full"
-            >
-              <div class="flex items-center gap-2.5 w-full">
-                <div class=" text-slate-500 gap-1 flex items-center w-full">
-                  <IconButton
-                    v-if="!ui.isSidebarOpen"
-                    :icon="iconKey.sidebarOpen"
-                    @click="toggleSidebar"
-                  />
+          <header class="sticky top-0 z-50 flex h-10 w-full items-center gap-2 bg-slate-200 px-2 border-bottom">
+            <div class="flex items-center gap-1 w-full text-slate-500">
+              <IconButton
+                v-if="!ui.isSidebarOpen"
+                :icon="iconKey.sidebarOpen"
+                @click="toggleSidebar"
+              />
 
-                  <WorkspaceMenu
-                    v-if="!ui.isSidebarOpen"
-                    :workspace-slug="workspaceSlug"
-                  />
+              <WorkspaceMenu
+                v-if="!ui.isSidebarOpen"
+                :workspace-slug="workspaceSlug"
+              />
 
-                  <IconButton
-                    :icon="iconKey.arrowLeft"
-                    @click="goBack"
-                  />
-                  <IconButton
-                    :icon="iconKey.arrowRight"
-                    @click="goNext"
-                  />
-                  <IconButton
-                    :icon="iconKey.home"
-                    @click="goHome"
-                  />
+              <IconButton
+                :icon="iconKey.arrowLeft"
+                @click="goBack"
+              />
+              <IconButton
+                :icon="iconKey.arrowRight"
+                @click="goNext"
+              />
+              <IconButton
+                :icon="iconKey.home"
+                @click="goHome"
+              />
 
-                  <span class="text-xs">/</span>
-                </div>
-              </div>
+              <span class="text-xs">/</span>
+            </div>
 
-              <div class="ml-auto">
-                <slot name="context-menu" />
-              </div>
+            <div class="ml-auto">
+              <slot name="context-menu" />
             </div>
           </header>
 
+          <!--
+            NOTE:
+            - 40px: header height
+          -->
           <main
             id="main"
             class="h-[calc(100%-40px)] w-full overflow-y-auto"
