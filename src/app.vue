@@ -30,7 +30,8 @@ watch(() => store.workspace, async () => {
   --white: white;
   --gray-3: #555;
   --gray-2: #888;
-  --slate: rgb(226, 232, 240);
+  --slate: #e2e8f0;
+  --slate-75: #e2e8f0bf
 }
 
 html,

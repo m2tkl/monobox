@@ -1,7 +1,12 @@
 <template>
   <UModal
     v-model="isSearchPaletteOpen"
-    class="relative"
+    class="relative z-[100]"
+    :ui="{
+      overlay: {
+        background: 'bg-[--slate-75]',
+      },
+    }"
   >
     <!-- NOTE:
       - autoclear: false
