@@ -19,7 +19,7 @@
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
           class="h-full w-full"
         >
-          <header class="sticky top-0 z-50 flex h-10 w-full items-center gap-2 bg-slate-200 px-2 border-bottom">
+          <header class="sticky top-0 z-[100] flex h-10 w-full items-center gap-2 bg-slate-200 px-2 border-bottom">
             <div class="flex items-center gap-1 w-full text-slate-500">
               <IconButton
                 v-if="!ui.isSidebarOpen"
@@ -44,8 +44,9 @@
                 :icon="iconKey.home"
                 @click="goHome"
               />
-
               <span class="text-xs">/</span>
+              <!-- <span class="text-xs text-slate-800">{{ store.memo ? store.memo.title : "" }}</span> -->
+              <span class="text-xs text-slate-800">{{ memoTitleSlug }}</span>
             </div>
 
             <div class="ml-auto">
@@ -61,11 +62,14 @@
             id="main"
             class="h-[calc(100%-40px)] w-full overflow-y-auto"
           >
-            <slot />
+            <slot name="main" />
           </main>
         </div>
       </div>
     </div>
+
+    <!-- Actions -->
+    <slot name="actions" />
   </div>
 </template>
 
@@ -74,6 +78,7 @@ const { ui, toggleSidebar } = useUIState();
 
 const route = useRoute();
 const workspaceSlug = computed(() => route.params.workspace as string);
+const memoTitleSlug = computed(() => route.params.memo as string);
 
 const router = useRouter();
 const goBack = () => router.go(-1);
