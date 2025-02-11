@@ -40,6 +40,35 @@ body {
   overscroll-behavior: none;
 }
 
+/* Utilities */
+
+/* Utilities > border */
+.border-top {
+  border-top: 1px solid rgb(180, 187, 195);
+}
+
+.border-bottom {
+  border-bottom: 1px solid rgb(180, 187, 195);
+}
+
+.border-left {
+  border-left: 1px solid rgb(180, 187, 195);
+}
+
+.border-right {
+  border-right: 1px solid rgb(180, 187, 195);
+}
+
+/* Utilities > scrollbar */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Utilities > behavior */
+.disable-bounce {
+  overscroll-behavior: none;
+}
+
 /* Scrollbar customize */
 /* Webkit（Chrome, Edge, Safariなど） */
 ::-webkit-scrollbar {

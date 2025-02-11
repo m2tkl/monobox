@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="h-[calc(100vh-1px)] w-full flex top-border">
+    <div class="h-[calc(100vh-1px)] w-full flex border-top">
       <!-- Sidebar -->
       <aside
-        class="sidebar-area h-[calc(100vh-1px)] overflow-auto"
+        class="border-right h-[calc(100vh-1px)] overflow-auto"
         :class="{ 'w-[250px] flex-shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
       >
         <SidebarMenu :is-open="ui.isSidebarOpen" />
@@ -18,7 +18,7 @@
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
           class="h-full w-full"
         >
-          <header class="sticky top-0 z-50 flex h-10 items-center gap-2 bg-slate-200 px-2 bottom-border">
+          <header class="sticky top-0 z-50 flex h-10 items-center gap-2 bg-slate-200 px-2 border-bottom">
             <!-- Workspace/**  -->
             <div
               v-if="route.params.workspace"
@@ -85,15 +85,4 @@ const goHome = () => router.push(`/${workspaceSlug.value}`);
 </script>
 
 <style scoped>
-.top-border {
-  border-top: 1px solid rgb(180, 187, 195);
-}
-
-.bottom-border {
-  border-bottom: 1px solid rgb(180, 187, 195);
-}
-
-.sidebar-area {
-  border-right: 1px solid rgb(180, 187, 195);
-}
 </style>
