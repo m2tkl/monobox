@@ -1,33 +1,37 @@
 <template>
   <NuxtLayout name="default">
-    <div class="py-4">
-      <UContainer>
-        <UCard>
-          <template #header>
-            <h2 class="text-lg font-bold text-gray-600">
-              Workspace setting
-            </h2>
-          </template>
-          <p>
-            🚧 Under construction...
-          </p>
-        </UCard>
+    <template #main>
+      <div class="py-4">
+        <UContainer>
+          <UCard>
+            <template #header>
+              <h2 class="text-lg font-bold text-gray-600">
+                Workspace setting
+              </h2>
+            </template>
+            <p>
+              🚧 Under construction...
+            </p>
+          </UCard>
 
-        <UCard class="mt-6">
-          <template #header>
-            <h2 class="text-lg font-bold text-gray-600">
-              Danger zone
-            </h2>
-          </template>
-          <UButton
-            color="red"
-            @click="openDeleteConfirmation"
-          >
-            Delete this workspace
-          </UButton>
-        </UCard>
-      </UContainer>
+          <UCard class="mt-6">
+            <template #header>
+              <h2 class="text-lg font-bold text-gray-600">
+                Danger zone
+              </h2>
+            </template>
+            <UButton
+              color="red"
+              @click="openDeleteConfirmation"
+            >
+              Delete this workspace
+            </UButton>
+          </UCard>
+        </UContainer>
+      </div>
+    </template>
 
+    <template #actions>
       <!-- Delete workspace confirmation modal -->
       <UModal v-model="isOpen">
         <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
@@ -49,7 +53,7 @@
           </template>
         </UCard>
       </UModal>
-    </div>
+    </template>
   </NuxtLayout>
 </template>
 

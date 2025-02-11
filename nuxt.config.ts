@@ -71,6 +71,8 @@ export default defineNuxtConfig({
         'carbon:home',
         'carbon:copy',
         'carbon:text-clear-format',
+        'carbon:side-panel-open',
+        'carbon:side-panel-close',
 
         // Nuxt
         'heroicons:x-mark-20-solid',

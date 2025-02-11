@@ -30,13 +30,49 @@ watch(() => store.workspace, async () => {
   --white: white;
   --gray-3: #555;
   --gray-2: #888;
-  --slate: rgb(226, 232, 240);
+  --slate: #e2e8f0;
+  --slate-75: #e2e8f0bf
 }
 
 html,
 body {
   background-color: rgb(226 232 240);
   /* Disable bounce */
+  overscroll-behavior: none;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+  overscroll-behavior: none;
+}
+
+/* Utilities */
+
+/* Utilities > border */
+.border-top {
+  border-top: 1px solid rgb(180, 187, 195);
+}
+
+.border-bottom {
+  border-bottom: 1px solid rgb(180, 187, 195);
+}
+
+.border-left {
+  border-left: 1px solid rgb(180, 187, 195);
+}
+
+.border-right {
+  border-right: 1px solid rgb(180, 187, 195);
+}
+
+/* Utilities > scrollbar */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Utilities > behavior */
+.disable-bounce {
   overscroll-behavior: none;
 }
 

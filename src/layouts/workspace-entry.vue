@@ -1,5 +1,5 @@
 <template>
-  <div class="h-[calc(100vh-30px)] w-screen pt-[30px]">
+  <div class="h-screen w-screen">
     <main class="h-full w-full">
       <slot />
     </main>

@@ -1,13 +1,12 @@
 <template>
   <div>
-    <TitleBar :workspace-title="wspace?.name" />
-
-    <div class="h-screen w-full flex pt-[30px]">
+    <div class="h-screen w-full flex border-top">
       <!-- Sidebar -->
       <aside
-        class="sidebar-area h-[calc(100vh-30px)] overflow-auto"
+        class="border-right h-full"
         :class="{ 'w-[250px] flex-shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
       >
+        <!-- TODO: Since the display is toggled using hidden, control with v-if is unnecessary. -->
         <SidebarMenu :is-open="ui.isSidebarOpen" />
       </aside>
 
@@ -20,60 +19,71 @@
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
           class="h-full w-full"
         >
-          <header class="sticky top-0 z-50 flex h-14 items-center gap-3 bg-slate-200 px-6">
-            <!-- Workspace/**  -->
-            <div
-              v-if="route.params.workspace"
-              class="flex items-center w-full"
-            >
-              <div class="flex items-center gap-2.5 w-full">
-                <h1 class="font-mono text-xl text-slate-500 gap-1.5 flex items-center w-full">
-                  <USkeleton
-                    v-if="!wspace"
-                    class="h-6 w-[250px]"
-                  />
-                  <NuxtLink
-                    v-else
-                    :to="`/${route.params.workspace}`"
-                    class="flex items-center"
-                  >
-                    <UIcon
-                      :name="iconKey.home"
-                      class="h-6 w-6"
-                    />
-                  </NuxtLink>
-                  <span class="text-md">/</span>
-                  <span class="text-md">{{ route.params.memo ? "Detail" : "" }}</span>
-                </h1>
-              </div>
+          <header class="sticky top-0 z-[100] flex h-10 w-full items-center gap-2 bg-slate-200 px-2 border-bottom">
+            <div class="flex items-center gap-1 w-full text-slate-500">
+              <IconButton
+                v-if="!ui.isSidebarOpen"
+                :icon="iconKey.sidebarOpen"
+                @click="toggleSidebar"
+              />
 
-              <div class="ml-auto">
-                <slot name="context-menu" />
-              </div>
+              <WorkspaceMenu
+                v-if="!ui.isSidebarOpen"
+                :workspace-slug="workspaceSlug"
+              />
+
+              <IconButton
+                :icon="iconKey.arrowLeft"
+                @click="goBack"
+              />
+              <IconButton
+                :icon="iconKey.arrowRight"
+                @click="goNext"
+              />
+              <IconButton
+                :icon="iconKey.home"
+                @click="goHome"
+              />
+              <span class="text-xs">/</span>
+              <!-- <span class="text-xs text-slate-800">{{ store.memo ? store.memo.title : "" }}</span> -->
+              <span class="text-xs text-slate-800">{{ memoTitleSlug }}</span>
+            </div>
+
+            <div class="ml-auto">
+              <slot name="context-menu" />
             </div>
           </header>
 
+          <!--
+            NOTE:
+            - 40px: header height
+          -->
           <main
-            id="main"
-            class="h-[calc(100%-56px)] w-full overflow-y-auto"
+            class="h-[calc(100%-40px)] w-full overflow-y-auto"
           >
-            <slot />
+            <slot name="main" />
           </main>
         </div>
       </div>
     </div>
+
+    <!-- Actions -->
+    <slot name="actions" />
   </div>
 </template>
 
 <script setup lang="ts">
-const { workspace: wspace } = useWorkspace();
-const { ui } = useUIState();
+const { ui, toggleSidebar } = useUIState();
 
 const route = useRoute();
+const workspaceSlug = computed(() => route.params.workspace as string);
+const memoTitleSlug = computed(() => route.params.memo as string);
+
+const router = useRouter();
+const goBack = () => router.go(-1);
+const goNext = () => router.go(1);
+const goHome = () => router.push(`/${workspaceSlug.value}`);
 </script>
 
 <style scoped>
-.sidebar-area {
-  border-right: 1px solid rgb(180, 187, 195);
-}
 </style>

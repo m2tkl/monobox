@@ -1,7 +1,7 @@
 <template>
   <div class="bg-slate-100">
     <div
-      class="sticky top-0 left-0 z-50 flex items-center gap-1 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-700 h-8 "
+      class="sticky top-0 left-0 z-50 flex items-center gap-1 border-b-2 border-slate-400 bg-[--slate]  px-2 py-1 text-sm font-semibold text-gray-700 h-8"
     >
       <UIcon :name="iconKey.toc" />
       Table of Contents

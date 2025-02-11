@@ -34,4 +34,7 @@ export const iconKey = {
   home: 'carbon:home',
   copy: 'carbon:copy',
   clearFormat: 'carbon:text-clear-format',
+
+  sidebarOpen: 'carbon:side-panel-open',
+  sidebarClose: 'carbon:side-panel-close',
 };
