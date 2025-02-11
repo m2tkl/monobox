@@ -59,7 +59,6 @@
             - 40px: header height
           -->
           <main
-            id="main"
             class="h-[calc(100%-40px)] w-full overflow-y-auto"
           >
             <slot name="main" />

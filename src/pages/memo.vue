@@ -1,5 +1,5 @@
 <template>
-  <NuxtLayout name="memo-editor">
+  <NuxtLayout name="default">
     <template #context-menu>
       <UDropdown
         :items="menuItems"
@@ -12,70 +12,79 @@
       </UDropdown>
     </template>
 
-    <template #side>
-      <ToCList
-        v-if="toc"
-        :items="toc"
-        :active-heading-id="activeHeadingId"
-        @click="(id: any) => scrollToElementWithOffset(id, 148)"
-      />
-    </template>
-
     <template #main>
-      <!-- Editor -->
-      <div
-        @click.self="editor?.chain().focus('end').run()"
-      >
-        <!-- Toolbar -->
-        <EditorToolbar
-          v-if="editor"
-          :editor="editor"
-          class="sticky top-0 left-0 z-50 border-b-2 border-slate-400 h-8"
-        />
-
-        <!-- Content area -->
+      <div class="h-full w-full flex justify-center">
         <div
-          class="bg-slate-100 p-6"
-          @click.self="editor?.chain().focus('end').run()"
+          class="hide-scrollbar w-[250px] flex flex-col gap-3 flex-shrink-0 max-h-full overflow-y-auto border-right"
         >
-          <!-- Title -->
-          <TitleFieldAutoResize
-            v-if="store.memo"
-            v-model="store.memo.title"
+          <ToCList
+            v-if="toc"
+            :items="toc"
+            :active-heading-id="activeHeadingId"
+            @click="(id: any) => scrollToElementWithOffset(id, 148)"
           />
+        </div>
 
-          <UDivider class="py-6" />
-
-          <!-- Content -->
-          <div>
-            <editor-content
+        <div
+          id="main"
+          class="flex-1 min-w-0 bg-slate-30 h-full overflow-y-auto hide-scrollbar"
+        >
+          <!-- Editor -->
+          <div
+            @click.self="editor?.chain().focus('end').run()"
+          >
+            <!-- Toolbar -->
+            <EditorToolbar
               v-if="editor"
               :editor="editor"
+              class="sticky top-0 left-0 z-50 border-b-2 border-slate-400 h-8"
             />
 
-            <!-- skeleton -->
+            <!-- Content area -->
             <div
-              v-else
-              class="space-y-2"
+              class="bg-slate-100 p-6"
+              @click.self="editor?.chain().focus('end').run()"
             >
-              <USkeleton class="h-4 w-[350px]" />
-              <USkeleton class="h-4 w-[200px]" />
-              <USkeleton class="h-4 w-[250px]" />
+              <!-- Title -->
+              <TitleFieldAutoResize
+                v-if="store.memo"
+                v-model="store.memo.title"
+              />
+
+              <UDivider class="py-6" />
+
+              <!-- Content -->
+              <div>
+                <editor-content
+                  v-if="editor"
+                  :editor="editor"
+                />
+
+                <!-- skeleton -->
+                <div
+                  v-else
+                  class="space-y-2"
+                >
+                  <USkeleton class="h-4 w-[350px]" />
+                  <USkeleton class="h-4 w-[200px]" />
+                  <USkeleton class="h-4 w-[250px]" />
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- Links -->
+          <div>
+            <MemoLinkCardView
+              v-if="store.links"
+              :links="store.links"
+            />
+          </div>
+
+          <div>
+            <MarginForEditorScroll />
+          </div>
         </div>
-      </div>
-
-      <!-- Links -->
-      <div>
-        <MemoLinkCardView
-          v-if="store.links"
-          :links="store.links"
-        />
-      </div>
-
-      <div>
-        <MarginForEditorScroll />
       </div>
     </template>
 
