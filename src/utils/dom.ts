@@ -29,22 +29,4 @@ export function scrollToElementWithOffset(elementId: string, offset = 0) {
   const offsetPosition = elementPosition - offset;
 
   editorElem.scrollTo({ top: offsetPosition, behavior: 'instant' });
-
-  // Highlight after scrolling
-  setTimeout(() => {
-    // NOTE: Applying styles via a class did not reflect on the DOM.
-    // As a workaround, styles are dynamically applied to the ID instead.
-    const style = document.createElement('style');
-    style.textContent = `
-      #${elementId} {
-        background-color: #facc15; /* bg-yellow-300 に相当 */
-      }
-    `;
-    document.head.appendChild(style);
-
-    // Remove the highlight after a certain period of time
-    setTimeout(() => {
-      document.head.removeChild(style);
-    }, 2000);
-  }, 0);
 }

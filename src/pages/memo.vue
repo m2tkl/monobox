@@ -21,7 +21,7 @@
             v-if="toc"
             :items="toc"
             :active-heading-id="activeHeadingId"
-            @click="(id: any) => scrollToElementWithOffset(id, 148)"
+            @click="(id: any) => { scrollToElementWithOffset(id, 100); focusNodeById(id); activeHeadingId = id }"
           />
         </div>
 
@@ -206,6 +206,27 @@ definePageMeta({
     return route.params.memo !== '_settings';
   },
 });
+
+const focusNodeById = (id: string) => {
+  if (!editor.value) return;
+
+  const { state, view } = editor.value;
+  const { doc } = state;
+
+  let pos = null;
+
+  doc.descendants((node, posIndex) => {
+    if (node.attrs.id === id) {
+      pos = posIndex;
+      return false;
+    }
+  });
+
+  if (pos !== null) {
+    editor.value.commands.setTextSelection(pos);
+    view.focus();
+  }
+};
 
 const menuItems = [
   [{
