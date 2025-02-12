@@ -12,7 +12,7 @@ mod repositories;
 use mime_guess;
 use std::{fs, path::PathBuf};
 use tauri::http::{Request, Response};
-use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tauri::{WebviewUrl, WebviewWindowBuilder};
 
 fn main() {
     database::initialize_database().expect("Failed to initialize database");
@@ -29,10 +29,10 @@ fn main() {
                 .inner_size(800.0, 600.0);
 
             #[cfg(target_os = "macos")]
-            let win_builder = win_builder.title_bar_style(TitleBarStyle::Transparent);
+            let win_builder = win_builder.title_bar_style(tauri::TitleBarStyle::Transparent);
 
             #[cfg(target_os = "windows")]
-            let win_builder = win_builder.title_bar_style(TitleBarStyle::Overlay);
+            let win_builder = win_builder;
 
             let window: tauri::WebviewWindow = win_builder.build().unwrap();
 
@@ -52,15 +52,6 @@ fn main() {
                     );
                     ns_window.setBackgroundColor_(bg_color);
                 }
-            }
-
-            #[cfg(target_os = "windows")]
-            {
-                use tauri::window::Color;
-
-                window
-                    .set_background_color(Color::Rgb(226, 232, 240))
-                    .expect("Failed to set background color on Windows");
             }
 
             Ok(())
