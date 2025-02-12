@@ -185,6 +185,7 @@ import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdown';
+import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, VueNodeViewRenderer, useEditor } from '@tiptap/vue-3';
 import xml from 'highlight.js/lib/languages/xml';
@@ -207,23 +208,35 @@ definePageMeta({
   },
 });
 
+/**
+ * Focuses on a node with the specified ID and moves the cursor to the end of the node.
+ *
+ * @param id - The ID of the node to focus.
+ */
+
 const focusNodeById = (id: string) => {
   if (!editor.value) return;
 
   const { state, view } = editor.value;
-  const { doc } = state;
+  const { doc, tr } = state;
 
   let pos = null;
+  let nodeSize = 0;
 
+  // Search for the node with the specified ID and get its position
   doc.descendants((node, posIndex) => {
     if (node.attrs.id === id) {
       pos = posIndex;
+      nodeSize = node.nodeSize;
       return false;
     }
   });
 
+  // Move the cursor to the end of the selected node
   if (pos !== null) {
-    editor.value.commands.setTextSelection(pos);
+    const selectionPos = pos + nodeSize - 1;
+    const newTr = tr.setSelection(TextSelection.create(tr.doc, selectionPos));
+    view.dispatch(newTr);
     view.focus();
   }
 };
@@ -825,11 +838,12 @@ onUnmounted(() => {
   font-family: 'Arial', sans-serif;
   margin: 16px 0;
   padding-bottom: 4px;
+  font-weight: bold;
 }
 
 .custom-heading-level-1 {
   font-size: 2.5em;
-  color: #333;
+  color: #666;
   border-bottom: 2px solid #ddd;
 }
 
@@ -857,39 +871,38 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.custom-heading-level-1::before {
-  content: "H1";
-  color: #555;
+.custom-heading-level-1::after {
+  content: "h1";
 }
 
-.custom-heading-level-2::before {
-  content: "H2";
-  color: #666;
+.custom-heading-level-2::after {
+  content: "h2";
 }
 
-.custom-heading-level-3::before {
-  content: "H3";
-  color: #777;
+.custom-heading-level-3::after {
+  content: "h3";
 }
 
-.custom-heading-level-4::before {
-  content: "H4";
-  color: #777;
+.custom-heading-level-4::after {
+  content: "h4";
 }
 
-.custom-heading-level-5::before {
-  content: "H5";
-  color: #777;
+.custom-heading-level-5::after {
+  content: "h5";
 }
 
-.custom-heading-level-6::before {
-  content: "H6";
-  color: #777;
+.custom-heading-level-6::after {
+  content: "h6";
 }
 
-.custom-heading::before {
+.custom-heading::after {
   font-size: small;
   font-weight: bold;
-  margin-right: 6px;
+  color: #888;
+  margin-left: 4px;
+
+  background-color: var(--slate);
+  border-radius: 4px;
+  padding: 2px 4px;
 }
 </style>

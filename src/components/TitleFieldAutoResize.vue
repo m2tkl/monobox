@@ -1,7 +1,7 @@
 <template>
   <div
     ref="titleFieldRef"
-    class="text-2xl"
+    class="text-2xl font-bold text-[#666]"
     contenteditable="true"
     @input="onInput"
     @compositionstart="onCompositionStart"
