@@ -89,19 +89,6 @@
     </template>
 
     <template #actions>
-      <!-- Operation Buttons -->
-      <div class="fixed bottom-10 right-10 z-50">
-        <UButton
-          :icon="iconKey.trash"
-          square
-          variant="solid"
-          size="xl"
-          color="indigo"
-          class="bg-slate-600"
-          @click="deleteMemo"
-        />
-      </div>
-
       <!-- Bubble Menu -->
       <BubbleMenu
         v-if="editor"
@@ -168,6 +155,37 @@
                 color="indigo"
               >
                 Save
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </UModal>
+
+      <UModal v-model="deleteConfirmationDialogOn">
+        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+          <div class="h-24">
+            Once you delete a memo, there is no going back. Please be certain.
+          </div>
+
+          <template #footer>
+            <div class="h-8 flex w-full">
+              <UButton
+                type="submit"
+                color="red"
+                @click="deleteMemo"
+              >
+                Delete
+              </UButton>
+
+              <span class="flex-1" />
+
+              <UButton
+                variant="solid"
+                color="gray"
+
+                @click="() => { deleteConfirmationDialogOn = false }"
+              >
+                Cancel
               </UButton>
             </div>
           </template>
@@ -253,6 +271,9 @@ const menuItems = [
     {
       label: 'Delete',
       icon: iconKey.trash,
+      click: () => {
+        deleteConfirmationDialogOn.value = true;
+      },
     },
   ],
 ];
@@ -602,6 +623,8 @@ async function saveMemo() {
     });
   }
 };
+
+const deleteConfirmationDialogOn = ref(false);
 
 async function deleteMemo() {
   try {
