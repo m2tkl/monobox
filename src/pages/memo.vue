@@ -775,7 +775,7 @@ const copyAsMarkdown = async () => {
   }
 
   const titleMarkdown = `# ${store.memo.title}\n\n`;
-  const contentMarkdown = customMarkdownSerializer.serialize(editor.value.state.doc);
+  const contentMarkdown = customMarkdownSerializer.serialize(editor.value.state.doc, { tightLists: true });
 
   const markdown = titleMarkdown + contentMarkdown;
 
