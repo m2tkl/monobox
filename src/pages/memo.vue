@@ -217,6 +217,7 @@ import ToCList from '~/components/ToCList.vue';
 import { customMarkdownSerializer } from '~/lib/editor';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as CustomExtension from '~/lib/editor/extensions';
+import * as EditorUtil from '~/lib/editor/util';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -434,7 +435,10 @@ const editor = useEditor({
     }
   },
   onSelectionUpdate: ({ editor }) => {
-    const caretVisible = isCaretVisible(editor);
+    const editorContainer = document.getElementById('main');
+    if (!editorContainer) return;
+
+    const caretVisible = EditorUtil.isCaretVisible(editor, editorContainer);
 
     if (caretVisible) {
       // When a cursor operation is performed and the cursor is visible on the screen,
@@ -469,31 +473,6 @@ const editor = useEditor({
     }
   },
 });
-
-/**
- * Determine whether the cursor is within the visible range of the editor
- */
-function isCaretVisible(editor: Editor): boolean {
-  const { state, view } = editor;
-  const pos = state.selection.from;
-
-  // Get the absolute coordinates on the screen
-  // e.g. { top: 123, bottom: 137, left: 50, right: 60 }
-  const caretCoords = view.coordsAtPos(pos);
-
-  // Get the editor's scroll container
-  const container = document.getElementById('main');
-  if (!container) return false;
-
-  const containerRect = container.getBoundingClientRect();
-
-  // Determine whether it is within the screen vertically.
-  const isVisible
-    = caretCoords.top >= containerRect.top
-      && caretCoords.bottom <= containerRect.bottom;
-
-  return isVisible;
-}
 
 const headImageRef = ref();
 
@@ -712,7 +691,7 @@ function onScroll() {
 
   // Set a flag to disable heading identification based on the cursor position
   // when scrolling moves the cursor out of the screen.
-  if (!isCaretVisible(editor.value!)) {
+  if (!EditorUtil.isCaretVisible(editor.value!, editorContainer)) {
     wasCaretOut.value = true;
   }
 
