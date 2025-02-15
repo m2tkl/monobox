@@ -202,7 +202,6 @@ import Focus from '@tiptap/extension-focus';
 import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
-import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdown';
 import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, VueNodeViewRenderer, useEditor } from '@tiptap/vue-3';
@@ -216,6 +215,7 @@ import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import ToCList from '~/components/ToCList.vue';
+import { customMarkdownSerializer } from '~/lib/editor';
 import * as EditorCommand from '~/lib/editor/command.js';
 import * as CustomExtension from '~/lib/editor/extensions';
 
@@ -692,82 +692,6 @@ onBeforeUnmount(() => {
   // Destroy editor
   editor.value?.destroy();
 });
-
-const customMarkdownSerializer = new MarkdownSerializer(
-  {
-    ...defaultMarkdownSerializer.nodes,
-    /**
-     * Adjust the heading levels for output
-     */
-    heading(state, node) {
-      const adjustedLevel = Math.min(node.attrs.level + 1, 6);
-      state.write(`${'#'.repeat(adjustedLevel)} `);
-      state.renderInline(node);
-      state.closeBlock(node);
-    },
-    hardBreak(state, _node) {
-      state.write('  \n');
-    },
-    codeBlock(state, node) {
-      // Get code block language and add ```{extension}
-      const language = node.attrs.language || '';
-      state.write(`\`\`\`${language}\n`);
-
-      // Write code block text
-      state.text(node.textContent, false);
-
-      // Close code block
-      state.write('\n```');
-      state.closeBlock(node);
-    },
-    bulletList(state, node) {
-      state.renderList(node, '  ', () => '- ');
-    },
-    orderedList(state, node) {
-      state.renderList(node, '  ', index => `${index + 1}. `);
-    },
-    listItem(state, node) {
-      state.renderInline(node);
-      state.ensureNewLine();
-    },
-    taskList(state, node) {
-      node.forEach((child, _, index) => {
-        state.render(child, node, index);
-      });
-    },
-    taskItem(state, node) {
-      const checked = node.attrs.checked ? 'x' : ' ';
-      state.write(`- [${checked}] `);
-      state.renderInline(node);
-      state.ensureNewLine();
-    },
-    horizontalRule(state, _node) {
-      state.write('\n---\n');
-      state.closeBlock(_node);
-    },
-  },
-  {
-    ...defaultMarkdownSerializer.marks,
-    bold: {
-      open: '**',
-      close: '**',
-      mixable: true,
-      expelEnclosingWhitespace: true,
-    },
-    italic: {
-      open: '_',
-      close: '_',
-      mixable: true,
-      expelEnclosingWhitespace: true,
-    },
-    strike: {
-      open: '~~',
-      close: '~~',
-      mixable: true,
-      expelEnclosingWhitespace: true,
-    },
-  },
-);
 
 const copyAsMarkdown = async () => {
   if (!editor.value || !store.memo) {
