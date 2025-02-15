@@ -101,7 +101,7 @@
         />
         <EditorToolbarButton
           :icon="iconKey.link"
-          @exec="setLinkManually()"
+          @exec="openLinkEditDialog()"
         />
         <EditorToolbarButton
           :icon="iconKey.unlink"
@@ -135,7 +135,7 @@
               id="set-link"
               :state="state"
               class="space-y-4"
-              @submit="setLink"
+              @submit="execSetLink"
             >
               <UFormGroup
                 label="URL"
@@ -196,7 +196,6 @@
 </template>
 
 <script lang="ts" setup>
-import { open } from '@tauri-apps/plugin-shell';
 import Focus from '@tiptap/extension-focus';
 import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
@@ -493,40 +492,34 @@ const toc = computed<Heading[]>(() => {
   }));
 });
 
-/********************************
- * Link operation
- ********************************/
-const linkDialogOn = ref(false);
+/* --- Link operation --- */
+
+const { state: linkDialogOn, toggle: toggleLinkDialog } = useBoolState();
+
 const state = reactive({
   url: undefined,
 });
-const openLinkDialog = () => {
-  linkDialogOn.value = true;
-};
-const closeLinkDialog = () => {
-  linkDialogOn.value = false;
-};
 
-const setLinkManually = () => {
+const openLinkEditDialog = () => {
   const previousUrl = editor.value?.getAttributes('link').href;
   state.url = previousUrl;
-  openLinkDialog();
+
+  toggleLinkDialog();
 };
 
-const setLink = () => {
-  if (!state.url) {
-    editor.value?.chain().focus().extendMarkRange('link').unsetLink();
+const execSetLink = () => {
+  if (!editor.value) {
     return;
   }
 
-  if (isInternalLink(state.url)) {
-    editor.value?.chain().focus().extendMarkRange('link').setLink({ href: state.url, target: null }).run();
+  if (state.url) {
+    EditorAction.setLink(editor.value, state.url);
   }
   else {
-    editor.value?.chain().focus().extendMarkRange('link').setLink({ href: state.url, target: '_blank' }).run();
+    EditorAction.unsetLink(editor.value);
   }
 
-  closeLinkDialog();
+  toggleLinkDialog();
 };
 
 /********************************
