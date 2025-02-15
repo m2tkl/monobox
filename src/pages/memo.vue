@@ -105,7 +105,7 @@
         />
         <EditorToolbarButton
           :icon="iconKey.unlink"
-          @exec="EditorCommand.unsetLink(editor)"
+          @exec="EditorAction.unsetLink(editor)"
         />
       </BubbleMenu>
 
@@ -215,7 +215,7 @@ import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import ToCList from '~/components/ToCList.vue';
 import { customMarkdownSerializer } from '~/lib/editor';
-import * as EditorCommand from '~/lib/editor/command.js';
+import * as EditorAction from '~/lib/editor/action.js';
 import * as CustomExtension from '~/lib/editor/extensions';
 
 definePageMeta({
@@ -353,7 +353,7 @@ const editor = useEditor({
   },
   onCreate({ editor }) {
     const handleLinkClick = async (event: MouseEvent) => {
-      const url = EditorCommand.getLinkFromMouseClickEvent(event);
+      const url = EditorAction.getLinkFromMouseClickEvent(event);
 
       // If clicked element is not link, do nothing.
       if (!url) {
@@ -377,7 +377,7 @@ const editor = useEditor({
     };
   },
   onTransaction: async ({ editor: _editor, transaction }) => {
-    const { deletedLinks, addedLinks } = EditorCommand.getChangedLinks(transaction);
+    const { deletedLinks, addedLinks } = EditorAction.getChangedLinks(transaction);
     await Promise.all(
       deletedLinks.map(async (href) => {
         await store.deleteLink(workspaceSlug.value, memoSlug.value, href);
