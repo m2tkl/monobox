@@ -204,10 +204,7 @@ import TaskList from '@tiptap/extension-task-list';
 import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
-import xml from 'highlight.js/lib/languages/xml';
-import { all, createLowlight } from 'lowlight';
 
-import type { Editor } from '@tiptap/core';
 import type { EditorView } from '@tiptap/pm/view';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
@@ -284,10 +281,6 @@ const logger = useConsoleLogger(LOG_PREFIX);
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-
-const lowlight = createLowlight(all);
-lowlight.register('html', xml);
-lowlight.register('vue', xml);
 
 const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
@@ -636,14 +629,6 @@ const handleKeydownShortcut = (event: KeyboardEvent) => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeydownShortcut);
-  // >>> For focus behavior debug
-  // document.addEventListener('focus', (event) => {
-  //   logger.debug('Focused element:', document.activeElement);
-  // }, true);
-  // document.addEventListener('blur', (event) => {
-  //   logger.debug('Focus left:', event.target);
-  // }, true);
-  // <<< For focus behavior debug
 });
 
 onBeforeUnmount(() => {
@@ -736,11 +721,6 @@ onUnmounted(() => {
 </script>
 
 <style>
-/* For focus behavior debug */
-/* *:focus {
-  outline: 2px solid red !important;
-  background-color: rgba(255, 0, 0, 0.1);
-} */
 .custom-heading {
   font-family: 'Arial', sans-serif;
   margin: 16px 0;
