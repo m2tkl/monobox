@@ -361,8 +361,6 @@ const editor = useEditor({
         router.push({ path: url });
         return;
       }
-
-      await open(url);
     };
 
     editor.view.dom.addEventListener('click', handleLinkClick);
