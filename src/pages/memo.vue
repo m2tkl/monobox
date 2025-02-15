@@ -197,14 +197,13 @@
 
 <script lang="ts" setup>
 import { open } from '@tauri-apps/plugin-shell';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Focus from '@tiptap/extension-focus';
 import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
-import { BubbleMenu, EditorContent, type NodeViewProps, VueNodeViewRenderer, useEditor } from '@tiptap/vue-3';
+import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
 import xml from 'highlight.js/lib/languages/xml';
 import { all, createLowlight } from 'lowlight';
 
@@ -322,25 +321,7 @@ const editor = useEditor({
     }),
     CustomExtension.imageExtention(),
     CustomExtension.headingExtension(),
-    CodeBlockLowlight.extend({
-      addNodeView() {
-        return VueNodeViewRenderer(CodeBlockComponent as Component<NodeViewProps>);
-      },
-      addAttributes() {
-        return {
-          ...this.parent?.(),
-          name: {
-            default: '',
-            parseHTML: element => element.getAttribute('name'),
-            renderHTML: (attributes) => {
-              return {
-                name: attributes.name,
-              };
-            },
-          },
-        };
-      },
-    }).configure({ lowlight }),
+    CustomExtension.codeBlockExtension(CodeBlockComponent as Component<NodeViewProps>),
     Focus.configure({
       className: 'has-focus',
       mode: 'deepest',
