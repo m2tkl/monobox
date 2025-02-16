@@ -204,6 +204,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
 
 import type { Editor } from '@tiptap/core';
+import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
@@ -332,61 +333,9 @@ const editor = useEditor({
     };
   },
   onTransaction: async ({ editor: _editor, transaction }) => {
-    const { deletedLinks, addedLinks } = EditorAction.getChangedLinks(transaction);
-    await Promise.all(
-      deletedLinks.map(async (href) => {
-        await store.deleteLink(workspaceSlug.value, memoSlug.value, href);
-      }),
-    );
-    await Promise.all(
-      addedLinks.map(async (href) => {
-        await store.createLink(workspaceSlug.value, memoSlug.value, href);
-      }),
-    );
-
-    if (deletedLinks.length > 0 || addedLinks.length > 0) {
-      await Promise.all([
-        store.loadLinks(workspaceSlug.value, memoSlug.value),
-        saveMemo(),
-      ]);
-      logger.log('Link updated successfully.');
-    }
-
-    const { state } = _editor!;
-
-    const tr = state.tr;
-
-    let modified = false;
-    let foundFirstImage: string | undefined = undefined;
-
-    // TODO: The processing for headings and images is mixed, so they need to be separated.
-    // The logic for headings should be achievable using only transactions.
-    state.doc.descendants((node, pos) => {
-      // Assign an ID to the Heading
-      if (node.type.name === 'heading' && !node.attrs.id) {
-        const newId = `heading-${Math.floor(Math.random() * 100000)}`;
-        tr.setNodeMarkup(pos, undefined, {
-          ...node.attrs,
-          id: newId,
-        });
-        modified = true;
-      }
-
-      // Update image for thumbnail
-      if (node.type.name === 'image') {
-        if (!foundFirstImage) {
-          foundFirstImage = node.attrs.src;
-        }
-      }
-    });
-
-    if (modified) {
-      editor.value?.view.dispatch(tr);
-    }
-
-    if (foundFirstImage !== headImageRef.value) {
-      headImageRef.value = foundFirstImage;
-    }
+    await updateLinks(transaction);
+    updateHeadImage(transaction);
+    updateHeadingIds(_editor);
   },
   onSelectionUpdate: ({ editor }) => {
     const editorContainer = document.getElementById('main');
@@ -427,6 +376,53 @@ const editor = useEditor({
     }
   },
 });
+
+const updateHeadingIds = (editor: Editor) => {
+  let modified = false;
+
+  const { state, view } = editor;
+  const tr = state.tr;
+  state.doc.descendants((node, pos) => {
+    if (node.type.name === 'heading' && !node.attrs.id) {
+      const newId = `heading-${Math.floor(Math.random() * 100000)}`;
+      tr.setNodeMarkup(pos, undefined, { ...node.attrs, id: newId });
+      modified = true;
+    }
+  });
+
+  if (modified) {
+    view.dispatch(tr);
+  }
+};
+
+const updateLinks = async (transaction: Transaction) => {
+  const { deletedLinks, addedLinks } = EditorUtil.getChangedLinks(transaction);
+  await Promise.all(
+    deletedLinks.map(async (href) => {
+      await store.deleteLink(workspaceSlug.value, memoSlug.value, href);
+    }),
+  );
+  await Promise.all(
+    addedLinks.map(async (href) => {
+      await store.createLink(workspaceSlug.value, memoSlug.value, href);
+    }),
+  );
+
+  if (deletedLinks.length > 0 || addedLinks.length > 0) {
+    await Promise.all([
+      store.loadLinks(workspaceSlug.value, memoSlug.value),
+      saveMemo(),
+    ]);
+    logger.log('Link updated successfully.');
+  }
+};
+
+const updateHeadImage = async (transaction: Transaction) => {
+  const foundFirstImage = EditorUtil.findHeadImage(transaction);
+  if (foundFirstImage !== headImageRef.value) {
+    headImageRef.value = foundFirstImage;
+  }
+};
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (isCmdKey(event) && event.key === 's') {
