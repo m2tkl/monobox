@@ -3,6 +3,11 @@ import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/vue-3';
 
+export const setLink = (editor: Editor, link: string) => {
+  const target = isInternalLink(link) ? null : '_blank';
+  editor.chain().focus().setMark('link', { href: link, target }).run();
+};
+
 export const unsetLink = (editor: Editor) => {
   editor.chain().focus().unsetMark('link').run();
 };

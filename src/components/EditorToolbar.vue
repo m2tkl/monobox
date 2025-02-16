@@ -5,48 +5,48 @@
   >
     <EditorToolbarButton
       label="H1"
-      @exec="EditorCommand.toggleHeading(editor, { h: 1 })"
+      @exec="EditorAction.toggleHeading(editor, { h: 1 })"
     />
     <EditorToolbarButton
       label="H2"
-      @exec="EditorCommand.toggleHeading(editor, { h: 2 })"
+      @exec="EditorAction.toggleHeading(editor, { h: 2 })"
     />
     <EditorToolbarButton
       label="H3"
-      @exec="EditorCommand.toggleHeading(editor, { h: 3 })"
+      @exec="EditorAction.toggleHeading(editor, { h: 3 })"
     />
 
     <EditorToolbarButton
       :icon="iconKey.textBold"
-      @exec="EditorCommand.toggleStyle(editor, 'bold')"
+      @exec="EditorAction.toggleStyle(editor, 'bold')"
     />
     <EditorToolbarButton
       :icon="iconKey.textItalic"
-      @exec="EditorCommand.toggleStyle(editor, 'italic')"
+      @exec="EditorAction.toggleStyle(editor, 'italic')"
     />
     <EditorToolbarButton
       :icon="iconKey.textStrikeThrough"
-      @exec="EditorCommand.toggleStyle(editor, 'strike')"
+      @exec="EditorAction.toggleStyle(editor, 'strike')"
     />
     <EditorToolbarButton
       :icon="iconKey.listBulletted"
-      @exec="EditorCommand.toggleBulletList(editor)"
+      @exec="EditorAction.toggleBulletList(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.listNumbered"
-      @exec="EditorCommand.toggleOrderedList(editor)"
+      @exec="EditorAction.toggleOrderedList(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.quotes"
-      @exec="EditorCommand.toggleBlockQuote(editor)"
+      @exec="EditorAction.toggleBlockQuote(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.inlineCode"
-      @exec="EditorCommand.toggleCode(editor)"
+      @exec="EditorAction.toggleCode(editor)"
     />
     <EditorToolbarButton
       :icon="iconKey.clearFormat"
-      @exec="EditorCommand.resetStyle(editor)"
+      @exec="EditorAction.resetStyle(editor)"
     />
   </div>
 </template>
@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3';
 
-import * as EditorCommand from '~/lib/editor/command.js';
+import * as EditorAction from '~/lib/editor/action.js';
 
 defineProps<{ editor: Editor }>();
 </script>
