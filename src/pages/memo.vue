@@ -2,7 +2,7 @@
   <NuxtLayout name="default">
     <template #context-menu>
       <UDropdown
-        :items="menuItems"
+        :items="contextMenuItems"
       >
         <div class="flex items-center">
           <UIcon
@@ -21,7 +21,7 @@
             v-if="toc"
             :items="toc"
             :active-heading-id="activeHeadingId"
-            @click="(id: any) => { scrollToElementWithOffset(id, 100); focusNodeById(id); activeHeadingId = id }"
+            @click="(id: any) => { scrollToElementWithOffset(id, 100); EditorUtil.focusNodeById(editor!, id); activeHeadingId = id }"
           />
         </div>
 
@@ -97,7 +97,7 @@
       >
         <EditorToolbarButton
           :icon="iconKey.memoLink"
-          @exec="openLinkPalette()"
+          @exec="() => { linkPaletteRef?.openCommandPalette() }"
         />
         <EditorToolbarButton
           :icon="iconKey.link"
@@ -183,7 +183,7 @@
                 variant="solid"
                 color="gray"
 
-                @click="() => { deleteConfirmationDialogOn = false }"
+                @click="toggleDeleteConfirmationDialog"
               >
                 Cancel
               </UButton>
@@ -200,17 +200,17 @@ import Focus from '@tiptap/extension-focus';
 import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
-import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
 
+import type { Editor } from '@tiptap/core';
 import type { EditorView } from '@tiptap/pm/view';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import ToCList from '~/components/ToCList.vue';
-import { customMarkdownSerializer } from '~/lib/editor';
+import { convertToMarkdown } from '~/lib/editor';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorUtil from '~/lib/editor/util';
@@ -222,67 +222,15 @@ definePageMeta({
   },
 });
 
-/**
- * Focuses on a node with the specified ID and moves the cursor to the end of the node.
- *
- * @param id - The ID of the node to focus.
- */
-
-const focusNodeById = (id: string) => {
-  if (!editor.value) return;
-
-  const { state, view } = editor.value;
-  const { doc, tr } = state;
-
-  let pos = null;
-  let nodeSize = 0;
-
-  // Search for the node with the specified ID and get its position
-  doc.descendants((node, posIndex) => {
-    if (node.attrs.id === id) {
-      pos = posIndex;
-      nodeSize = node.nodeSize;
-      return false;
-    }
-  });
-
-  // Move the cursor to the end of the selected node
-  if (pos !== null) {
-    const selectionPos = pos + nodeSize - 1;
-    const newTr = tr.setSelection(TextSelection.create(tr.doc, selectionPos));
-    view.dispatch(newTr);
-    view.focus();
-  }
-};
-
-const menuItems = [
-  [{
-    label: 'Copy as markdown',
-    icon: iconKey.copy,
-    click: async () => {
-      await copyAsMarkdown();
-    },
-  }],
-  [
-    {
-      label: 'Delete',
-      icon: iconKey.trash,
-      click: () => {
-        deleteConfirmationDialogOn.value = true;
-      },
-    },
-  ],
-];
-
-const LOG_PREFIX = '[pages/[workspace]/[memo]/index]';
-const logger = useConsoleLogger(LOG_PREFIX);
-
 const route = useRoute();
 const router = useRouter();
+const logger = useConsoleLogger('[pages/memo]');
 const toast = useToast();
 
 const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
+
+/* --- Workspace and memo loader --- */
 
 const { store, loadMemo, loadWorkspace } = useWorkspaceLoader();
 
@@ -298,6 +246,22 @@ await loadMemo(workspaceSlug.value, memoSlug.value);
 
 const { setWorkspace } = useWorkspace();
 setWorkspace(store.workspace!);
+
+/* --- States for editor --- */
+
+// Stores the first image found in the document, used as a thumbnail reference
+const headImageRef = ref();
+
+// Reference to control the link palette component
+const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
+
+// Stores the currently active heading ID, used for tracking the highlighted section in the memo
+const activeHeadingId = ref<string>();
+
+// Tracks whether the caret has moved out of the visible editor area, used to adjust heading focus behavior
+const wasCaretOut = ref(false);
+
+/* --- Editor --- */
 
 const editor = useEditor({
   content: store.memo ? JSON.parse(store.memo.content) : '',
@@ -464,7 +428,55 @@ const editor = useEditor({
   },
 });
 
-const headImageRef = ref();
+const handleKeydown = (event: KeyboardEvent) => {
+  if (isCmdKey(event) && event.key === 's') {
+    event.preventDefault();
+    saveMemo();
+    return;
+  }
+};
+
+function handleScroll() {
+  const editorInstance = editor.value;
+  const editorContainer = document.getElementById('main');
+  if (!editorInstance || !editorContainer) return;
+
+  updateActiveHeadingOnScroll(editorInstance, editorContainer);
+}
+
+/**
+ * Updates the active heading based on the scroll position.
+ * If the caret is out of view, determines the last heading that was pushed up.
+ *
+ * @param editorInstance - The editor instance
+ * @param editorContainer - The main editor container element
+ */
+function updateActiveHeadingOnScroll(editorInstance: Editor, editorContainer: HTMLElement) {
+  // Set a flag to disable heading identification based on the cursor position
+  // when scrolling moves the cursor out of the screen.
+  if (!EditorUtil.isCaretVisible(editorInstance, editorContainer)) {
+    wasCaretOut.value = true;
+  }
+
+  if (wasCaretOut.value) {
+    activeHeadingId.value = EditorUtil.getLastVisibleHeadingId(editorContainer);
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+  document.getElementById('main')?.addEventListener('scroll', handleScroll, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown);
+  document.getElementById('main')?.removeEventListener('scroll', handleScroll);
+
+  // Destroy editor
+  editor.value?.destroy();
+});
+
+/* --- toc --- */
 
 type _Heading = {
   type: 'heading';
@@ -491,6 +503,25 @@ const toc = computed<Heading[]>(() => {
     level: h.attrs ? (h.attrs.level as number) : 1,
   }));
 });
+
+/* --- Contect menu items --- */
+
+const contextMenuItems = [
+  [
+    {
+      label: 'Copy as markdown',
+      icon: iconKey.copy,
+      click: async () => { await copyAsMarkdown(); },
+    },
+  ],
+  [
+    {
+      label: 'Delete',
+      icon: iconKey.trash,
+      click: () => { toggleDeleteConfirmationDialog(); },
+    },
+  ],
+];
 
 /* --- Link operation --- */
 
@@ -522,9 +553,8 @@ const execSetLink = () => {
   toggleLinkDialog();
 };
 
-/********************************
- * Memo operation
- ********************************/
+/* --- Commands --- */
+
 async function saveMemo() {
   const updatedTitle = store.memo?.title;
   if (!updatedTitle) {
@@ -568,7 +598,7 @@ async function saveMemo() {
   }
 };
 
-const deleteConfirmationDialogOn = ref(false);
+const { state: deleteConfirmationDialogOn, toggle: toggleDeleteConfirmationDialog } = useBoolState();
 
 async function deleteMemo() {
   try {
@@ -594,50 +624,12 @@ async function deleteMemo() {
   }
 }
 
-/******************************************
- * Command palette operation
- ******************************************/
-
-const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
-
-async function openLinkPalette() {
-  if (linkPaletteRef.value) {
-    linkPaletteRef.value.openCommandPalette();
-  }
-};
-
-/*******************************
- * Shortcuts (window)
- *******************************/
-
-const handleKeydownShortcut = (event: KeyboardEvent) => {
-  if (isCmdKey(event) && event.key === 's') {
-    event.preventDefault();
-    saveMemo();
-    return;
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydownShortcut);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydownShortcut);
-
-  // Destroy editor
-  editor.value?.destroy();
-});
-
 const copyAsMarkdown = async () => {
   if (!editor.value || !store.memo) {
     return;
   }
 
-  const titleMarkdown = `# ${store.memo.title}\n\n`;
-  const contentMarkdown = customMarkdownSerializer.serialize(editor.value.state.doc, { tightLists: true });
-
-  const markdown = titleMarkdown + contentMarkdown;
+  const markdown = convertToMarkdown(editor.value, store.memo.title);
 
   try {
     await navigator.clipboard.writeText(markdown);
@@ -657,58 +649,6 @@ const copyAsMarkdown = async () => {
     });
   }
 };
-
-const activeHeadingId = ref<string>();
-const wasCaretOut = ref(false);
-
-function onScroll() {
-  const editorContainer = document.getElementById('main');
-  if (!editorContainer) return;
-
-  // Set a flag to disable heading identification based on the cursor position
-  // when scrolling moves the cursor out of the screen.
-  if (!EditorUtil.isCaretVisible(editor.value!, editorContainer)) {
-    wasCaretOut.value = true;
-  }
-
-  if (wasCaretOut.value) {
-    const headings = editorContainer.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]') as NodeListOf<HTMLElement>;
-    if (!headings.length) return;
-
-    const containerRect = editorContainer.getBoundingClientRect();
-
-    // Record headings that are positioned above the top of the container (containerRect.top),
-    // meaning they have been pushed up by scrolling.
-    //
-    // For example, if the top of a heading is above the top of the screen, it means the heading has been pushed up.
-    // Among such headings, the last one found (i.e., the lowest one) will be set as activeId.
-    //
-    // Adjust as needed by adding an offset.
-    let activeId: string | null = null;
-    headings.forEach((heading) => {
-      const rect = heading.getBoundingClientRect();
-      if (rect.top < containerRect.top + 100) {
-        activeId = heading.getAttribute('id');
-      }
-    });
-
-    activeHeadingId.value = activeId ?? undefined;
-  }
-}
-
-onMounted(() => {
-  const editorContainer = document.getElementById('main');
-  if (!editorContainer) return;
-
-  editorContainer.addEventListener('scroll', onScroll, { passive: true });
-});
-
-onUnmounted(() => {
-  const editorContainer = document.getElementById('main');
-  if (!editorContainer) return;
-
-  editorContainer.removeEventListener('scroll', onScroll);
-});
 </script>
 
 <style>

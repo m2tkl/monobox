@@ -1,5 +1,7 @@
 import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdown';
 
+import type { Editor } from '@tiptap/vue-3';
+
 export const customMarkdownSerializer = new MarkdownSerializer(
   {
     ...defaultMarkdownSerializer.nodes,
@@ -75,3 +77,11 @@ export const customMarkdownSerializer = new MarkdownSerializer(
     },
   },
 );
+
+export const convertToMarkdown = (editor: Editor, title: string) => {
+  const titleMarkdown = `# ${title}\n\n`;
+  const contentMarkdown = customMarkdownSerializer.serialize(editor.state.doc, { tightLists: true });
+
+  const markdown = titleMarkdown + contentMarkdown;
+  return markdown;
+};
