@@ -1,5 +1,4 @@
 import type { Level } from '@tiptap/extension-heading';
-import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/vue-3';
 
@@ -64,51 +63,6 @@ export const resetStyle = (
   editor: Editor,
 ) => {
   editor.chain().focus().clearNodes().unsetAllMarks().run();
-};
-
-/**
- * Memo: Return a Set or Array of links; the creation/deletion of links should be handled on the Main side.
- * IO operations should be performed externally.
- */
-export const getChangedLinks = (transaction: Transaction) => {
-  const beforeLinks = new Set<string>();
-  transaction.before.descendants((node) => {
-    const linkMark = node.marks.find(mark => mark.type.name === 'link');
-    if (linkMark) {
-      beforeLinks.add(linkMark.attrs.href);
-    }
-  });
-
-  // The updated links (list of href)
-  const afterLinks = new Set<string>();
-  transaction.doc.descendants((node) => {
-    const linkMark = node.marks.find(mark => mark.type.name === 'link');
-    if (linkMark) {
-      afterLinks.add(linkMark.attrs.href);
-    }
-  });
-
-  const deletedLinks = [];
-  const addedLinks = [];
-
-  // Detect fully removed links
-  for (const href of beforeLinks) {
-    if (!afterLinks.has(href)) {
-      deletedLinks.push(href);
-    }
-  }
-
-  // Detect fully added links
-  for (const href of afterLinks) {
-    if (!beforeLinks.has(href)) {
-      addedLinks.push(href);
-    }
-  }
-
-  return {
-    deletedLinks,
-    addedLinks,
-  };
 };
 
 export const isInternalLink = (url: string): boolean => {

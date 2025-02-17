@@ -30,7 +30,7 @@ export const headingExtension = () => {
         `h${HTMLAttributes.level}`,
         {
           ...HTMLAttributes,
-          class: `custom-heading custom-heading-level-${HTMLAttributes.level}`, // カスタムクラスを追加
+          class: `custom-heading custom-heading-level-${HTMLAttributes.level}`,
         },
         0,
       ];
