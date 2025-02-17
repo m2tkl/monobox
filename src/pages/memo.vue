@@ -13,9 +13,11 @@
     </template>
 
     <template #main>
-      <div class="h-full w-full flex justify-center">
+      <div
+        class="h-full w-full flex justify-center"
+      >
         <div
-          class="hide-scrollbar w-[250px] flex flex-col gap-3 flex-shrink-0 max-h-full overflow-y-auto border-right"
+          class="scrollbar w-[250px] flex flex-col gap-3 flex-shrink-0 h-full border-right"
         >
           <ToCList
             v-if="toc"
@@ -27,7 +29,7 @@
 
         <div
           id="main"
-          class="flex-1 min-w-0 bg-slate-30 h-full overflow-y-auto hide-scrollbar"
+          class="flex-1 min-w-0 bg-slate-200 h-full overflow-y-auto hide-scrollbar"
         >
           <!-- Editor -->
           <div
