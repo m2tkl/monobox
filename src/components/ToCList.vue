@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-slate-100">
+  <div
+    ref="tocListRef"
+    class="bg-slate-100 h-full overflow-y-auto hide-scrollbar"
+  >
     <div
       class="sticky top-0 left-0 z-50 flex items-center gap-1 border-b-2 border-slate-400 bg-[--slate]  px-2 py-1 text-sm font-semibold text-gray-700 h-8"
     >
@@ -16,6 +19,7 @@
         <div
           class="flex cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
           :class="{ 'font-bold bg-blue-200': activeHeadingId === item.id }"
+          :data-id="item.id"
           @click="item.id && emits('click', item.id)"
         >
           <span :class="indent(item.level)" />
@@ -30,7 +34,7 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{
+const props = defineProps<{
   items: Array<{
     id: string | null;
     text: string;
@@ -53,4 +57,42 @@ const indentStyle: Record<number, string> = {
 };
 
 const indent = (level: number) => indentStyle[level] ?? '';
+
+// Reference to control the toc auto scroll
+const tocListRef = ref<HTMLElement | null>(null);
+
+watch(() => props.activeHeadingId, (newId) => {
+  if (!newId || !tocListRef.value) return;
+
+  const tocContainer = tocListRef.value;
+  const activeTocItem = tocListRef.value.querySelector(`[data-id="${newId}"]`);
+
+  if (activeTocItem) {
+    const tocHeadingHeight = 48;
+    const offset = 48;
+
+    // Get the bounding rectangles of the active ToC item and the ToC container
+    const itemRect = activeTocItem.getBoundingClientRect();
+    const containerRect = tocContainer.getBoundingClientRect();
+
+    // Check if the active item is out of the visible range
+    const isAbove = itemRect.top < containerRect.top + tocHeadingHeight + offset;
+    const isBelow = itemRect.bottom > containerRect.bottom - offset;
+
+    if (isAbove || isBelow) {
+      const currentScrollTop = tocContainer.scrollTop;
+      const itemTopRelativeToContainer = itemRect.top - containerRect.top;
+
+      // Determine the new scroll position
+      const targetScrollTop = isAbove
+        ? currentScrollTop + itemTopRelativeToContainer - (tocHeadingHeight + offset)
+        : currentScrollTop + (itemRect.bottom - containerRect.bottom) + offset;
+
+      tocContainer.scrollTo({
+        top: targetScrollTop,
+        behavior: 'smooth',
+      });
+    }
+  }
+});
 </script>
