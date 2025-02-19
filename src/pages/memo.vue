@@ -45,7 +45,6 @@
             <!-- Content area -->
             <div
               class="bg-slate-100 p-6"
-              @click.self="editor?.chain().focus('end').run()"
             >
               <!-- Title -->
               <TitleFieldAutoResize
