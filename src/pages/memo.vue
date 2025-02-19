@@ -109,7 +109,7 @@
           @exec="EditorAction.unsetLink(editor)"
         />
 
-        <span class="text-slate-600 font-thin mx-">|</span>
+        <span class="text-slate-400 font-thin mx-">|</span>
 
         <EditorToolbarButton
           :icon="iconKey.textBold"
@@ -132,6 +132,13 @@
         <EditorToolbarButton
           :icon="iconKey.clearFormat"
           @exec="EditorAction.resetStyle(editor)"
+        />
+
+        <span class="text-slate-400 font-thin mx-">|</span>
+
+        <EditorToolbarButton
+          :icon="iconKey.copy"
+          @exec="copySelectedAsMarkdown"
         />
       </BubbleMenu>
 
@@ -651,18 +658,44 @@ const copyAsMarkdown = async () => {
     return;
   }
 
-  const markdown = convertToMarkdown(editor.value, store.memo.title);
+  const markdown = convertToMarkdown(editor.value.state.doc, store.memo.title);
 
   try {
     await navigator.clipboard.writeText(markdown);
     toast.add({
-      title: 'Markdown dopied to clipboard!',
+      title: 'Markdown copied to clipboard!',
       timeout: 1000,
       icon: iconKey.success,
     });
   }
   catch (error) {
     console.error('Failed to copy markdown:', error);
+    toast.add({
+      title: 'Failed to copy.',
+      description: 'Please try again.',
+      color: 'red',
+      icon: iconKey.failed,
+    });
+  }
+};
+
+const copySelectedAsMarkdown = async () => {
+  if (!editor.value) return;
+
+  const { from, to } = editor.value.state.selection;
+  const selectedContent = editor.value.state.doc.cut(from, to);
+  const markdown = convertToMarkdown(selectedContent);
+
+  try {
+    await navigator.clipboard.writeText(markdown);
+    toast.add({
+      title: 'Selected markdown copied!',
+      timeout: 1000,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error('Failed to copy selected markdown:', error);
     toast.add({
       title: 'Failed to copy.',
       description: 'Please try again.',
