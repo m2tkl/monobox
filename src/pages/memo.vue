@@ -109,6 +109,31 @@
           :icon="iconKey.unlink"
           @exec="EditorAction.unsetLink(editor)"
         />
+
+        <span class="text-slate-600 font-thin mx-">|</span>
+
+        <EditorToolbarButton
+          :icon="iconKey.textBold"
+          @exec="EditorAction.toggleStyle(editor, 'bold')"
+        />
+        <EditorToolbarButton
+          :icon="iconKey.textItalic"
+          @exec="EditorAction.toggleStyle(editor, 'italic')"
+        />
+        <EditorToolbarButton
+          :icon="iconKey.textStrikeThrough"
+          @exec="EditorAction.toggleStyle(editor, 'strike')"
+        />
+
+        <EditorToolbarButton
+          :icon="iconKey.inlineCode"
+          @exec="EditorAction.toggleCode(editor)"
+        />
+
+        <EditorToolbarButton
+          :icon="iconKey.clearFormat"
+          @exec="EditorAction.resetStyle(editor)"
+        />
       </BubbleMenu>
 
       <div v-if="store.workspaceMemos && store.workspace">
