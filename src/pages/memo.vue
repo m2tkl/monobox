@@ -244,8 +244,8 @@ import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import ToCList from '~/components/ToCList.vue';
-import { convertToMarkdown } from '~/lib/editor';
 import * as EditorAction from '~/lib/editor/action.js';
+import * as EditorCommand from '~/lib/editor/command';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorUtil from '~/lib/editor/util';
 
@@ -584,6 +584,32 @@ const execSetLink = () => {
 
 /* --- Commands --- */
 
+async function executeWithToast<T, Args extends unknown[]>(
+  action: (...args: Args) => Promise<T>,
+  args: Args,
+  messages: { success: string; error: string },
+): Promise<{ ok: true; data: T } | { ok: false }> {
+  try {
+    const result = await action(...args);
+    toast.add({
+      title: messages.success,
+      timeout: 1000,
+      icon: iconKey.success,
+    });
+    return { ok: true, data: result };
+  }
+  catch (error) {
+    console.error(messages.error, error);
+    toast.add({
+      title: messages.error,
+      description: 'Please try again',
+      color: 'red',
+      icon: iconKey.failed,
+    });
+    return { ok: false };
+  }
+};
+
 async function saveMemo() {
   const updatedTitle = store.memo?.title;
   if (!updatedTitle) {
@@ -591,65 +617,42 @@ async function saveMemo() {
     return;
   }
 
-  const editorInstance = editor.value;
-  if (editorInstance == null) {
-    logger.warn('Editor instance is undefined.');
+  if (!editor.value) {
     return;
   }
 
-  try {
-    await store.saveMemo(workspaceSlug.value, memoSlug.value, {
-      title: updatedTitle,
-      content: JSON.stringify(editorInstance.getJSON()),
-      description: truncateString(editorInstance.getText(), 256),
-      thumbnailImage: headImageRef.value,
-    });
+  const result = await executeWithToast(
+    store.saveMemo,
+    [
+      workspaceSlug.value,
+      memoSlug.value,
+      {
+        title: updatedTitle,
+        content: JSON.stringify(editor.value.getJSON()),
+        description: truncateString(editor.value.getText(), 256),
+        thumbnailImage: headImageRef.value,
+      },
+    ],
+    { success: 'Saved!', error: 'Failed to save.' },
+  );
 
-    toast.clear();
-    toast.add({
-      title: 'Saved!',
-      timeout: 1000,
-      icon: iconKey.success,
-    });
-
+  if (result.ok) {
     // Go to updated title page
     router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}`);
-  }
-  catch (error) {
-    logger.error(error);
-
-    toast.add({
-      title: 'Failed to save.',
-      description: 'Please save again.',
-      color: 'red',
-      icon: iconKey.failed,
-    });
   }
 };
 
 const { state: deleteConfirmationDialogOn, toggle: toggleDeleteConfirmationDialog } = useBoolState();
 
 async function deleteMemo() {
-  try {
-    await store.deleteMemo(workspaceSlug.value, memoSlug.value);
+  const result = await executeWithToast(
+    store.deleteMemo,
+    [workspaceSlug.value, memoSlug.value],
+    { success: 'Delete memo successfully.', error: 'Failed to delete.' },
+  );
 
-    toast.clear();
-    toast.add({
-      title: 'Delete memo successfully.',
-      timeout: 1000,
-      icon: iconKey.success,
-    });
-
+  if (result.ok) {
     router.replace(`/${workspaceSlug.value}`);
-  }
-  catch (error) {
-    logger.error(error);
-    toast.add({
-      title: 'Failed to delete.',
-      description: 'Please delete again.',
-      color: 'red',
-      icon: iconKey.failed,
-    });
   }
 }
 
@@ -658,51 +661,21 @@ const copyAsMarkdown = async () => {
     return;
   }
 
-  const markdown = convertToMarkdown(editor.value.state.doc, store.memo.title);
-
-  try {
-    await navigator.clipboard.writeText(markdown);
-    toast.add({
-      title: 'Markdown copied to clipboard!',
-      timeout: 1000,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error('Failed to copy markdown:', error);
-    toast.add({
-      title: 'Failed to copy.',
-      description: 'Please try again.',
-      color: 'red',
-      icon: iconKey.failed,
-    });
-  }
+  await executeWithToast(
+    EditorCommand.copyAsMarkdown,
+    [editor.value, store.memo.title],
+    { success: 'Markdown copied to clipboard!', error: 'Failed to copy markdown' },
+  );
 };
 
 const copySelectedAsMarkdown = async () => {
   if (!editor.value) return;
 
-  const { from, to } = editor.value.state.selection;
-  const selectedContent = editor.value.state.doc.cut(from, to);
-  const markdown = convertToMarkdown(selectedContent);
-
-  try {
-    await navigator.clipboard.writeText(markdown);
-    toast.add({
-      title: 'Selected markdown copied!',
-      timeout: 1000,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error('Failed to copy selected markdown:', error);
-    toast.add({
-      title: 'Failed to copy.',
-      description: 'Please try again.',
-      color: 'red',
-      icon: iconKey.failed,
-    });
-  }
+  await executeWithToast(
+    EditorCommand.copySelectedAsMarkdown,
+    [editor.value],
+    { success: 'Selected markdown copied!', error: 'Failed to copy selected markdown' },
+  );
 };
 </script>
 

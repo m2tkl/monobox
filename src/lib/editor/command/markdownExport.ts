@@ -1,5 +1,6 @@
 import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdown';
 
+import type { Editor } from '@tiptap/core';
 import type { Node } from '@tiptap/pm/model';
 
 export const customMarkdownSerializer = new MarkdownSerializer(
@@ -84,4 +85,17 @@ export const convertToMarkdown = (node: Node, title?: string) => {
 
   const markdown = titleMarkdown + contentMarkdown;
   return markdown;
+};
+
+export const copyAsMarkdown = async (editor: Editor, title: string) => {
+  const markdown = convertToMarkdown(editor.state.doc, title);
+  await navigator.clipboard.writeText(markdown);
+};
+
+export const copySelectedAsMarkdown = async (editor: Editor) => {
+  const { from, to } = editor.state.selection;
+  const selectedContent = editor.state.doc.cut(from, to);
+
+  const markdown = convertToMarkdown(selectedContent);
+  await navigator.clipboard.writeText(markdown);
 };
