@@ -6,6 +6,7 @@ pub struct Link {
     pub slug_title: String,
     pub title: String,
     pub description: Option<String>,
+    pub thumbnail_image: Option<String>,
     pub link_id: i32,
     pub link_type: String,
 }

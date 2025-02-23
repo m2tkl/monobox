@@ -30,6 +30,7 @@ impl LinkRepository {
               Memo.slug_title,
               Memo.title,
               Memo.description,
+              thumbnail_image,
               'Forward' AS link_type,
               ForwardLinks.id AS link_id
             FROM memo
@@ -42,6 +43,7 @@ impl LinkRepository {
               Memo.slug_title,
               Memo.title,
               Memo.description,
+              thumbnail_image,
               'Backward' AS link_type,
               BackLinks.id AS link_id
             FROM memo
@@ -54,6 +56,7 @@ impl LinkRepository {
               Memo.slug_title,
               Memo.title,
               Memo.description,
+              thumbnail_image,
               'TwoHop' AS link_type,
               TwoHopLinks.forward_linkid AS link_id
             FROM memo
@@ -69,8 +72,9 @@ impl LinkRepository {
                     slug_title: row.get(1)?,
                     title: row.get(2)?,
                     description: row.get(3)?,
-                    link_type: row.get(4)?,
-                    link_id: row.get(5)?,
+                    thumbnail_image: row.get(4)?,
+                    link_type: row.get(5)?,
+                    link_id: row.get(6)?,
                 })
             })
             .map_err(|e| e.to_string())?
