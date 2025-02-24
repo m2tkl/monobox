@@ -13,7 +13,7 @@
       v-if="backLinks.length !== 0"
       class="my-4"
     >
-      <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 pb-4 px-4">
+      <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 px-4">
         <li
           v-for="memo in backLinks"
           :key="memo.id"
