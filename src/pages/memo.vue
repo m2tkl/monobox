@@ -320,6 +320,9 @@ const editor = useEditor({
     TaskList,
     TaskItem.configure({
       nested: true,
+      HTMLAttributes: {
+        class: 'custom-task-item',
+      },
     }),
   ],
   editorProps: {
@@ -750,5 +753,13 @@ const copySelectedAsMarkdown = async () => {
   background-color: var(--slate);
   border-radius: 4px;
   padding: 2px 4px;
+}
+
+/* --- Task list --- */
+
+/* Apply a strikethrough to completed checkboxes. */
+.custom-task-item[data-checked="true"] div * {
+  text-decoration: line-through;
+  color: #999;
 }
 </style>
