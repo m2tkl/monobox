@@ -390,7 +390,6 @@ const editor = useEditor({
       for (let depth = $anchor.depth; depth >= 0; depth--) {
         const node = $anchor.node(depth);
         if (node.type.name === 'heading') {
-          // updateStickyScroll(node.attrs.id);
           activeHeadingId.value = node.attrs.id;
           return;
         }
