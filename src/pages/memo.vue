@@ -687,24 +687,70 @@ const copySelectedAsMarkdown = async () => {
   margin: 16px 0;
   padding-bottom: 4px;
   font-weight: bold;
+
+  /* NOTE: Since using flex causes the cursor to jump to the beginning, set block */
+  display: block;
+  width: max-content;
+
+  /* Limit to not exceed the editor's width */
+  /* 24px is editor's around space size */
+  max-width: calc(100% - 24px);
+
+  position: relative;
+}
+
+.custom-heading::after {
+  font-size: 12px;
+  font-weight: bold;
+  font-family: monospace;
+  color: #888;
+
+  background-color: var(--slate);
+  border-radius: 2px;
+  padding: 1px 4px;
+
+  position: absolute;
+  right: -28px;
+  top: 45%;
+  transform: translateY(-50%);
 }
 
 .custom-heading-level-1 {
-  font-size: 2.5em;
-  color: #666;
-  border-bottom: 2px solid #ddd;
+  font-size: 1.6em;
+  color: #555;
+
+  /* NOTE:
+       Since the heading width was adjusted to fit the content,
+       the underline no longer extends across the full width.
+       Temporarily disabled.
+  */
+  /* border-bottom: 2px solid #ddd; */
 }
 
 .custom-heading-level-2 {
-  font-size: 2em;
+  font-size: 1.6em;
   color: #555;
-  border-bottom: 1px solid #ddd;
-  border-style: dashed;
+
+  /* NOTE:
+       Since the heading width was adjusted to fit the content,
+       the underline no longer extends across the full width.
+       Temporarily disabled.
+  */
+  /* border-bottom: 1px solid #ccc; */
+  /* border-style: dashed; */
 }
 
 .custom-heading-level-3 {
   font-size: 1.5em;
-  color: #777;
+  color: #555;
+
+  /* NOTE:
+       Since the heading width was adjusted to fit the content,
+       the underline no longer extends across the full width.
+       Temporarily disabled.
+  */
+  /* border-bottom: 1px solid #ccc; */
+  /* border-style:dashed; */
 }
 
 .custom-heading-level-4,
@@ -712,11 +758,6 @@ const copySelectedAsMarkdown = async () => {
 .custom-heading-level-6 {
   font-size: 1.5em;
   color: #777;
-}
-
-.custom-heading {
-  display: flex;
-  align-items: center;
 }
 
 .custom-heading-level-1::after {
@@ -741,17 +782,6 @@ const copySelectedAsMarkdown = async () => {
 
 .custom-heading-level-6::after {
   content: "h6";
-}
-
-.custom-heading::after {
-  font-size: small;
-  font-weight: bold;
-  color: #888;
-  margin-left: 4px;
-
-  background-color: var(--slate);
-  border-radius: 4px;
-  padding: 2px 4px;
 }
 
 /* --- Task list --- */

@@ -24,7 +24,10 @@
         >
           <span :class="indent(item.level)" />
           <span class="pr-1 text-xs font-semibold text-gray-400">{{ '#'.repeat(item.level) }}</span>
-          <span v-if="item">
+          <span
+            v-if="item"
+            class="text-wrap"
+          >
             {{ item.text }}
           </span>
         </div>
