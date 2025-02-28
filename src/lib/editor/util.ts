@@ -111,7 +111,9 @@ export const getChangedLinks = (transaction: Transaction) => {
   transaction.before.descendants((node) => {
     const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
-      beforeLinks.add(linkMark.attrs.href);
+      if (isInternalLink(linkMark.attrs.href)) {
+        beforeLinks.add(linkMark.attrs.href);
+      }
     }
   });
 
@@ -120,7 +122,9 @@ export const getChangedLinks = (transaction: Transaction) => {
   transaction.doc.descendants((node) => {
     const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
-      afterLinks.add(linkMark.attrs.href);
+      if (isInternalLink(linkMark.attrs.href)) {
+        afterLinks.add(linkMark.attrs.href);
+      }
     }
   });
 
