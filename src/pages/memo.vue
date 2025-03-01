@@ -346,6 +346,8 @@ const editor = useEditor({
     },
   },
   onCreate({ editor }) {
+    editor.registerPlugin(CustomExtension.removeHeadingIdOnPastePlugin);
+
     const handleLinkClick = async (event: MouseEvent) => {
       const url = EditorAction.getLinkFromMouseClickEvent(event);
 
@@ -371,7 +373,7 @@ const editor = useEditor({
   onTransaction: async ({ editor: _editor, transaction }) => {
     await updateLinks(transaction);
     updateHeadImage(transaction);
-    updateHeadingIds(_editor);
+    assignUniqueHeadingIds(_editor);
   },
   onSelectionUpdate: ({ editor }) => {
     const editorContainer = document.getElementById('main');
@@ -412,16 +414,26 @@ const editor = useEditor({
   },
 });
 
-const updateHeadingIds = (editor: Editor) => {
-  let modified = false;
-
+/**
+ * Assigns unique IDs for heading elements in the doc.
+ *
+ * If a heading node does not have an `id` attribute,
+ * it assigns a new unique ID.
+ *
+ * @param editor
+ */
+const assignUniqueHeadingIds = (editor: Editor) => {
   const { state, view } = editor;
   const tr = state.tr;
+  let modified = false;
+
   state.doc.descendants((node, pos) => {
-    if (node.type.name === 'heading' && !node.attrs.id) {
-      const newId = `heading-${Math.floor(Math.random() * 100000)}`;
+    if (node.type.name === 'heading') {
+      if (!node.attrs.id) {
+        const newId = crypto.randomUUID();
       tr.setNodeMarkup(pos, undefined, { ...node.attrs, id: newId });
       modified = true;
+    }
     }
   });
 
