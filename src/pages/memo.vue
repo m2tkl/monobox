@@ -431,9 +431,9 @@ const assignUniqueHeadingIds = (editor: Editor) => {
     if (node.type.name === 'heading') {
       if (!node.attrs.id) {
         const newId = crypto.randomUUID();
-      tr.setNodeMarkup(pos, undefined, { ...node.attrs, id: newId });
-      modified = true;
-    }
+        tr.setNodeMarkup(pos, undefined, { ...node.attrs, id: newId });
+        modified = true;
+      }
     }
   });
 
