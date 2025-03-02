@@ -23,7 +23,7 @@
             v-if="toc"
             :items="toc"
             :active-heading-id="activeHeadingId"
-            @click="(id: any) => { scrollToElementWithOffset(id, 100); EditorUtil.focusNodeById(editor!, id); activeHeadingId = id }"
+            @click="(id: any) => focusHeading(editor, id)"
           />
         </div>
 
@@ -359,11 +359,25 @@ const editor = useEditor({
       // Prevent browser default navigation
       event.preventDefault();
 
+      // If the path is same to itself and a fragment is specified, move the focus.
+      const [path, id] = url.split('#');
+      if (route.path === path) {
+        focusHeading(editor, id);
+        return;
+      }
+
       if (isInternalLink(url) && !isModifierKeyPressed(event)) {
-        router.push({ path: url });
+        // NOTE: Pass the entire URL instead of the path ( `{ path: url }` ) to include the fragment.
+        router.push(url);
         return;
       }
     };
+
+    // Focus if a hash is specified when entring the memo
+    if (route.hash) {
+      const id = route.hash.replace(/^#/, '');
+      focusHeading(editor, id);
+    }
 
     editor.view.dom.addEventListener('click', handleLinkClick);
     return () => {
@@ -485,6 +499,25 @@ function handleScroll() {
   if (!editorInstance || !editorContainer) return;
 
   updateActiveHeadingOnScroll(editorInstance, editorContainer);
+}
+
+/**
+ * Moves the focus to a specific heading in the editor.
+ *
+ * This function ensures that the specified heading is scrolled into view
+ * and focused within the editor.
+ *
+ * @param _editor - The instance of the editor. If `undefined`, the function does nothing.
+ * @param id - The ID of the heading to focus on.
+ */
+function focusHeading(_editor: Editor | undefined, id: string) {
+  if (!_editor) {
+    return;
+  }
+
+  scrollToElementWithOffset(id, 100);
+  EditorUtil.focusNodeById(_editor, id);
+  activeHeadingId.value = id;
 }
 
 /**
