@@ -3,7 +3,7 @@ name: Tag Release
 on:
   workflow_dispatch:
     inputs:
-      tag_version:
+      tag_name:
         description: "Tag name (e.g., v0.1.0)"
         required: true
         default: "v0.1.0"
@@ -27,19 +27,19 @@ jobs:
 
     - name: Update version in package.json
       run: |
-        VERSION="${{ github.event.inputs.release_version }}"
+        VERSION="${{ github.event.inputs.tag_name }}"
         VERSION=${VERSION#v} # Remove 'v' prefix
         jq ".version = \"${VERSION}\"" package.json > package.json.tmp && mv package.json.tmp package.json
 
     - name: Update version in Cargo.toml
       run: |
-        VERSION="${{ github.event.inputs.release_version }}"
+        VERSION="${{ github.event.inputs.tag_name }}"
         VERSION=${VERSION#v}
         sed -i.bak "s/^version = .*/version = \"${VERSION}\"/" src-tauri/Cargo.toml
 
     - name: Update version in tauri.conf.json
       run: |
-        VERSION="${{ github.event.inputs.release_version }}"
+        VERSION="${{ github.event.inputs.tag_name }}"
         VERSION=${VERSION#v}
         jq ".version = \"${VERSION}\"" src-tauri/tauri.conf.json > src-tauri/tauri.conf.json.tmp && mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json
 
@@ -48,7 +48,7 @@ jobs:
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
         git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
-        git commit -m "Update version to ${{ github.event.inputs.release_version }}"
+        git commit -m "Update version to ${{ github.event.inputs.tag_name }}"
         git push origin main
-        git tag ${{ github.event.inputs.release_version }}
-        git push origin ${{ github.event.inputs.release_version }}
+        git tag ${{ github.event.inputs.tag_name }}
+        git push origin ${{ github.event.inputs.tag_name }}
