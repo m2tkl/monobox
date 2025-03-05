@@ -3,8 +3,8 @@ name: "Create release"
 on:
   workflow_dispatch:
     inputs:
-      release_version:
-        description: "Release version (e.g., v0.1.0)"
+      tag_name:
+        description: "Tag name (e.g., v0.1.0)"
         required: true
         default: "v0.1.0"
 
@@ -23,42 +23,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 'lts/*'
-
-    - name: Update versions
-      run: |
-        VERSION="${{ github.event.inputs.release_version }}"
-        VERSION=${VERSION#v} # Remove `v` prefix
-
-        # Update version in package.json
-        jq ".version = \"${VERSION}\"" package.json > package.json.tmp && mv package.json.tmp package.json
-
-        # Update version in Cargo.toml
-        sed -i.bak "s/^version = .*/version = \"${VERSION}\"/" src-tauri/Cargo.toml
-
-        # Update version in tauri.conf.json
-        jq ".version = \"${VERSION}\"" src-tauri/tauri.conf.json > src-tauri/tauri.conf.json.tmp && mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json
-
-        echo "Updated package.json and tauri.conf.json to version ${VERSION}"
-
-    - name: Commit and push changes
-      run: |
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git add package.json src-tauri/tauri.conf.json
-        git commit -m "Update version to ${{ github.event.inputs.release_version }}"
-        git push origin main
-        git tag ${{ github.event.inputs.release_version }}
-        git push origin ${{ github.event.inputs.release_version }}
-
-    - name: Fetch tags and latest changes
-      run: |
-        git fetch --tags
-        git checkout ${{ github.event.inputs.release_version }}
-
     - name: Create GitHub Release
       id: create-release
       uses: actions/github-script@v6
@@ -67,8 +31,8 @@ jobs:
           const { data } = await github.rest.repos.createRelease({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            tag_name: context.payload.inputs.release_version,
-            name: `Release ${context.payload.inputs.release_version}`,
+            tag_name: context.payload.inputs.tag_name,
+            name: `Release ${context.payload.inputs.tag_name}`,
             body: 'See the assets to download and install this app.',
             draft: true,
             prerelease: false
@@ -96,6 +60,11 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Checkout specific tag
+      run: git checkout ${{ github.event.inputs.tag_name }}
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
