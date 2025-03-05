@@ -103,6 +103,10 @@ export const findHeadImage = (transaction: Transaction) => {
  * This function compares the state of links in the document before and after the transaction.
  * It detects which links have been newly added and which have been removed.
  *
+ * NOTE:
+ *   When determining link changes, only the URL without the hash fragment is considered.
+ *   e.g.: /test/page-1#123 is treated as /test/page-1
+ *
  * @param transaction - The current transaction containing the document state before and after changes.
  * @returns An object containing `addedLinks` (newly added links) and `deletedLinks` (removed links).
  */
@@ -112,7 +116,7 @@ export const getChangedLinks = (transaction: Transaction) => {
     const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
       if (isInternalLink(linkMark.attrs.href)) {
-        beforeLinks.add(linkMark.attrs.href);
+        beforeLinks.add(linkMark.attrs.href.split('#')[0]);
       }
     }
   });
@@ -123,7 +127,7 @@ export const getChangedLinks = (transaction: Transaction) => {
     const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
       if (isInternalLink(linkMark.attrs.href)) {
-        afterLinks.add(linkMark.attrs.href);
+        afterLinks.add(linkMark.attrs.href.split('#')[0]);
       }
     }
   });
