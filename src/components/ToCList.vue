@@ -17,9 +17,10 @@
         :key="item.text"
       >
         <div
-          class="flex cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
+          class="group relative flex cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900 min-h-8"
           :class="{ 'font-bold bg-blue-200': activeHeadingId === item.id }"
           :data-id="item.id"
+
           @click="item.id && emits('click', item.id)"
         >
           <span :class="indent(item.level)" />
@@ -30,6 +31,14 @@
           >
             {{ item.text }}
           </span>
+
+          <!-- Link copy -->
+          <IconButton
+            v-if="item.id"
+            :icon="iconKey.link"
+            class="absolute right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-transparent p-1 rounded text-xs"
+            @click.stop="emits('copy-link', item.id, item.text)"
+          />
         </div>
       </li>
     </ul>
@@ -48,6 +57,7 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'click', id: string): void;
+  (e: 'copy-link', id: string, text: string): void;
 }>();
 
 const indentStyle: Record<number, string> = {

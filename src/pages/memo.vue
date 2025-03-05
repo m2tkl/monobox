@@ -24,6 +24,7 @@
             :items="toc"
             :active-heading-id="activeHeadingId"
             @click="(id: any) => focusHeading(editor, id)"
+            @copy-link="(id: string, text: string) => copyLinkToHeading(id, text)"
           />
         </div>
 
@@ -723,6 +724,38 @@ const copySelectedAsMarkdown = async () => {
     [editor.value],
     { success: 'Selected markdown copied!', error: 'Failed to copy selected markdown' },
   );
+};
+
+/**
+ * Copy link to heading as html link format
+ *
+ * @param headingId
+ * @param headingText
+ */
+const copyLinkToHeading = async (headingId: string, headingText: string): Promise<void> => {
+  const routePathWithHeadingId = route.path + '#' + headingId;
+  const routePathForLinkText = route.path + '#' + headingText;
+
+  executeWithToast(
+    copyLinkForHtml,
+    [routePathWithHeadingId, routePathForLinkText],
+    { success: 'Link to heading copied!', error: 'Failed to copy.' },
+  );
+};
+
+/**
+ * Copy link for html
+ *
+ * @param href
+ * @param text
+ */
+const copyLinkForHtml = async (href: string, text: string): Promise<void> => {
+  const html = `<a href="${href}">${text}</a>`;
+  navigator.clipboard.write([
+    new ClipboardItem({
+      'text/html': new Blob([html], { type: 'text/html' }),
+    }),
+  ]);
 };
 </script>
 
