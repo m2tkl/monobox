@@ -807,4 +807,14 @@ const copyLinkForHtml = async (href: string, text: string): Promise<void> => {
   text-decoration: line-through;
   color: #999;
 }
+
+.custom-task-item[data-checked="true"] div a {
+  text-decoration: line-through;
+  color: rgba(0, 0, 255, 0.578);
+}
+
+.custom-task-item[data-checked="true"] div a:hover {
+  text-decoration: line-through;
+  color: blue;
+}
 </style>
