@@ -258,7 +258,12 @@ body {
   }
 
   a:hover {
-    color: red;
+    color: blue;
+
+    text-decoration: underline blue;
+    text-underline-offset: 0.2em;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: none;
   }
 
   p {
