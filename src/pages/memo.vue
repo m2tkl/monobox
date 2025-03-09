@@ -33,9 +33,7 @@
           class="flex-1 min-w-0 bg-slate-200 h-full overflow-y-auto hide-scrollbar"
         >
           <!-- Editor -->
-          <div
-            @click.self="editor?.chain().focus('end').run()"
-          >
+          <div class="bg-slate-100">
             <!-- Toolbar -->
             <EditorToolbar
               v-if="editor"
@@ -45,7 +43,7 @@
 
             <!-- Content area -->
             <div
-              class="bg-slate-100 p-6"
+              class="bg-white p-6 max-w-[820px]"
             >
               <!-- Title -->
               <TitleFieldAutoResize
