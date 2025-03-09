@@ -325,6 +325,7 @@ const editor = useEditor({
         class: 'custom-task-item',
       },
     }),
+    CustomExtension.CustomTab,
   ],
   editorProps: {
     /**
