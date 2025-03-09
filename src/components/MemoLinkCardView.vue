@@ -13,7 +13,30 @@
       v-if="backLinks.length !== 0"
       class="my-4"
     >
-      <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 px-4">
+      <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 px-4">
+        <li>
+          <UCard
+            class="aspect-[1/1] flex items-center justify-center"
+            :ui="{
+              header: {
+                padding: 'px-3 pt-3 pb-0 sm:px-3',
+              },
+              body: {
+                padding: 'px-3 pb-4 pt-1 sm:p-3',
+              },
+              divide: 'divide-white',
+            }"
+          >
+            <h3 class="truncate-multiline text-sm font-semibold text-gray-700 flex flex-col items-center gap-1">
+              Links
+              <Icon
+                :name="iconKey.link"
+                class="text-lg"
+              />
+            </h3>
+          </UCard>
+        </li>
+
         <li
           v-for="memo in backLinks"
           :key="memo.id"
@@ -21,7 +44,7 @@
         >
           <NuxtLink :to="`/${route.params.workspace}/${memo.slug_title}`">
             <UCard
-              class="aspect-[1/1]"
+              class="aspect-[1/1] hover:bg-slate-100"
               :ui="{
                 header: {
                   padding: 'px-3 pt-3 pb-0 sm:px-3',
@@ -29,7 +52,7 @@
                 body: {
                   padding: 'px-3 pb-4 pt-1 sm:p-3',
                 },
-                divide: 'divide-white',
+                divide: 'divide-white hover:divide-slate-100',
               }"
             >
               <template #header>
@@ -64,18 +87,36 @@
             :key="link.link_id"
           >
             <!-- Direct forward link -->
-            <div
-              class="h-8 border-b-2 border-blue-500 bg-blue-200 px-2 py-1 text-sm font-semibold text-gray-700 hover:bg-blue-300 hover:text-gray-800  sticky top-[32px] left-0 z-40"
-            >
-              <NuxtLink
-                :to="`/${route.params.workspace}/${link.slug_title}`"
-                class="flex flex-col"
-              >
-                {{ link.title }}
-              </NuxtLink>
-            </div>
+            <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 my-4 px-4">
+              <li class="aspect-[1/1] overflow-hidden rounded-lg ">
+                <NuxtLink
+                  :to="`/${route.params.workspace}/${link.slug_title}`"
+                  class="flex flex-col"
+                >
 
-            <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 my-4 px-4">
+                  <UCard
+                    class="aspect-[1/1] bg-blue-200 hover:bg-blue-300 flex items-center justify-center"
+                    :ui="{
+                      header: {
+                        padding: 'px-3 pt-3 pb-0 sm:px-3',
+                      },
+                      body: {
+                        padding: 'px-3 pb-4 pt-1 sm:p-3',
+                      },
+                      divide: 'divide-blue-200 hover:divide-blue-300',
+                    }"
+                  >
+                    <h3 class="truncate-multiline text-sm font-semibold text-gray-700 flex flex-col items-center gap-1">
+                      {{ truncateString(link.title, 32) }}
+                      <Icon
+                        :name="iconKey.link"
+                        class="text-xl"
+                      />
+                    </h3>
+                  </UCard>
+                </NuxtLink>
+              </li>
+
               <!-- 2hop-link -->
               <li
                 v-for="thl in twoHopLinks.filter(
@@ -86,7 +127,7 @@
               >
                 <NuxtLink :to="`/${route.params.workspace}/${thl.slug_title}`">
                   <UCard
-                    class="aspect-[1/1]"
+                    class="aspect-[1/1] hover:bg-slate-100"
                     :ui="{
                       header: {
                         padding: 'px-3 pt-3 pb-0 sm:px-3',
@@ -94,7 +135,7 @@
                       body: {
                         padding: 'px-3 pb-4 pt-1 sm:p-3',
                       },
-                      divide: 'divide-white',
+                      divide: 'divide-white hover:divide-slate-100',
                     }"
                   >
                     <template #header>

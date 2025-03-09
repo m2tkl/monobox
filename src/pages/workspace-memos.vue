@@ -7,7 +7,7 @@
           <p v-if="memos && memos.length === 0">
             No memos
           </p>
-          <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 pb-4">
+          <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 pb-4">
             <li
               v-for="memo in memos"
               :key="memo.id"
@@ -15,7 +15,7 @@
             >
               <NuxtLink :to="`/${route.params.workspace}/${memo.slug_title}`">
                 <UCard
-                  class="aspect-[1/1]"
+                  class="aspect-[1/1] hover:bg-slate-100"
                   :ui="{
                     header: {
                       padding: 'px-3 pt-3 pb-0 sm:px-3',
@@ -23,7 +23,7 @@
                     body: {
                       padding: 'px-3 pb-4 pt-1 sm:p-3',
                     },
-                    divide: 'divide-white',
+                    divide: 'divide-white hover:divide-slate-100',
                   }"
                 >
                   <template #header>
