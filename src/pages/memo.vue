@@ -228,6 +228,7 @@
 </template>
 
 <script lang="ts" setup>
+import { mergeAttributes } from '@tiptap/core';
 import Focus from '@tiptap/extension-focus';
 import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
@@ -308,6 +309,14 @@ const editor = useEditor({
     }).extend({
       // Unset link after link text
       inclusive: false,
+      renderHTML({ HTMLAttributes }) {
+        const href = HTMLAttributes.href;
+        console.log(href);
+        if (!isInternalLink(href)) {
+          HTMLAttributes.class = `${HTMLAttributes.class || ''} external-link`.trim();
+        }
+        return ['a', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
+      },
     }),
     CustomExtension.imageExtention(),
     CustomExtension.headingExtension(),
@@ -815,5 +824,12 @@ const copyLinkForHtml = async (href: string, text: string): Promise<void> => {
 .custom-task-item[data-checked="true"] div a:hover {
   text-decoration: line-through;
   color: blue;
+}
+
+a.external-link {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-style: dashed;
+  text-decoration-skip-ink: none;
 }
 </style>
