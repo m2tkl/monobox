@@ -289,6 +289,11 @@ body {
     background-color: var(--black);
   }
 
+  img {
+    box-shadow: 0 0 0 2px var(--slate);
+    border-radius: 8px;
+  }
+
   /* Table-specific styling */
   table {
     border-collapse: collapse;
@@ -380,6 +385,19 @@ body {
       margin: 0;
     }
   }
+}
+
+.tiptap-image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tiptap-image figcaption {
+  font-size: 0.8em;
+  text-align: center;
+  margin-top: 4px;
+  color: #666;
 }
 
 /* Remove focus outline of editor */

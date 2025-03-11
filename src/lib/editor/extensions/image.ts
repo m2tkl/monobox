@@ -5,7 +5,7 @@ import { Plugin } from 'prosemirror-state';
 import type { EditorView } from '@tiptap/pm/view';
 
 export const imageExtention = () => {
-  return Image.configure({ inline: true }).extend({
+  return Image.configure().extend({
     addProseMirrorPlugins() {
       return [
         new Plugin({
@@ -37,6 +37,7 @@ export const imageExtention = () => {
                     const uploadedImageUrl = await uploadImage(image);
                     const node = view.state.schema.nodes.image.create({
                       src: uploadedImageUrl,
+                      alt: image.name,
                     });
                     const transaction = view.state.tr.insert(
                       coordinates ? coordinates.pos : 0,
@@ -73,6 +74,7 @@ export const imageExtention = () => {
                     const uploadedImageUrl = await uploadImage(image);
                     const node = view.state.schema.nodes.image.create({
                       src: uploadedImageUrl,
+                      alt: image.name,
                     });
                     const transaction = view.state.tr.replaceSelectionWith(
                       node,
@@ -92,11 +94,10 @@ export const imageExtention = () => {
     renderHTML({ HTMLAttributes }) {
       const transformedSrc = transformImageSrc(HTMLAttributes.src);
       return [
-        'img',
-        {
-          ...HTMLAttributes,
-          src: transformedSrc,
-        },
+        'figure',
+        { class: 'tiptap-image' },
+        ['img', { ...HTMLAttributes, src: transformedSrc }],
+        ['figcaption', { style: 'font-size: 0.8em; text-align: center; margin-top: 4px;' }, HTMLAttributes.alt || ''],
       ];
     },
   });
