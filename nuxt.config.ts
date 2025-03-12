@@ -73,6 +73,7 @@ export default defineNuxtConfig({
         'carbon:text-clear-format',
         'carbon:side-panel-open',
         'carbon:side-panel-close',
+        'carbon:text-annotation-toggle',
 
         // Nuxt
         'heroicons:x-mark-20-solid',

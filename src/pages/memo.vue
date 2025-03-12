@@ -95,50 +95,59 @@
         :editor="editor"
         class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400"
       >
-        <EditorToolbarButton
-          :icon="iconKey.memoLink"
-          @exec="() => { linkPaletteRef?.openCommandPalette() }"
-        />
-        <EditorToolbarButton
-          :icon="iconKey.link"
-          @exec="openLinkEditDialog()"
-        />
-        <EditorToolbarButton
-          :icon="iconKey.unlink"
-          @exec="EditorAction.unsetLink(editor)"
-        />
+        <template v-if="editor.isActive('image')">
+          <EditorToolbarButton
+            :icon="iconKey.annotation"
+            @exec="openAltEditDialog"
+          />
+        </template>
 
-        <span class="text-slate-400 font-thin mx-">|</span>
+        <template v-else>
+          <EditorToolbarButton
+            :icon="iconKey.memoLink"
+            @exec="() => { linkPaletteRef?.openCommandPalette() }"
+          />
+          <EditorToolbarButton
+            :icon="iconKey.link"
+            @exec="openLinkEditDialog()"
+          />
+          <EditorToolbarButton
+            :icon="iconKey.unlink"
+            @exec="EditorAction.unsetLink(editor)"
+          />
 
-        <EditorToolbarButton
-          :icon="iconKey.textBold"
-          @exec="EditorAction.toggleStyle(editor, 'bold')"
-        />
-        <EditorToolbarButton
-          :icon="iconKey.textItalic"
-          @exec="EditorAction.toggleStyle(editor, 'italic')"
-        />
-        <EditorToolbarButton
-          :icon="iconKey.textStrikeThrough"
-          @exec="EditorAction.toggleStyle(editor, 'strike')"
-        />
+          <span class="text-slate-400 font-thin mx-">|</span>
 
-        <EditorToolbarButton
-          :icon="iconKey.inlineCode"
-          @exec="EditorAction.toggleCode(editor)"
-        />
+          <EditorToolbarButton
+            :icon="iconKey.textBold"
+            @exec="EditorAction.toggleStyle(editor, 'bold')"
+          />
+          <EditorToolbarButton
+            :icon="iconKey.textItalic"
+            @exec="EditorAction.toggleStyle(editor, 'italic')"
+          />
+          <EditorToolbarButton
+            :icon="iconKey.textStrikeThrough"
+            @exec="EditorAction.toggleStyle(editor, 'strike')"
+          />
 
-        <EditorToolbarButton
-          :icon="iconKey.clearFormat"
-          @exec="EditorAction.resetStyle(editor)"
-        />
+          <EditorToolbarButton
+            :icon="iconKey.inlineCode"
+            @exec="EditorAction.toggleCode(editor)"
+          />
 
-        <span class="text-slate-400 font-thin mx-">|</span>
+          <EditorToolbarButton
+            :icon="iconKey.clearFormat"
+            @exec="EditorAction.resetStyle(editor)"
+          />
 
-        <EditorToolbarButton
-          :icon="iconKey.copy"
-          @exec="copySelectedAsMarkdown"
-        />
+          <span class="text-slate-400 font-thin mx-">|</span>
+
+          <EditorToolbarButton
+            :icon="iconKey.copy"
+            @exec="copySelectedAsMarkdown"
+          />
+        </template>
       </BubbleMenu>
 
       <div v-if="store.workspaceMemos && store.workspace">
@@ -173,7 +182,41 @@
                 label="URL"
                 name="url"
               >
-                <UInput v-model="state.url" />
+                <UInput v-model="imageState.alt" />
+              </UFormGroup>
+            </UForm>
+          </div>
+
+          <template #footer>
+            <div class="h-8">
+              <UButton
+                form="set-link"
+                type="submit"
+                class="bg-slate-600"
+                color="indigo"
+              >
+                Save
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </UModal>
+
+      <!-- Alt edit dialog -->
+      <UModal v-model="altDialogOn">
+        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+          <div class="h-24">
+            <UForm
+              id="set-link"
+              :state="state"
+              class="space-y-4"
+              @submit="execSetAlt"
+            >
+              <UFormGroup
+                label="Alt"
+                name="alt"
+              >
+                <UInput v-model="imageState.alt" />
               </UFormGroup>
             </UForm>
           </div>
@@ -637,6 +680,31 @@ const execSetLink = () => {
 
   toggleLinkDialog();
 };
+
+/* --- Image alt setting --- */
+
+const { state: altDialogOn, toggle: toggleAltDialog } = useBoolState();
+
+const imageState = reactive({
+  alt: undefined,
+});
+
+function openAltEditDialog() {
+  const selection = editor.value?.state.selection;
+  if (selection) {
+    const { $from } = selection;
+    const node = $from.nodeAfter;
+    if (node && node.type.name === 'image') {
+      imageState.alt = node.attrs.alt || '';
+      toggleAltDialog();
+    }
+  }
+}
+
+function execSetAlt() {
+  editor.value!.commands.updateAttributes('image', { alt: imageState.alt });
+  toggleAltDialog();
+}
 
 /* --- Commands --- */
 
