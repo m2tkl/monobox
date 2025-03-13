@@ -134,14 +134,8 @@ body {
   h6 {
     line-height: 1.1;
     margin-top: 2.0rem;
-    margin-bottom: 0.5rem;
-    text-wrap: pretty;
-  }
-
-  h1,
-  h2 {
-    margin-top: 2.0rem;
     margin-bottom: 1.0rem;
+    text-wrap: pretty;
   }
 
   h1 {
