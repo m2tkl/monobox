@@ -4,8 +4,8 @@
       <UContainer>
         <div>
           <!-- Project collection header -->
-          <div class="flex justify-between pt-2 pb-4 space-x-3 items-center">
-            <h2 class="pl-1 font-bold text-gray-600 text-2xl">
+          <div class="flex items-center justify-between space-x-3 pb-4 pt-2">
+            <h2 class="pl-1 text-2xl font-bold text-gray-600">
               Workspace
             </h2>
             <UButton
@@ -22,14 +22,14 @@
             No workspace
           </div>
           <div v-else>
-            <ul class="border border-gray-400 divide-y divide-gray-400 rounded-md">
+            <ul class="divide-y divide-gray-400 rounded-md border border-gray-400">
               <li
                 v-for="workspace in workspaces"
                 :key="workspace.id"
                 class="hover:bg-slate-300"
               >
                 <NuxtLink :to="`/${workspace.slug_name}`">
-                  <div class="px-4 py-2 flex justify-between items-center">
+                  <div class="flex items-center justify-between px-4 py-2">
                     <span class="font-bold text-gray-600">
                       {{ workspace.name }}
                     </span>

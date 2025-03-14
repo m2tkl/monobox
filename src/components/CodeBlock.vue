@@ -6,7 +6,7 @@
       <UInput
         v-model="codeBlockName"
         size="xs"
-        class="flex-1 pr-2 text-slate-300 font-semibold"
+        class="flex-1 pr-2 font-semibold text-slate-300"
         variant="none"
         placeholder="Untitled"
       />
@@ -16,7 +16,7 @@
         v-model="selectedLanguage"
         :options="languages"
         size="2xs"
-        class="text-slate-300 font-semibold"
+        class="font-semibold text-slate-300"
         variant="none"
       />
 

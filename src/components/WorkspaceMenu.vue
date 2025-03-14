@@ -5,7 +5,7 @@
     class="border"
   >
     <div class="flex items-center">
-      <span class="font-bold text-gray-600 text-md">
+      <span class="text-md font-bold text-gray-600">
         {{ workspaceSlug }}
       </span>
       <UIcon

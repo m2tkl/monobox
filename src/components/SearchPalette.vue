@@ -19,7 +19,7 @@
       ref="commandPaletteRef"
       v-model="selected"
       :groups="commandPaletteItems"
-      class="min-h-[calc(60vh)] max-h-[calc(60vh)]"
+      class="max-h-[calc(60vh)] min-h-[calc(60vh)]"
       :autoclear="false"
       :icon="type === 'link' ? iconKey.link : iconKey.search"
       placeholder="Type something to see the empty label change"

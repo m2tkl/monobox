@@ -1,10 +1,10 @@
 <template>
   <div>
-    <div class="h-screen w-full flex border-top">
+    <div class="border-top flex h-screen w-full">
       <!-- Sidebar -->
       <aside
         class="border-right h-full"
-        :class="{ 'w-[250px] flex-shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
+        :class="{ 'w-[250px] shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
       >
         <!-- TODO: Since the display is toggled using hidden, control with v-if is unnecessary. -->
         <SidebarMenu :is-open="ui.isSidebarOpen" />
@@ -12,15 +12,15 @@
 
       <!-- Main content -->
       <div
-        class="flex-1 h-full flex w-[calc(100%-250px)] min-w-0"
-        :class="{ 'justify-center w-full': !ui.isSidebarOpen }"
+        class="flex h-full w-[calc(100%-250px)] min-w-0 flex-1"
+        :class="{ 'w-full justify-center': !ui.isSidebarOpen }"
       >
         <div
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
-          class="h-full w-full"
+          class="size-full"
         >
-          <header class="sticky top-0 z-[100] flex h-10 w-full items-center gap-2 bg-slate-200 px-2 border-bottom">
-            <div class="flex items-center gap-1 w-full text-slate-500">
+          <header class="border-bottom sticky top-0 z-[100] flex h-10 w-full items-center gap-2 bg-slate-200 px-2">
+            <div class="flex w-full items-center gap-1 text-slate-500">
               <IconButton
                 v-if="!ui.isSidebarOpen"
                 :icon="iconKey.sidebarOpen"

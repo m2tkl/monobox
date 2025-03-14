@@ -1,10 +1,10 @@
 <template>
   <div
     v-if="isOpen"
-    class="h-full w-full"
+    class="size-full"
   >
     <!-- Workspace section -->
-    <div class="px-2 flex items-center h-10 gap-1 border-bottom">
+    <div class="border-bottom flex h-10 items-center gap-1 px-2">
       <UIcon
         :name="iconKey.memoLink"
         class="mx-1"
@@ -24,7 +24,7 @@
         class="pb-2"
       >
         <div class="sticky top-0 z-10 bg-[--slate]">
-          <div class="flex items-center h-12">
+          <div class="flex h-12 items-center">
             <UIcon
               :name="iconKey.bookmark"
               class="mr-2"
@@ -42,7 +42,7 @@
           >
             <NuxtLink
               :to="`/${workspaceSlug}/${memo.slug_title}`"
-              class="block px-2 py-1 rounded-md hover:bg-slate-100 hover:text-blue-700 text-gray-600 text-sm"
+              class="block rounded-md px-2 py-1 text-sm text-gray-600 hover:bg-slate-100 hover:text-blue-700"
               active-class="bg-slate-100 font-bold"
             >
               {{ memo.title }}
@@ -54,7 +54,7 @@
       <!-- Recently viewed memos section -->
       <section>
         <div class="sticky top-0 z-10 bg-[--slate]">
-          <div class="flex items-center h-12">
+          <div class="flex h-12 items-center">
             <UIcon
               :name="iconKey.recent"
               class="mr-2"
@@ -81,7 +81,7 @@
           >
             <NuxtLink
               :to="`/${workspaceSlug}/${memo.slug_title}`"
-              class="block px-2 py-1 rounded-md hover:bg-slate-100 hover:text-blue-700 text-gray-600 text-sm"
+              class="block rounded-md px-2 py-1 text-sm text-gray-600 hover:bg-slate-100 hover:text-blue-700"
               active-class="bg-slate-100 font-bold"
             >
               {{ memo.title }}
@@ -91,7 +91,7 @@
 
         <p
           v-else
-          class="text-gray-600 text-sm pl-2"
+          class="pl-2 text-sm text-gray-600"
         >
           No memos
         </p>

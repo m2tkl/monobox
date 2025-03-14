@@ -1,8 +1,8 @@
 <template>
   <NuxtLayout name="default">
     <template #main>
-      <div class="h-full w-full">
-        <div class="pt-4 pb-8 px-4 h-full w-full">
+      <div class="size-full">
+        <div class="size-full px-4 pb-8 pt-4">
           <!-- Memo List -->
           <p v-if="memos && memos.length === 0">
             No memos

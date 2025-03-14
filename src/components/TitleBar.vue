@@ -5,7 +5,7 @@
   >
     <!-- Left section -->
     <div
-      class="flex-1 pl-16 flex items-center gap-1"
+      class="flex flex-1 items-center gap-1 pl-16"
       data-tauri-drag-region
     >
       <IconButton
@@ -15,7 +15,7 @@
     </div>
 
     <!-- Center section -->
-    <div class="flex items-center max-w-[360px] min-w-[calc(30%)] gap-1">
+    <div class="flex min-w-[calc(30%)] max-w-[360px] items-center gap-1">
       <div class="flex items-center ">
         <IconButton
           :icon="iconKey.arrowLeft"

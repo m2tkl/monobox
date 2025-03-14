@@ -1,10 +1,10 @@
 <template>
   <div
     ref="tocListRef"
-    class="bg-slate-100 h-full overflow-y-auto hide-scrollbar"
+    class="hide-scrollbar h-full overflow-y-auto bg-slate-100"
   >
     <div
-      class="sticky top-0 left-0 z-50 flex items-center gap-1 border-b-2 border-slate-400 bg-[--slate]  px-2 py-1 text-sm font-semibold text-gray-700 h-8"
+      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-1 border-b-2 border-slate-400  bg-[--slate] px-2 py-1 text-sm font-semibold text-gray-700"
     >
       <UIcon :name="iconKey.toc" />
       Table of Contents
@@ -17,8 +17,8 @@
         :key="item.text"
       >
         <div
-          class="group relative flex cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900 min-h-8"
-          :class="{ 'font-bold bg-blue-200': activeHeadingId === item.id }"
+          class="group relative flex min-h-8 cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
+          :class="{ 'bg-blue-200 font-bold': activeHeadingId === item.id }"
           :data-id="item.id"
 
           @click="item.id && emits('click', item.id)"
@@ -36,7 +36,7 @@
           <IconButton
             v-if="item.id"
             :icon="iconKey.link"
-            class="absolute right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-transparent p-1 rounded text-xs"
+            class="absolute right-1 rounded bg-transparent p-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-100"
             @click.stop="emits('copy-link', item.id, item.text)"
           />
         </div>

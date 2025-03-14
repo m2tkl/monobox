@@ -14,10 +14,10 @@
 
     <template #main>
       <div
-        class="h-full w-full flex justify-center"
+        class="flex size-full justify-center"
       >
         <div
-          class="scrollbar w-[250px] flex flex-col gap-3 flex-shrink-0 h-full border-right"
+          class="scrollbar border-right flex h-full w-[250px] shrink-0 flex-col gap-3"
         >
           <ToCList
             v-if="toc"
@@ -30,7 +30,7 @@
 
         <div
           id="main"
-          class="flex-1 min-w-0 bg-slate-200 h-full overflow-y-auto hide-scrollbar"
+          class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto bg-slate-200"
         >
           <!-- Editor -->
           <div class="bg-slate-100">
@@ -38,12 +38,12 @@
             <EditorToolbar
               v-if="editor"
               :editor="editor"
-              class="sticky top-0 left-0 z-50 border-b-2 border-slate-400 h-8"
+              class="sticky left-0 top-0 z-50 h-8 border-b-2 border-slate-400"
             />
 
             <!-- Content area -->
             <div
-              class="bg-white p-6 max-w-[820px]"
+              class="max-w-[820px] bg-white p-6"
             >
               <!-- Title -->
               <TitleFieldAutoResize
@@ -93,7 +93,7 @@
       <BubbleMenu
         v-if="editor"
         :editor="editor"
-        class="bg-slate-200 py-1 px-1 flex gap-0.5 rounded-lg outline outline-1 outline-slate-400"
+        class="flex gap-0.5 rounded-lg bg-slate-200 p-1 outline outline-1 outline-slate-400"
       >
         <template v-if="editor.isActive('image')">
           <EditorToolbarButton
@@ -116,7 +116,7 @@
             @exec="EditorAction.unsetLink(editor)"
           />
 
-          <span class="text-slate-400 font-thin mx-">|</span>
+          <span class="mx-0.5 font-thin text-slate-400">|</span>
 
           <EditorToolbarButton
             :icon="iconKey.textBold"
@@ -141,7 +141,7 @@
             @exec="EditorAction.resetStyle(editor)"
           />
 
-          <span class="text-slate-400 font-thin mx-">|</span>
+          <span class="mx-0.5 font-thin text-slate-400">|</span>
 
           <EditorToolbarButton
             :icon="iconKey.copy"
@@ -243,7 +243,7 @@
           </div>
 
           <template #footer>
-            <div class="h-8 flex w-full">
+            <div class="flex h-8 w-full">
               <UButton
                 type="submit"
                 color="red"

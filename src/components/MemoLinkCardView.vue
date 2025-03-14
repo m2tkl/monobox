@@ -2,7 +2,7 @@
   <div class="border-t border-slate-300 p-0">
     <!-- Link Header -->
     <div
-      class=" h-8 sticky top-0 left-0 z-50 flex items-center gap-2 border-b-2 border-slate-400 bg-[--slate] px-2 py-1 text-sm font-semibold text-gray-800"
+      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-2 border-b-2 border-slate-400 bg-[--slate] px-2 py-1 text-sm font-semibold text-gray-800"
     >
       <UIcon :name="iconKey.link" />
       Links
@@ -16,7 +16,7 @@
       <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 px-4">
         <li>
           <UCard
-            class="aspect-[1/1] flex items-center justify-center"
+            class="flex aspect-[1/1] items-center justify-center"
             :ui="{
               header: {
                 padding: 'px-3 pt-3 pb-0 sm:px-3',
@@ -27,7 +27,7 @@
               divide: 'divide-white',
             }"
           >
-            <h3 class="truncate-multiline text-sm font-semibold text-gray-700 flex flex-col items-center gap-1">
+            <h3 class="truncate-multiline flex flex-col items-center gap-1 text-sm font-semibold text-gray-700">
               Links
               <Icon
                 :name="iconKey.link"
@@ -87,7 +87,7 @@
             :key="link.link_id"
           >
             <!-- Direct forward link -->
-            <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 my-4 px-4">
+            <ul class="my-4 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 px-4">
               <li class="aspect-[1/1] overflow-hidden rounded-lg ">
                 <NuxtLink
                   :to="`/${route.params.workspace}/${link.slug_title}`"
@@ -95,7 +95,7 @@
                 >
 
                   <UCard
-                    class="aspect-[1/1] bg-blue-200 hover:bg-blue-300 flex items-center justify-center"
+                    class="flex aspect-[1/1] items-center justify-center bg-blue-200 hover:bg-blue-300"
                     :ui="{
                       header: {
                         padding: 'px-3 pt-3 pb-0 sm:px-3',
@@ -106,7 +106,7 @@
                       divide: 'divide-blue-200 hover:divide-blue-300',
                     }"
                   >
-                    <h3 class="truncate-multiline text-sm font-semibold text-gray-700 flex flex-col items-center gap-1">
+                    <h3 class="truncate-multiline flex flex-col items-center gap-1 text-sm font-semibold text-gray-700">
                       {{ truncateString(link.title, 32) }}
                       <Icon
                         :name="iconKey.link"

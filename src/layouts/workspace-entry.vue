@@ -1,6 +1,6 @@
 <template>
   <div class="h-screen w-screen">
-    <main class="h-full w-full">
+    <main class="size-full">
       <slot />
     </main>
   </div>
