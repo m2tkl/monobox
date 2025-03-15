@@ -182,7 +182,7 @@
                 label="URL"
                 name="url"
               >
-                <UInput v-model="imageState.alt" />
+                <UInput v-model="state.url" />
               </UFormGroup>
             </UForm>
           </div>
@@ -207,8 +207,8 @@
         <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
           <div class="h-24">
             <UForm
-              id="set-link"
-              :state="state"
+              id="set-alt"
+              :state="imageState"
               class="space-y-4"
               @submit="execSetAlt"
             >
@@ -224,7 +224,7 @@
           <template #footer>
             <div class="h-8">
               <UButton
-                form="set-link"
+                form="set-alt"
                 type="submit"
                 class="bg-slate-600"
                 color="indigo"
@@ -667,6 +667,7 @@ const openLinkEditDialog = () => {
 };
 
 const execSetLink = () => {
+  console.log('execSetLink');
   if (!editor.value) {
     return;
   }
