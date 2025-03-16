@@ -106,6 +106,7 @@ pub fn save_memo(args: SaveMemoArgs) -> Result<(), String> {
         memo.id,
         &args.workspace_slug_name,
         &memo.slug_title,
+        &memo.title,
         &args.new_slug_title,
         &args.new_title,
         &args.new_content,
