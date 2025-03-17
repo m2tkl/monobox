@@ -1,4 +1,4 @@
-name: Tag Release
+name: Update version
 
 on:
   workflow_dispatch:
@@ -42,6 +42,16 @@ jobs:
         VERSION="${{ github.event.inputs.tag_name }}"
         VERSION=${VERSION#v}
         jq ".version = \"${VERSION}\"" src-tauri/tauri.conf.json > src-tauri/tauri.conf.json.tmp && mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json
+
+    - name: Update Cargo.lock
+      working-directory: src-tauri
+      run: |
+        VERSION="${{ github.event.inputs.tag_name }}"
+        VERSION=${VERSION#v}
+        # Get app name from Cargo.toml
+        APP_NAME=$(grep '^name =' Cargo.toml | head -n 1 | sed 's/name = "\(.*\)"/\1/')
+        # Update version for only this app
+        sed -i.bak -E "/name = \"$APP_NAME\"/{n;s/version = \".*\"/version = \"$VERSION\"/}" Cargo.lock
 
     - name: Commit changes and create tag
       run: |
