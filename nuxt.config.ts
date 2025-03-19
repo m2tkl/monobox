@@ -4,7 +4,7 @@ export default defineNuxtConfig({
 
   // Enable SSG
   ssr: false,
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   // Change nuxt app root dir
   srcDir: 'src/',
