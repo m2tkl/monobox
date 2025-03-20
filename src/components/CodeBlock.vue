@@ -16,7 +16,7 @@
         v-model="selectedLanguage"
         :options="languages"
         size="2xs"
-        class="font-semibold text-slate-300"
+        class=" text-slate-300"
         variant="none"
       />
 
@@ -117,5 +117,9 @@ const copyToClipboard = async () => {
   .code-block-header:hover {
     border-bottom: 2px solid #4285F4;
   }
+}
+
+select {
+  font-family: 'Arial', sans-serif;
 }
 </style>
