@@ -142,7 +142,7 @@ function truncateString(str: string, n: number) {
 .truncate-multiline {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  /* 10行は適当な数字 */
+  /* 10 lines is just an arbitrary number that seemed reasonable. */
   -webkit-line-clamp: 10;
   text-overflow: ellipsis;
   /* Control the layout using height instead of setting a fixed number of lines */
