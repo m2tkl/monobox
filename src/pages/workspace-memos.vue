@@ -145,7 +145,7 @@ function truncateString(str: string, n: number) {
   /* 10行は適当な数字 */
   -webkit-line-clamp: 10;
   text-overflow: ellipsis;
-  /* 固定の行数を設定せずに高さで制御する */
+  /* Control the layout using height instead of setting a fixed number of lines */
   line-clamp: unset;
   overflow: hidden;
 }
