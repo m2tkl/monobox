@@ -77,7 +77,7 @@ body {
 }
 
 /* Scrollbar customize */
-/* Webkit（Chrome, Edge, Safariなど） */
+/* Webkit（Chrome, Edge, Safai etc...） */
 ::-webkit-scrollbar {
   /* For vertical scrollbar */
   width: 6px;
@@ -400,15 +400,4 @@ body {
 .ProseMirror:focus {
   outline: none;
 }
-
-/* Page transition */
-/* .page-enter-active,
-.page-leave-active {
-  transition: all 0.1s;
-}
-.page-enter-from,
-.page-leave-to {
-  opacity: 0.8;
-  filter: blur(0.05rem);
-} */
 </style>
