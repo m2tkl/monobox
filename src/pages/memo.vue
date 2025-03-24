@@ -814,7 +814,7 @@ const copyLinkToHeading = async (headingId: string, headingText: string): Promis
   const routePathForLinkText = route.path + '#' + headingText;
 
   executeWithToast(
-    copyLinkForHtml,
+    copyLinkAsHtml,
     [routePathWithHeadingId, routePathForLinkText],
     { success: 'Link to heading copied!', error: 'Failed to copy.' },
   );
@@ -826,7 +826,7 @@ const copyLinkToHeading = async (headingId: string, headingText: string): Promis
  * @param href
  * @param text
  */
-const copyLinkForHtml = async (href: string, text: string): Promise<void> => {
+const copyLinkAsHtml = async (href: string, text: string): Promise<void> => {
   const html = `<a href="${href}">${text}</a>`;
   navigator.clipboard.write([
     new ClipboardItem({
