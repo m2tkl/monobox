@@ -35,6 +35,7 @@ export const iconKey = {
   copy: 'carbon:copy',
   clearFormat: 'carbon:text-clear-format',
   annotation: 'carbon:text-annotation-toggle',
+  tree: 'carbon:tree-view-alt',
 
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',

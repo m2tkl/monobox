@@ -74,6 +74,7 @@ export default defineNuxtConfig({
         'carbon:side-panel-open',
         'carbon:side-panel-close',
         'carbon:text-annotation-toggle',
+        'carbon:tree-view-alt',
 
         // Nuxt
         'heroicons:x-mark-20-solid',
