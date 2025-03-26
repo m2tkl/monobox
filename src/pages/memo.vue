@@ -19,9 +19,9 @@
         <div
           class="scrollbar border-right flex h-full w-[250px] shrink-0 flex-col gap-3"
         >
-          <ToCList
-            v-if="toc"
-            :items="toc"
+          <OutlineView
+            v-if="outline"
+            :items="outline"
             :active-heading-id="activeHeadingId"
             @click="(id: any) => focusHeading(editor, id)"
             @copy-link="(id: string, text: string) => copyLinkToHeading(id, text)"
@@ -285,8 +285,8 @@ import type { EditorView } from '@tiptap/pm/view';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
+import OutlineView from '~/components/OutlineView.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
-import ToCList from '~/components/ToCList.vue';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorCommand from '~/lib/editor/command';
 import * as CustomExtension from '~/lib/editor/extensions';
@@ -604,7 +604,7 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
-/* --- toc --- */
+/* --- outline --- */
 
 type _Heading = {
   type: 'heading';
@@ -617,7 +617,7 @@ type Heading = {
   text: string;
 };
 
-const toc = computed<Heading[]>(() => {
+const outline = computed<Heading[]>(() => {
   const content = editor.value?.getJSON().content;
 
   const headings = content?.filter(c => c.type === 'heading') as _Heading[] | undefined;

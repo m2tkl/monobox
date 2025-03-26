@@ -1,6 +1,6 @@
 <template>
   <div
-    ref="tocListRef"
+    ref="outlineRef"
     class="hide-scrollbar h-full overflow-y-auto bg-slate-100"
   >
     <div
@@ -10,7 +10,6 @@
       Outline
     </div>
 
-    <!-- toc -->
     <ul class="sticky flex flex-col">
       <li
         v-for="item in items"
@@ -71,29 +70,29 @@ const indentStyle: Record<number, string> = {
 
 const indent = (level: number) => indentStyle[level] ?? '';
 
-// Reference to control the toc auto scroll
-const tocListRef = ref<HTMLElement | null>(null);
+// Reference to control the outline auto scroll
+const outlineRef = ref<HTMLElement | null>(null);
 
 watch(() => props.activeHeadingId, (newId) => {
-  if (!newId || !tocListRef.value) return;
+  if (!newId || !outlineRef.value) return;
 
-  const tocContainer = tocListRef.value;
-  const activeTocItem = tocListRef.value.querySelector(`[data-id="${newId}"]`);
+  const outlineContaiiner = outlineRef.value;
+  const activeOutlineItem = outlineRef.value.querySelector(`[data-id="${newId}"]`);
 
-  if (activeTocItem) {
+  if (activeOutlineItem) {
     const tocHeadingHeight = 48;
     const offset = 48;
 
     // Get the bounding rectangles of the active ToC item and the ToC container
-    const itemRect = activeTocItem.getBoundingClientRect();
-    const containerRect = tocContainer.getBoundingClientRect();
+    const itemRect = activeOutlineItem.getBoundingClientRect();
+    const containerRect = outlineContaiiner.getBoundingClientRect();
 
     // Check if the active item is out of the visible range
     const isAbove = itemRect.top < containerRect.top + tocHeadingHeight + offset;
     const isBelow = itemRect.bottom > containerRect.bottom - offset;
 
     if (isAbove || isBelow) {
-      const currentScrollTop = tocContainer.scrollTop;
+      const currentScrollTop = outlineContaiiner.scrollTop;
       const itemTopRelativeToContainer = itemRect.top - containerRect.top;
 
       // Determine the new scroll position
@@ -101,7 +100,7 @@ watch(() => props.activeHeadingId, (newId) => {
         ? currentScrollTop + itemTopRelativeToContainer - (tocHeadingHeight + offset)
         : currentScrollTop + (itemRect.bottom - containerRect.bottom) + offset;
 
-      tocContainer.scrollTo({
+      outlineContaiiner.scrollTo({
         top: targetScrollTop,
         behavior: 'smooth',
       });
