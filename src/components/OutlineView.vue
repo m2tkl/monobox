@@ -10,14 +10,16 @@
       Outline
     </div>
 
-    <ul class="sticky flex flex-col">
+    <ul class="flex flex-col">
       <li
         v-for="item in items"
         :key="item.text"
       >
         <div
-          class="group relative flex min-h-8 cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
-          :class="{ 'bg-blue-200 font-bold': activeHeadingId === item.id }"
+          class="group relative flex min-h-8 cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-blue-100 hover:text-gray-900"
+          :class="{ 'bg-blue-200 font-bold': activeHeadingId === item.id,
+                    'bg-slate-200': activeAncestorHeadingIds.includes(item.id ?? ''), // ancestor highlight
+          }"
           :data-id="item.id"
 
           @click="item.id && emits('click', item.id)"
@@ -106,5 +108,37 @@ watch(() => props.activeHeadingId, (newId) => {
       });
     }
   }
+});
+
+/**
+ * Computes the list of ancestor heading IDs for the currently active heading.
+ *
+ * Starting from the active heading, this function walks backwards through the list of headings,
+ * collecting all headings that have a lower level (i.e., higher in the document structure).
+ * It stops when it reaches the top-level heading (level 1).
+ *
+ * @returns An array of heading IDs representing the ancestors of the active heading,
+ *          ordered from closest parent to farthest (i.e., immediate parent first).
+ */
+const activeAncestorHeadingIds = computed(() => {
+  if (!props.activeHeadingId) return [];
+
+  const index = props.items.findIndex(item => item.id === props.activeHeadingId);
+  if (index === -1) return [];
+
+  const ancestors: string[] = [];
+  let currentLevel = props.items[index].level;
+
+  for (let i = index - 1; i >= 0; i--) {
+    const item = props.items[i];
+    if (item.level < currentLevel && item.id) {
+      ancestors.push(item.id);
+      currentLevel = item.level;
+
+      if (currentLevel === 1) break;
+    }
+  }
+
+  return ancestors;
 });
 </script>
