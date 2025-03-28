@@ -38,7 +38,7 @@
     "vue": "latest",
     "vue-router": "latest"
   },
-  "version": "0.2.8",
+  "version": "0.2.9",
   "devDependencies": {
     "@types/eslint-plugin-tailwindcss": "^3.17.0",
     "eslint-plugin-tailwindcss": "^3.18.0"
