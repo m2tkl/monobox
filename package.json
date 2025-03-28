@@ -35,6 +35,7 @@
     "nuxt": "^3.14.1592",
     "pinia": "^2.3.1",
     "prosemirror-markdown": "^1.13.1",
+    "tailwindcss": "^4.0.17",
     "vue": "latest",
     "vue-router": "latest"
   },
