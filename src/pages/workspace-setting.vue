@@ -21,7 +21,7 @@
               </h2>
             </template>
             <UButton
-              color="red"
+              color="error"
               @click="openDeleteConfirmation"
             >
               Delete this workspace
@@ -44,7 +44,7 @@
               <UButton
                 form="create-workspace-form"
                 type="submit"
-                color="red"
+                color="error"
                 @click="_deleteWorkspace"
               >
                 Delete

@@ -9,7 +9,6 @@
               Workspace
             </h2>
             <UButton
-              color="indigo"
               class="bg-slate-600"
               @click="openNewWorkspaceModal"
             >
@@ -75,7 +74,6 @@
                 form="create-workspace-form"
                 type="submit"
                 class="bg-slate-600"
-                color="indigo"
               >
                 Create
               </UButton>

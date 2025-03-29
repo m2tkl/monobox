@@ -60,7 +60,6 @@
             square
             variant="solid"
             size="xl"
-            color="indigo"
             class="bg-slate-600"
           />
         </NuxtLink>
