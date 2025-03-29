@@ -1,8 +1,8 @@
 <template>
   <UButton
     variant="ghost"
-    color="gray"
-    size="2xs"
+    color="neutral"
+    size="xs"
     square
     :icon="icon"
     @click="$emit('exec')"

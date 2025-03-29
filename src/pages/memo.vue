@@ -193,7 +193,6 @@
                 form="set-link"
                 type="submit"
                 class="bg-slate-600"
-                color="indigo"
               >
                 Save
               </UButton>
@@ -227,7 +226,6 @@
                 form="set-alt"
                 type="submit"
                 class="bg-slate-600"
-                color="indigo"
               >
                 Save
               </UButton>
@@ -246,7 +244,7 @@
             <div class="flex h-8 w-full">
               <UButton
                 type="submit"
-                color="red"
+                color="error"
                 @click="deleteMemo"
               >
                 Delete
@@ -256,8 +254,7 @@
 
               <UButton
                 variant="solid"
-                color="gray"
-
+                color="neutral"
                 @click="toggleDeleteConfirmationDialog"
               >
                 Cancel

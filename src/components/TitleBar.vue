@@ -29,9 +29,9 @@
       <UButton
         :icon="iconKey.search"
         variant="solid"
-        color="gray"
+        color="neutral"
         square
-        size="2xs"
+        size="xs"
         block
       >
         <span class="text-gray-500">
