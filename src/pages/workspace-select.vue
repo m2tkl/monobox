@@ -41,16 +41,11 @@
       </UContainer>
 
       <!-- Create workspace form modal -->
-      <UModal v-model="isOpen">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <template #header>
-            <div class="h-8">
-              <h2 class="text-lg font-bold text-gray-600">
-                Create new workspace
-              </h2>
-            </div>
-          </template>
-
+      <UModal
+        v-model:open="isOpen"
+        title="Create new workspace"
+      >
+        <template #body>
           <div class="h-24">
             <UForm
               id="create-workspace-form"
@@ -59,27 +54,30 @@
               class="space-y-4"
               @submit="onSubmit"
             >
-              <UFormGroup
+              <UFormField
                 label="Name"
                 name="name"
               >
-                <UInput v-model="state.name" />
-              </UFormGroup>
+                <UInput
+                  v-model="state.name"
+                  class="w-full"
+                />
+              </UFormField>
             </UForm>
           </div>
+        </template>
 
-          <template #footer>
-            <div class="h-8">
-              <UButton
-                form="create-workspace-form"
-                type="submit"
-                class="bg-slate-600"
-              >
-                Create
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+        <template #footer>
+          <div class="h-8">
+            <UButton
+              form="create-workspace-form"
+              type="submit"
+              class="bg-slate-600"
+            >
+              Create
+            </UButton>
+          </div>
+        </template>
       </UModal>
     </div>
   </NuxtLayout>
