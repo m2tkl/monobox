@@ -15,7 +15,7 @@
   "dependencies": {
     "@iconify-json/carbon": "^1.2.5",
     "@nuxt/eslint": "^0.7.5",
-    "@nuxt/ui": "^2.20.0",
+    "@nuxt/ui": "^3.0.1",
     "@pinia/nuxt": "^0.9.0",
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/cli": "^2",
@@ -39,9 +39,5 @@
     "vue": "latest",
     "vue-router": "latest"
   },
-  "version": "0.2.9",
-  "devDependencies": {
-    "@types/eslint-plugin-tailwindcss": "^3.17.0",
-    "eslint-plugin-tailwindcss": "^3.18.0"
-  }
+  "version": "0.2.9"
 }

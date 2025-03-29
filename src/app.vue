@@ -2,7 +2,9 @@
   <div>
     <NuxtRouteAnnouncer />
 
-    <NuxtPage />
+    <UApp>
+      <NuxtPage />
+    </UApp>
 
     <UNotifications />
   </div>
