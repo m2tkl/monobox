@@ -1,7 +1,7 @@
 <template>
   <NuxtLayout name="default">
     <template #context-menu>
-      <UDropdown
+      <UDropdownMenu
         :items="contextMenuItems"
       >
         <div class="flex items-center">
@@ -9,7 +9,7 @@
             :name="iconKey.dotMenuVertical"
           />
         </div>
-      </UDropdown>
+      </UDropdownMenu>
     </template>
 
     <template #main>
@@ -276,6 +276,7 @@ import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
 
+import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/core';
 import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
@@ -631,19 +632,19 @@ const outline = computed<Heading[]>(() => {
 
 /* --- Contect menu items --- */
 
-const contextMenuItems = [
+const contextMenuItems: DropdownMenuItem[][] = [
   [
     {
       label: 'Copy as markdown',
       icon: iconKey.copy,
-      click: async () => { await copyAsMarkdown(); },
+      onSelect: async () => { await copyAsMarkdown(); },
     },
   ],
   [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      click: () => { toggleDeleteConfirmationDialog(); },
+      onSelect: () => { toggleDeleteConfirmationDialog(); },
     },
   ],
 ];
