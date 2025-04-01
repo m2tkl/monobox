@@ -716,7 +716,7 @@ async function executeWithToast<T, Args extends unknown[]>(
     const result = await action(...args);
     toast.add({
       title: messages.success,
-      timeout: 1000,
+      duration: 1000,
       icon: iconKey.success,
     });
     return { ok: true, data: result };
@@ -726,7 +726,7 @@ async function executeWithToast<T, Args extends unknown[]>(
     toast.add({
       title: messages.error,
       description: 'Please try again',
-      color: 'red',
+      color: 'error',
       icon: iconKey.failed,
     });
     return { ok: false };

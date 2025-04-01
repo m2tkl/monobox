@@ -130,7 +130,7 @@ async function onSubmit(event: FormSubmitEvent<State>) {
     const created = await command.workspace.create({ name: event.data.name });
     toast.add({
       title: `Workspace ${created?.name} created successfully!`,
-      timeout: 1000,
+      duration: 1000,
       icon: iconKey.success,
     });
 
@@ -142,7 +142,7 @@ async function onSubmit(event: FormSubmitEvent<State>) {
     toast.add({
       title: 'Failed to create.',
       description: 'Please create again.',
-      color: 'red',
+      color: 'error',
       icon: iconKey.failed,
     });
   }

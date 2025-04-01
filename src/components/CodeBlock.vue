@@ -81,7 +81,7 @@ const copyToClipboard = async () => {
 
     toast.add({
       title: 'Copied!',
-      timeout: 1000,
+      duration: 1000,
       icon: iconKey.success,
     });
   }
@@ -90,7 +90,7 @@ const copyToClipboard = async () => {
 
     toast.add({
       title: 'Failed to copy.',
-      color: 'red',
+      color: 'error',
       icon: iconKey.failed,
     });
   }

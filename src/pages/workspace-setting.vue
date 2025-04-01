@@ -86,7 +86,7 @@ const _deleteWorkspace = async () => {
 
     toast.add({
       title: 'Delete successfully.',
-      timeout: 1000,
+      duration: 1000,
       icon: iconKey.success,
     });
     router.replace('/');
@@ -96,7 +96,7 @@ const _deleteWorkspace = async () => {
     toast.add({
       title: 'Failed to delete.',
       description: 'Please delete again.',
-      color: 'red',
+      color: 'error',
       icon: iconKey.failed,
     });
   }
