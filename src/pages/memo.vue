@@ -51,7 +51,7 @@
                 v-model="store.memo.title"
               />
 
-              <UDivider class="py-6" />
+              <USeparator class="py-6" />
 
               <!-- Content -->
               <div>
