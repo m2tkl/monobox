@@ -178,12 +178,12 @@
               class="space-y-4"
               @submit="execSetLink"
             >
-              <UFormGroup
+              <UFormField
                 label="URL"
                 name="url"
               >
                 <UInput v-model="state.url" />
-              </UFormGroup>
+              </UFormField>
             </UForm>
           </div>
 
@@ -211,12 +211,12 @@
               class="space-y-4"
               @submit="execSetAlt"
             >
-              <UFormGroup
+              <UFormField
                 label="Alt"
                 name="alt"
               >
                 <UInput v-model="imageState.alt" />
-              </UFormGroup>
+              </UFormField>
             </UForm>
           </div>
 
