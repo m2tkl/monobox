@@ -24,16 +24,6 @@ watch(() => store.workspace, async () => {
 </script>
 
 <style>
-:root {
-  --purple-light: rgb(227, 199, 255);
-  --black: black;
-  --white: white;
-  --gray-3: #555;
-  --gray-2: #888;
-  --slate: #e2e8f0;
-  --slate-75: #e2e8f0bf
-}
-
 html,
 body {
   background-color: rgb(226 232 240);
@@ -157,9 +147,9 @@ body {
 
 /* Code and preformatted text styles */
 .tiptap code {
-  background-color: var(--purple-light);
+  background-color: rgb(227, 199, 255);
   border-radius: 0.4rem;
-  color: var(--black);
+  color: black;
   font-size: 0.85rem;
   padding: 0.25em 0.3em;
 }
@@ -168,7 +158,7 @@ body {
   background: #232B3B;
   border-bottom-left-radius: 0.5rem;
   border-bottom-right-radius: 0.5rem;
-  color: var(--white);
+  color: white;
   font-family: "JetBrainsMono", monospace;
   margin: 1rem 0;
   padding: 0.75rem 1rem;
@@ -233,14 +223,14 @@ body {
 }
 
 .tiptap blockquote {
-  border-left: 3px solid var(--gray-3);
+  border-left: 3px solid var(--color-border-default);
   margin: 1.5rem 0;
   padding-left: 1rem;
 }
 
 .tiptap hr {
   border: none;
-  border-top: 1px solid var(--gray-2);
+  border-top: 1px solid var(--color-border-muted);
   margin: 2rem 0;
 }
 
@@ -271,17 +261,17 @@ body {
 /* Focus highlight */
 .tiptap .has-focus {
   box-shadow: 0 0 0 2px #b3c8f5;
-  background-color: var(--slate);
+  background-color: var(--color-focus-bg);
   border-radius: 8px;
 }
 
 /* Override background color for focused code blocks */
 .tiptap pre.has-focus {
-  background-color: var(--black);
+  background-color: black;
 }
 
 .tiptap img {
-  box-shadow: 0 0 0 2px var(--slate);
+  box-shadow: 0 0 0 2px var(--color-surface);
   border-radius: 8px;
 }
 
@@ -296,7 +286,7 @@ body {
 
 .tiptap table td,
 .tiptap table th {
-  border: 1px solid var(--gray-3);
+  border: 1px solid var(--color-border-default);
   box-sizing: border-box;
   min-width: 1em;
   padding: 6px 8px;
@@ -316,7 +306,7 @@ body {
 }
 
 .tiptap table .selectedCell:after {
-  background: var(--gray-2);
+  background: var(--color-border-muted);
   content: "";
   left: 0;
   right: 0;

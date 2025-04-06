@@ -3,10 +3,9 @@
     v-model:open="isSearchPaletteOpen"
     title="''"
     :ui="{
-      overlay: 'bg-[--slate-75]',
+      overlay: 'bg-modal-overlay',
     }"
   >
-    <!-- class="relative z-[100]" -->
     <!-- NOTE:
       - autoclear: false
         When input is entered in the input field, the items are filtered, but upon selection,
