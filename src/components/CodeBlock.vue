@@ -6,17 +6,22 @@
       <UInput
         v-model="codeBlockName"
         size="xs"
-        class="flex-1 pr-2 font-semibold text-slate-300"
+        class="flex-1 pr-2 font-semibold"
         variant="none"
         placeholder="Untitled"
+        :ui="{
+          base: 'text-slate-300',
+        }"
       />
 
       <!-- Language Selector -->
       <USelect
         v-model="selectedLanguage"
-        :options="languages"
-        size="2xs"
-        class=" text-slate-300"
+        :items="languages"
+        size="xs"
+        placeholder="none"
+        class="w-32 font-semibold"
+        :ui="{ base: 'text-slate-300' }"
         variant="none"
       />
 
@@ -98,25 +103,23 @@ const copyToClipboard = async () => {
 </script>
 
 <style>
-.tiptap {
-  .code-block {
-    position: relative;
-  }
+.tiptap .code-block {
+  position: relative;
+}
 
-  .code-block-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #232B3B;
-    transition: background 0.2s ease-in-out, border-bottom 0.2s ease-in-out;
-    border-radius: 8px 8px 0 0;
-    padding: 6px 10px;
-    border-bottom: 2px solid #424851;
-  }
+.tiptap .code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #232B3B;
+  transition: background 0.2s ease-in-out, border-bottom 0.2s ease-in-out;
+  border-radius: 8px 8px 0 0;
+  padding: 6px 10px;
+  border-bottom: 2px solid #424851;
+}
 
-  .code-block-header:hover {
-    border-bottom: 2px solid #4285F4;
-  }
+.tiptap .code-block-header:hover {
+  border-bottom: 2px solid #4285F4;
 }
 
 select {
