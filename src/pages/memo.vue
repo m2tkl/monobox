@@ -183,7 +183,10 @@
                   label="URL"
                   name="url"
                 >
-                  <UInput v-model="state.url" />
+                  <UInput
+                    v-model="state.url"
+                    class="w-full"
+                  />
                 </UFormField>
               </UForm>
             </div>
@@ -206,7 +209,6 @@
       <!-- Alt edit dialog -->
       <UModal v-model:open="altDialogOn">
         <template #content>
-          <!-- <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }"> -->
           <UCard>
             <div class="h-24">
               <UForm
@@ -242,7 +244,7 @@
         </template>
       </UModal>
 
-      <UModal v-model="deleteConfirmationDialogOn">
+      <UModal v-model:open="deleteConfirmationDialogOn">
         <template #content>
           <UCard>
             <div class="h-24">

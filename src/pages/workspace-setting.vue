@@ -33,25 +33,27 @@
 
     <template #actions>
       <!-- Delete workspace confirmation modal -->
-      <UModal v-model="isOpen">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <div class="h-24">
-            Once you delete a workspace, there is no going back. Please be certain.
-          </div>
-
-          <template #footer>
-            <div class="h-8">
-              <UButton
-                form="create-workspace-form"
-                type="submit"
-                color="error"
-                @click="_deleteWorkspace"
-              >
-                Delete
-              </UButton>
+      <UModal v-model:open="isOpen">
+        <template #content>
+          <UCard>
+            <div class="h-24">
+              Once you delete a workspace, there is no going back. Please be certain.
             </div>
-          </template>
-        </UCard>
+
+            <template #footer>
+              <div class="h-8">
+                <UButton
+                  form="create-workspace-form"
+                  type="submit"
+                  color="error"
+                  @click="_deleteWorkspace"
+                >
+                  Delete
+                </UButton>
+              </div>
+            </template>
+          </UCard>
+        </template>
       </UModal>
     </template>
   </NuxtLayout>
