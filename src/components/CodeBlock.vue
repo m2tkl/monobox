@@ -105,6 +105,7 @@ const copyToClipboard = async () => {
 <style>
 .tiptap .code-block {
   position: relative;
+  font-weight: 600;
 }
 
 .tiptap .code-block-header {
