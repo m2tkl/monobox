@@ -1,11 +1,9 @@
 <template>
   <UModal
-    v-model="isSearchPaletteOpen"
-    class="relative z-[100]"
+    v-model:open="isSearchPaletteOpen"
+    title="''"
     :ui="{
-      overlay: {
-        background: 'bg-[--slate-75]',
-      },
+      overlay: 'bg-modal-overlay',
     }"
   >
     <!-- NOTE:
@@ -15,31 +13,34 @@
         Setting autoclear to false prevents the filter from being cleared (since it is manually cleared,
         it remains cleared the next time it is opened, so there is no issue).
     -->
-    <UCommandPalette
-      ref="commandPaletteRef"
-      v-model="selected"
-      :groups="commandPaletteItems"
-      class="max-h-[calc(60vh)] min-h-[calc(60vh)]"
-      :autoclear="false"
-      :icon="type === 'link' ? iconKey.link : iconKey.search"
-      placeholder="Type something to see the empty label change"
-      :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 10 }"
-      command-attribute="title"
-      :empty-state="{
-        icon: iconKey.search,
-        label: 'We couldn\'t find any items.',
-        queryLabel: 'We couldn\'t find any items with that term.',
-      }"
-      @update:model-value="onSearchPaletteSelect"
-    />
+    <template #content>
+      <UCommandPalette
+        ref="commandPaletteRef"
+        v-model:search-term="searchTerm"
+        v-model="selected"
+        :groups="commandPaletteItems"
+        class="max-h-[calc(60vh)] min-h-[calc(60vh)]"
+        :autoclear="false"
+        :icon="type === 'link' ? iconKey.link : iconKey.search"
+        placeholder="Type something to see the empty label change"
+        :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 10 }"
+        command-attribute="title"
+        :empty-state="{
+          icon: iconKey.search,
+          label: 'We couldn\'t find any items.',
+          queryLabel: 'We couldn\'t find any items with that term.',
+        }"
+        @update:model-value="onSearchPaletteSelect"
+      />
+    </template>
   </UModal>
 </template>
 
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 
+import type { CommandPaletteItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/vue-3';
-import type { LinkPaletteItem, LinkPaletteItems } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
 
@@ -64,7 +65,21 @@ const selected = ref([]);
 const isSearchPaletteOpen = ref(false);
 const commandPaletteRef = ref();
 
-const commandPaletteItems = computed<LinkPaletteItems>(() => {
+type Command = CommandPaletteItem & { tag: string; label: string };
+
+type Commands = {
+  id: string;
+  label: string;
+  items: Command[];
+};
+
+function isCommand(item: CommandPaletteItem): item is Command {
+  return 'tag' in item;
+}
+
+const searchTerm = ref('');
+
+const commandPaletteItems = computed<Commands[]>(() => {
   if (!props.memos) {
     return [];
   }
@@ -74,21 +89,21 @@ const commandPaletteItems = computed<LinkPaletteItems>(() => {
     .toSorted()
     .map(memo => ({ ...memo, label: memo.title }));
 
-  const linkPaletteCommands: LinkPaletteItems = [{
-    key: 'existing-memos',
+  const linkPaletteCommands: Commands[] = [{
+    id: 'existing-memos',
     label: 'Existing memos',
-    commands: existingMemos.map(memo => ({ ...memo, tag: 'existing' })),
+    items: existingMemos.map(memo => ({ label: memo.title, tag: 'existing' })),
   }];
 
   // While entering a query, if there is no existing memo with a title matching the query string,
   // a new command item is added at the top for creating a new memo.
-  const query = commandPaletteRef.value?.query as string;
+  const query = searchTerm.value;
   if (query && !existingMemos.map(memo => memo.title).includes(query)) {
     const _ = linkPaletteCommands.unshift(
       {
-        key: 'new',
+        id: 'new',
         label: 'Or new memo',
-        commands: [{ id: '', slug_title: query, title: query, tag: 'new' }],
+        items: [{ label: query, tag: 'new' }],
       },
     );
   }
@@ -100,8 +115,13 @@ const commandPaletteItems = computed<LinkPaletteItems>(() => {
  * Create a link when an item is selected in the Link Palette.
  * @param option
  */
-async function onSearchPaletteSelect(option: LinkPaletteItem | null) {
+async function onSearchPaletteSelect(option: CommandPaletteItem) {
   logger.log('onSearchPaletteSelect() start.');
+
+  if (!isCommand(option)) {
+    logger.warn('Selected item is not a Command');
+    return;
+  }
 
   if (!isSearchPaletteOpen.value) {
     logger.warn('onSearchPalatteSelect()', 'palette is closed.');
@@ -110,24 +130,22 @@ async function onSearchPaletteSelect(option: LinkPaletteItem | null) {
 
   if (
     option == null
-    || commandPaletteRef.value?.query == null
+    || searchTerm.value == null
   ) {
     logger.warn('onSearchPaletteSelect() validation failed.');
     return;
   }
 
-  let linkMemoSlug = option.slug_title;
-  let linkMemoTitle = option.title;
-
-  console.log(linkMemoSlug, linkMemoTitle);
+  let linkMemoSlug = encodeForSlug(option.label);
+  let linkMemoTitle = option.label;
 
   if (option.tag === 'new') {
     // Create new memo
     const newMemo = await invoke<MemoDetail>('create_memo', {
       args: {
         workspace_slug_name: props.workspace.slug_name,
-        slug_title: encodeForSlug(commandPaletteRef.value.query),
-        title: commandPaletteRef.value.query,
+        slug_title: encodeForSlug(searchTerm.value),
+        title: searchTerm.value,
         content: JSON.stringify(''),
       },
     });

@@ -9,7 +9,6 @@
               Workspace
             </h2>
             <UButton
-              color="indigo"
               class="bg-slate-600"
               @click="openNewWorkspaceModal"
             >
@@ -42,16 +41,11 @@
       </UContainer>
 
       <!-- Create workspace form modal -->
-      <UModal v-model="isOpen">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <template #header>
-            <div class="h-8">
-              <h2 class="text-lg font-bold text-gray-600">
-                Create new workspace
-              </h2>
-            </div>
-          </template>
-
+      <UModal
+        v-model:open="isOpen"
+        title="Create new workspace"
+      >
+        <template #body>
           <div class="h-24">
             <UForm
               id="create-workspace-form"
@@ -60,28 +54,30 @@
               class="space-y-4"
               @submit="onSubmit"
             >
-              <UFormGroup
+              <UFormField
                 label="Name"
                 name="name"
               >
-                <UInput v-model="state.name" />
-              </UFormGroup>
+                <UInput
+                  v-model="state.name"
+                  class="w-full"
+                />
+              </UFormField>
             </UForm>
           </div>
+        </template>
 
-          <template #footer>
-            <div class="h-8">
-              <UButton
-                form="create-workspace-form"
-                type="submit"
-                class="bg-slate-600"
-                color="indigo"
-              >
-                Create
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+        <template #footer>
+          <div class="h-8">
+            <UButton
+              form="create-workspace-form"
+              type="submit"
+              class="bg-slate-600"
+            >
+              Create
+            </UButton>
+          </div>
+        </template>
       </UModal>
     </div>
   </NuxtLayout>
@@ -134,7 +130,7 @@ async function onSubmit(event: FormSubmitEvent<State>) {
     const created = await command.workspace.create({ name: event.data.name });
     toast.add({
       title: `Workspace ${created?.name} created successfully!`,
-      timeout: 1000,
+      duration: 1000,
       icon: iconKey.success,
     });
 
@@ -146,7 +142,7 @@ async function onSubmit(event: FormSubmitEvent<State>) {
     toast.add({
       title: 'Failed to create.',
       description: 'Please create again.',
-      color: 'red',
+      color: 'error',
       icon: iconKey.failed,
     });
   }

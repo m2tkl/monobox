@@ -21,7 +21,7 @@
               </h2>
             </template>
             <UButton
-              color="red"
+              color="error"
               @click="openDeleteConfirmation"
             >
               Delete this workspace
@@ -33,25 +33,27 @@
 
     <template #actions>
       <!-- Delete workspace confirmation modal -->
-      <UModal v-model="isOpen">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <div class="h-24">
-            Once you delete a workspace, there is no going back. Please be certain.
-          </div>
-
-          <template #footer>
-            <div class="h-8">
-              <UButton
-                form="create-workspace-form"
-                type="submit"
-                color="red"
-                @click="_deleteWorkspace"
-              >
-                Delete
-              </UButton>
+      <UModal v-model:open="isOpen">
+        <template #content>
+          <UCard>
+            <div class="h-24">
+              Once you delete a workspace, there is no going back. Please be certain.
             </div>
-          </template>
-        </UCard>
+
+            <template #footer>
+              <div class="h-8">
+                <UButton
+                  form="create-workspace-form"
+                  type="submit"
+                  color="error"
+                  @click="_deleteWorkspace"
+                >
+                  Delete
+                </UButton>
+              </div>
+            </template>
+          </UCard>
+        </template>
       </UModal>
     </template>
   </NuxtLayout>
@@ -86,7 +88,7 @@ const _deleteWorkspace = async () => {
 
     toast.add({
       title: 'Delete successfully.',
-      timeout: 1000,
+      duration: 1000,
       icon: iconKey.success,
     });
     router.replace('/');
@@ -96,7 +98,7 @@ const _deleteWorkspace = async () => {
     toast.add({
       title: 'Failed to delete.',
       description: 'Please delete again.',
-      color: 'red',
+      color: 'error',
       icon: iconKey.failed,
     });
   }

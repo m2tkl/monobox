@@ -4,7 +4,7 @@
     class="hide-scrollbar h-full overflow-y-auto bg-slate-100"
   >
     <div
-      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-1.5 border-b-2 border-slate-400  bg-[--slate] px-2 py-1.5 text-sm text-gray-700"
+      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-1.5 border-b-2 border-slate-400 bg-surface px-2 py-1.5 text-sm text-gray-700"
     >
       <UIcon :name="iconKey.tree" />
       Outline

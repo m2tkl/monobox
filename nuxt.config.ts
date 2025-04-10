@@ -6,6 +6,7 @@ export default defineNuxtConfig({
   ssr: false,
   devtools: { enabled: false },
 
+  css: ['~/assets/css/main.css'],
   // Change nuxt app root dir
   srcDir: 'src/',
 

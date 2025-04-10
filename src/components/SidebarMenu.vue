@@ -23,7 +23,7 @@
         v-if="favoriteMemos.length > 0"
         class="pb-2"
       >
-        <div class="sticky top-0 z-10 bg-[--slate]">
+        <div class="sticky top-0 z-10 bg-surface">
           <div class="flex h-12 items-center">
             <UIcon
               :name="iconKey.bookmark"
@@ -53,7 +53,7 @@
 
       <!-- Recently viewed memos section -->
       <section>
-        <div class="sticky top-0 z-10 bg-[--slate]">
+        <div class="sticky top-0 z-10 bg-surface">
           <div class="flex h-12 items-center">
             <UIcon
               :name="iconKey.recent"

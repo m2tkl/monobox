@@ -2,9 +2,9 @@
   <div>
     <NuxtRouteAnnouncer />
 
-    <NuxtPage />
-
-    <UNotifications />
+    <UApp>
+      <NuxtPage />
+    </UApp>
   </div>
 </template>
 
@@ -24,22 +24,14 @@ watch(() => store.workspace, async () => {
 </script>
 
 <style>
-:root {
-  --purple-light: rgb(227, 199, 255);
-  --black: black;
-  --white: white;
-  --gray-3: #555;
-  --gray-2: #888;
-  --slate: #e2e8f0;
-  --slate-75: #e2e8f0bf
-}
-
 html,
 body {
   background-color: rgb(226 232 240);
   /* Disable bounce */
   overscroll-behavior: none;
   box-sizing: border-box;
+
+  font-weight: 500;
 }
 
 *, *::before, *::after {
@@ -99,286 +91,281 @@ body {
 }
 
 /* Basic editor styles */
-.tiptap {
-  :first-child {
-    margin-top: 0;
-  }
+.tiptap :first-child {
+  margin-top: 0;
+}
 
-  /* List styles */
-  ul,
-  ol {
-    padding: 0 1.5rem;
-    margin: 0.4rem 1rem 0.4rem 0.4rem;
-  }
+/* List styles */
+.tiptap ul,
+.tiptap ol {
+  padding: 0 1.5rem;
+  margin: 0.4rem 1rem 0.4rem 0.4rem;
+}
 
-  ul {
-    list-style-type: circle;
-  }
+.tiptap ul {
+  list-style-type: circle;
+}
 
-  ol {
-    list-style-type: decimal;
-  }
+.tiptap ol {
+  list-style-type: decimal;
+}
 
-  ul li p,
-  ol li p {
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
-  }
+.tiptap ul li p,
+.tiptap ol li p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
 
-  /* Heading styles */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    line-height: 1.1;
-    margin-top: 2.0rem;
-    margin-bottom: 1.0rem;
-    text-wrap: pretty;
-  }
+/* Heading styles */
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  line-height: 1.1;
+  margin-top: 2.0rem;
+  margin-bottom: 1.0rem;
+  text-wrap: pretty;
+}
 
-  h1 {
-    font-size: 1.4rem;
-  }
+.tiptap h1 {
+  font-size: 1.4rem;
+}
 
-  h2 {
-    font-size: 1.2rem;
-  }
+.tiptap h2 {
+  font-size: 1.2rem;
+}
 
-  h3 {
-    font-size: 1.1rem;
-  }
+.tiptap h3 {
+  font-size: 1.1rem;
+}
 
-  h4,
-  h5,
-  h6 {
-    font-size: 1rem;
-  }
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  font-size: 1rem;
+}
 
-  /* Code and preformatted text styles */
-  code {
-    background-color: var(--purple-light);
-    border-radius: 0.4rem;
-    color: var(--black);
-    font-size: 0.85rem;
-    padding: 0.25em 0.3em;
-  }
+/* Code and preformatted text styles */
+.tiptap code {
+  background-color: rgb(227, 199, 255);
+  border-radius: 0.4rem;
+  color: black;
+  font-size: 0.85rem;
+  padding: 0.25em 0.3em;
+}
 
-  pre {
-    background: #232B3B;
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
-    color: var(--white);
-    font-family: "JetBrainsMono", monospace;
-    margin: 1rem 0;
-    padding: 0.75rem 1rem;
-  }
+.tiptap pre {
+  background: #232B3B;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  color: white;
+  font-family: "JetBrainsMono", monospace;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+}
 
-  pre code {
-    background: none;
-    color: inherit;
-    font-size: 0.8rem;
-    padding: 0;
-  }
+.tiptap pre code {
+  background: none;
+  color: inherit;
+  font-size: 0.8rem;
+  padding: 0;
+}
 
-  pre code .hljs-comment,
-  pre code .hljs-quote {
-    color: #ccc;
-  }
+.tiptap pre code .hljs-comment,
+.tiptap pre code .hljs-quote {
+  color: #ccc;
+}
 
-  pre code .hljs-variable,
-  pre code .hljs-template-variable,
-  pre code .hljs-attribute,
-  pre code .hljs-tag,
-  pre code .hljs-name,
-  pre code .hljs-regexp,
-  pre code .hljs-link,
-  pre code .hljs-name,
-  pre code .hljs-selector-id,
-  pre code .hljs-selector-class {
-    color: #f98181;
-  }
+.tiptap pre code .hljs-variable,
+.tiptap pre code .hljs-template-variable,
+.tiptap pre code .hljs-attribute,
+.tiptap pre code .hljs-tag,
+.tiptap pre code .hljs-name,
+.tiptap pre code .hljs-regexp,
+.tiptap pre code .hljs-link,
+.tiptap pre code .hljs-selector-id,
+.tiptap pre code .hljs-selector-class {
+  color: #f98181;
+}
 
-  pre code .hljs-number,
-  pre code .hljs-meta,
-  pre code .hljs-built_in,
-  pre code .hljs-builtin-name,
-  pre code .hljs-literal,
-  pre code .hljs-type,
-  pre code .hljs-params {
-    color: #fbbc88;
-  }
+.tiptap pre code .hljs-number,
+.tiptap pre code .hljs-meta,
+.tiptap pre code .hljs-built_in,
+.tiptap pre code .hljs-builtin-name,
+.tiptap pre code .hljs-literal,
+.tiptap pre code .hljs-type,
+.tiptap pre code .hljs-params {
+  color: #fbbc88;
+}
 
-  pre code .hljs-string,
-  pre code .hljs-symbol,
-  pre code .hljs-bullet {
-    color: #b9f18d;
-  }
+.tiptap pre code .hljs-string,
+.tiptap pre code .hljs-symbol,
+.tiptap pre code .hljs-bullet {
+  color: #b9f18d;
+}
 
-  pre code .hljs-title,
-  pre code .hljs-section {
-    color: #faf594;
-  }
+.tiptap pre code .hljs-title,
+.tiptap pre code .hljs-section {
+  color: #faf594;
+}
 
-  pre code .hljs-keyword,
-  pre code .hljs-selector-tag {
-    color: #70cff8;
-  }
+.tiptap pre code .hljs-keyword,
+.tiptap pre code .hljs-selector-tag {
+  color: #70cff8;
+}
 
-  pre code .hljs-emphasis {
-    font-style: italic;
-  }
+.tiptap pre code .hljs-emphasis {
+  font-style: italic;
+}
 
-  pre code .hljs-strong {
-    font-weight: 700;
-  }
+.tiptap pre code .hljs-strong {
+  font-weight: 700;
+}
 
-  blockquote {
-    border-left: 3px solid var(--gray-3);
-    margin: 1.5rem 0;
-    padding-left: 1rem;
-  }
+.tiptap blockquote {
+  border-left: 3px solid var(--color-border-default);
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+}
 
-  hr {
-    border: none;
-    border-top: 1px solid var(--gray-2);
-    margin: 2rem 0;
-  }
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--color-border-muted);
+  margin: 2rem 0;
+}
 
-  a {
-    color: blue;
-    cursor: pointer;
-  }
+.tiptap a {
+  color: blue;
+  cursor: pointer;
+}
 
-  a:hover {
-    color: blue;
+.tiptap a:hover {
+  color: blue;
+  text-decoration: underline blue;
+  text-underline-offset: 0.2em;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+}
 
-    text-decoration: underline blue;
-    text-underline-offset: 0.2em;
-    text-decoration-style: solid;
-    text-decoration-skip-ink: none;
-  }
+.tiptap p {
+  margin: 16px 0;
+  line-height: 1.5;
+}
 
-  p {
-    margin: 16px 0;
-    line-height: 1.5;
-  }
+.tiptap p br {
+  line-height: 1;
+  display: block;
+  margin: 4px 0;
+}
 
-  p br {
-    line-height: 1;
-    display: block;
-    margin: 4px 0;
-  }
+/* Focus highlight */
+.tiptap .has-focus {
+  box-shadow: 0 0 0 2px #b3c8f5;
+  background-color: var(--color-focus-bg);
+  border-radius: 8px;
+}
 
-  /* Focus highlight */
-  .has-focus {
-    box-shadow: 0 0 0 2px #b3c8f5;
-    background-color: var(--slate);
-    border-radius: 8px;
-  }
+/* Override background color for focused code blocks */
+.tiptap pre.has-focus {
+  background-color: black;
+}
 
-  /* Override background color for focused code blocks */
-  pre.has-focus {
-    background-color: var(--black);
-  }
+.tiptap img {
+  box-shadow: 0 0 0 2px var(--color-surface);
+  border-radius: 8px;
+}
 
-  img {
-    box-shadow: 0 0 0 2px var(--slate);
-    border-radius: 8px;
-  }
+/* Table-specific styling */
+.tiptap table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
 
-  /* Table-specific styling */
-  table {
-    border-collapse: collapse;
-    margin: 0;
-    overflow: hidden;
-    table-layout: fixed;
-    width: 100%;
+.tiptap table td,
+.tiptap table th {
+  border: 1px solid var(--color-border-default);
+  box-sizing: border-box;
+  min-width: 1em;
+  padding: 6px 8px;
+  position: relative;
+  vertical-align: top;
+}
 
-    td,
-    th {
-      border: 1px solid var(--gray-3);
-      box-sizing: border-box;
-      min-width: 1em;
-      padding: 6px 8px;
-      position: relative;
-      vertical-align: top;
+.tiptap table td > *,
+.tiptap table th > * {
+  margin-bottom: 0;
+}
 
-      >* {
-        margin-bottom: 0;
-      }
-    }
+.tiptap table th {
+  background-color: var(--gray-1);
+  font-weight: bold;
+  text-align: left;
+}
 
-    th {
-      background-color: var(--gray-1);
-      font-weight: bold;
-      text-align: left;
-    }
+.tiptap table .selectedCell:after {
+  background: var(--color-border-muted);
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
 
-    .selectedCell:after {
-      background: var(--gray-2);
-      content: "";
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      pointer-events: none;
-      position: absolute;
-      z-index: 2;
-    }
+.tiptap table .column-resize-handle {
+  background-color: var(--purple);
+  bottom: -2px;
+  pointer-events: none;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
+}
 
-    .column-resize-handle {
-      background-color: var(--purple);
-      bottom: -2px;
-      pointer-events: none;
-      position: absolute;
-      right: -2px;
-      top: 0;
-      width: 4px;
-    }
+.tiptap .tableWrapper {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
 
-  }
+.tiptap.resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}
 
-  .tableWrapper {
-    margin: 1.5rem 0;
-    overflow-x: auto;
-  }
+/* Task list specific styles */
+.tiptap ul[data-type="taskList"] {
+  margin-left: 0;
+  padding: 0;
+}
 
-  &.resize-cursor {
-    cursor: ew-resize;
-    cursor: col-resize;
-  }
+.tiptap ul[data-type="taskList"] li {
+  align-items: flex-start;
+  display: flex;
+}
 
-  /* Task list specific styles */
-  ul[data-type="taskList"] {
-    /* list-style: none; */
-    margin-left: 0;
-    padding: 0;
+.tiptap ul[data-type="taskList"] li > label {
+  flex: 0 0 auto;
+  margin-right: 0.5rem;
+  user-select: none;
+}
 
-    li {
-      align-items: flex-start;
-      display: flex;
+.tiptap ul[data-type="taskList"] li > div {
+  flex: 1 1 auto;
+}
 
-      >label {
-        flex: 0 0 auto;
-        margin-right: 0.5rem;
-        user-select: none;
-      }
+.tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  cursor: pointer;
+}
 
-      >div {
-        flex: 1 1 auto;
-      }
-    }
-
-    input[type="checkbox"] {
-      cursor: pointer;
-    }
-
-    ul[data-type="taskList"] {
-      margin: 0;
-    }
-  }
+.tiptap ul[data-type="taskList"] ul[data-type="taskList"] {
+  margin: 0;
 }
 
 .tiptap-image {

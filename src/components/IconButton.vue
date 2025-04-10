@@ -2,9 +2,9 @@
   <UButton
     :icon="icon"
     variant="ghost"
-    color="gray"
+    color="neutral"
     square
-    size="2xs"
+    size="xs"
     v-bind="$attrs"
   />
 </template>

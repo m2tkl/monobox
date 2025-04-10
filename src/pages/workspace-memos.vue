@@ -17,13 +17,9 @@
                 <UCard
                   class="aspect-[1/1] hover:bg-slate-100"
                   :ui="{
-                    header: {
-                      padding: 'px-3 pt-3 pb-0 sm:px-3',
-                    },
-                    body: {
-                      padding: 'px-3 pb-4 pt-1 sm:p-3',
-                    },
-                    divide: 'divide-white hover:divide-slate-100',
+                    header: 'px-3 pt-3 pb-0 sm:px-3 divide-white',
+                    body: 'px-3 pb-4 pt-1 sm:p-3 divide-white',
+                    root: 'divide-white hover:divide-slate-100',
                   }"
                 >
                   <template #header>
@@ -60,7 +56,6 @@
             square
             variant="solid"
             size="xl"
-            color="indigo"
             class="bg-slate-600"
           />
         </NuxtLink>

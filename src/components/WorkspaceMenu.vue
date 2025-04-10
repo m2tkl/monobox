@@ -1,8 +1,7 @@
 <template>
-  <UDropdown
+  <UDropdownMenu
     :items="workspaceMenuItems"
     :popper="{ placement: 'bottom-start' }"
-    class="border"
   >
     <div class="flex items-center">
       <span class="text-md font-bold text-gray-600">
@@ -14,29 +13,25 @@
         size="2xs"
       />
     </div>
-  </UDropdown>
+  </UDropdownMenu>
 </template>
 
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui';
+
 const props = defineProps<{ workspaceSlug: string }>();
 
-const router = useRouter();
-
-const workspaceMenuItems = [
+const workspaceMenuItems: DropdownMenuItem[][] = [
   [
     {
       label: 'Switch workspace',
       icon: iconKey.switch,
-      click: () => {
-        router.push('/');
-      },
+      to: '/',
     },
     {
       label: 'Workspace setting',
       icon: iconKey.setting,
-      click: () => {
-        router.push(`/${props.workspaceSlug}/_setting`);
-      },
+      to: `/${props.workspaceSlug}/_setting`,
     },
   ],
 ];

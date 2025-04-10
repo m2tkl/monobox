@@ -1,7 +1,7 @@
 <template>
   <NuxtLayout name="default">
     <template #context-menu>
-      <UDropdown
+      <UDropdownMenu
         :items="contextMenuItems"
       >
         <div class="flex items-center">
@@ -9,7 +9,7 @@
             :name="iconKey.dotMenuVertical"
           />
         </div>
-      </UDropdown>
+      </UDropdownMenu>
     </template>
 
     <template #main>
@@ -51,7 +51,7 @@
                 v-model="store.memo.title"
               />
 
-              <UDivider class="py-6" />
+              <USeparator class="py-6" />
 
               <!-- Content -->
               <div>
@@ -169,102 +169,111 @@
       </div>
 
       <!-- Link modal -->
-      <UModal v-model="linkDialogOn">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <div class="h-24">
-            <UForm
-              id="set-link"
-              :state="state"
-              class="space-y-4"
-              @submit="execSetLink"
-            >
-              <UFormGroup
-                label="URL"
-                name="url"
+      <UModal v-model:open="linkDialogOn">
+        <template #content>
+          <UCard>
+            <div class="h-24">
+              <UForm
+                id="set-link"
+                :state="state"
+                class="space-y-4"
+                @submit="execSetLink"
               >
-                <UInput v-model="state.url" />
-              </UFormGroup>
-            </UForm>
-          </div>
-
-          <template #footer>
-            <div class="h-8">
-              <UButton
-                form="set-link"
-                type="submit"
-                class="bg-slate-600"
-                color="indigo"
-              >
-                Save
-              </UButton>
+                <UFormField
+                  label="URL"
+                  name="url"
+                >
+                  <UInput
+                    v-model="state.url"
+                    class="w-full"
+                  />
+                </UFormField>
+              </UForm>
             </div>
-          </template>
-        </UCard>
+
+            <template #footer>
+              <div class="h-8">
+                <UButton
+                  form="set-link"
+                  type="submit"
+                  class="bg-slate-600"
+                >
+                  Save
+                </UButton>
+              </div>
+            </template>
+          </UCard>
+        </template>
       </UModal>
 
       <!-- Alt edit dialog -->
-      <UModal v-model="altDialogOn">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <div class="h-24">
-            <UForm
-              id="set-alt"
-              :state="imageState"
-              class="space-y-4"
-              @submit="execSetAlt"
-            >
-              <UFormGroup
-                label="Alt"
-                name="alt"
+      <UModal v-model:open="altDialogOn">
+        <template #content>
+          <UCard>
+            <div class="h-24">
+              <UForm
+                id="set-alt"
+                :state="imageState"
+                class="space-y-4"
+                @submit="execSetAlt"
               >
-                <UInput v-model="imageState.alt" />
-              </UFormGroup>
-            </UForm>
-          </div>
-
-          <template #footer>
-            <div class="h-8">
-              <UButton
-                form="set-alt"
-                type="submit"
-                class="bg-slate-600"
-                color="indigo"
-              >
-                Save
-              </UButton>
+                <UFormField
+                  label="Alt"
+                  name="alt"
+                >
+                  <UInput
+                    v-model="imageState.alt"
+                    class="w-full"
+                  />
+                </UFormField>
+              </UForm>
             </div>
-          </template>
-        </UCard>
+
+            <template #footer>
+              <div class="h-8">
+                <UButton
+                  form="set-alt"
+                  type="submit"
+                  class="bg-slate-600"
+                >
+                  Save
+                </UButton>
+              </div>
+            </template>
+          </UCard>
+        </template>
       </UModal>
 
-      <UModal v-model="deleteConfirmationDialogOn">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <div class="h-24">
-            Once you delete a memo, there is no going back. Please be certain.
-          </div>
-
-          <template #footer>
-            <div class="flex h-8 w-full">
-              <UButton
-                type="submit"
-                color="red"
-                @click="deleteMemo"
-              >
-                Delete
-              </UButton>
-
-              <span class="flex-1" />
-
-              <UButton
-                variant="solid"
-                color="gray"
-
-                @click="toggleDeleteConfirmationDialog"
-              >
-                Cancel
-              </UButton>
+      <UModal v-model:open="deleteConfirmationDialogOn">
+        <template #content>
+          <UCard>
+            <div class="h-24">
+              Once you delete a memo, there is no going back. Please be certain.
             </div>
-          </template>
-        </UCard>
+
+            <template #footer>
+              <div class="flex h-8 w-full">
+                <UButton
+                  type="submit"
+                  color="error"
+                  @click="deleteMemo"
+                >
+                  Delete
+                </UButton>
+
+                <span class="flex-1" />
+
+                <UButton
+                  variant="solid"
+                  color="neutral"
+                  @click="toggleDeleteConfirmationDialog"
+                >
+                  Cancel
+                </UButton>
+              </div>
+            </template>
+          </UCard>
+        </template>
       </UModal>
     </template>
   </NuxtLayout>
@@ -279,6 +288,7 @@ import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
 
+import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/core';
 import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
@@ -634,19 +644,19 @@ const outline = computed<Heading[]>(() => {
 
 /* --- Contect menu items --- */
 
-const contextMenuItems = [
+const contextMenuItems: DropdownMenuItem[][] = [
   [
     {
       label: 'Copy as markdown',
       icon: iconKey.copy,
-      click: async () => { await copyAsMarkdown(); },
+      onSelect: async () => { await copyAsMarkdown(); },
     },
   ],
   [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      click: () => { toggleDeleteConfirmationDialog(); },
+      onSelect: () => { toggleDeleteConfirmationDialog(); },
     },
   ],
 ];
@@ -718,7 +728,7 @@ async function executeWithToast<T, Args extends unknown[]>(
     const result = await action(...args);
     toast.add({
       title: messages.success,
-      timeout: 1000,
+      duration: 1000,
       icon: iconKey.success,
     });
     return { ok: true, data: result };
@@ -728,7 +738,7 @@ async function executeWithToast<T, Args extends unknown[]>(
     toast.add({
       title: messages.error,
       description: 'Please try again',
-      color: 'red',
+      color: 'error',
       icon: iconKey.failed,
     });
     return { ok: false };
