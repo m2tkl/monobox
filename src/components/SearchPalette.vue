@@ -15,7 +15,6 @@
     -->
     <template #content>
       <UCommandPalette
-        ref="commandPaletteRef"
         v-model:search-term="searchTerm"
         v-model="selected"
         :groups="commandPaletteItems"
@@ -63,7 +62,6 @@ const logger = useConsoleLogger('[components/Search/SearchPalette]:');
 
 const selected = ref([]);
 const isSearchPaletteOpen = ref(false);
-const commandPaletteRef = ref();
 
 type Command = CommandPaletteItem & { tag: string; label: string };
 
@@ -192,16 +190,15 @@ async function onSearchPaletteSelect(option: CommandPaletteItem) {
   }
 }
 
-async function openCommandPalette() {
+function openCommandPalette() {
   logger.log('openCommandPalette() start.');
   isSearchPaletteOpen.value = true;
   selected.value = [];
 
   // If text is selected in the editor, set the text in the input field.
-  if (props.editor && commandPaletteRef) {
+  if (props.editor) {
     const selectedText = EditorAction.getSelectedTextV2(props.editor.view);
-    await nextTick();
-    commandPaletteRef.value.query = selectedText;
+    searchTerm.value = selectedText;
   }
 
   logger.log('openCommandPalette() end.');
