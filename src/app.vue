@@ -273,8 +273,14 @@ body {
 }
 
 .tiptap img {
-  box-shadow: 0 0 0 2px var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-surface);
   border-radius: 8px;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  height: auto;
 }
 
 /* Table-specific styling */
@@ -369,9 +375,6 @@ body {
 }
 
 .tiptap-image {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   margin: 16px 0;
 }
 
