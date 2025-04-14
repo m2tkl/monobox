@@ -1,10 +1,4 @@
-type JSONContent = {
-  type: string;
-  content?: JSONContent[];
-  text?: string;
-  marks?: { type: string; attrs?: Record<string, unknown> }[];
-  attrs?: Record<string, Record<string, unknown>>;
-};
+import type { JSONContent } from '@tiptap/vue-3';
 
 /**
  * Convert tiptap json to html
@@ -26,7 +20,11 @@ function renderNode(node: JSONContent): string {
       return `<p>${renderChildren(node)}</p>`;
 
     case 'heading': {
-      const level = node.attrs?.level ?? 1;
+      const rawLevel = node.attrs?.level;
+      const originalLevel = typeof rawLevel === 'number' ? rawLevel : 1;
+      // Add +1 because memo title is level 1 heading.
+      const level = Math.min(originalLevel + 1, 6);
+
       return `<h${level}>${renderChildren(node)}</h${level}>`;
     }
 

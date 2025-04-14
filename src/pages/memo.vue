@@ -299,6 +299,7 @@ import OutlineView from '~/components/OutlineView.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorCommand from '~/lib/editor/command';
+import { convertEditorJsonToHtml } from '~/lib/editor/command/htmlExport';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorUtil from '~/lib/editor/util';
 
@@ -651,6 +652,11 @@ const contextMenuItems: DropdownMenuItem[][] = [
       icon: iconKey.copy,
       onSelect: async () => { await copyAsMarkdown(); },
     },
+    {
+      label: 'Copy as html',
+      icon: iconKey.html,
+      onSelect: async () => { await copyAsHtml(); },
+    },
   ],
   [
     {
@@ -843,6 +849,22 @@ const copyLinkAsHtml = async (href: string, text: string): Promise<void> => {
       'text/html': new Blob([html], { type: 'text/html' }),
     }),
   ]);
+};
+
+const copyAsHtml = async () => {
+  if (!editor.value || !store.memo) return;
+
+  await executeWithToast(
+    async (editor: Editor, title: string) => {
+      const json = editor.getJSON();
+      const htmlBody = convertEditorJsonToHtml(json);
+      const htmlPage = `<h1>${title}</h1>${htmlBody}`;
+
+      await navigator.clipboard.writeText(htmlPage);
+    },
+    [editor.value, store.memo.title],
+    { success: 'Copied as html.', error: 'Failed to copy.' },
+  );
 };
 </script>
 
