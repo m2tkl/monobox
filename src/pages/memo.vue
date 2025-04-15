@@ -866,6 +866,18 @@ const copyAsHtml = async () => {
     { success: 'Copied as html.', error: 'Failed to copy.' },
   );
 };
+
+const { state: exportDialogOn, toggle: toggleExportDialog } = useBoolState();
+
+const exportCandidates = computed(() => {
+  if (store.links) {
+    const uniqueLinks = Array.from(
+      new Map(store.links.map(link => [link.id, link])).values(),
+    );
+    return uniqueLinks;
+  }
+  return [];
+});
 </script>
 
 <style>
