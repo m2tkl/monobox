@@ -93,7 +93,7 @@
       <BubbleMenu
         v-if="editor"
         :editor="editor"
-        class="flex gap-0.5 rounded-lg bg-slate-200 p-1 outline outline-1 outline-slate-400"
+        class="flex gap-0.5 rounded-lg bg-slate-200 p-1 outlineoutline-slate-400"
       >
         <template v-if="editor.isActive('image')">
           <EditorToolbarButton
@@ -244,6 +244,7 @@
         </template>
       </UModal>
 
+      <!-- Delete edit dialog -->
       <UModal v-model:open="deleteConfirmationDialogOn">
         <template #content>
           <UCard>
@@ -273,6 +274,60 @@
               </div>
             </template>
           </UCard>
+        </template>
+      </UModal>
+
+      <!-- Export dialog (Select pages) -->
+      <UModal
+        v-model:open="exportDialogOn"
+        title="Export pages as HTML"
+        description="Select export targets from related links."
+      >
+        <template #body>
+          <ul>
+            <li
+              v-for="item in exportTargets"
+              :key="item.id"
+              class="flex gap-1 items-center"
+            >
+              <UCheckbox v-model="item.target" />
+              <span>
+                {{ item.title }}
+              </span>
+            </li>
+          </ul>
+        </template>
+
+        <template #footer>
+          <UButton
+            class="bg-slate-600"
+            @click="exportPages"
+          >
+            Export
+          </UButton>
+        </template>
+      </UModal>
+
+      <!-- Export dialog (Copy) -->
+      <UModal
+        v-model:open="exportResultDialogOn"
+        title="Export result"
+      >
+        <template #body>
+          <UTextarea
+            v-model="htmlExport"
+            class="w-full h-64"
+            :rows="12"
+          />
+        </template>
+
+        <template #footer>
+          <UButton
+            class="bg-slate-600"
+            @click="copyExportedResult"
+          >
+            Copy
+          </UButton>
         </template>
       </UModal>
     </template>
@@ -314,6 +369,7 @@ const route = useRoute();
 const router = useRouter();
 const logger = useConsoleLogger('[pages/memo]');
 const toast = useToast();
+const command = useCommand();
 
 const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
@@ -657,6 +713,11 @@ const contextMenuItems: DropdownMenuItem[][] = [
       icon: iconKey.html,
       onSelect: async () => { await copyAsHtml(); },
     },
+    {
+      label: 'Export with linked pages',
+      icon: iconKey.pageLink,
+      onSelect: () => { openExportModal(); },
+    },
   ],
   [
     {
@@ -878,6 +939,52 @@ const exportCandidates = computed(() => {
   }
   return [];
 });
+
+const exportTargets = ref();
+const openExportModal = () => {
+  exportTargets.value = exportCandidates.value.map(link => ({ ...link, target: true }));
+  toggleExportDialog();
+};
+
+const htmlExport = ref<string>('');
+const exportPages = async () => {
+  if (!editor.value || !store.memo || !store.links) return;
+
+  const json = editor.value.getJSON();
+  const htmlBody = convertEditorJsonToHtml(json);
+  const htmlPage = `<h1>${store.memo.title}</h1>${htmlBody}`;
+
+  const htmls = [htmlPage];
+
+  for (const link of store.links) {
+    console.log(link.title);
+    const jsonContent = JSON.parse((await command.memo.get({ workspaceSlugName: workspaceSlug.value, memoSlugTitle: link.title })).content);
+    const html = convertEditorJsonToHtml(jsonContent);
+    htmls.push(`<h1>${link.title}</h1>${html}`);
+  }
+
+  const onePageHtml = htmls.join('\n');
+  htmlExport.value = onePageHtml;
+
+  toggleExportDialog();
+  toggleExportResultDialog();
+};
+
+const { state: exportResultDialogOn, toggle: toggleExportResultDialog } = useBoolState();
+
+const copyExportedResult = async () => {
+  if (!htmlExport.value) return;
+
+  await executeWithToast(
+    async (exported) => {
+      navigator.clipboard.writeText(exported);
+    },
+    [htmlExport.value],
+    { success: 'Exported result copied!', error: 'Failed to copy.' },
+  );
+
+  toggleExportResultDialog();
+};
 </script>
 
 <style>

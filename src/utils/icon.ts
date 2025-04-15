@@ -37,6 +37,7 @@ export const iconKey = {
   annotation: 'carbon:text-annotation-toggle',
   tree: 'carbon:tree-view-alt',
   html: 'carbon:html',
+  pageLink: 'carbon:app-connectivity',
 
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',
