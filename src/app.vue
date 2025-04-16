@@ -30,8 +30,6 @@ body {
   /* Disable bounce */
   overscroll-behavior: none;
   box-sizing: border-box;
-
-  font-weight: 500;
 }
 
 *, *::before, *::after {
