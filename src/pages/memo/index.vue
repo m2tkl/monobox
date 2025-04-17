@@ -168,114 +168,25 @@
         />
       </div>
 
-      <!-- Link modal -->
-      <UModal v-model:open="linkDialogOn">
-        <template #content>
-          <UCard>
-            <div class="h-24">
-              <UForm
-                id="set-link"
-                :state="state"
-                class="space-y-4"
-                @submit="execSetLink"
-              >
-                <UFormField
-                  label="URL"
-                  name="url"
-                >
-                  <UInput
-                    v-model="state.url"
-                    class="w-full"
-                  />
-                </UFormField>
-              </UForm>
-            </div>
+      <LinkEditDialog
+        v-model:open="linkDialogOn"
+        :initial-value="currentLink"
+        @update="updateLink"
+        @cancel="linkDialogOn = false"
+      />
 
-            <template #footer>
-              <div class="h-8">
-                <UButton
-                  form="set-link"
-                  type="submit"
-                  class="bg-slate-600"
-                >
-                  Save
-                </UButton>
-              </div>
-            </template>
-          </UCard>
-        </template>
-      </UModal>
+      <AltEditDialog
+        v-model:open="altDialogOn"
+        :initial-value="imageCurrentAltText"
+        @update="updateAltText"
+        @cancel="altDialogOn = false"
+      />
 
-      <!-- Alt edit dialog -->
-      <UModal v-model:open="altDialogOn">
-        <template #content>
-          <UCard>
-            <div class="h-24">
-              <UForm
-                id="set-alt"
-                :state="imageState"
-                class="space-y-4"
-                @submit="execSetAlt"
-              >
-                <UFormField
-                  label="Alt"
-                  name="alt"
-                >
-                  <UInput
-                    v-model="imageState.alt"
-                    class="w-full"
-                  />
-                </UFormField>
-              </UForm>
-            </div>
-
-            <template #footer>
-              <div class="h-8">
-                <UButton
-                  form="set-alt"
-                  type="submit"
-                  class="bg-slate-600"
-                >
-                  Save
-                </UButton>
-              </div>
-            </template>
-          </UCard>
-        </template>
-      </UModal>
-
-      <!-- Delete edit dialog -->
-      <UModal v-model:open="deleteConfirmationDialogOn">
-        <template #content>
-          <UCard>
-            <div class="h-24">
-              Once you delete a memo, there is no going back. Please be certain.
-            </div>
-
-            <template #footer>
-              <div class="flex h-8 w-full">
-                <UButton
-                  type="submit"
-                  color="error"
-                  @click="deleteMemo"
-                >
-                  Delete
-                </UButton>
-
-                <span class="flex-1" />
-
-                <UButton
-                  variant="solid"
-                  color="neutral"
-                  @click="toggleDeleteConfirmationDialog"
-                >
-                  Cancel
-                </UButton>
-              </div>
-            </template>
-          </UCard>
-        </template>
-      </UModal>
+      <DeleteConfirmationDialog
+        v-model:open="deleteConfirmationDialogOn"
+        @delete="deleteMemo"
+        @cancel="deleteConfirmationDialogOn = false"
+      />
 
       <!-- Export dialog (Select pages) -->
       <UModal
@@ -342,6 +253,10 @@ import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
+
+import AltEditDialog from './units/AltEditDialog.vue';
+import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
+import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/core';
@@ -722,7 +637,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      onSelect: () => { toggleDeleteConfirmationDialog(); },
+      onSelect: () => { deleteConfirmationDialogOn.value = true; },
     },
   ],
 ];
@@ -735,9 +650,27 @@ const state = reactive({
   url: undefined,
 });
 
+const currentLink = ref('');
+
 const openLinkEditDialog = () => {
   const previousUrl = editor.value?.getAttributes('link').href;
   state.url = previousUrl;
+  currentLink.value = previousUrl;
+
+  toggleLinkDialog();
+};
+
+const updateLink = (newLink: string) => {
+  if (!editor.value) {
+    return;
+  }
+
+  if (newLink) {
+    EditorAction.setLink(editor.value, newLink);
+  }
+  else {
+    EditorAction.unsetLink(editor.value);
+  }
 
   toggleLinkDialog();
 };
@@ -760,11 +693,9 @@ const execSetLink = () => {
 
 /* --- Image alt setting --- */
 
-const { state: altDialogOn, toggle: toggleAltDialog } = useBoolState();
+const altDialogOn = ref(false);
 
-const imageState = reactive({
-  alt: undefined,
-});
+const imageCurrentAltText = ref('');
 
 function openAltEditDialog() {
   const selection = editor.value?.state.selection;
@@ -772,15 +703,15 @@ function openAltEditDialog() {
     const { $from } = selection;
     const node = $from.nodeAfter;
     if (node && node.type.name === 'image') {
-      imageState.alt = node.attrs.alt || '';
-      toggleAltDialog();
+      imageCurrentAltText.value = node.attrs.alt || '';
+      altDialogOn.value = true;
     }
   }
 }
 
-function execSetAlt() {
-  editor.value!.commands.updateAttributes('image', { alt: imageState.alt });
-  toggleAltDialog();
+function updateAltText(newAltText: string) {
+  editor.value!.commands.updateAttributes('image', { alt: newAltText });
+  altDialogOn.value = false;
 }
 
 /* --- Commands --- */
@@ -843,7 +774,7 @@ async function saveMemo() {
   }
 };
 
-const { state: deleteConfirmationDialogOn, toggle: toggleDeleteConfirmationDialog } = useBoolState();
+const deleteConfirmationDialogOn = ref(false);
 
 async function deleteMemo() {
   const result = await executeWithToast(
