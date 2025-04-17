@@ -421,7 +421,6 @@ const editor = useEditor({
       inclusive: false,
       renderHTML({ HTMLAttributes }) {
         const href = HTMLAttributes.href;
-        console.log(href);
         if (!isInternalLink(href)) {
           HTMLAttributes.class = `${HTMLAttributes.class || ''} external-link`.trim();
         }
