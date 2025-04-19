@@ -55,20 +55,12 @@
 
               <!-- Content -->
               <div>
+                <EditorLoadingSkelton v-if="!editor" />
+                
                 <editor-content
-                  v-if="editor"
+                  v-else
                   :editor="editor"
                 />
-
-                <!-- skeleton -->
-                <div
-                  v-else
-                  class="space-y-2"
-                >
-                  <USkeleton class="h-4 w-[350px]" />
-                  <USkeleton class="h-4 w-[200px]" />
-                  <USkeleton class="h-4 w-[250px]" />
-                </div>
               </div>
             </div>
           </div>
@@ -257,6 +249,7 @@ import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tipta
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
 import LinkEditDialog from './units/LinkEditDialog.vue';
+import EditorLoadingSkelton from './units/EditorLoadingSkelton.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/core';
