@@ -155,59 +155,17 @@
         @cancel="deleteConfirmationDialogOn = false"
       />
 
-      <!-- Export dialog (Select pages) -->
-      <UModal
+      <!-- Export with related pages -->
+      <ExportDialogToSelectTargets
         v-model:open="exportDialogOn"
-        title="Export pages as HTML"
-        description="Select export targets from related links."
-      >
-        <template #body>
-          <ul>
-            <li
-              v-for="item in exportTargets"
-              :key="item.id"
-              class="flex gap-1 items-center"
-            >
-              <UCheckbox v-model="item.target" />
-              <span>
-                {{ item.title }}
-              </span>
-            </li>
-          </ul>
-        </template>
-
-        <template #footer>
-          <UButton
-            class="bg-slate-600"
-            @click="exportPages"
-          >
-            Export
-          </UButton>
-        </template>
-      </UModal>
-
-      <!-- Export dialog (Copy) -->
-      <UModal
+        :export-candidates="exportCandidates"
+        @select="(targets) => exportPagesV2(targets)"
+      />
+      <ExportDialogToCopyResult
         v-model:open="exportResultDialogOn"
-        title="Export result"
-      >
-        <template #body>
-          <UTextarea
-            v-model="htmlExport"
-            class="w-full h-64"
-            :rows="12"
-          />
-        </template>
-
-        <template #footer>
-          <UButton
-            class="bg-slate-600"
-            @click="copyExportedResult"
-          >
-            Copy
-          </UButton>
-        </template>
-      </UModal>
+        :text-to-export="htmlExport"
+        @copy="copyExportedResult"
+      />
     </template>
   </NuxtLayout>
 </template>
@@ -224,12 +182,15 @@ import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tipta
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
 import EditorLoadingSkelton from './units/EditorLoadingSkelton.vue';
+import ExportDialogToCopyResult from './units/ExportDialogToCopyResult.vue';
+import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue';
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/core';
 import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
+import type { Link as LinkModel } from '~/models/link';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
@@ -598,7 +559,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Export with linked pages',
       icon: iconKey.pageLink,
-      onSelect: () => { openExportModal(); },
+      onSelect: () => { exportDialogOn.value = true; },
     },
   ],
   [
@@ -658,20 +619,15 @@ const bubbleMenuItems = [
 
 /* --- Link operation --- */
 
-const { state: linkDialogOn, toggle: toggleLinkDialog } = useBoolState();
-
-const state = reactive({
-  url: undefined,
-});
+const linkDialogOn = ref(false);
 
 const currentLink = ref('');
 
 const openLinkEditDialog = () => {
   const previousUrl = editor.value?.getAttributes('link').href;
-  state.url = previousUrl;
   currentLink.value = previousUrl;
 
-  toggleLinkDialog();
+  linkDialogOn.value = true;
 };
 
 const updateLink = (newLink: string) => {
@@ -686,23 +642,7 @@ const updateLink = (newLink: string) => {
     EditorAction.unsetLink(editor.value);
   }
 
-  toggleLinkDialog();
-};
-
-const execSetLink = () => {
-  console.log('execSetLink');
-  if (!editor.value) {
-    return;
-  }
-
-  if (state.url) {
-    EditorAction.setLink(editor.value, state.url);
-  }
-  else {
-    EditorAction.unsetLink(editor.value);
-  }
-
-  toggleLinkDialog();
+  linkDialogOn.value = false;
 };
 
 /* --- Image alt setting --- */
@@ -872,7 +812,9 @@ const copyAsHtml = async () => {
   );
 };
 
-const { state: exportDialogOn, toggle: toggleExportDialog } = useBoolState();
+/* --- Export with related pages (Step1: select targets) --- */
+
+const exportDialogOn = ref(false);
 
 const exportCandidates = computed(() => {
   if (store.links) {
@@ -884,15 +826,10 @@ const exportCandidates = computed(() => {
   return [];
 });
 
-const exportTargets = ref();
-const openExportModal = () => {
-  exportTargets.value = exportCandidates.value.map(link => ({ ...link, target: true }));
-  toggleExportDialog();
-};
-
 const htmlExport = ref<string>('');
-const exportPages = async () => {
-  if (!editor.value || !store.memo || !store.links) return;
+
+const exportPagesV2 = async (targets: Array<LinkModel>) => {
+  if (!editor.value || !store.memo) return;
 
   const json = editor.value.getJSON();
   const htmlBody = convertEditorJsonToHtml(json);
@@ -900,8 +837,7 @@ const exportPages = async () => {
 
   const htmls = [htmlPage];
 
-  for (const link of store.links) {
-    console.log(link.title);
+  for (const link of targets) {
     const jsonContent = JSON.parse((await command.memo.get({ workspaceSlugName: workspaceSlug.value, memoSlugTitle: link.title })).content);
     const html = convertEditorJsonToHtml(jsonContent);
     htmls.push(`<h1>${link.title}</h1>${html}`);
@@ -910,24 +846,24 @@ const exportPages = async () => {
   const onePageHtml = htmls.join('\n');
   htmlExport.value = onePageHtml;
 
-  toggleExportDialog();
-  toggleExportResultDialog();
+  exportDialogOn.value = false;
+  exportResultDialogOn.value = true;
 };
 
-const { state: exportResultDialogOn, toggle: toggleExportResultDialog } = useBoolState();
+/* --- Export with related pages (Step2: copy result) */
 
-const copyExportedResult = async () => {
-  if (!htmlExport.value) return;
+const exportResultDialogOn = ref(false);
 
+const copyExportedResult = async (textToCopy: string) => {
   await executeWithToast(
-    async (exported) => {
-      navigator.clipboard.writeText(exported);
+    async (text) => {
+      navigator.clipboard.writeText(text);
     },
-    [htmlExport.value],
+    [textToCopy],
     { success: 'Exported result copied!', error: 'Failed to copy.' },
   );
 
-  toggleExportResultDialog();
+  exportResultDialogOn.value = false;
 };
 </script>
 
