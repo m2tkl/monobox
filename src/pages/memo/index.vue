@@ -95,50 +95,15 @@
         </template>
 
         <template v-else>
-          <EditorToolbarButton
-            :icon="iconKey.memoLink"
-            @exec="() => { linkPaletteRef?.openCommandPalette() }"
-          />
-          <EditorToolbarButton
-            :icon="iconKey.link"
-            @exec="openLinkEditDialog()"
-          />
-          <EditorToolbarButton
-            :icon="iconKey.unlink"
-            @exec="EditorAction.unsetLink(editor)"
-          />
-
-          <span class="mx-0.5 font-thin text-slate-400">|</span>
-
-          <EditorToolbarButton
-            :icon="iconKey.textBold"
-            @exec="EditorAction.toggleStyle(editor, 'bold')"
-          />
-          <EditorToolbarButton
-            :icon="iconKey.textItalic"
-            @exec="EditorAction.toggleStyle(editor, 'italic')"
-          />
-          <EditorToolbarButton
-            :icon="iconKey.textStrikeThrough"
-            @exec="EditorAction.toggleStyle(editor, 'strike')"
-          />
-
-          <EditorToolbarButton
-            :icon="iconKey.inlineCode"
-            @exec="EditorAction.toggleCode(editor)"
-          />
-
-          <EditorToolbarButton
-            :icon="iconKey.clearFormat"
-            @exec="EditorAction.resetStyle(editor)"
-          />
-
-          <span class="mx-0.5 font-thin text-slate-400">|</span>
-
-          <EditorToolbarButton
-            :icon="iconKey.copy"
-            @exec="copySelectedAsMarkdown"
-          />
+          <div v-for="(actionGroup, groupIndex) in bubbleMenuItems" :key="groupIndex">
+            <span v-if="groupIndex !== 0" class="mx-0.5 font-thin text-slate-400">|</span>
+            <div v-for="(item, index) in actionGroup" :key="index">
+              <EditorToolbarButton
+                :icon="item.icon"
+                @exec="item.action"
+              />
+            </div>
+          </div>
         </template>
       </BubbleMenu>
 
@@ -634,6 +599,52 @@ const contextMenuItems: DropdownMenuItem[][] = [
     },
   ],
 ];
+
+/* --- Editor bubble menu items --- */
+const bubbleMenuItems = [
+  [
+    {
+      icon: iconKey.memoLink,
+      action: () => { linkPaletteRef.value?.openCommandPalette() }
+    },
+    {
+      icon: iconKey.link,
+      action: () => { openLinkEditDialog() }
+    },
+    {
+      icon: iconKey.unlink,
+      action: () => { EditorAction.unsetLink(editor.value!) }
+    }
+  ],
+  [
+    {
+      icon: iconKey.textBold,
+      action: () => { EditorAction.toggleStyle(editor.value!, 'bold') }
+    },
+    {
+      icon: iconKey.textItalic,
+      action: () => { EditorAction.toggleStyle(editor.value!, 'italic') }
+    },
+    {
+      icon: iconKey.textStrikeThrough,
+      action: () => { EditorAction.toggleStyle(editor.value!, 'strike') }
+    },
+    {
+      icon: iconKey.inlineCode,
+      action: () => { EditorAction.toggleCode(editor.value!) }
+    },
+    {
+      icon: iconKey.clearFormat,
+      action: () => { EditorAction.resetStyle(editor.value!) }
+    }
+  ],
+  [
+    {
+      icon: iconKey.copy,
+      action: () => { copySelectedAsMarkdown() }
+    }
+  ]
+]
 
 /* --- Link operation --- */
 
