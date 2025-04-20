@@ -56,7 +56,7 @@
               <!-- Content -->
               <div>
                 <EditorLoadingSkelton v-if="!editor" />
-                
+
                 <editor-content
                   v-else
                   :editor="editor"
@@ -85,7 +85,7 @@
       <BubbleMenu
         v-if="editor"
         :editor="editor"
-        class="flex gap-0.5 rounded-lg bg-slate-200 p-1 outlineoutline-slate-400"
+        class="flex gap-0.5 rounded-lg bg-slate-200 p-1 outline outline-slate-400"
       >
         <template v-if="editor.isActive('image')">
           <EditorToolbarButton
@@ -95,9 +95,19 @@
         </template>
 
         <template v-else>
-          <div v-for="(actionGroup, groupIndex) in bubbleMenuItems" :key="groupIndex">
-            <span v-if="groupIndex !== 0" class="mx-0.5 font-thin text-slate-400">|</span>
-            <div v-for="(item, index) in actionGroup" :key="index">
+          <div
+            v-for="(actionGroup, groupIndex) in bubbleMenuItems"
+            :key="groupIndex"
+            class="flex gap-0.5"
+          >
+            <span
+              v-if="groupIndex !== 0"
+              class="mx-0.5 font-thin text-slate-400"
+            >|</span>
+            <div
+              v-for="(item, index) in actionGroup"
+              :key="index"
+            >
               <EditorToolbarButton
                 :icon="item.icon"
                 @exec="item.action"
@@ -213,8 +223,8 @@ import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tipta
 
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
-import LinkEditDialog from './units/LinkEditDialog.vue';
 import EditorLoadingSkelton from './units/EditorLoadingSkelton.vue';
+import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/core';
@@ -605,46 +615,46 @@ const bubbleMenuItems = [
   [
     {
       icon: iconKey.memoLink,
-      action: () => { linkPaletteRef.value?.openCommandPalette() }
+      action: () => { linkPaletteRef.value?.openCommandPalette(); },
     },
     {
       icon: iconKey.link,
-      action: () => { openLinkEditDialog() }
+      action: () => { openLinkEditDialog(); },
     },
     {
       icon: iconKey.unlink,
-      action: () => { EditorAction.unsetLink(editor.value!) }
-    }
+      action: () => { EditorAction.unsetLink(editor.value!); },
+    },
   ],
   [
     {
       icon: iconKey.textBold,
-      action: () => { EditorAction.toggleStyle(editor.value!, 'bold') }
+      action: () => { EditorAction.toggleStyle(editor.value!, 'bold'); },
     },
     {
       icon: iconKey.textItalic,
-      action: () => { EditorAction.toggleStyle(editor.value!, 'italic') }
+      action: () => { EditorAction.toggleStyle(editor.value!, 'italic'); },
     },
     {
       icon: iconKey.textStrikeThrough,
-      action: () => { EditorAction.toggleStyle(editor.value!, 'strike') }
+      action: () => { EditorAction.toggleStyle(editor.value!, 'strike'); },
     },
     {
       icon: iconKey.inlineCode,
-      action: () => { EditorAction.toggleCode(editor.value!) }
+      action: () => { EditorAction.toggleCode(editor.value!); },
     },
     {
       icon: iconKey.clearFormat,
-      action: () => { EditorAction.resetStyle(editor.value!) }
-    }
+      action: () => { EditorAction.resetStyle(editor.value!); },
+    },
   ],
   [
     {
       icon: iconKey.copy,
-      action: () => { copySelectedAsMarkdown() }
-    }
-  ]
-]
+      action: () => { copySelectedAsMarkdown(); },
+    },
+  ],
+];
 
 /* --- Link operation --- */
 
