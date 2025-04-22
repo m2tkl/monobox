@@ -136,10 +136,10 @@
       </div>
 
       <LinkEditDialog
-        v-model:open="linkDialogOn"
+        v-model:open="linkEditDialog.isOpen.value"
         :initial-value="currentLink"
-        @update="updateLink"
-        @cancel="linkDialogOn = false"
+        @update="closeLinkEditDialogWithUpdate"
+        @cancel="closeLinkEditDialogWithCancel"
       />
 
       <AltEditDialog
@@ -177,7 +177,7 @@ import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
-import { BubbleMenu, EditorContent, type NodeViewProps, useEditor } from '@tiptap/vue-3';
+import { BubbleMenu, EditorContent, type NodeViewProps, useEditor, type Editor as _Editor } from '@tiptap/vue-3';
 
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
@@ -618,32 +618,26 @@ const bubbleMenuItems = [
 ];
 
 /* --- Link operation --- */
-
-const linkDialogOn = ref(false);
-
+const linkEditDialog = useDialog();
 const currentLink = ref('');
 
-const openLinkEditDialog = () => {
+const openLinkEditDialog = linkEditDialog.withOpen(() => {
   const previousUrl = editor.value?.getAttributes('link').href;
   currentLink.value = previousUrl;
+});
 
-  linkDialogOn.value = true;
-};
-
-const updateLink = (newLink: string) => {
+const closeLinkEditDialogWithUpdate = linkEditDialog.withClose(async (newLink: string) => {
   if (!editor.value) {
     return;
   }
-
   if (newLink) {
     EditorAction.setLink(editor.value, newLink);
   }
   else {
     EditorAction.unsetLink(editor.value);
   }
-
-  linkDialogOn.value = false;
-};
+});
+const closeLinkEditDialogWithCancel = linkEditDialog.withClose(async () => {});
 
 /* --- Image alt setting --- */
 
