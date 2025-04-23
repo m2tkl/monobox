@@ -90,7 +90,16 @@
         <template v-if="editor.isActive('image')">
           <EditorToolbarButton
             :icon="iconKey.annotation"
-            @exec="openAltEditDialog"
+            @exec="() => {
+              const selection = editor?.state.selection
+              if (selection) {
+                const { $from } = selection;
+                const node = $from.nodeAfter;
+                if (node && node.type.name === 'image') {
+                  openAltEditDialog(node.attrs.alt || '')
+                }
+              }
+            }"
           />
         </template>
 
@@ -138,15 +147,15 @@
       <LinkEditDialog
         v-model:open="linkEditDialog.isOpen.value"
         :initial-value="currentLink"
-        @update="closeLinkEditDialogWithUpdate"
-        @cancel="closeLinkEditDialogWithCancel"
+        @update="closeLinkEditDialogOnUpdate"
+        @cancel="closeLinkEditDialogOnCancel"
       />
 
       <AltEditDialog
-        v-model:open="altDialogOn"
+        v-model:open="altEditDialog.isOpen.value"
         :initial-value="imageCurrentAltText"
-        @update="updateAltText"
-        @cancel="altDialogOn = false"
+        @update="closeAltEditDialogOnUpdate"
+        @cancel="closeAltEditDialogOnCancel"
       />
 
       <DeleteConfirmationDialog
@@ -626,7 +635,7 @@ const openLinkEditDialog = linkEditDialog.withOpen(() => {
   currentLink.value = previousUrl;
 });
 
-const closeLinkEditDialogWithUpdate = linkEditDialog.withClose(async (newLink: string) => {
+const closeLinkEditDialogOnUpdate = linkEditDialog.withClose(async (newLink: string) => {
   if (!editor.value) {
     return;
   }
@@ -637,30 +646,23 @@ const closeLinkEditDialogWithUpdate = linkEditDialog.withClose(async (newLink: s
     EditorAction.unsetLink(editor.value);
   }
 });
-const closeLinkEditDialogWithCancel = linkEditDialog.withClose(async () => {});
+const closeLinkEditDialogOnCancel = linkEditDialog.withClose(async () => {});
 
-/* --- Image alt setting --- */
-
-const altDialogOn = ref(false);
-
+/* --- Image alt edit --- */
+const altEditDialog = useDialog();
 const imageCurrentAltText = ref('');
 
-function openAltEditDialog() {
-  const selection = editor.value?.state.selection;
-  if (selection) {
-    const { $from } = selection;
-    const node = $from.nodeAfter;
-    if (node && node.type.name === 'image') {
-      imageCurrentAltText.value = node.attrs.alt || '';
-      altDialogOn.value = true;
-    }
-  }
-}
+const openAltEditDialog = altEditDialog.withOpen((currentAltText: string) => {
+  imageCurrentAltText.value = currentAltText;
+});
 
-function updateAltText(newAltText: string) {
-  editor.value!.commands.updateAttributes('image', { alt: newAltText });
-  altDialogOn.value = false;
-}
+const closeAltEditDialogOnUpdate = altEditDialog.withClose(async (newAltText: string) => {
+  if (!editor.value) {
+    return;
+  }
+  editor.value.commands.updateAttributes('image', { alt: newAltText });
+});
+const closeAltEditDialogOnCancel = altEditDialog.withClose(async () => {});
 
 /* --- Commands --- */
 

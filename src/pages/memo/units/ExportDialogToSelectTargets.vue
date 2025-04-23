@@ -33,25 +33,49 @@
 <script setup lang="ts">
 import type { Link } from '~/models/link';
 
-const modalOpen = defineModel<boolean>('open');
+type TargetPage = Link & { target: boolean };
 
 const props = defineProps<{
   exportCandidates: Link[];
 }>();
 
-type TargetPage = Link & { target: boolean };
-
-const exportTargets = ref<TargetPage[]>([]);
-
-watch(modalOpen, (opened) => {
-  if (opened) {
-    exportTargets.value = props.exportCandidates.map(
-      link => ({ ...link, target: true }),
-    );
-  }
-});
-
 defineEmits<{
   (e: 'select', targets: Link[]): void;
 }>();
+
+/* --- State --- */
+/**
+ * Dialog open/close state
+ */
+const modalOpen = defineModel<boolean>('open');
+
+/**
+ * Export targets
+ */
+const exportTargets = ref<TargetPage[]>([]);
+
+/* --- Setup / Cleanup --- */
+watch(modalOpen, (isOpen) => {
+  if (isOpen) {
+    onDialogOpen();
+  }
+  else {
+    onDialogClose();
+  }
+});
+
+const onDialogOpen = () => {
+  exportTargets.value = props.exportCandidates.map(
+    link => ({ ...link, target: true }),
+  );
+};
+
+const onDialogClose = () => {
+  resetState();
+};
+
+/* --- Helper --- */
+const resetState = () => {
+  exportTargets.value = [];
+};
 </script>

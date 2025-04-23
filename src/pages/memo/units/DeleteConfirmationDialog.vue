@@ -33,9 +33,9 @@
 </template>
 
 <script setup lang="ts">
-const modalOpen = defineModel<boolean>('open');
-
 defineEmits<{
   (e: 'delete' | 'cancel'): void;
 }>();
+
+const modalOpen = defineModel<boolean>('open');
 </script>

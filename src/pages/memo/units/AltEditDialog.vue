@@ -48,22 +48,52 @@
 </template>
 
 <script setup lang="ts">
-const modalOpen = defineModel<boolean>('open');
-
-const imageState = reactive({
-  alt: '',
-});
-
 const props = defineProps<{
   initialValue: string;
 }>();
-
-watch(() => props.initialValue, () => {
-  imageState.alt = props.initialValue;
-});
 
 defineEmits<{
   (e: 'update', newAltText: string): void;
   (e: 'cancel'): void;
 }>();
+
+/* --- State --- */
+/**
+ * Dialog open/close state
+ */
+const modalOpen = defineModel<boolean>('open');
+
+/**
+ * Image alt text
+ */
+const imageState = reactive({
+  alt: '',
+});
+
+/* --- Setup / Cleanup --- */
+watch(() => props.initialValue, () => {
+  imageState.alt = props.initialValue;
+});
+
+watch(modalOpen, (isOpen) => {
+  if (isOpen) {
+    onDialogOpen();
+  }
+  else {
+    onDialogClose();
+  }
+});
+
+const onDialogOpen = () => {
+  imageState.alt = props.initialValue;
+};
+
+const onDialogClose = () => {
+  resetState();
+};
+
+/* --- Helper --- */
+const resetState = () => {
+  imageState.alt = '';
+};
 </script>

@@ -5,4 +5,3 @@
     <USkeleton class="h-4 w-[250px]" />
   </div>
 </template>
-

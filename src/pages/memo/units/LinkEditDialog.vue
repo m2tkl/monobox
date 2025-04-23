@@ -48,22 +48,48 @@
 </template>
 
 <script setup lang="ts">
-const modalOpen = defineModel<boolean>('open');
-
-const state = reactive({
-  url: '',
-});
-
 const props = defineProps<{
   initialValue: string;
 }>();
-
-watch(() => props.initialValue, () => {
-  state.url = props.initialValue;
-});
 
 defineEmits<{
   (e: 'update', newUrl: string): void;
   (e: 'cancel'): void;
 }>();
+
+/* --- State --- */
+/**
+ * Dialog open/close state
+ */
+const modalOpen = defineModel<boolean>('open');
+
+/**
+ * Link form state
+ */
+const state = reactive({
+  url: '',
+});
+
+/* --- Setup / Cleanup --- */
+watch(modalOpen, (isOpen) => {
+  if (isOpen) {
+    onDialogOpen();
+  }
+  else {
+    onDialogClose();
+  }
+});
+
+const onDialogOpen = () => {
+  state.url = props.initialValue;
+};
+
+const onDialogClose = () => {
+  resetState();
+};
+
+/* --- Helper --- */
+const resetState = () => {
+  state.url = '';
+};
 </script>

@@ -23,21 +23,45 @@
 </template>
 
 <script setup lang="ts">
-const modalOpen = defineModel<boolean>('open');
-
 const props = defineProps<{
   textToExport: string;
 }>();
 
-const textToExport_ = ref('');
-
-watch(modalOpen, (opened) => {
-  if (opened) {
-    textToExport_.value = props.textToExport;
-  }
-});
-
 defineEmits<{
   (e: 'copy', textToCopy: string): void;
 }>();
+
+/* --- State --- */
+/**
+ * Dialog open/close state
+ */
+const modalOpen = defineModel<boolean>('open');
+
+/**
+ * Export text
+ */
+const textToExport_ = ref('');
+
+/* --- Setup / Cleanup --- */
+watch(modalOpen, (opened) => {
+  if (opened) {
+    onDialogOpen();
+  }
+  else {
+    onDialogClose();
+  }
+});
+
+const onDialogOpen = () => {
+  textToExport_.value = props.textToExport;
+};
+
+const onDialogClose = () => {
+  resetState();
+};
+
+/* --- Helper --- */
+const resetState = () => {
+  textToExport_.value = '';
+};
 </script>
