@@ -20,8 +20,8 @@
           class="scrollbar border-right flex h-full w-[250px] shrink-0 flex-col gap-3"
         >
           <OutlineView
-            v-if="outline"
-            :items="outline"
+            v-if="editor"
+            :editor-content="editor.getJSON()"
             :active-heading-id="activeHeadingId"
             @click="(id: any) => focusHeading(editor, id)"
             @copy-link="(id: string, text: string) => copyLinkToHeading(id, text)"
@@ -523,42 +523,13 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
-/* --- outline --- */
-
-type _Heading = {
-  type: 'heading';
-  attrs?: { level: number; id: string };
-  content?: Array<{ type: 'text'; text: string }>;
-};
-type Heading = {
-  level: number;
-  id: string;
-  text: string;
-};
-
-const outline = computed<Heading[]>(() => {
-  const content = editor.value?.getJSON().content;
-
-  const headings = content?.filter(c => c.type === 'heading') as _Heading[] | undefined;
-  if (headings === undefined) {
-    return [];
-  }
-
-  return headings.map(h => ({
-    id: h.attrs ? (h.attrs.id as string) : '',
-    text: h.content ? (h.content[0].text as string) : '',
-    level: h.attrs ? (h.attrs.level as number) : 1,
-  }));
-});
-
 /* --- Contect menu items --- */
-
 const contextMenuItems: DropdownMenuItem[][] = [
   [
     {
       label: 'Copy as markdown',
       icon: iconKey.copy,
-      onSelect: async () => { await copyAsMarkdown(); },
+      onSelect: async () => { await copyPageAsMarkdown(); },
     },
     {
       label: 'Copy as html',
@@ -738,7 +709,7 @@ async function deleteMemo() {
   }
 }
 
-const copyAsMarkdown = async () => {
+const copyPageAsMarkdown = async () => {
   if (!editor.value || !store.memo) {
     return;
   }
@@ -771,25 +742,10 @@ const copyLinkToHeading = async (headingId: string, headingText: string): Promis
   const routePathForLinkText = route.path + '#' + headingText;
 
   executeWithToast(
-    copyLinkAsHtml,
+    EditorCommand.copyLinkAsHtml,
     [routePathWithHeadingId, routePathForLinkText],
     { success: 'Link to heading copied!', error: 'Failed to copy.' },
   );
-};
-
-/**
- * Copy link for html
- *
- * @param href
- * @param text
- */
-const copyLinkAsHtml = async (href: string, text: string): Promise<void> => {
-  const html = `<a href="${href}">${text}</a>`;
-  navigator.clipboard.write([
-    new ClipboardItem({
-      'text/html': new Blob([html], { type: 'text/html' }),
-    }),
-  ]);
 };
 
 const copyAsHtml = async () => {
