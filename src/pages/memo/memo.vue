@@ -592,7 +592,7 @@ const bubbleMenuItems = [
   [
     {
       icon: iconKey.copy,
-      action: () => { copySelectedAsMarkdown(); },
+      action: () => { copySelectedTextAsMarkdown(editor.value!); },
     },
   ],
 ];
@@ -636,32 +636,6 @@ const closeAltEditDialogOnUpdate = altEditDialog.withClose(async (newAltText: st
 const closeAltEditDialogOnCancel = altEditDialog.withClose(async () => {});
 
 /* --- Commands --- */
-
-async function executeWithToast<T, Args extends unknown[]>(
-  action: (...args: Args) => Promise<T>,
-  args: Args,
-  messages: { success: string; error: string },
-): Promise<{ ok: true; data: T } | { ok: false }> {
-  try {
-    const result = await action(...args);
-    toast.add({
-      title: messages.success,
-      duration: 1000,
-      icon: iconKey.success,
-    });
-    return { ok: true, data: result };
-  }
-  catch (error) {
-    console.error(messages.error, error);
-    toast.add({
-      title: messages.error,
-      description: 'Please try again',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-    return { ok: false };
-  }
-};
 
 async function saveMemo() {
   const updatedTitle = store.memo?.title;
@@ -721,15 +695,12 @@ const copyPageAsMarkdown = async () => {
   );
 };
 
-const copySelectedAsMarkdown = async () => {
-  if (!editor.value) return;
+const { withToast } = useToast_();
 
-  await executeWithToast(
-    EditorCommand.copySelectedAsMarkdown,
-    [editor.value],
-    { success: 'Selected markdown copied!', error: 'Failed to copy selected markdown' },
-  );
-};
+const copySelectedTextAsMarkdown = withToast(
+  EditorCommand.copySelectedAsMarkdown,
+  { success: 'Copied as markdown.', error: 'Failed to copy.' },
+);
 
 /**
  * Copy link to heading as html link format
