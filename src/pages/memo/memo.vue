@@ -24,7 +24,7 @@
             :editor-content="editor.getJSON()"
             :active-heading-id="activeHeadingId"
             @click="(id: any) => focusHeading(editor, id)"
-            @copy-link="(id: string, text: string) => copyLinkToHeading(id, text)"
+            @copy-link="(id, text) => copyLinkToHeading(`${route.path}#${id}`, `${route.path}#${text}`)"
           />
         </div>
 
@@ -221,7 +221,7 @@ definePageMeta({
 const route = useRoute();
 const router = useRouter();
 const logger = useConsoleLogger('[pages/memo]');
-const toast = useToast();
+const { withToast } = useToast_();
 const command = useCommand();
 
 const workspaceSlug = computed(() => route.params.workspace as string);
@@ -529,12 +529,12 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Copy as markdown',
       icon: iconKey.copy,
-      onSelect: async () => { await copyPageAsMarkdown(); },
+      onSelect: async () => { await copyPageAsMarkdown(editor.value!, store.memo!.title); },
     },
     {
       label: 'Copy as html',
       icon: iconKey.html,
-      onSelect: async () => { await copyAsHtml(); },
+      onSelect: async () => { await copyPageAsHtml(editor.value!, store.memo!.title); },
     },
     {
       label: 'Export with linked pages',
@@ -648,19 +648,18 @@ async function saveMemo() {
     return;
   }
 
-  const result = await executeWithToast(
+  const result = await withToast(
     store.saveMemo,
-    [
-      workspaceSlug.value,
-      memoSlug.value,
-      {
-        title: updatedTitle,
-        content: JSON.stringify(editor.value.getJSON()),
-        description: truncateString(editor.value.getText(), 256),
-        thumbnailImage: headImageRef.value,
-      },
-    ],
     { success: 'Saved!', error: 'Failed to save.' },
+  )(
+    workspaceSlug.value,
+    memoSlug.value,
+    {
+      title: updatedTitle,
+      content: JSON.stringify(editor.value.getJSON()),
+      description: truncateString(editor.value.getText(), 256),
+      thumbnailImage: headImageRef.value,
+    },
   );
 
   if (result.ok) {
@@ -672,30 +671,31 @@ async function saveMemo() {
 const deleteConfirmationDialogOn = ref(false);
 
 async function deleteMemo() {
-  const result = await executeWithToast(
+  const result = await withToast(
     store.deleteMemo,
-    [workspaceSlug.value, memoSlug.value],
     { success: 'Delete memo successfully.', error: 'Failed to delete.' },
-  );
+  )(workspaceSlug.value, memoSlug.value);
 
   if (result.ok) {
     router.replace(`/${workspaceSlug.value}`);
   }
 }
 
-const copyPageAsMarkdown = async () => {
-  if (!editor.value || !store.memo) {
-    return;
-  }
+const copyPageAsMarkdown = withToast(
+  EditorCommand.copyAsMarkdown,
+  { success: 'Copied page as markdown.', error: 'Failed to copy.' },
+);
 
-  await executeWithToast(
-    EditorCommand.copyAsMarkdown,
-    [editor.value, store.memo.title],
-    { success: 'Markdown copied to clipboard!', error: 'Failed to copy markdown' },
-  );
-};
+const copyPageAsHtml = withToast(
+  async (editor: _Editor, title: string) => {
+    const json = editor.getJSON();
+    const htmlBody = convertEditorJsonToHtml(json);
+    const htmlPage = `<h1>${title}</h1>${htmlBody}`;
 
-const { withToast } = useToast_();
+    await navigator.clipboard.writeText(htmlPage);
+  },
+  { success: 'Copied page as html.', error: 'Failed to copy.' },
+);
 
 const copySelectedTextAsMarkdown = withToast(
   EditorCommand.copySelectedAsMarkdown,
@@ -708,32 +708,10 @@ const copySelectedTextAsMarkdown = withToast(
  * @param headingId
  * @param headingText
  */
-const copyLinkToHeading = async (headingId: string, headingText: string): Promise<void> => {
-  const routePathWithHeadingId = route.path + '#' + headingId;
-  const routePathForLinkText = route.path + '#' + headingText;
-
-  executeWithToast(
-    EditorCommand.copyLinkAsHtml,
-    [routePathWithHeadingId, routePathForLinkText],
-    { success: 'Link to heading copied!', error: 'Failed to copy.' },
-  );
-};
-
-const copyAsHtml = async () => {
-  if (!editor.value || !store.memo) return;
-
-  await executeWithToast(
-    async (editor: Editor, title: string) => {
-      const json = editor.getJSON();
-      const htmlBody = convertEditorJsonToHtml(json);
-      const htmlPage = `<h1>${title}</h1>${htmlBody}`;
-
-      await navigator.clipboard.writeText(htmlPage);
-    },
-    [editor.value, store.memo.title],
-    { success: 'Copied as html.', error: 'Failed to copy.' },
-  );
-};
+const copyLinkToHeading = withToast(
+  EditorCommand.copyLinkAsHtml,
+  { success: 'Copied link to heading.', error: 'Failed to copy.' },
+);
 
 /* --- Export with related pages (Step1: select targets) --- */
 
