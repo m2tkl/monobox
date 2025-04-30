@@ -23,7 +23,7 @@
             v-if="editor"
             :editor-content="editor.getJSON()"
             :active-heading-id="activeHeadingId"
-            @click="(id: any) => focusHeading(editor, id)"
+            @click="(id: any) => { focusHeading(editor, id); navigateToHeading(id) }"
             @copy-link="(id, text) => copyLinkToHeading(`${route.path}#${id}`, `${route.path}#${text}`)"
           />
         </div>
@@ -490,6 +490,33 @@ function focusHeading(_editor: Editor | undefined, id: string) {
   EditorUtil.focusNodeById(_editor, id);
   activeHeadingId.value = id;
 }
+
+/**
+ * Navigate to the specified heading by updating the URL hash.
+ *
+ * This will add a new entry to the browser history (push).
+ *
+ * @param headingId - The ID of the heading to navigate to.
+ */
+const navigateToHeading = (id: string) => {
+  router.push(`${route.path}#${id}`);
+};
+
+/**
+ * Watch for changes in the URL hash and focus the corresponding heading in the editor.
+ *
+ * This ensures that browser back/forward navigation moves the editor focus appropriately.
+ */
+watch(() => route.hash, () => {
+  if (!editor.value) {
+    return;
+  }
+
+  if (route.hash) {
+    const id = route.hash.replace(/^#/, '');
+    focusHeading(editor.value, id);
+  }
+});
 
 /**
  * Updates the active heading based on the scroll position.
