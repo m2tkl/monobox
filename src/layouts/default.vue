@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="border-top flex h-screen w-full">
+    <div class="border-top flex h-screen w-full overflow-hidden">
       <!-- Sidebar -->
       <aside
         class="border-right h-full"
@@ -17,9 +17,9 @@
       >
         <div
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
-          class="size-full"
+          class="size-full overflow-hidden"
         >
-          <header class="border-bottom sticky top-0 z-[100] flex h-10 w-full items-center gap-2 bg-slate-200 px-2">
+          <header class="border-bottom sticky top-0 z-[100] flex h-10 w-full items-center gap-2 bg-slate-200 px-2 min-w-0">
             <div class="flex w-full items-center gap-1 text-slate-500">
               <IconButton
                 v-if="!ui.isSidebarOpen"
@@ -45,8 +45,10 @@
                 @click="goHome"
               />
               <span class="text-xs">/</span>
-              <!-- <span class="text-xs text-slate-800">{{ store.memo ? store.memo.title : "" }}</span> -->
-              <span class="text-xs text-slate-800">{{ memoTitleSlug }}</span>
+              <div class="text-xs w-full truncate">
+                <span class="text-slate-800">{{ memoTitleSlug }}</span>
+                <span class="ml-2 text-slate-500">{{ route.hash }}</span>
+              </div>
             </div>
 
             <div class="ml-auto">
