@@ -5,30 +5,28 @@ import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 export const memoCommand = {
   list: async (workspace: { slugName: string }) => {
     try {
-      const memosIndex = await invoke<MemoIndexItem[]>('get_workspace_memos', {
+      return await invoke<MemoIndexItem[]>('get_workspace_memos', {
         args: { workspace_slug_name: workspace.slugName },
       });
-      return memosIndex;
     }
-    catch (error) {
-      console.error('Error fetching memos:', error);
-      throw error;
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
   get: async (memo: { workspaceSlugName: string; memoSlugTitle: string }) => {
     try {
-      const memoDetail = await invoke<MemoDetail>('get_memo', {
+      return await invoke<MemoDetail>('get_memo', {
         args: {
           workspace_slug_name: memo.workspaceSlugName,
           memo_slug_title: encodeForSlug(memo.memoSlugTitle),
         },
       });
-      return memoDetail;
     }
-    catch (error) {
-      console.error('Error fetching memo:', error);
-      throw error;
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
@@ -54,11 +52,10 @@ export const memoCommand = {
           new_thumbnail_image: newMemo.thumbnailImage || '',
         },
       });
-      console.log('Memo saved successfully!');
     }
-    catch (error) {
-      console.error('Falied to save memo:', error);
-      throw error;
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
@@ -70,11 +67,10 @@ export const memoCommand = {
           memo_slug_title: encodeForSlug(memo.memoSlug),
         },
       });
-      console.log('Memo deleted successfully!');
     }
-    catch (error) {
-      console.error('Failed to delete memo:', error);
-      throw error;
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 };
