@@ -58,7 +58,7 @@ defineExpose({
 });
 
 const router = useRouter();
-const logger = useConsoleLogger('[components/Search/SearchPalette]:');
+const logger = useConsoleLogger('components/Search/SearchPalette');
 
 const selected = ref([]);
 const isSearchPaletteOpen = ref(false);
