@@ -117,15 +117,6 @@ async function fetchWorkspaceMemosIndex() {
 
 workspace.value = await fetchWorkspace();
 memos.value = await fetchWorkspaceMemosIndex();
-
-const { setWorkspace } = useWorkspace();
-onMounted(() => {
-  // NOTE: To avoid a hydration mismatch with the workspace name
-  // in the Heading, set the workspace after mounting.
-  if (workspace.value) {
-    setWorkspace(workspace.value);
-  }
-});
 </script>
 
 <style scoped>

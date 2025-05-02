@@ -241,9 +241,6 @@ watch([workspaceSlug, memoSlug], async () => {
 await loadWorkspace(workspaceSlug.value);
 await loadMemo(workspaceSlug.value, memoSlug.value);
 
-const { setWorkspace } = useWorkspace();
-setWorkspace(store.workspace!);
-
 /* --- States for editor --- */
 
 // Stores the first image found in the document, used as a thumbnail reference
