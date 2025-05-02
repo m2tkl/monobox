@@ -74,9 +74,6 @@ const command = useCommand();
 const workspace = ref<Workspace>();
 workspace.value = await command.workspace.get({ slugName: route.params.workspace as string });
 
-const { setWorkspace } = useWorkspace();
-setWorkspace(workspace.value!);
-
 const isOpen = ref(false);
 const openDeleteConfirmation = () => {
   isOpen.value = true;

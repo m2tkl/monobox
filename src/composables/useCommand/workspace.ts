@@ -8,8 +8,9 @@ export const workspaceCommand = {
       const workspaces = await invoke<Workspace[]>('get_workspaces');
       return workspaces;
     }
-    catch (error) {
-      console.error('Failed to get workspaces:', error);
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
@@ -20,9 +21,9 @@ export const workspaceCommand = {
       });
       return workspaceDetail;
     }
-    catch (error) {
-      console.error('Error fetching workspace:', error);
-      throw error;
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
@@ -38,8 +39,9 @@ export const workspaceCommand = {
       });
       return newWorkspace;
     }
-    catch (error) {
-      console.error('Failed to create workspace:', error);
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
@@ -53,8 +55,9 @@ export const workspaceCommand = {
         },
       });
     }
-    catch (error) {
-      console.error('Failed to create workspace:', error);
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 };

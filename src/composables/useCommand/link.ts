@@ -7,18 +7,16 @@ export const linkCommand = {
     memo: { workspaceSlug: string; memoSlug: string },
   ) => {
     try {
-      const links = await invoke('get_links', {
+      return await invoke<Array<Link>>('get_links', {
         args: {
           workspace_slug_name: memo.workspaceSlug,
           memo_slug_title: encodeForSlug(memo.memoSlug),
         },
       });
-      console.log('Links reloaded successfully!');
-      return links as Array<Link>;
     }
-    catch (error) {
-      console.error('Failed to reload links:', error);
-      throw error;
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
@@ -35,10 +33,10 @@ export const linkCommand = {
           to_memo_slug_title: toLinkMemoSlug,
         },
       });
-      console.log('Link created successfully.');
     }
-    catch (error) {
-      console.error('Failed to create link:', error);
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 
@@ -56,10 +54,10 @@ export const linkCommand = {
           linked_memo_slug_title: linkedMemoSlug,
         },
       });
-      console.log('Link deleted successfully.');
     }
-    catch (error) {
-      console.error('Failed to delete link:', error);
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
     }
   },
 };
