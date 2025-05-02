@@ -10,11 +10,29 @@ export const useWorkspaceLoader = () => {
   };
 
   const loadMemo = async (workspaceSlug: string, memoSlug: string) => {
-    await Promise.all([
+    const [workspaceResult, memoResult, linksResult] = await Promise.all([
       store.loadWorkspace(workspaceSlug),
       store.loadMemo(workspaceSlug, memoSlug),
       store.loadLinks(workspaceSlug, memoSlug),
     ]);
+
+    const allOk = workspaceResult.ok && memoResult.ok && linksResult.ok;
+
+    if (allOk) {
+      return {
+        ok: true,
+        data: {
+          workspace: workspaceResult.data,
+          memo: memoResult.data,
+          links: linksResult.data,
+        },
+      } as const;
+    }
+    else {
+      return {
+        ok: false,
+      } as const;
+    }
   };
 
   return {

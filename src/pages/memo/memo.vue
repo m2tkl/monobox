@@ -230,16 +230,12 @@ const memoSlug = computed(() => route.params.memo as string);
 /* --- Workspace and memo loader --- */
 
 const { store, loadMemo, loadWorkspace } = useWorkspaceLoader();
-
-watch([workspaceSlug], async () => {
-  await loadWorkspace(workspaceSlug.value);
-});
-watch([workspaceSlug, memoSlug], async () => {
-  await loadMemo(workspaceSlug.value, memoSlug.value);
-});
-
 await loadWorkspace(workspaceSlug.value);
-await loadMemo(workspaceSlug.value, memoSlug.value);
+const loadedResult = await loadMemo(workspaceSlug.value, memoSlug.value);
+
+if (!loadedResult.ok) {
+  showError({ statusCode: 404, statusMessage: 'Page not found', message: `Memo ${memoSlug.value} not found.` });
+}
 
 /* --- States for editor --- */
 
