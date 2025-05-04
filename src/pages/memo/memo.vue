@@ -186,7 +186,7 @@ import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
-import { BubbleMenu, EditorContent, type NodeViewProps, useEditor, type Editor as _Editor } from '@tiptap/vue-3';
+import { BubbleMenu, EditorContent, type NodeViewProps, type Editor as _Editor } from '@tiptap/vue-3';
 
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
@@ -196,9 +196,6 @@ import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { Editor } from '@tiptap/core';
-import type { Transaction } from '@tiptap/pm/state';
-import type { EditorView } from '@tiptap/pm/view';
 import type { Link as LinkModel } from '~/models/link';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
@@ -209,7 +206,6 @@ import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorCommand from '~/lib/editor/command';
 import { convertEditorJsonToHtml } from '~/lib/editor/command/htmlExport';
 import * as CustomExtension from '~/lib/editor/extensions';
-import * as EditorUtil from '~/lib/editor/util';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -218,9 +214,44 @@ definePageMeta({
   },
 });
 
+const extensions = [
+  StarterKit.configure({ heading: false, codeBlock: false }),
+  Link.configure({
+    openOnClick: false,
+    HTMLAttributes: {
+      target: null,
+    },
+  }).extend({
+    // Unset link after link text
+    inclusive: false,
+    renderHTML({ HTMLAttributes }) {
+      const href = HTMLAttributes.href;
+      if (!isInternalLink(href)) {
+        HTMLAttributes.class = `${HTMLAttributes.class || ''} external-link`.trim();
+      }
+      return ['a', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
+    },
+  }),
+  CustomExtension.imageExtention(),
+  CustomExtension.headingExtension(),
+  CustomExtension.codeBlockExtension(CodeBlockComponent as Component<NodeViewProps>),
+  Focus.configure({
+    className: 'has-focus',
+    mode: 'deepest',
+  }),
+  TaskList,
+  TaskItem.configure({
+    nested: true,
+    HTMLAttributes: {
+      class: 'custom-task-item',
+    },
+  }),
+  CustomExtension.CustomTab,
+];
+
 const route = useRoute();
 const router = useRouter();
-const logger = useConsoleLogger('[pages/memo]');
+const logger = useConsoleLogger('pages/memo');
 const { withToast } = useToast_();
 const command = useCommand();
 
@@ -239,215 +270,32 @@ if (!loadedResult.ok) {
 
 /* --- States for editor --- */
 
-// Stores the first image found in the document, used as a thumbnail reference
-const headImageRef = ref();
-
 // Reference to control the link palette component
 const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
 
-// Stores the currently active heading ID, used for tracking the highlighted section in the memo
-const activeHeadingId = ref<string>();
-
-// Tracks whether the caret has moved out of the visible editor area, used to adjust heading focus behavior
-const wasCaretOut = ref(false);
-
-/* --- Editor --- */
-
-const editor = useEditor({
-  content: store.memo ? JSON.parse(store.memo.content) : '',
-  extensions: [
-    StarterKit.configure({ heading: false, codeBlock: false }),
-    Link.configure({
-      openOnClick: false,
-      HTMLAttributes: {
-        target: null,
-      },
-    }).extend({
-      // Unset link after link text
-      inclusive: false,
-      renderHTML({ HTMLAttributes }) {
-        const href = HTMLAttributes.href;
-        if (!isInternalLink(href)) {
-          HTMLAttributes.class = `${HTMLAttributes.class || ''} external-link`.trim();
-        }
-        return ['a', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
-      },
-    }),
-    CustomExtension.imageExtention(),
-    CustomExtension.headingExtension(),
-    CustomExtension.codeBlockExtension(CodeBlockComponent as Component<NodeViewProps>),
-    Focus.configure({
-      className: 'has-focus',
-      mode: 'deepest',
-    }),
-    TaskList,
-    TaskItem.configure({
-      nested: true,
-      HTMLAttributes: {
-        class: 'custom-task-item',
-      },
-    }),
-    CustomExtension.CustomTab,
-  ],
-  editorProps: {
-    /**
-     * Register shortcuts for the Editor.
-     *
-     * NOTE:
-     *   Shortcuts registered here are only active when the Editor is focused.
-     *   For shortcuts that should be usable even when the Editor is not focused, use `window.addEventListener` to register them.
-     */
-    handleKeyDown(_view: EditorView, _event: KeyboardEvent) {
-      // Command register sample
-      // if (event.metaKey && event.key === "i") {
-      //   event.preventDefault();
-      //
-      //   // Do something
-      //
-      //   return true;
-      // }
-      // return false;
-    },
-  },
-  onCreate({ editor }) {
-    editor.registerPlugin(CustomExtension.removeHeadingIdOnPastePlugin);
-
-    const handleLinkClick = async (event: MouseEvent) => {
-      const url = EditorAction.getLinkFromMouseClickEvent(event);
-
-      // If clicked element is not link, do nothing.
-      if (!url) {
-        return;
-      }
-
-      // Prevent browser default navigation
-      event.preventDefault();
-
-      // If the path is same to itself and a fragment is specified, move the focus.
-      const [path, id] = url.split('#');
-      if (route.path === path) {
-        focusHeading(editor, id);
-        return;
-      }
-
-      if (isInternalLink(url) && !isModifierKeyPressed(event)) {
-        // NOTE: Pass the entire URL instead of the path ( `{ path: url }` ) to include the fragment.
-        router.push(url);
-        return;
-      }
-    };
-
-    // Focus if a hash is specified when entring the memo
-    if (route.hash) {
-      const id = route.hash.replace(/^#/, '');
-      focusHeading(editor, id);
-    }
-
-    editor.view.dom.addEventListener('click', handleLinkClick);
-    return () => {
-      editor.view.dom.removeEventListener('click', handleLinkClick);
-    };
-  },
-  onTransaction: async ({ editor: _editor, transaction }) => {
-    await updateLinks(transaction);
-    updateHeadImage(transaction);
-    assignUniqueHeadingIds(_editor);
-  },
-  onSelectionUpdate: ({ editor }) => {
-    const editorContainer = document.getElementById('main');
-    if (!editorContainer) return;
-
-    const caretVisible = EditorUtil.isCaretVisible(editor, editorContainer);
-
-    if (caretVisible) {
-      // When a cursor operation is performed and the cursor is visible on the screen,
-      // prioritize the heading based on the cursor position
-      // and set a flag to skip heading identification based on scrolling.
-      wasCaretOut.value = false;
-
-      // If the cursor is currently inside a heading, prioritaize it.
-      const { $anchor } = editor.state.selection;
-      for (let depth = $anchor.depth; depth >= 0; depth--) {
-        const node = $anchor.node(depth);
-        if (node.type.name === 'heading') {
-          activeHeadingId.value = node.attrs.id;
-          return;
-        }
-      }
-
-      // If the cursor is not inside a heading node, find the preceding heading.
-      const { state } = editor;
-      const { from } = state.selection;
-      let foundHeadingId: string | null = null;
-      state.doc.nodesBetween(0, from, (node) => {
-        if (node.type.name === 'heading') {
-          foundHeadingId = node.attrs.id ?? null;
-        }
-      });
-
-      if (foundHeadingId) {
-        activeHeadingId.value = foundHeadingId;
-      }
-    }
-  },
-});
-
-/**
- * Assigns unique IDs for heading elements in the doc.
- *
- * If a heading node does not have an `id` attribute,
- * it assigns a new unique ID.
- *
- * @param editor
- */
-const assignUniqueHeadingIds = (editor: Editor) => {
-  const { state, view } = editor;
-  const tr = state.tr;
-  let modified = false;
-
-  state.doc.descendants((node, pos) => {
-    if (node.type.name === 'heading') {
-      if (!node.attrs.id) {
-        const newId = crypto.randomUUID();
-        tr.setNodeMarkup(pos, undefined, { ...node.attrs, id: newId });
-        modified = true;
-      }
-    }
-  });
-
-  if (modified) {
-    view.dispatch(tr);
-  }
-};
-
-const updateLinks = async (transaction: Transaction) => {
-  const { deletedLinks, addedLinks } = EditorUtil.getChangedLinks(transaction);
-  await Promise.all(
-    deletedLinks.map(async (href) => {
-      await store.deleteLink(workspaceSlug.value, memoSlug.value, href);
-    }),
-  );
-  await Promise.all(
-    addedLinks.map(async (href) => {
-      await store.createLink(workspaceSlug.value, memoSlug.value, href);
-    }),
-  );
-
-  if (deletedLinks.length > 0 || addedLinks.length > 0) {
+const {
+  editor,
+  activeHeadingId,
+  focusHeading,
+  headImageRef,
+  updateActiveHeadingOnScroll,
+} = useMemoEditor(store.memo!.content, {
+  extensions: extensions,
+  saveMemo: async () => { await saveMemo(); },
+  updateLinks: async (added, deleted) => {
     await Promise.all([
+      ...added.map(href =>
+        store.createLink(workspaceSlug.value, memoSlug.value, href),
+      ),
+      ...deleted.map(href =>
+        store.deleteLink(workspaceSlug.value, memoSlug.value, href),
+      ),
       store.loadLinks(workspaceSlug.value, memoSlug.value),
-      saveMemo(),
     ]);
-    logger.log('Link updated successfully.');
-  }
-};
-
-const updateHeadImage = async (transaction: Transaction) => {
-  const foundFirstImage = EditorUtil.findHeadImage(transaction);
-  if (foundFirstImage !== headImageRef.value) {
-    headImageRef.value = foundFirstImage;
-  }
-};
+  },
+  route,
+  router,
+});
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (isCmdKey(event) && event.key === 's') {
@@ -463,25 +311,6 @@ function handleScroll() {
   if (!editorInstance || !editorContainer) return;
 
   updateActiveHeadingOnScroll(editorInstance, editorContainer);
-}
-
-/**
- * Moves the focus to a specific heading in the editor.
- *
- * This function ensures that the specified heading is scrolled into view
- * and focused within the editor.
- *
- * @param _editor - The instance of the editor. If `undefined`, the function does nothing.
- * @param id - The ID of the heading to focus on.
- */
-function focusHeading(_editor: Editor | undefined, id: string) {
-  if (!_editor) {
-    return;
-  }
-
-  scrollToElementWithOffset(id, 100);
-  EditorUtil.focusNodeById(_editor, id);
-  activeHeadingId.value = id;
 }
 
 /**
@@ -510,25 +339,6 @@ watch(() => route.hash, () => {
     focusHeading(editor.value, id);
   }
 });
-
-/**
- * Updates the active heading based on the scroll position.
- * If the caret is out of view, determines the last heading that was pushed up.
- *
- * @param editorInstance - The editor instance
- * @param editorContainer - The main editor container element
- */
-function updateActiveHeadingOnScroll(editorInstance: Editor, editorContainer: HTMLElement) {
-  // Set a flag to disable heading identification based on the cursor position
-  // when scrolling moves the cursor out of the screen.
-  if (!EditorUtil.isCaretVisible(editorInstance, editorContainer)) {
-    wasCaretOut.value = true;
-  }
-
-  if (wasCaretOut.value) {
-    activeHeadingId.value = EditorUtil.getLastVisibleHeadingId(editorContainer);
-  }
-}
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
@@ -678,7 +488,7 @@ async function saveMemo() {
       title: updatedTitle,
       content: JSON.stringify(editor.value.getJSON()),
       description: truncateString(editor.value.getText(), 256),
-      thumbnailImage: headImageRef.value,
+      thumbnailImage: headImageRef.value ?? '',
     },
   );
 
