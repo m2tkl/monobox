@@ -12,7 +12,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const workspaceMemos = ref<MemoIndexItem[]>([]);
   const memo = ref<MemoDetail>();
   const links = ref<LinkType[]>();
-
   const favoriteMemos = ref<LinkType[]>([]);
 
   /* ---  Loader --- */
@@ -62,7 +61,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     runTask: loadLinks,
   } = useAsyncTask(
     async (workspaceSlug: string, memoSlug: string) => {
-      const logger = useConsoleLogger(`${LogPrefix}/loadMemo`);
+      const logger = useConsoleLogger(`${LogPrefix}/loadLinks`);
       logger.log('Start to load links.');
 
       links.value = await command.link.list({ workspaceSlug, memoSlug });
