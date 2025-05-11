@@ -4,7 +4,7 @@
       <div class="size-full">
         <div class="size-full px-4 pb-8 pt-4">
           <!-- Memo List -->
-          <p v-if="memos && memos.length === 0">
+          <p v-if="memos.length === 0">
             No memos
           </p>
           <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 pb-4">
@@ -74,49 +74,20 @@
 </template>
 
 <script lang="ts" setup>
-import type { MemoIndexItem } from '~/models/memo';
-import type { Workspace } from '~/models/workspace';
-
 import SearchPalette from '~/components/SearchPalette.vue';
 
 definePageMeta({
   path: '/:workspace',
-});
-
-const route = useRoute();
-const command = useCommand();
-
-definePageMeta({
   validate(route) {
     return route.params.workspace !== '_setting';
   },
 });
 
-const workspace = ref<Workspace>();
-const memos = ref<Array<MemoIndexItem>>();
+const route = useRoute();
+const store = useWorkspaceStore();
 
-async function fetchWorkspace() {
-  try {
-    const workspaceDetail = await command.workspace.get({ slugName: route.params.workspace as string });
-    return workspaceDetail;
-  }
-  catch (error) {
-    console.error('Error fetching workspace:', error);
-  }
-}
-
-async function fetchWorkspaceMemosIndex() {
-  try {
-    const memosIndex = await command.memo.list({ slugName: route.params.workspace as string });
-    return memosIndex;
-  }
-  catch (error) {
-    console.error('Error fetching memos:', error);
-  }
-}
-
-workspace.value = await fetchWorkspace();
-memos.value = await fetchWorkspaceMemosIndex();
+const workspace = computed(() => store.workspace);
+const memos = computed(() => store.workspaceMemos);
 </script>
 
 <style scoped>

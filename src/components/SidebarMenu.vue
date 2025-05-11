@@ -106,24 +106,13 @@ import { computed, ref } from 'vue';
 defineProps<{ isOpen: boolean }>();
 
 const route = useRoute();
+const store = useWorkspaceStore();
+
 const workspaceSlug = computed(() => route.params.workspace as string);
 
 const { toggleSidebar } = useUIState();
 
-const { store, loadWorkspace } = useWorkspaceLoader();
-
-if (workspaceSlug.value) {
-  await loadWorkspace(workspaceSlug.value);
-}
-
-watch([workspaceSlug], async () => {
-  await loadWorkspace(workspaceSlug.value);
-});
-
-const favoriteMemos = computed(() => {
-  return store.favoriteMemos ? store.favoriteMemos : [];
-});
-
+const favoriteMemos = computed(() => store.favoriteMemos);
 const recentMemos = computed(() => {
   return store.workspaceMemos.filter(memo => !store.favoriteMemos?.map(item => item.title).includes(memo.title)).slice(0, 5);
 });
