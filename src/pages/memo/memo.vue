@@ -32,50 +32,77 @@
           id="main"
           class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto bg-slate-200"
         >
-          <!-- Editor -->
-          <div class="bg-slate-100">
-            <!-- Toolbar -->
-            <EditorToolbar
-              v-if="editor"
-              :editor="editor"
-              class="sticky left-0 top-0 z-50 h-8 border-b-2 border-slate-400"
-            />
-
-            <!-- Content area -->
-            <div
-              class="max-w-[820px] bg-white p-6"
-            >
-              <!-- Title -->
-              <TitleFieldAutoResize
-                v-if="store.memo"
-                v-model="store.memo.title"
+          <MemoEditor
+            v-if="editor"
+            v-model:memo-title="memoTitle"
+            :editor="editor"
+          >
+            <template #toolbar="{ editor: _editor }">
+              <EditorToolbarButton
+                v-for="(item, index) in editorToolbarActionItems"
+                :key="index"
+                :label="item.label"
+                :icon="item.icon"
+                @exec="item.action(_editor)"
               />
+            </template>
 
-              <USeparator class="py-6" />
+            <template #context-menu>
+              <UDropdownMenu
+                :items="contextMenuItems"
+              >
+                <div class="flex items-center">
+                  <UIcon
+                    :name="iconKey.dotMenuVertical"
+                  />
+                </div>
+              </UDropdownMenu>
+            </template>
 
-              <!-- Content -->
-              <div>
-                <EditorLoadingSkelton v-if="!editor" />
-
-                <editor-content
-                  v-else
-                  :editor="editor"
+            <template #bubble-menu="{ editor: _editor }">
+              <template v-if="editor.isActive('image')">
+                <EditorToolbarButton
+                  :icon="iconKey.annotation"
+                  @exec="() => {
+                    const selection = _editor.state.selection
+                    if (selection) {
+                      const { $from } = selection;
+                      const node = $from.nodeAfter;
+                      if (node && node.type.name === 'image') {
+                        openAltEditDialog(node.attrs.alt || '')
+                      }
+                    }
+                  }"
                 />
-              </div>
-            </div>
-          </div>
+              </template>
 
-          <!-- Links -->
-          <div>
-            <MemoLinkCardView
-              v-if="store.links"
-              :links="store.links"
-            />
-          </div>
+              <template v-else>
+                <div
+                  v-for="(actionGroup, groupIndex) in bubbleMenuItems"
+                  :key="groupIndex"
+                  class="flex gap-0.5"
+                >
+                  <span
+                    v-if="groupIndex !== 0"
+                    class="mx-0.5 font-thin text-slate-400"
+                  >|</span>
+                  <div
+                    v-for="(item, index) in actionGroup"
+                    :key="index"
+                  >
+                    <EditorToolbarButton
+                      :icon="item.icon"
+                      @exec="item.action"
+                    />
+                  </div>
+                </div>
+              </template>
+            </template>
+          </MemoEditor>
 
-          <div>
-            <MarginForEditorScroll />
-          </div>
+          <!-- Related links -->
+          <MemoLinkCardView :links="store.links" />
+          <MarginForEditorScroll />
         </div>
       </div>
     </template>
@@ -186,11 +213,10 @@ import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
-import { BubbleMenu, EditorContent, type NodeViewProps, type Editor as _Editor } from '@tiptap/vue-3';
+import { BubbleMenu, type NodeViewProps, type Editor as _Editor } from '@tiptap/vue-3';
 
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
-import EditorLoadingSkelton from './units/EditorLoadingSkelton.vue';
 import ExportDialogToCopyResult from './units/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue';
 import LinkEditDialog from './units/LinkEditDialog.vue';
@@ -251,22 +277,22 @@ const extensions = [
 
 const route = useRoute();
 const router = useRouter();
-const logger = useConsoleLogger('pages/memo');
 const { withToast } = useToast_();
 const command = useCommand();
+const store = useWorkspaceStore();
 
 const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
 
 /* --- Workspace and memo loader --- */
+const { error, ready } = loadMemoData(workspaceSlug.value, memoSlug.value);
 
-const { store, loadMemo, loadWorkspace } = useWorkspaceLoader();
-await loadWorkspace(workspaceSlug.value);
-const loadedResult = await loadMemo(workspaceSlug.value, memoSlug.value);
-
-if (!loadedResult.ok) {
+if (error.value) {
   showError({ statusCode: 404, statusMessage: 'Page not found', message: `Memo ${memoSlug.value} not found.` });
 }
+
+const { memo } = await ready;
+const memoTitle = ref(memo.title);
 
 /* --- States for editor --- */
 
@@ -279,7 +305,7 @@ const {
   focusHeading,
   headImageRef,
   updateActiveHeadingOnScroll,
-} = useMemoEditor(store.memo!.content, {
+} = useMemoEditor(memo.content, {
   extensions: extensions,
   saveMemo: async () => { await saveMemo(); },
   updateLinks: async (added, deleted) => {
@@ -353,18 +379,70 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
+/* --- Editor toolbar action items --- */
+const editorToolbarActionItems: Array<{
+  label?: string;
+  icon?: string;
+  action: (editor: _Editor) => void;
+}> = [
+  {
+    label: 'H1',
+    action: e => EditorAction.toggleHeading(e, { h: 1 }),
+  },
+  {
+    label: 'H2',
+    action: e => EditorAction.toggleHeading(e, { h: 2 }),
+  },
+  {
+    label: 'H3',
+    action: e => EditorAction.toggleHeading(e, { h: 3 }),
+  },
+  {
+    icon: iconKey.textBold,
+    action: e => EditorAction.toggleStyle(e, 'bold'),
+  },
+  {
+    icon: iconKey.textItalic,
+    action: e => EditorAction.toggleStyle(e, 'italic'),
+  },
+  {
+    icon: iconKey.textStrikeThrough,
+    action: e => EditorAction.toggleStyle(e, 'strike'),
+  },
+  {
+    icon: iconKey.listBulletted,
+    action: e => EditorAction.toggleBulletList(e),
+  },
+  {
+    icon: iconKey.listNumbered,
+    action: e => EditorAction.toggleOrderedList(e),
+  },
+  {
+    icon: iconKey.quotes,
+    action: e => EditorAction.toggleBlockQuote(e),
+  },
+  {
+    icon: iconKey.inlineCode,
+    action: e => EditorAction.toggleCode(e),
+  },
+  {
+    icon: iconKey.clearFormat,
+    action: e => EditorAction.resetStyle(e),
+  },
+];
+
 /* --- Contect menu items --- */
 const contextMenuItems: DropdownMenuItem[][] = [
   [
     {
       label: 'Copy as markdown',
       icon: iconKey.copy,
-      onSelect: async () => { await copyPageAsMarkdown(editor.value!, store.memo!.title); },
+      onSelect: async () => { await copyPageAsMarkdown(editor.value!, memoTitle.value); },
     },
     {
       label: 'Copy as html',
       icon: iconKey.html,
-      onSelect: async () => { await copyPageAsHtml(editor.value!, store.memo!.title); },
+      onSelect: async () => { await copyPageAsHtml(editor.value!, memoTitle.value); },
     },
     {
       label: 'Export with linked pages',
@@ -468,7 +546,7 @@ const closeAltEditDialogOnCancel = altEditDialog.withClose(async () => {});
 /* --- Commands --- */
 
 async function saveMemo() {
-  const updatedTitle = store.memo?.title;
+  const updatedTitle = memoTitle.value;
   if (!updatedTitle) {
     window.alert('Please set title.');
     return;
