@@ -39,11 +39,11 @@
           >
             <template #toolbar="{ editor: _editor }">
               <EditorToolbarButton
-                v-for="(item, index) in editorToolbarActionItems"
-                :key="index"
+                v-for="(item) in editorToolbarActionItems"
+                :key="item.msg.type"
                 :label="item.label"
                 :icon="item.icon"
-                @exec="item.action(_editor)"
+                @exec="dispatchEditorMsg(_editor, item.msg)"
               />
             </template>
 
@@ -222,6 +222,7 @@ import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
+import type { EditorMsg } from '~/lib/editor/msg';
 import type { Link as LinkModel } from '~/models/link';
 
 import CodeBlockComponent from '~/components/CodeBlock.vue';
@@ -231,6 +232,7 @@ import SearchPalette from '~/components/SearchPalette.vue';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorCommand from '~/lib/editor/command';
 import { convertEditorJsonToHtml } from '~/lib/editor/command/htmlExport';
+import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 
 definePageMeta({
@@ -379,56 +381,25 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
-/* --- Editor toolbar action items --- */
-const editorToolbarActionItems: Array<{
+/**
+ * Editor toolbar action items
+ */
+const editorToolbarActionItems: {
   label?: string;
   icon?: string;
-  action: (editor: _Editor) => void;
-}> = [
-  {
-    label: 'H1',
-    action: e => EditorAction.toggleHeading(e, { h: 1 }),
-  },
-  {
-    label: 'H2',
-    action: e => EditorAction.toggleHeading(e, { h: 2 }),
-  },
-  {
-    label: 'H3',
-    action: e => EditorAction.toggleHeading(e, { h: 3 }),
-  },
-  {
-    icon: iconKey.textBold,
-    action: e => EditorAction.toggleStyle(e, 'bold'),
-  },
-  {
-    icon: iconKey.textItalic,
-    action: e => EditorAction.toggleStyle(e, 'italic'),
-  },
-  {
-    icon: iconKey.textStrikeThrough,
-    action: e => EditorAction.toggleStyle(e, 'strike'),
-  },
-  {
-    icon: iconKey.listBulletted,
-    action: e => EditorAction.toggleBulletList(e),
-  },
-  {
-    icon: iconKey.listNumbered,
-    action: e => EditorAction.toggleOrderedList(e),
-  },
-  {
-    icon: iconKey.quotes,
-    action: e => EditorAction.toggleBlockQuote(e),
-  },
-  {
-    icon: iconKey.inlineCode,
-    action: e => EditorAction.toggleCode(e),
-  },
-  {
-    icon: iconKey.clearFormat,
-    action: e => EditorAction.resetStyle(e),
-  },
+  msg: EditorMsg;
+}[] = [
+  { label: 'H1', msg: { type: 'toggleHeading', level: 1 } },
+  { label: 'H2', msg: { type: 'toggleHeading', level: 2 } },
+  { label: 'H3', msg: { type: 'toggleHeading', level: 3 } },
+  { icon: iconKey.textBold, msg: { type: 'toggleStyle', style: 'bold' } },
+  { icon: iconKey.textItalic, msg: { type: 'toggleStyle', style: 'italic' } },
+  { icon: iconKey.textStrikeThrough, msg: { type: 'toggleStyle', style: 'strike' } },
+  { icon: iconKey.listBulletted, msg: { type: 'toggleBulletList' } },
+  { icon: iconKey.listNumbered, msg: { type: 'toggleOrderedList' } },
+  { icon: iconKey.quotes, msg: { type: 'toggleBlockQuote' } },
+  { icon: iconKey.inlineCode, msg: { type: 'toggleCode' } },
+  { icon: iconKey.clearFormat, msg: { type: 'clearFormat' } },
 ];
 
 /* --- Contect menu items --- */
