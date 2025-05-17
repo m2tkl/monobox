@@ -108,51 +108,6 @@
     </template>
 
     <template #actions>
-      <!-- Bubble Menu -->
-      <BubbleMenu
-        v-if="editor"
-        :editor="editor"
-        class="flex gap-0.5 rounded-lg bg-slate-200 p-1 outline outline-slate-400"
-      >
-        <template v-if="editor.isActive('image')">
-          <EditorToolbarButton
-            :icon="iconKey.annotation"
-            @exec="() => {
-              const selection = editor?.state.selection
-              if (selection) {
-                const { $from } = selection;
-                const node = $from.nodeAfter;
-                if (node && node.type.name === 'image') {
-                  openAltEditDialog(node.attrs.alt || '')
-                }
-              }
-            }"
-          />
-        </template>
-
-        <template v-else>
-          <div
-            v-for="(actionGroup, groupIndex) in bubbleMenuItems"
-            :key="groupIndex"
-            class="flex gap-0.5"
-          >
-            <span
-              v-if="groupIndex !== 0"
-              class="mx-0.5 font-thin text-slate-400"
-            >|</span>
-            <div
-              v-for="(item, index) in actionGroup"
-              :key="index"
-            >
-              <EditorToolbarButton
-                :icon="item.icon"
-                @exec="item.action"
-              />
-            </div>
-          </div>
-        </template>
-      </BubbleMenu>
-
       <div v-if="store.workspaceMemos && store.workspace">
         <SearchPalette
           ref="linkPaletteRef"
