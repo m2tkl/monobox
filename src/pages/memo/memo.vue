@@ -59,20 +59,11 @@
               </UDropdownMenu>
             </template>
 
-            <template #bubble-menu="{ editor: _editor }">
+            <template #bubble-menu>
               <template v-if="editor.isActive('image')">
                 <EditorToolbarButton
                   :icon="iconKey.annotation"
-                  @exec="() => {
-                    const selection = _editor.state.selection
-                    if (selection) {
-                      const { $from } = selection;
-                      const node = $from.nodeAfter;
-                      if (node && node.type.name === 'image') {
-                        openAltEditDialog(node.attrs.alt || '')
-                      }
-                    }
-                  }"
+                  @exec="startImgAltEditing"
                 />
               </template>
 
@@ -97,6 +88,20 @@
                   </div>
                 </div>
               </template>
+            </template>
+
+            <template #dialogs="{ editor: _editor }">
+              <LinkEditDialog
+                v-model:open="isEditingLink"
+                :editor="_editor"
+                @exit="finishLinkEditing"
+              />
+
+              <AltEditDialog
+                v-model:open="isEditingImgAlt"
+                :editor="_editor"
+                @exit="finishImgAltEditing"
+              />
             </template>
           </MemoEditor>
 
@@ -126,20 +131,6 @@
         />
       </div>
 
-      <LinkEditDialog
-        v-model:open="linkEditDialog.isOpen.value"
-        :initial-value="currentLink"
-        @update="closeLinkEditDialogOnUpdate"
-        @cancel="closeLinkEditDialogOnCancel"
-      />
-
-      <AltEditDialog
-        v-model:open="altEditDialog.isOpen.value"
-        :initial-value="imageCurrentAltText"
-        @update="closeAltEditDialogOnUpdate"
-        @cancel="closeAltEditDialogOnCancel"
-      />
-
       <DeleteConfirmationDialog
         v-model:open="deleteConfirmationDialogOn"
         @delete="deleteMemo"
@@ -168,7 +159,6 @@ import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
-import { BubbleMenu, type NodeViewProps, type Editor as _Editor } from '@tiptap/vue-3';
 
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
@@ -177,6 +167,7 @@ import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
+import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
 import type { Link as LinkModel } from '~/models/link';
 
@@ -394,7 +385,7 @@ const bubbleMenuItems = [
     },
     {
       icon: iconKey.link,
-      action: () => { openLinkEditDialog(); },
+      action: () => { startLinkEditing(); },
     },
     {
       icon: iconKey.unlink,
@@ -431,43 +422,18 @@ const bubbleMenuItems = [
   ],
 ];
 
-/* --- Link operation --- */
-const linkEditDialog = useDialog();
-const currentLink = ref('');
+/* --- Editor dialogs --- */
+const {
+  isOpen: isEditingLink,
+  open: startLinkEditing,
+  close: finishLinkEditing,
+} = useDialog();
 
-const openLinkEditDialog = linkEditDialog.withOpen(() => {
-  const previousUrl = editor.value?.getAttributes('link').href;
-  currentLink.value = previousUrl;
-});
-
-const closeLinkEditDialogOnUpdate = linkEditDialog.withClose(async (newLink: string) => {
-  if (!editor.value) {
-    return;
-  }
-  if (newLink) {
-    EditorAction.setLink(editor.value, newLink);
-  }
-  else {
-    EditorAction.unsetLink(editor.value);
-  }
-});
-const closeLinkEditDialogOnCancel = linkEditDialog.withClose(async () => {});
-
-/* --- Image alt edit --- */
-const altEditDialog = useDialog();
-const imageCurrentAltText = ref('');
-
-const openAltEditDialog = altEditDialog.withOpen((currentAltText: string) => {
-  imageCurrentAltText.value = currentAltText;
-});
-
-const closeAltEditDialogOnUpdate = altEditDialog.withClose(async (newAltText: string) => {
-  if (!editor.value) {
-    return;
-  }
-  editor.value.commands.updateAttributes('image', { alt: newAltText });
-});
-const closeAltEditDialogOnCancel = altEditDialog.withClose(async () => {});
+const {
+  isOpen: isEditingImgAlt,
+  open: startImgAltEditing,
+  close: finishImgAltEditing,
+} = useDialog();
 
 /* --- Commands --- */
 

@@ -56,6 +56,11 @@
         :editor="editor"
       />
     </BubbleMenu>
+
+    <slot
+      name="dialogs"
+      :editor="editor"
+    />
   </div>
 </template>
 
