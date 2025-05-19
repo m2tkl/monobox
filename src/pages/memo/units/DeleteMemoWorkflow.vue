@@ -21,7 +21,7 @@
             <UButton
               type="submit"
               color="error"
-              @click="execute"
+              @click="executeHandler?.()"
             >
               Delete
             </UButton>
@@ -31,7 +31,7 @@
             <UButton
               variant="solid"
               color="neutral"
-              @click="cancel"
+              @click="cancelHandler?.()"
             >
               Cancel
             </UButton>
@@ -45,37 +45,79 @@
 <script setup lang="ts">
 const inProgress = ref(false);
 const error = ref('');
-let resolve: ((ok: boolean) => void) | null = null;
-
 const currentAction = ref<(() => Promise<void>) | null>(null);
 
-const startWorkflow = (action: () => Promise<void>): Promise<boolean> => {
+type WorkflowResult =
+  | { status: 'success' }
+  | { status: 'cancel' }
+  | { status: 'error'; error: unknown };
+
+async function runWorkflow({
+  confirm,
+  deleteFn,
+}: {
+  confirm: () => Promise<boolean>;
+  deleteFn: () => Promise<void>;
+}): Promise<WorkflowResult> {
+  const ok = await confirm();
+  if (!ok) return { status: 'cancel' };
+
+  try {
+    await deleteFn();
+    return { status: 'success' };
+  }
+  catch (err) {
+    return { status: 'error', error: err };
+  }
+}
+
+// Intent of mode
+type ModeExitStatus = 'completed' | 'cancelled';
+
+const executeHandler = ref<(() => void) | null>(null);
+const cancelHandler = ref<(() => void) | null>(null);
+
+const run = (action: () => Promise<void>): Promise<ModeExitStatus> => {
   inProgress.value = true;
   error.value = '';
   currentAction.value = action;
 
-  return new Promise((r) => {
-    resolve = r;
+  return new Promise((resolveWorkflowCompletion) => {
+    runWorkflow({
+      confirm: async () => {
+        return new Promise((resolveConfirm) => {
+          executeHandler.value = () => {
+            resolveConfirm(true);
+          };
+
+          cancelHandler.value = () => {
+            inProgress.value = false;
+            resolveConfirm(false);
+          };
+        });
+      },
+      deleteFn: async () => {
+        if (!currentAction.value) return;
+        await currentAction.value();
+      },
+    }).then((result) => {
+      switch (result.status) {
+        case 'success':
+          inProgress.value = false;
+          resolveWorkflowCompletion('completed');
+          break;
+        case 'cancel':
+          inProgress.value = false;
+          resolveWorkflowCompletion('cancelled');
+          break;
+        case 'error':
+          error.value = 'Failed to execute.';
+          // Modal remains open.
+          break;
+      }
+    });
   });
 };
 
-const execute = async () => {
-  try {
-    if (!currentAction.value) return;
-
-    await currentAction.value();
-    inProgress.value = false;
-    resolve?.(true);
-  }
-  catch {
-    error.value = 'Failed to execute.';
-  }
-};
-
-const cancel = () => {
-  inProgress.value = false;
-  resolve?.(false);
-};
-
-defineExpose({ startWorkflow });
+defineExpose({ run });
 </script>

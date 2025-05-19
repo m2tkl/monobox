@@ -131,7 +131,7 @@
         />
       </div>
 
-      <DeleteMemoWorkflow ref="workflowForDelete" />
+      <DeleteMemoWorkflow ref="deleteMemoWithUserConfirmation" />
 
       <!-- Export with related pages -->
       <ExportDialogToSelectTargets
@@ -464,9 +464,13 @@ async function saveMemo() {
   }
 };
 
-const workflowForDelete = ref<InstanceType<typeof DeleteMemoWorkflow>>();
+const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();
 async function runDeleteWorkflow() {
-  const success = await workflowForDelete.value?.startWorkflow(async () => {
+  if (!deleteMemoWithUserConfirmation.value) {
+    throw new Error('Workflow ref is not set correctlly.');
+  }
+
+  const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
     const result = await withToast(
       store.deleteMemo,
       { success: 'Delete memo successfully.', error: 'Failed to delete.' },
@@ -475,7 +479,7 @@ async function runDeleteWorkflow() {
     if (!result.ok) throw new Error ('Failed to delete.');
   });
 
-  if (success) {
+  if (workflowResult === 'completed') {
     emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
     router.replace(`/${workspaceSlug.value}`);
   }
