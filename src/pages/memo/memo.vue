@@ -131,11 +131,7 @@
         />
       </div>
 
-      <DeleteConfirmationDialog
-        v-model:open="deleteConfirmationDialogOn"
-        @delete="deleteMemo"
-        @cancel="deleteConfirmationDialogOn = false"
-      />
+      <DeleteMemoWorkflow ref="workflowForDelete" />
 
       <!-- Export with related pages -->
       <ExportDialogToSelectTargets
@@ -161,7 +157,7 @@ import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 
 import AltEditDialog from './units/AltEditDialog.vue';
-import DeleteConfirmationDialog from './units/DeleteConfirmationDialog.vue';
+import DeleteMemoWorkflow from './units/DeleteMemoWorkflow.vue';
 import ExportDialogToCopyResult from './units/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue';
 import LinkEditDialog from './units/LinkEditDialog.vue';
@@ -371,7 +367,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      onSelect: () => { deleteConfirmationDialogOn.value = true; },
+      onSelect: () => { runDeleteWorkflow(); },
     },
   ],
 ];
@@ -468,15 +464,19 @@ async function saveMemo() {
   }
 };
 
-const deleteConfirmationDialogOn = ref(false);
+const workflowForDelete = ref<InstanceType<typeof DeleteMemoWorkflow>>();
+async function runDeleteWorkflow() {
+  const success = await workflowForDelete.value?.startWorkflow(async () => {
+    const result = await withToast(
+      store.deleteMemo,
+      { success: 'Delete memo successfully.', error: 'Failed to delete.' },
+    )(workspaceSlug.value, memoSlug.value);
 
-async function deleteMemo() {
-  const result = await withToast(
-    store.deleteMemo,
-    { success: 'Delete memo successfully.', error: 'Failed to delete.' },
-  )(workspaceSlug.value, memoSlug.value);
+    if (!result.ok) throw new Error ('Failed to delete.');
+  });
 
-  if (result.ok) {
+  if (success) {
+    emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
     router.replace(`/${workspaceSlug.value}`);
   }
 }

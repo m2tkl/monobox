@@ -17,9 +17,12 @@ export function useEventHandler() {
     store.loadLinks(workspaceSlug, memoSlug);
   });
   onEvent('memo/updated', ({ workspaceSlug, memoSlug }) => {
-    store.loadMemo(workspaceSlug, memoSlug);
     store.loadWorkspaceMemos(workspaceSlug);
     store.loadLinks(workspaceSlug, memoSlug);
+    store.loadFavoriteMemos(workspaceSlug);
+  });
+  onEvent('memo/deleted', ({ workspaceSlug }) => {
+    store.loadWorkspaceMemos(workspaceSlug);
     store.loadFavoriteMemos(workspaceSlug);
   });
 }
