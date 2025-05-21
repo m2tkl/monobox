@@ -8,15 +8,32 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const command = useCommand();
 
   /* --- States --- */
+  const workspaces = ref<Workspace[]>([]);
   const workspace = ref<Workspace>();
   const workspaceMemos = ref<MemoIndexItem[]>([]);
   const memo = ref<MemoDetail>();
-  const links = ref<LinkType[]>();
-
+  const links = ref<LinkType[]>([]);
   const favoriteMemos = ref<LinkType[]>([]);
 
   /* ---  Loader --- */
   const {
+    isLoading: workspacesLoading,
+    error: workspacesLoadingError,
+    runTask: loadWorkspaces,
+  } = useAsyncTask(
+    async () => {
+      const logger = useConsoleLogger(`${LogPrefix}/loadWorkspaces`);
+      logger.log('Start to load workspaces.');
+
+      workspaces.value = await command.workspace.list();
+
+      logger.log('Finish getting workspaces successfully.');
+    },
+  );
+
+  const {
+    isLoading: workspaceLoading,
+    error: workspaceLoadingError,
     runTask: loadWorkspace,
   } = useAsyncTask(
     async (workspaceSlug: string) => {
@@ -30,6 +47,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   );
 
   const {
+    isLoading: workspaceMemosLoading,
+    error: workspaceMemosLoadingError,
     runTask: loadWorkspaceMemos,
   } = useAsyncTask(
     async (workspaceSlug: string) => {
@@ -43,6 +62,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   );
 
   const {
+    isLoading: memoLoading,
+    error: memoLoadingError,
     runTask: loadMemo,
   } = useAsyncTask(
     async (workspaceSlug: string, memoSlug: string) => {
@@ -59,10 +80,12 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   );
 
   const {
+    isLoading: linksLoading,
+    error: linksLoadingError,
     runTask: loadLinks,
   } = useAsyncTask(
     async (workspaceSlug: string, memoSlug: string) => {
-      const logger = useConsoleLogger(`${LogPrefix}/loadMemo`);
+      const logger = useConsoleLogger(`${LogPrefix}/loadLinks`);
       logger.log('Start to load links.');
 
       links.value = await command.link.list({ workspaceSlug, memoSlug });
@@ -72,6 +95,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   );
 
   const {
+    isLoading: favoriteMemosLoading,
+    error: favoriteMemosLoadingError,
     runTask: loadFavoriteMemos,
   } = useAsyncTask(
     async (workspaceSlug: string) => {
@@ -86,28 +111,36 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   );
 
   /* --- Actions --- */
-
   const exitWorkspace = () => {
     const logger = useConsoleLogger(`${LogPrefix}/exitWorkspace`);
     logger.log('Exit workspace.');
 
     workspace.value = undefined;
+    workspaceMemos.value = [];
+    memo.value = undefined;
+    links.value = [];
+    favoriteMemos.value = [];
   };
 
   const {
     runTask: saveMemo,
   } = useAsyncTask(
-    async (workspaceSlug: string, memoSlug: string, newContent: {
-      title: string;
-      content: string;
-      description: string;
-      thumbnailImage: string;
-    }) => {
+    async (
+      workspaceSlug: string,
+      memoSlug: string,
+      newContent: {
+        title: string;
+        content: string;
+        description: string;
+        thumbnailImage: string;
+      }) => {
       const logger = useConsoleLogger(`${LogPrefix}/saveMemo`);
       logger.log('Start to save memo.');
 
+      const newSlugTitle = encodeForSlug(newContent.title);
+
       await command.memo.save({ workspaceSlug, memoSlug }, {
-        slugTitle: encodeForSlug(newContent.title),
+        slugTitle: newSlugTitle,
         title: newContent.title,
         content: newContent.content,
         description: newContent.description,
@@ -115,13 +148,13 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       });
 
       logger.log('Finish saving memo successfully.');
+      return { newSlugTitle };
     },
   );
 
   const {
     runTask: deleteMemo,
   } = useAsyncTask(
-
     async (workspaceSlug: string, memoSlug: string) => {
       const logger = useConsoleLogger(`${LogPrefix}/deleteMemo`);
       logger.log('Start to delete memo.');
@@ -160,6 +193,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
 
   return {
     // States
+    workspaces,
     workspace,
     workspaceMemos,
     memo,
@@ -167,11 +201,26 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     favoriteMemos,
 
     // Loaders
+    loadWorkspaces,
     loadWorkspace,
     loadWorkspaceMemos,
     loadMemo,
     loadLinks,
     loadFavoriteMemos,
+
+    workspacesLoading,
+    workspaceLoading,
+    workspaceMemosLoading,
+    memoLoading,
+    linksLoading,
+    favoriteMemosLoading,
+
+    workspacesLoadingError,
+    workspaceLoadingError,
+    workspaceMemosLoadingError,
+    memoLoadingError,
+    linksLoadingError,
+    favoriteMemosLoadingError,
 
     // Actions
     exitWorkspace,

@@ -60,19 +60,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Workspace } from '~/models/workspace';
-
 definePageMeta({
   path: '/:workspace/_setting',
 });
 
-const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const command = useCommand();
+const store = useWorkspaceStore();
 
-const workspace = ref<Workspace>();
-workspace.value = await command.workspace.get({ slugName: route.params.workspace as string });
+const workspace = computed(() => store.workspace);
 
 const isOpen = ref(false);
 const openDeleteConfirmation = () => {
@@ -88,6 +85,8 @@ const _deleteWorkspace = async () => {
       duration: 1000,
       icon: iconKey.success,
     });
+
+    emitEvent('workspace/deleted', undefined);
     router.replace('/');
   }
   catch (error) {

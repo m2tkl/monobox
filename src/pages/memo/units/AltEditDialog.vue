@@ -7,7 +7,7 @@
             id="set-alt"
             :state="imageState"
             class="space-y-4"
-            @submit="$emit('update', imageState.alt)"
+            @submit="updateImgAlt"
           >
             <UFormField
               label="Alt"
@@ -36,7 +36,7 @@
             <UButton
               variant="solid"
               class="bg-slate-600"
-              @click="$emit('cancel')"
+              @click="cancel"
             >
               Cancel
             </UButton>
@@ -48,19 +48,17 @@
 </template>
 
 <script setup lang="ts">
+import type { Editor } from '@tiptap/vue-3';
+
 const props = defineProps<{
-  initialValue: string;
+  editor: Editor;
 }>();
 
-defineEmits<{
-  (e: 'update', newAltText: string): void;
-  (e: 'cancel'): void;
+const emit = defineEmits<{
+  (e: 'exit'): void;
 }>();
 
 /* --- State --- */
-/**
- * Dialog open/close state
- */
 const modalOpen = defineModel<boolean>('open');
 
 /**
@@ -71,29 +69,35 @@ const imageState = reactive({
 });
 
 /* --- Setup / Cleanup --- */
-watch(() => props.initialValue, () => {
-  imageState.alt = props.initialValue;
-});
-
 watch(modalOpen, (isOpen) => {
   if (isOpen) {
-    onDialogOpen();
+    const selection = props.editor.state.selection;
+
+    if (selection) {
+      const { $from } = selection;
+      const node = $from.nodeAfter;
+      if (node && node.type.name === 'image') {
+        imageState.alt = node.attrs.alt || '';
+      }
+    }
   }
   else {
-    onDialogClose();
+    resetState();
   }
 });
-
-const onDialogOpen = () => {
-  imageState.alt = props.initialValue;
-};
-
-const onDialogClose = () => {
-  resetState();
-};
 
 /* --- Helper --- */
 const resetState = () => {
   imageState.alt = '';
+};
+
+/* --- Actions --- */
+const updateImgAlt = () => {
+  props.editor.commands.updateAttributes('image', { alt: imageState.alt });
+  emit('exit');
+};
+
+const cancel = () => {
+  emit('exit');
 };
 </script>

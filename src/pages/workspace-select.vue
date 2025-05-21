@@ -17,7 +17,7 @@
           </div>
 
           <!-- Project collection -->
-          <div v-if="!workspaces || workspaces && workspaces.length === 0">
+          <div v-if="workspaces.length === 0">
             No workspace
           </div>
           <div v-else>
@@ -85,7 +85,6 @@
 
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '#ui/types';
-import type { Workspace } from '~/models/workspace';
 
 definePageMeta({
   path: '/',
@@ -93,18 +92,11 @@ definePageMeta({
 
 const toast = useToast();
 const command = useCommand();
-
 const store = useWorkspaceStore();
+
 store.exitWorkspace();
 
-const workspaces = ref<Workspace[]>([]);
-const loadWorkspaces = async () => {
-  const workspacesData = await command.workspace.list();
-  if (workspacesData) {
-    workspaces.value = workspacesData;
-  }
-};
-await loadWorkspaces();
+const workspaces = computed(() => store.workspaces);
 
 const isOpen = ref(false);
 const openNewWorkspaceModal = () => {
@@ -135,7 +127,7 @@ async function onSubmit(event: FormSubmitEvent<State>) {
     });
 
     isOpen.value = false;
-    await loadWorkspaces();
+    emitEvent('workspace/created', undefined);
   }
   catch (error) {
     console.error(error);
