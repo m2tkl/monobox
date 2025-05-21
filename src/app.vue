@@ -9,18 +9,11 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentWindow } from '@tauri-apps/api/window';
+useEventHandler();
+useRouteWatcher();
+useTitleUpdater();
 
-const appWindow = getCurrentWindow();
-const store = useWorkspaceStore();
-watch(() => store.workspace, async () => {
-  if (store.workspace) {
-    await appWindow.setTitle(store.workspace.name);
-  }
-  else {
-    await appWindow.setTitle('monobox');
-  }
-});
+emitEvent('app/init', undefined);
 </script>
 
 <style>
