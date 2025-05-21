@@ -43,9 +43,12 @@
 </template>
 
 <script setup lang="ts">
+type PendingUserIntent<T> = () => Promise<T>;
+type WorkflowEffect<T> = () => Promise<T>;
+
 const inProgress = ref(false);
 const error = ref('');
-const currentAction = ref<(() => Promise<void>) | null>(null);
+const currentAction = ref<WorkflowEffect<void> | null>(null);
 
 type WorkflowResult =
   | { status: 'success' }
@@ -56,8 +59,8 @@ async function runWorkflow({
   confirm,
   deleteFn,
 }: {
-  confirm: () => Promise<boolean>;
-  deleteFn: () => Promise<void>;
+  confirm: PendingUserIntent<boolean>;
+  deleteFn: WorkflowEffect<void>;
 }): Promise<WorkflowResult> {
   const ok = await confirm();
   if (!ok) return { status: 'cancel' };
@@ -77,28 +80,33 @@ type ModeExitStatus = 'completed' | 'cancelled';
 const executeHandler = ref<(() => void) | null>(null);
 const cancelHandler = ref<(() => void) | null>(null);
 
-const run = (action: () => Promise<void>): Promise<ModeExitStatus> => {
+function exposeHandlers(
+  onExec: () => void,
+  onCancel: () => void,
+) {
+  executeHandler.value = onExec;
+  cancelHandler.value = onCancel;
+}
+
+function createPendingUserIntent(): PendingUserIntent<boolean> {
+  return () =>
+    new Promise((resolveIntent) => {
+      const exec = () => resolveIntent(true);
+      const cancel = () => resolveIntent(false);
+      exposeHandlers(exec, cancel);
+    });
+}
+
+const run = (action: WorkflowEffect<void>): Promise<ModeExitStatus> => {
   inProgress.value = true;
   error.value = '';
   currentAction.value = action;
 
   return new Promise((resolveWorkflowCompletion) => {
     runWorkflow({
-      confirm: async () => {
-        return new Promise((resolveConfirm) => {
-          executeHandler.value = () => {
-            resolveConfirm(true);
-          };
-
-          cancelHandler.value = () => {
-            inProgress.value = false;
-            resolveConfirm(false);
-          };
-        });
-      },
+      confirm: createPendingUserIntent(),
       deleteFn: async () => {
-        if (!currentAction.value) return;
-        await currentAction.value();
+        await action();
       },
     }).then((result) => {
       switch (result.status) {
