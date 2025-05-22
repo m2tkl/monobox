@@ -4,7 +4,8 @@
       <div class="size-full">
         <div class="size-full px-4 pb-8 pt-4">
           <!-- Memo List -->
-          <p v-if="memos.length === 0">
+          <LoadingSpinner v-if="workspaceMemosLoading" />
+          <p v-else-if="memos.length === 0">
             No memos
           </p>
           <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 pb-4">
@@ -88,6 +89,7 @@ const store = useWorkspaceStore();
 
 const workspace = computed(() => store.workspace);
 const memos = computed(() => store.workspaceMemos);
+const workspaceMemosLoading = computed(() => store.workspaceMemosLoading);
 </script>
 
 <style scoped>

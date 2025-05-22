@@ -69,7 +69,9 @@ import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 
 import type { Editor } from '@tiptap/vue-3';
 
-defineProps<{
+import { focusNodeById } from '~/lib/editor';
+
+const props = defineProps<{
   editor: Editor;
 }>();
 
@@ -80,6 +82,20 @@ const editorReady = ref(false);
 onMounted(async () => {
   setTimeout(() => {
     editorReady.value = true;
-  }, 0);
+  }, 500);
+});
+
+const route = useRoute();
+
+watch(editorReady, (ready) => {
+  if (!ready) return;
+
+  const id = route.hash.replace(/^#/, '');
+  if (id) {
+    setTimeout(() => {
+      scrollToElementWithOffset(id, 100);
+      focusNodeById(props.editor, id);
+    }, 0);
+  }
 });
 </script>
