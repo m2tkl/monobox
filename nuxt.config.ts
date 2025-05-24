@@ -78,6 +78,7 @@ export default defineNuxtConfig({
         'carbon:tree-view-alt',
         'carbon:html',
         'carbon:app-connectivity',
+        'carbon:shuffle',
 
         // Nuxt
         'heroicons:x-mark-20-solid',

@@ -38,6 +38,7 @@ export const iconKey = {
   tree: 'carbon:tree-view-alt',
   html: 'carbon:html',
   pageLink: 'carbon:app-connectivity',
+  shuffle: 'carbon:shuffle',
 
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',

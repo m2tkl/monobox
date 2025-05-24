@@ -52,7 +52,9 @@
             </div>
 
             <div class="ml-auto">
-              <slot name="context-menu" />
+              <div class="flex gap-1.5 items-center">
+                <slot name="context-menu" />
+              </div>
             </div>
           </header>
 
