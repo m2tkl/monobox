@@ -1,6 +1,10 @@
 <template>
   <NuxtLayout name="default">
     <template #context-menu>
+      <IconButton
+        :icon="iconKey.shuffle"
+        @click="showRandomMemo"
+      />
       <UDropdownMenu
         :items="contextMenuItems"
       >
@@ -417,6 +421,21 @@ const bubbleMenuItems = [
     },
   ],
 ];
+
+/**
+ * Opens a randomly selected memo from the current workspace.
+ */
+const showRandomMemo = async () => {
+  if (!store.workspaceMemos || store.workspaceMemos.length === 0) {
+    return;
+  }
+
+  const randomIndex = Math.floor(Math.random() * store.workspaceMemos.length);
+  const randomMemo = store.workspaceMemos[randomIndex];
+  if (randomMemo) {
+    router.push(`/${workspaceSlug.value}/${encodeForSlug(randomMemo.title)}`);
+  }
+};
 
 /* --- Editor dialogs --- */
 const {
