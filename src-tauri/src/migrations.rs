@@ -57,14 +57,26 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         "
         ALTER TABLE memo ADD COLUMN modified_at TEXT;
         UPDATE memo SET modified_at = updated_at;
-        "
+        ",
     ),
     (
         "20250112_add_thumbnail_to_memo",
         "
         ALTER TABLE memo ADD COLUMN thumbnail_image TEXT;
-        "
-    )
+        ",
+    ),
+    (
+        "20250523_create_bookmark_table",
+        "CREATE TABLE IF NOT EXISTS bookmark (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (workspace_id, memo_id),
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE,
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
+        );",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {
