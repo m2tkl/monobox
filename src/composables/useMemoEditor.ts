@@ -108,6 +108,9 @@ export function useMemoEditor(
       };
     },
     onTransaction: async ({ editor: _editor, transaction }) => {
+      if (!transaction.docChanged) return;
+
+      applyTargetBlankToExternalLinks(_editor);
       await updateLinks(transaction);
       updateHeadImage(transaction);
       assignUniqueHeadingIds(_editor);
@@ -183,6 +186,41 @@ export function useMemoEditor(
     const foundFirstImage = EditorUtil.findHeadImage(transaction);
     if (foundFirstImage !== headImageRef.value) {
       headImageRef.value = foundFirstImage;
+    }
+  };
+
+  const applyTargetBlankToExternalLinks = (_editor: Editor) => {
+    const { state, view } = _editor;
+    const { schema, doc, tr } = state;
+    const linkMarkType = schema.marks.link;
+
+    let modified = false;
+
+    doc.nodesBetween(0, doc.content.size, (node, pos) => {
+      if (node.isText && node.marks.length > 0) {
+        node.marks.forEach((mark) => {
+          if (mark.type.name === 'link') {
+            const href = mark.attrs.href;
+            const target = mark.attrs.target;
+            if (href && !isInternalLink(href) && target !== '_blank') {
+              const textLength = node.text?.length ?? 0;
+              // Remove existing link mark
+              tr.removeMark(pos, pos + textLength, mark.type);
+              // Add new link mark with target="_blank"
+              tr.addMark(
+                pos,
+                pos + textLength,
+                linkMarkType.create({ ...mark.attrs, target: '_blank' }),
+              );
+              modified = true;
+            }
+          }
+        });
+      }
+    });
+
+    if (modified) {
+      view.dispatch(tr);
     }
   };
 
