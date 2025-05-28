@@ -110,6 +110,10 @@ fn main() {
             commands::link::get_links,
             commands::link::create_link,
             commands::link::delete_link,
+            // Bookmark
+            commands::bookmark::list_bookmarks,
+            commands::bookmark::add_bookmark,
+            commands::bookmark::delete_bookmark,
             // Asset
             commands::asset::save_image,
         ])
