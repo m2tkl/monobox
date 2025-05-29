@@ -65,6 +65,7 @@ export default defineNuxtConfig({
         'carbon:arrow-right',
         'carbon:menu',
         'carbon:bookmark',
+        'carbon:bookmark-filled',
         'carbon:recently-viewed',
         'carbon:arrows-horizontal',
         'carbon:db2-database',
