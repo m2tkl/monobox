@@ -15,6 +15,15 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const links = ref<LinkType[]>([]);
   const favoriteMemos = ref<LinkType[]>([]);
 
+  const bookmarkedMemos = computed<MemoIndexItem[]>(() => {
+    const bookmarkedMemoIds = new Set(bookmarks.value.map(b => b.memo_id));
+    return workspaceMemos.value.filter(memo => bookmarkedMemoIds.has(memo.id));
+  });
+
+  const bookmarkIds = computed<Set<number>>(() => {
+    return new Set(bookmarks.value.map(b => b.memo_id));
+  });
+
   /* ---  Loader --- */
   const {
     isLoading: workspacesLoading,
@@ -191,6 +200,17 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     },
   );
 
+  const {
+    bookmarks,
+    bookmakrsLoading,
+    bookmarksLoadingError,
+  } = storeToRefs(useBookmark());
+  const {
+    loadBookmarks,
+    createBookmark,
+    deleteBookmark,
+  } = useBookmark();
+
   return {
     // States
     workspaces,
@@ -199,6 +219,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     memo,
     links,
     favoriteMemos,
+    bookmarks,
+    bookmarkIds,
+    bookmarkedMemos,
 
     // Loaders
     loadWorkspaces,
@@ -207,6 +230,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     loadMemo,
     loadLinks,
     loadFavoriteMemos,
+    loadBookmarks,
 
     workspacesLoading,
     workspaceLoading,
@@ -214,6 +238,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     memoLoading,
     linksLoading,
     favoriteMemosLoading,
+    bookmakrsLoading,
 
     workspacesLoadingError,
     workspaceLoadingError,
@@ -221,6 +246,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     memoLoadingError,
     linksLoadingError,
     favoriteMemosLoadingError,
+    bookmarksLoadingError,
 
     // Actions
     exitWorkspace,
@@ -228,5 +254,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     deleteMemo,
     createLink,
     deleteLink,
+    createBookmark,
+    deleteBookmark,
   };
 });
