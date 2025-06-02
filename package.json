@@ -39,5 +39,5 @@
     "vue": "latest",
     "vue-router": "latest"
   },
-  "version": "0.3.4"
+  "version": "0.3.5"
 }
