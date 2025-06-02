@@ -27,6 +27,7 @@ export const iconKey = {
   menu: 'carbon:menu',
 
   bookmark: 'carbon:bookmark',
+  bookmarkFilled: 'carbon:bookmark-filled',
   recent: 'carbon:recently-viewed',
   switch: 'carbon:arrows-horizontal',
   database: 'carbon:db2-database',

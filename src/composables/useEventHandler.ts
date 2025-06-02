@@ -8,6 +8,7 @@ export function useEventHandler() {
       store.loadWorkspace(workspaceSlug),
       store.loadWorkspaceMemos(workspaceSlug),
       store.loadFavoriteMemos(workspaceSlug),
+      store.loadBookmarks(workspaceSlug),
     ]);
   });
   onEvent('workspace/created', () => store.loadWorkspaces());
@@ -24,5 +25,8 @@ export function useEventHandler() {
   onEvent('memo/deleted', ({ workspaceSlug }) => {
     store.loadWorkspaceMemos(workspaceSlug);
     store.loadFavoriteMemos(workspaceSlug);
+  });
+  onEvent('bookmark/updated', ({ workspaceSlug }) => {
+    store.loadBookmarks(workspaceSlug);
   });
 }

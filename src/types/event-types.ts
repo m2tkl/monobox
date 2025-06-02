@@ -7,4 +7,5 @@ export type EventPayloads = {
   'memo/created': { workspaceSlug: string };
   'memo/updated': { workspaceSlug: string; memoSlug: string };
   'memo/deleted': { workspaceSlug: string };
+  'bookmark/updated': { workspaceSlug: string };
 };

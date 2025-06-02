@@ -20,7 +20,7 @@
     <div class="h-[calc(100%-40px)] overflow-y-auto px-3">
       <!-- Bookmark section -->
       <section
-        v-if="favoriteMemos.length > 0"
+        v-if="bookmarks.length > 0"
         class="pb-2"
       >
         <div class="sticky top-0 z-10 bg-surface">
@@ -30,14 +30,14 @@
               class="mr-2"
             />
             <h2 class="font-bold text-gray-600">
-              Favorites
+              Bookmarks
             </h2>
           </div>
         </div>
 
         <ul class="flex flex-col">
           <li
-            v-for="memo in favoriteMemos"
+            v-for="memo in bookmarks"
             :key="memo.id"
           >
             <NuxtLink
@@ -112,10 +112,10 @@ const workspaceSlug = computed(() => route.params.workspace as string);
 
 const { toggleSidebar } = useUIState();
 
-const favoriteMemos = computed(() => store.favoriteMemos);
 const recentMemos = computed(() => {
   return store.workspaceMemos.filter(memo => !store.favoriteMemos?.map(item => item.title).includes(memo.title)).slice(0, 5);
 });
+const bookmarks = computed(() => store.bookmarkedMemos);
 
 const recentMenuItems = [
   'Modified',
