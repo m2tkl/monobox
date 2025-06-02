@@ -5,6 +5,10 @@
         :icon="iconKey.shuffle"
         @click="showRandomMemo"
       />
+      <IconButton
+        :icon="isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+        @click="toggleBookmark"
+      />
       <UDropdownMenu
         :items="contextMenuItems"
       >
@@ -347,6 +351,28 @@ const editorToolbarActionItems: {
   { icon: iconKey.inlineCode, msg: { type: 'toggleCode' } },
   { icon: iconKey.clearFormat, msg: { type: 'clearFormat' } },
 ];
+
+const isBookmarked = computed<boolean>(() => {
+  if (!store.memo) {
+    return false;
+  }
+
+  return store.bookmarkIds.has(store.memo.id);
+});
+
+const toggleBookmark = async () => {
+  if (!store.memo) {
+    return;
+  }
+
+  if (!isBookmarked.value) {
+    await store.createBookmark(workspaceSlug.value, memoSlug.value);
+  }
+  else {
+    await store.deleteBookmark(workspaceSlug.value, memoSlug.value);
+  }
+  emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
+};
 
 /* --- Contect menu items --- */
 const contextMenuItems: DropdownMenuItem[][] = [
