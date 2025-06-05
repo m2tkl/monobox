@@ -113,7 +113,7 @@ const workspaceSlug = computed(() => route.params.workspace as string);
 const { toggleSidebar } = useUIState();
 
 const recentMemos = computed(() => {
-  return store.workspaceMemos.filter(memo => !store.favoriteMemos?.map(item => item.title).includes(memo.title)).slice(0, 5);
+  return store.workspaceMemos.filter(memo => !store.bookmarkedMemos.map(item => item.title).includes(memo.title)).slice(0, 5);
 });
 const bookmarks = computed(() => store.bookmarkedMemos);
 

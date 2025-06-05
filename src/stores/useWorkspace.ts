@@ -1,4 +1,3 @@
-import type { Link as LinkType } from '~/models/link';
 import type { MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
 
@@ -11,7 +10,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const workspaces = ref<Workspace[]>([]);
   const workspace = ref<Workspace>();
   const workspaceMemos = ref<MemoIndexItem[]>([]);
-  const favoriteMemos = ref<LinkType[]>([]);
 
   const bookmarkedMemos = computed<MemoIndexItem[]>(() => {
     const bookmarkedMemoIds = new Set(bookmarks.value.map(b => b.memo_id));
@@ -68,22 +66,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     },
   );
 
-  const {
-    isLoading: favoriteMemosLoading,
-    error: favoriteMemosLoadingError,
-    runTask: loadFavoriteMemos,
-  } = useAsyncTask(
-    async (workspaceSlug: string) => {
-      const logger = useConsoleLogger(`${LogPrefix}/loadFavoriteMemos`);
-      logger.log('Start to load favorite memos.');
-
-      favoriteMemos.value = await command.link.list({ workspaceSlug, memoSlug: '#favorite' });
-      favoriteMemos.value.sort((a, b) => a.description! < b.description! ? -1 : 1);
-
-      logger.log('Finish loading favorite memos successfully.');
-    },
-  );
-
   /* --- Actions --- */
   const exitWorkspace = () => {
     const logger = useConsoleLogger(`${LogPrefix}/exitWorkspace`);
@@ -93,7 +75,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     workspaceMemos.value = [];
     memo.value = undefined;
     links.value = [];
-    favoriteMemos.value = [];
   };
 
   const {
@@ -131,7 +112,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     workspaceMemos,
     memo,
     links,
-    favoriteMemos,
     bookmarks,
     bookmarkIds,
     bookmarkedMemos,
@@ -142,7 +122,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     loadWorkspaceMemos,
     loadMemo,
     loadLinks,
-    loadFavoriteMemos,
     loadBookmarks,
 
     workspacesLoading,
@@ -150,7 +129,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     workspaceMemosLoading,
     memoLoading,
     linksLoading,
-    favoriteMemosLoading,
     bookmakrsLoading,
 
     workspacesLoadingError,
@@ -158,7 +136,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     workspaceMemosLoadingError,
     memoLoadingError,
     linksLoadingError,
-    favoriteMemosLoadingError,
     bookmarksLoadingError,
 
     // Actions

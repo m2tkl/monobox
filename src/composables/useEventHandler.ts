@@ -7,7 +7,6 @@ export function useEventHandler() {
     await Promise.all([
       store.loadWorkspace(workspaceSlug),
       store.loadWorkspaceMemos(workspaceSlug),
-      store.loadFavoriteMemos(workspaceSlug),
       store.loadBookmarks(workspaceSlug),
     ]);
   });
@@ -20,11 +19,9 @@ export function useEventHandler() {
   onEvent('memo/updated', ({ workspaceSlug, memoSlug }) => {
     store.loadWorkspaceMemos(workspaceSlug);
     store.loadLinks(workspaceSlug, memoSlug);
-    store.loadFavoriteMemos(workspaceSlug);
   });
   onEvent('memo/deleted', ({ workspaceSlug }) => {
     store.loadWorkspaceMemos(workspaceSlug);
-    store.loadFavoriteMemos(workspaceSlug);
   });
   onEvent('bookmark/updated', ({ workspaceSlug }) => {
     store.loadBookmarks(workspaceSlug);
