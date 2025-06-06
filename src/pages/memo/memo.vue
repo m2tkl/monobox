@@ -6,7 +6,7 @@
         @click="showRandomMemo"
       />
       <IconButton
-        :icon="isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+        :icon="store.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
         @click="toggleBookmark"
       />
       <UDropdownMenu
@@ -352,20 +352,12 @@ const editorToolbarActionItems: {
   { icon: iconKey.clearFormat, msg: { type: 'clearFormat' } },
 ];
 
-const isBookmarked = computed<boolean>(() => {
-  if (!store.memo) {
-    return false;
-  }
-
-  return store.bookmarkIds.has(store.memo.id);
-});
-
 const toggleBookmark = async () => {
   if (!store.memo) {
     return;
   }
 
-  if (!isBookmarked.value) {
+  if (!store.isBookmarked) {
     await store.createBookmark(workspaceSlug.value, memoSlug.value);
   }
   else {

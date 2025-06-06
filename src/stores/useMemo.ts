@@ -1,5 +1,5 @@
 import type { Link as LinkType } from '~/models/link';
-import type { MemoDetail, MemoIndexItem } from '~/models/memo';
+import type { MemoDetail } from '~/models/memo';
 
 const LogPrefix = 'memoStore';
 

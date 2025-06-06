@@ -16,10 +16,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     return workspaceMemos.value.filter(memo => bookmarkedMemoIds.has(memo.id));
   });
 
-  const bookmarkIds = computed<Set<number>>(() => {
-    return new Set(bookmarks.value.map(b => b.memo_id));
-  });
-
   /* ---  Loader --- */
   const {
     isLoading: workspacesLoading,
@@ -105,15 +101,22 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     deleteBookmark,
   } = useBookmark();
 
+  /**
+   * Flag indicating whether the currently loaded memo is bookmarked.
+   */
+  const isBookmarked = computed<boolean>(() => {
+    return bookmarks.value.some(bookmark => bookmark.memo_id === memo.value?.id);
+  });
+
   return {
     // States
     workspaces,
     workspace,
     workspaceMemos,
     memo,
+    isBookmarked,
     links,
     bookmarks,
-    bookmarkIds,
     bookmarkedMemos,
 
     // Loaders
