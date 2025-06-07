@@ -24,7 +24,7 @@
         class="pb-2"
       >
         <div class="sticky top-0 z-10 bg-surface">
-          <div class="flex h-12 items-center">
+          <div class="flex h-12 items-center ml-1">
             <UIcon
               :name="iconKey.bookmark"
               class="mr-2"
@@ -54,7 +54,7 @@
       <!-- Recently viewed memos section -->
       <section>
         <div class="sticky top-0 z-10 bg-surface">
-          <div class="flex h-12 items-center">
+          <div class="flex h-12 items-center ml-1">
             <UIcon
               :name="iconKey.recent"
               class="mr-2"
