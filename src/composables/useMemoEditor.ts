@@ -86,7 +86,6 @@ export function useMemoEditor(
         const [path, id] = url.split('#');
         if (options.route.path === path) {
           focusHeading(editor, id);
-          return;
         }
 
         if (isInternalLink(url) && !isModifierKeyPressed(event)) {
