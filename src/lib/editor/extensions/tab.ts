@@ -1,4 +1,5 @@
 import { Extension } from '@tiptap/core';
+import { wrapInList } from 'prosemirror-schema-list';
 
 import type { EditorState } from '@tiptap/pm/state';
 
@@ -38,8 +39,9 @@ export const CustomTab = Extension.create({
   addKeyboardShortcuts() {
     return {
       'Tab': ({ editor }) => {
+        const { state, dispatch } = editor.view;
+
         if (editor.isActive('codeBlock')) {
-          const { state, dispatch } = editor.view;
           const { selection } = state;
           const { from, to } = selection;
 
@@ -58,11 +60,32 @@ export const CustomTab = Extension.create({
           dispatch(state.tr.insertText(indentedText, textLineStart, textLineEnd));
           return true;
         }
+
+        if (editor.isActive('paragraph')) {
+          const bulletList = editor.schema.nodes.bulletList;
+          const listItem = editor.schema.nodes.listItem;
+
+          if (bulletList && listItem) {
+            return wrapInList(bulletList)(state, dispatch);
+          }
+        }
+
+        if (editor.isActive('heading')) {
+          const { $from } = state.selection;
+          const node = $from.node();
+          const level = node.attrs.level;
+
+          if (level < 6) {
+            return editor.commands.updateAttributes('heading', { level: level + 1 });
+          }
+        }
+
         return false;
       },
       'Shift-Tab': ({ editor }) => {
+        const { state, dispatch } = editor.view;
+
         if (editor.isActive('codeBlock')) {
-          const { state, dispatch } = editor.view;
           const { selection } = state;
           const { from, to } = selection;
 
@@ -86,6 +109,17 @@ export const CustomTab = Extension.create({
           dispatch(state.tr.insertText(unindentedText, textLineStart, textLineEnd));
           return true;
         }
+
+        if (editor.isActive('heading')) {
+          const { $from } = state.selection;
+          const node = $from.node();
+          const level = node.attrs.level;
+
+          if (level > 1) {
+            return editor.commands.updateAttributes('heading', { level: level - 1 });
+          }
+        }
+
         return false;
       },
     };
