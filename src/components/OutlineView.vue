@@ -68,7 +68,7 @@ const props = defineProps<{
   editorContent: JSONContent;
 
   /**
-   * Heading ID curretly active
+   * Heading ID currently active
    *
    * This ID is specified into memo view.
    */
