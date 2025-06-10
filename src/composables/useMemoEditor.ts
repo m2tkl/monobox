@@ -98,7 +98,7 @@ export function useMemoEditor(
       // Focus if a hash is specified when entring the memo
       if (options.route.hash) {
         const id = options.route.hash.replace(/^#/, '');
-        focusHeading(editor, id);
+        activeHeadingId.value = id;
       }
 
       editor.view.dom.addEventListener('click', handleLinkClick);
