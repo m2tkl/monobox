@@ -5,7 +5,9 @@
 /**
  * Flag to determine if the current platform is macOS.
  */
-const isMac = window?.navigator.userAgent.toUpperCase().indexOf('MAC OS X') >= 0;
+const isMac
+  = typeof navigator !== 'undefined'
+    && navigator.userAgent.toUpperCase().includes('MAC OS X');
 
 /**
  * Determines whether any modifier key (Shift, Ctrl, Alt, or Meta/Cmd) is pressed during a mouse event.
