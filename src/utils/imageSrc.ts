@@ -25,9 +25,6 @@
  * @returns The transformed `src` value based on the current platform.
  */
 export const transformImageSrc = (imageSrc: string) => {
-  const isWindows
-    = typeof navigator !== 'undefined'
-      && navigator.userAgent.includes('Windows');
   const transformedSrc = isWindows
     ? imageSrc.replace('asset://localhost', 'http://asset.localhost')
     : imageSrc;
