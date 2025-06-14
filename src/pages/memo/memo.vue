@@ -399,7 +399,10 @@ const bubbleMenuItems = [
   [
     {
       icon: iconKey.memoLink,
-      action: () => { linkPaletteRef.value?.openCommandPalette(); },
+      action: () => {
+        const selectedText = editor.value ? EditorAction.getSelectedTextV2(editor.value.view) : '';
+        linkPaletteRef.value?.openCommandPalette(selectedText);
+      },
     },
     {
       icon: iconKey.link,

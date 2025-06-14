@@ -190,15 +190,13 @@ async function onSearchPaletteSelect(option: CommandPaletteItem) {
   }
 }
 
-function openCommandPalette() {
+function openCommandPalette(initialTerm: string = '') {
   logger.log('openCommandPalette() start.');
   isSearchPaletteOpen.value = true;
   selected.value = [];
 
-  // If text is selected in the editor, set the text in the input field.
-  if (props.editor) {
-    const selectedText = EditorAction.getSelectedTextV2(props.editor.view);
-    searchTerm.value = selectedText;
+  if (initialTerm) {
+    searchTerm.value = initialTerm;
   }
 
   logger.log('openCommandPalette() end.');
@@ -235,7 +233,13 @@ function closeCommandPalette(paletteRefs: Array<Ref<boolean>>) {
 const handleKeydownShortcut = (event: KeyboardEvent) => {
   if (isCmdKey(event) && event.key === props.shortcutSymbol) {
     event.preventDefault();
-    openCommandPalette();
+
+    let initialTerm = '';
+    if (props.editor) {
+      initialTerm = EditorAction.getSelectedTextV2(props.editor.view);
+    }
+
+    openCommandPalette(initialTerm);
     return;
   }
 };
