@@ -121,11 +121,12 @@
     </template>
 
     <template #actions>
-      <div v-if="store.workspaceMemos && store.workspace">
+      <div v-if="store.workspaceMemos && store.workspace && store.memo">
         <SearchPalette
           ref="linkPaletteRef"
           :workspace="store.workspace"
           :memos="store.workspaceMemos"
+          :current-memo-title="store.memo.title"
           type="link"
           shortcut-symbol="i"
           :editor="editor"
@@ -133,6 +134,7 @@
         <SearchPalette
           :workspace="store.workspace"
           :memos="store.workspaceMemos"
+          :current-memo-title="store.memo.title"
           type="search"
           shortcut-symbol="k"
           :editor="editor"

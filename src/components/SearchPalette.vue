@@ -49,6 +49,7 @@ const props = defineProps<{
   type: 'search' | 'link';
   workspace: Workspace;
   memos: MemoIndexItem[];
+  currentMemoTitle?: string;
   editor?: Editor;
   shortcutSymbol: string;
 }>();
@@ -230,14 +231,27 @@ function closeCommandPalette(paletteRefs: Array<Ref<boolean>>) {
   logger.log('closeCommandPalette() end.');
 }
 
+function extractParentPathFromTitle(title: string): string {
+  if (title.includes('/')) {
+    const segments = title.split('/');
+    if (segments.length > 1) {
+      return segments.slice(0, -1).join('/') + '/';
+    }
+  }
+  return '';
+}
+
 const handleKeydownShortcut = (event: KeyboardEvent) => {
   if (isCmdKey(event) && event.key === props.shortcutSymbol) {
     event.preventDefault();
 
-    let initialTerm = '';
-    if (props.editor) {
-      initialTerm = EditorAction.getSelectedTextV2(props.editor.view);
-    }
+    // Set the initial value for the search term:
+    // - If text is selected, use that.
+    // - Otherwise, if the current title has a path-like structure, use the parent path.
+    // - If neither applies, use an empty string.
+    const selectedText = props.editor ? EditorAction.getSelectedTextV2(props.editor.view) : '';
+    const parentPath = props.currentMemoTitle ? extractParentPathFromTitle(props.currentMemoTitle) : '';
+    const initialTerm = selectedText || parentPath || '';
 
     openCommandPalette(initialTerm);
     return;
