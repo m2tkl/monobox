@@ -1,36 +1,49 @@
-type Step = {
-  name: string;
-  task: () => Promise<void>;
-  condition?: () => boolean;
-};
+export type WorkflowResult =
+  | 'completed'
+  | { cancelled: true; reason: string };
 
-export interface WorkflowRunner {
-  step: (name: string, task: () => Promise<void>) => WorkflowRunner;
-  stepIf: (name: string, condition: () => boolean, task: () => Promise<void>) => WorkflowRunner;
-  run: () => Promise<void>;
+type StepTask<R> = () => R | Promise<R>;
+
+export interface TypedWorkflow<T extends Record<string, unknown>> {
+  step<K extends keyof T>(
+    name: K,
+    task: StepTask<T[K]>
+  ): TypedWorkflow<T>;
+  run(): Promise<WorkflowResult>;
+  getResult<K extends keyof T>(name: K): T[K];
 }
 
-export function createWorkflowRunner(): WorkflowRunner {
-  const steps: Step[] = [];
+export function defineWorkflow<T extends Record<string, unknown>>(): TypedWorkflow<T> {
+  const steps: Array<{ name: keyof T; task: () => Promise<void> }> = [];
+  const results: Partial<T> = {};
 
   return {
     step(name, task) {
-      steps.push({ name, task });
-      return this;
-    },
-
-    stepIf(name, condition, task) {
-      steps.push({ name, task, condition });
+      steps.push({
+        name,
+        task: async () => {
+          const result = await Promise.resolve().then(task);
+          results[name] = result;
+        },
+      });
       return this;
     },
 
     async run() {
-      for (const step of steps) {
-        if (step.condition && !step.condition()) {
-          continue;
+      for (const { name, task } of steps) {
+        try {
+          await task();
         }
-        await step.task();
+        catch (err) {
+          console.log(err);
+          return { cancelled: true, reason: `step "${String(name)}" failed` };
+        }
       }
+      return 'completed';
+    },
+
+    getResult(name) {
+      return results[name] as T[typeof name];
     },
   };
 }
