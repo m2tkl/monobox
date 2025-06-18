@@ -1,6 +1,15 @@
+export class WorkflowCancelled extends Error {
+  constructor(message = 'Workflow was cancelled') {
+    super(message);
+
+    this.name = 'WorkflowCancelled';
+  }
+}
+
 export type WorkflowResult =
-  | 'completed'
-  | { cancelled: true; reason: string };
+  | { type: 'completed' }
+  | { type: 'cancelled'; reason?: string }
+  | { type: 'error'; error: unknown };
 
 type StepTask<R> = () => R | Promise<R>;
 
@@ -32,14 +41,17 @@ export function defineWorkflow<T extends Record<string, unknown>>(): TypedWorkfl
     async run() {
       for (const { name, task } of steps) {
         try {
+          console.log(`Workflow step "${String(name)}" exec.`);
           await task();
         }
         catch (err) {
-          console.log(err);
-          return { cancelled: true, reason: `step "${String(name)}" failed` };
+          if (err instanceof WorkflowCancelled) {
+            return { type: 'cancelled' };
+          }
+          return { type: 'error', error: err };
         }
       }
-      return 'completed';
+      return { type: 'completed' };
     },
 
     getResult(name) {
