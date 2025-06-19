@@ -235,7 +235,7 @@ function extractParentPathFromTitle(title: string): string {
   if (title.includes('/')) {
     const segments = title.split('/');
     if (segments.length > 1) {
-      return segments.slice(0, -1).join('/') + '/';
+      return segments.slice(0, -1).join('/');
     }
   }
   return '';
