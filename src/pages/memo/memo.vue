@@ -503,7 +503,7 @@ async function saveMemo() {
   if (result.ok) {
     // Go to updated title page
     emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: updatedTitle });
-    router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}`);
+    router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}${route.hash}`);
   }
 };
 
