@@ -31,7 +31,11 @@
             v-if="editor"
             :editor-content="editor.getJSON()"
             :active-heading-id="activeHeadingId"
-            @click="(id: any) => { focusHeading(editor, id); navigateToHeading(id) }"
+            @click="(id: any, title: string) => {
+              focusHeading(editor, id);
+              navigateToHeading(id);
+              recentStore.addMemo(`${store.memo!.title} › ${title}`, encodeForSlug(memoSlug), workspaceSlug, `#${id}`);
+            }"
             @copy-link="(id, text) => copyLinkToHeading(`${route.path}#${id}`, `${route.path}#${text}`)"
           />
         </div>
@@ -40,6 +44,7 @@
           id="main"
           class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto bg-slate-200"
         >
+          {{ recentStore.history }}
           <MemoEditor
             v-if="editor"
             v-model:memo-title="memoTitle"
@@ -234,6 +239,7 @@ const router = useRouter();
 const { withToast } = useToast_();
 const command = useCommand();
 const store = useWorkspaceStore();
+const recentStore = useRecentMemoStore();
 
 const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
@@ -323,6 +329,20 @@ watch(() => route.hash, () => {
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
   document.getElementById('main')?.addEventListener('scroll', handleScroll, { passive: true });
+
+  if (store.memo) {
+    const slug = encodeForSlug(memoSlug.value);
+    const workspace = workspaceSlug.value;
+    const hash = route.hash || undefined;
+
+    const exists = recentStore.history.some(
+      m => m.slug === slug && m.workspace === workspace && m.hash === hash,
+    );
+
+    if (!exists) {
+      recentStore.addMemo(store.memo.title, slug, workspace, hash);
+    }
+  }
 });
 
 onBeforeUnmount(() => {
@@ -504,6 +524,21 @@ async function saveMemo() {
     // Go to updated title page
     emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: updatedTitle });
     router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}${route.hash}`);
+    let fullTitle = updatedTitle;
+    if (route.hash && editor.value) {
+      const headingId = route.hash.replace(/^#/, '');
+      const headingTitle = EditorAction.getHeadingTextById(editor.value.getJSON(), headingId);
+      if (headingTitle) {
+        fullTitle = `${updatedTitle} › ${headingTitle}`;
+      }
+    }
+    recentStore.addMemo(
+      fullTitle,
+      encodeForSlug(updatedTitle),
+      workspaceSlug.value,
+      route.hash || undefined,
+      true,
+    );
   }
 };
 
