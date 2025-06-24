@@ -44,7 +44,6 @@
           id="main"
           class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto bg-slate-200"
         >
-          {{ recentStore.history }}
           <MemoEditor
             v-if="editor"
             v-model:memo-title="memoTitle"
