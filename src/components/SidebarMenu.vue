@@ -124,7 +124,10 @@ const recentMenuItems = [
 ];
 const sortTypeSelected = ref(recentMenuItems[0]);
 
-const memoSlug = computed(() => encodeForSlug(route.params.memo as string));
+const memoSlug = computed(() => {
+  const memoSlugParam = (route.params.memo) as string | undefined;
+  return memoSlugParam ? encodeForSlug(memoSlugParam) : '';
+});
 
 const isActive = (memo: { workspace: string; slug: string; hash?: string }) => {
   const hashMatches = memo.hash ? memo.hash === route.hash : !route.hash;
