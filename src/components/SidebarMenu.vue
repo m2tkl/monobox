@@ -84,10 +84,12 @@
               :class="{
                 'font-bold bg-slate-100': isActive(memo),
                 'hover:bg-slate-100 hover:text-blue-700': true,
-                'block rounded-md px-2 py-1 text-sm text-gray-600': true,
+                'block rounded-md px-2 py-1 text-sm': true,
+                'text-gray-600': memo.workspace === workspaceSlug,
+                'text-gray-400 italic': memo.workspace !== workspaceSlug,
               }"
             >
-              {{ memo.title }}
+              {{ memo.title }}<span v-if="memo.workspace !== workspaceSlug"> [external]</span>
             </NuxtLink>
           </li>
         </ul>
