@@ -22,7 +22,7 @@
           }"
           :data-id="item.id"
 
-          @click="item.id && emits('click', item.id)"
+          @click="item.id && emits('click', item.id, item.text)"
         >
           <span :class="indent(item.level)" />
           <span class="pr-1 text-xs font-semibold text-gray-400">{{ '#'.repeat(item.level) }}</span>
@@ -76,7 +76,8 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: 'click', id: string): void;
+  (e: 'click', id: string, title: string): void;
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
   (e: 'copy-link', id: string, text: string): void;
 }>();
 

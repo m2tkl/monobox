@@ -77,14 +77,19 @@
         >
           <li
             v-for="memo in recentMemos"
-            :key="memo.id"
+            :key="`${memo.workspace}/${memo.slug}${memo.hash || ''}`"
           >
             <NuxtLink
-              :to="`/${workspaceSlug}/${memo.slug_title}`"
-              class="block rounded-md px-2 py-1 text-sm text-gray-600 hover:bg-slate-100 hover:text-blue-700"
-              active-class="bg-slate-100 font-bold"
+              :to="`/${memo.workspace}/${memo.slug}${memo.hash || ''}`"
+              :class="{
+                'font-bold bg-slate-100': isActive(memo),
+                'hover:bg-slate-100 hover:text-blue-700': true,
+                'block rounded-md px-2 py-1 text-sm': true,
+                'text-gray-600': memo.workspace === workspaceSlug,
+                'text-gray-400 italic': memo.workspace !== workspaceSlug,
+              }"
             >
-              {{ memo.title }}
+              {{ memo.title }}<span v-if="memo.workspace !== workspaceSlug"> [external]</span>
             </NuxtLink>
           </li>
         </ul>
@@ -112,15 +117,28 @@ const workspaceSlug = computed(() => route.params.workspace as string);
 
 const { toggleSidebar } = useUIState();
 
-const recentMemos = computed(() => {
-  return store.workspaceMemos.filter(memo => !store.bookmarkedMemos.map(item => item.title).includes(memo.title)).slice(0, 5);
-});
+const recentStore = useRecentMemoStore();
+const recentMemos = computed(() => recentStore.history);
 const bookmarks = computed(() => store.bookmarkedMemos);
 
 const recentMenuItems = [
   'Modified',
 ];
 const sortTypeSelected = ref(recentMenuItems[0]);
+
+const memoSlug = computed(() => {
+  const memoSlugParam = (route.params.memo) as string | undefined;
+  return memoSlugParam ? encodeForSlug(memoSlugParam) : '';
+});
+
+const isActive = (memo: { workspace: string; slug: string; hash?: string }) => {
+  const hashMatches = memo.hash ? memo.hash === route.hash : !route.hash;
+  return (
+    route.params.workspace === memo.workspace
+    && memoSlug.value === memo.slug
+    && hashMatches
+  );
+};
 </script>
 
 <style scoped>
