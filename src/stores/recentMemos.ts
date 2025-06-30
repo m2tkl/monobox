@@ -47,5 +47,6 @@ export const useRecentMemoStore = defineStore('recentMemos',
       storage: sessionStorage,
       paths: ['history'],
     },
-  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
 );
