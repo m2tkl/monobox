@@ -9,6 +9,7 @@ export function useEventHandler() {
       store.loadWorkspaceMemos(workspaceSlug),
       store.loadBookmarks(workspaceSlug),
     ]);
+    useRecentMemoStore();
   });
   onEvent('workspace/created', () => store.loadWorkspaces());
   onEvent('workspace/deleted', () => store.loadWorkspaces());

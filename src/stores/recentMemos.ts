@@ -1,25 +1,24 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
-export const useRecentMemoStore = defineStore('recentMemos', {
-  state: () => ({
-    history: [] as Array<{
+export const useRecentMemoStore = defineStore('recentMemos',
+  () => {
+    const history = ref<Array<{
       title: string;
       slug: string;
       workspace: string;
       hash?: string;
-    }>,
-  }),
-  actions: {
-    addMemo(title: string, slug: string, workspace: string, hash?: string, force = false) {
+    }>>([]);
+
+    function addMemo(title: string, slug: string, workspace: string, hash?: string, force = false) {
       const key = `${workspace}/${slug}${hash || ''}`;
-      const existingIndex = this.history.findIndex(
+      const existingIndex = history.value.findIndex(
         m => `${m.workspace}/${m.slug}${m.hash || ''}` === key,
       );
 
       const newItem = { title, slug, workspace, hash };
 
-      // Skip if it's the top and fully matches
-      const top = this.history[0];
+      const top = history.value[0];
       if (
         top
         && top.workspace === workspace
@@ -35,10 +34,18 @@ export const useRecentMemoStore = defineStore('recentMemos', {
       }
 
       const withoutExisting = existingIndex >= 0
-        ? [...this.history.slice(0, existingIndex), ...this.history.slice(existingIndex + 1)]
-        : this.history;
+        ? [...history.value.slice(0, existingIndex), ...history.value.slice(existingIndex + 1)]
+        : history.value;
 
-      this.history = [newItem, ...withoutExisting].slice(0, 30);
+      history.value = [newItem, ...withoutExisting].slice(0, 30);
+    }
+
+    return { history, addMemo };
+  },
+  {
+    persist: {
+      storage: sessionStorage,
+      paths: ['history'],
     },
   },
-});
+);
