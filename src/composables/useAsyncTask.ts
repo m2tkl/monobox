@@ -1,3 +1,7 @@
+type AsyncResult<T> =
+  | { ok: true; data: T }
+  | { ok: false };
+
 /**
  * Composable for managing an asynchronous task with loading, success, and error states.
  *
@@ -29,7 +33,7 @@ export function useAsyncTask<T, Args extends any[]>(
    * - `{ ok: true, data }` if the task succeeds
    * - `{ ok: false }` if the task fails
    */
-  const runTask = async (...args: Args) => {
+  const runTask = async (...args: Args): Promise<AsyncResult<T>> => {
     isLoading.value = true;
     error.value = null;
 

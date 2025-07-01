@@ -49,8 +49,8 @@
           <div class="h-24">
             <UForm
               id="create-workspace-form"
-              :validate="validate"
-              :state="state"
+              :validate="form.validate"
+              :state="form.state"
               class="space-y-4"
               @submit="onSubmit"
             >
@@ -59,7 +59,7 @@
                 name="name"
               >
                 <UInput
-                  v-model="state.name"
+                  v-model="form.state.name"
                   class="w-full"
                 />
               </UFormField>
@@ -84,59 +84,52 @@
 </template>
 
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '#ui/types';
+import { useCreateWorkspaceAction } from './actions/useCreateWorkspaceAction';
+import { useWorkspaceFormState } from './forms/useWorkspaceFormState';
+import { useWorkspacesLoader } from './loaders/useWorkspacesLoader';
 
 definePageMeta({
   path: '/',
 });
 
 const toast = useToast();
-const command = useCommand();
-const store = useWorkspaceStore();
-
-store.exitWorkspace();
-
-const workspaces = computed(() => store.workspaces);
 
 const isOpen = ref(false);
 const openNewWorkspaceModal = () => {
   isOpen.value = true;
 };
 
-type State = { name?: string };
-const state = reactive<State>({
-  name: undefined,
-});
+const { workspaces } = useWorkspacesLoader();
+const form = useWorkspaceFormState();
+const { execute } = useCreateWorkspaceAction();
 
-const validate = (state: State): FormError[] => {
-  const errors = [];
-  if (!state.name) errors.push({ path: 'name', message: 'Required' });
-  return errors;
-};
+const onSubmit = async () => {
+  const validatedState = form.getValidatedState();
+  if (!validatedState) {
+    return;
+  }
 
-async function onSubmit(event: FormSubmitEvent<State>) {
-  try {
-    if (!event.data.name) {
-      throw Error('name is required.');
-    }
-    const created = await command.workspace.create({ name: event.data.name });
+  const result = await execute({ name: validatedState.name });
+
+  if (result.ok) {
     toast.add({
-      title: `Workspace ${created?.name} created successfully!`,
+      title: `Workspace ${result.data.name} created successfully!`,
       duration: 1000,
       icon: iconKey.success,
     });
 
+    form.reset();
     isOpen.value = false;
     emitEvent('workspace/created', undefined);
   }
-  catch (error) {
-    console.error(error);
+  else {
     toast.add({
       title: 'Failed to create.',
       description: 'Please create again.',
       color: 'error',
       icon: iconKey.failed,
+
     });
   }
-}
+};
 </script>
