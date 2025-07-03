@@ -1,3 +1,5 @@
+import { writeHtml } from '@tauri-apps/plugin-clipboard-manager';
+
 /**
  * Copy link as html link
  *
@@ -6,9 +8,5 @@
  */
 export const copyLinkAsHtml = async (href: string, text: string): Promise<void> => {
   const html = `<a href="${href}">${text}</a>`;
-  navigator.clipboard.write([
-    new ClipboardItem({
-      'text/html': new Blob([html], { type: 'text/html' }),
-    }),
-  ]);
+  await writeHtml(html);
 };

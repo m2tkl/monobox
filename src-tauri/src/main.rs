@@ -23,6 +23,7 @@ fn main() {
         config::load_config(proj_dirs.config_dir()).expect("Failed to load or create config");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
             let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
                 .title("monobox")
