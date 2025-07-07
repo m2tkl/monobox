@@ -235,7 +235,7 @@ const extensions = [
 
 const route = useRoute();
 const router = useRouter();
-const { withToast } = useToast_();
+const { toast, withToast } = useToast_();
 const command = useCommand();
 const store = useWorkspaceStore();
 const recentStore = useRecentMemoStore();
@@ -494,6 +494,10 @@ const {
 
 /* --- Commands --- */
 
+const {
+  execute: executeSaveFlow,
+} = useActionFlow(store.saveMemo);
+
 async function saveMemo() {
   const updatedTitle = memoTitle.value;
   if (!updatedTitle) {
@@ -504,41 +508,49 @@ async function saveMemo() {
   if (!editor.value) {
     return;
   }
-
-  const result = await withToast(
-    store.saveMemo,
-    { success: 'Saved!', error: 'Failed to save.' },
-  )(
-    workspaceSlug.value,
-    memoSlug.value,
+  await executeSaveFlow(
+    [
+      workspaceSlug.value,
+      memoSlug.value,
+      {
+        title: updatedTitle,
+        content: JSON.stringify(editor.value.getJSON()),
+        description: truncateString(editor.value.getText(), 256),
+        thumbnailImage: headImageRef.value ?? '',
+      },
+    ],
     {
-      title: updatedTitle,
-      content: JSON.stringify(editor.value.getJSON()),
-      description: truncateString(editor.value.getText(), 256),
-      thumbnailImage: headImageRef.value ?? '',
+      onSuccess: () => {
+        emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: updatedTitle });
+        router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}${route.hash}`);
+
+        toast.add({
+          title: 'Saved',
+          duration: 1000,
+          icon: iconKey.success,
+        });
+
+        let fullTitle = updatedTitle;
+        if (route.hash && editor.value) {
+          const headingId = route.hash.replace(/^#/, '');
+          const headingTitle = EditorAction.getHeadingTextById(editor.value.getJSON(), headingId);
+          if (headingTitle) {
+            fullTitle = `${updatedTitle} › ${headingTitle}`;
+          }
+        }
+        recentStore.addMemo(
+          fullTitle,
+          encodeForSlug(updatedTitle),
+          workspaceSlug.value,
+          route.hash || undefined,
+          true,
+        );
+      },
+      onError: (error) => {
+        window.alert(`Failed to save. (${error.message})`);
+      },
     },
   );
-
-  if (result.ok) {
-    // Go to updated title page
-    emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: updatedTitle });
-    router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}${route.hash}`);
-    let fullTitle = updatedTitle;
-    if (route.hash && editor.value) {
-      const headingId = route.hash.replace(/^#/, '');
-      const headingTitle = EditorAction.getHeadingTextById(editor.value.getJSON(), headingId);
-      if (headingTitle) {
-        fullTitle = `${updatedTitle} › ${headingTitle}`;
-      }
-    }
-    recentStore.addMemo(
-      fullTitle,
-      encodeForSlug(updatedTitle),
-      workspaceSlug.value,
-      route.hash || undefined,
-      true,
-    );
-  }
 };
 
 const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();
