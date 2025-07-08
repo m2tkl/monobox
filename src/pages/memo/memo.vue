@@ -499,49 +499,66 @@ const {
 } = useActionFlow(store.saveMemo);
 
 async function saveMemo() {
-  const updatedTitle = memoTitle.value;
-  if (!updatedTitle) {
+  if (!editor.value) {
+    throw new Error('Editor instance not set.');
+  }
+
+  const currentTitle = memoTitle.value;
+  if (!currentTitle) {
     window.alert('Please set title.');
     return;
   }
 
-  if (!editor.value) {
-    return;
-  }
+  await saveMemo_(
+    {
+      workspaceSlug: workspaceSlug.value,
+      memoSlug: memoSlug.value,
+    },
+    editor.value,
+    currentTitle,
+    headImageRef.value ?? '',
+  );
+}
+
+async function saveMemo_(
+  target: { workspaceSlug: string; memoSlug: string },
+  editor: _Editor,
+  newTitle: string,
+  thumbnailImage: string,
+) {
+  const newContent = {
+    title: newTitle,
+    content: JSON.stringify(editor.getJSON()),
+    description: truncateString(editor.getText(), 256),
+    thumbnailImage,
+  };
+
   await executeSaveFlow(
     [
-      workspaceSlug.value,
-      memoSlug.value,
-      {
-        title: updatedTitle,
-        content: JSON.stringify(editor.value.getJSON()),
-        description: truncateString(editor.value.getText(), 256),
-        thumbnailImage: headImageRef.value ?? '',
-      },
+      target.workspaceSlug,
+      target.memoSlug,
+      newContent,
     ],
     {
       onSuccess: () => {
-        emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: updatedTitle });
-        router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}${route.hash}`);
+        emitEvent('memo/updated', { workspaceSlug: target.workspaceSlug, memoSlug: newTitle });
+        router.replace(`/${target.workspaceSlug}/${encodeForSlug(newTitle)}${route.hash}`);
 
-        toast.add({
-          title: 'Saved',
-          duration: 1000,
-          icon: iconKey.success,
-        });
+        toast.add({ title: 'Saved', duration: 1000, icon: iconKey.success });
 
-        let fullTitle = updatedTitle;
-        if (route.hash && editor.value) {
+        let fullTitle = newTitle;
+        if (route.hash) {
           const headingId = route.hash.replace(/^#/, '');
-          const headingTitle = EditorAction.getHeadingTextById(editor.value.getJSON(), headingId);
+          const headingTitle = EditorAction.getHeadingTextById(editor.getJSON(), headingId);
           if (headingTitle) {
-            fullTitle = `${updatedTitle} › ${headingTitle}`;
+            fullTitle = `${newTitle} › ${headingTitle}`;
           }
         }
+
         recentStore.addMemo(
           fullTitle,
-          encodeForSlug(updatedTitle),
-          workspaceSlug.value,
+          encodeForSlug(newTitle),
+          target.workspaceSlug,
           route.hash || undefined,
           true,
         );
