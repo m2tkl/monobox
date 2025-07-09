@@ -235,7 +235,7 @@ const extensions = [
 
 const route = useRoute();
 const router = useRouter();
-const { withToast } = useToast_();
+const { toast, withToast } = useToast_();
 const command = useCommand();
 const store = useWorkspaceStore();
 const recentStore = useRecentMemoStore();
@@ -494,51 +494,80 @@ const {
 
 /* --- Commands --- */
 
+const {
+  execute: executeSaveFlow,
+} = useActionFlow(store.saveMemo);
+
 async function saveMemo() {
-  const updatedTitle = memoTitle.value;
-  if (!updatedTitle) {
+  if (!editor.value) {
+    throw new Error('Editor instance not set.');
+  }
+
+  const currentTitle = memoTitle.value;
+  if (!currentTitle) {
     window.alert('Please set title.');
     return;
   }
 
-  if (!editor.value) {
-    return;
-  }
-
-  const result = await withToast(
-    store.saveMemo,
-    { success: 'Saved!', error: 'Failed to save.' },
-  )(
-    workspaceSlug.value,
-    memoSlug.value,
+  await saveMemo_(
     {
-      title: updatedTitle,
-      content: JSON.stringify(editor.value.getJSON()),
-      description: truncateString(editor.value.getText(), 256),
-      thumbnailImage: headImageRef.value ?? '',
+      workspaceSlug: workspaceSlug.value,
+      memoSlug: memoSlug.value,
+    },
+    editor.value,
+    currentTitle,
+    headImageRef.value ?? '',
+  );
+}
+
+async function saveMemo_(
+  target: { workspaceSlug: string; memoSlug: string },
+  editor: _Editor,
+  newTitle: string,
+  thumbnailImage: string,
+) {
+  const newContent = {
+    title: newTitle,
+    content: JSON.stringify(editor.getJSON()),
+    description: truncateString(editor.getText(), 256),
+    thumbnailImage,
+  };
+
+  await executeSaveFlow(
+    [
+      target.workspaceSlug,
+      target.memoSlug,
+      newContent,
+    ],
+    {
+      onSuccess: () => {
+        emitEvent('memo/updated', { workspaceSlug: target.workspaceSlug, memoSlug: newTitle });
+        router.replace(`/${target.workspaceSlug}/${encodeForSlug(newTitle)}${route.hash}`);
+
+        toast.add({ title: 'Saved', duration: 1000, icon: iconKey.success });
+
+        let fullTitle = newTitle;
+        if (route.hash) {
+          const headingId = route.hash.replace(/^#/, '');
+          const headingTitle = EditorAction.getHeadingTextById(editor.getJSON(), headingId);
+          if (headingTitle) {
+            fullTitle = `${newTitle} › ${headingTitle}`;
+          }
+        }
+
+        recentStore.addMemo(
+          fullTitle,
+          encodeForSlug(newTitle),
+          target.workspaceSlug,
+          route.hash || undefined,
+          true,
+        );
+      },
+      onError: (error) => {
+        window.alert(`Failed to save. (${error.message})`);
+      },
     },
   );
-
-  if (result.ok) {
-    // Go to updated title page
-    emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: updatedTitle });
-    router.replace(`/${workspaceSlug.value}/${encodeForSlug(updatedTitle)}${route.hash}`);
-    let fullTitle = updatedTitle;
-    if (route.hash && editor.value) {
-      const headingId = route.hash.replace(/^#/, '');
-      const headingTitle = EditorAction.getHeadingTextById(editor.value.getJSON(), headingId);
-      if (headingTitle) {
-        fullTitle = `${updatedTitle} › ${headingTitle}`;
-      }
-    }
-    recentStore.addMemo(
-      fullTitle,
-      encodeForSlug(updatedTitle),
-      workspaceSlug.value,
-      route.hash || undefined,
-      true,
-    );
-  }
 };
 
 const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();

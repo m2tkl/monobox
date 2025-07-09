@@ -21,10 +21,10 @@ export function useActionFlow<T, Args extends unknown[]>(
       handlers?.onSuccess?.(result);
       return { ok: true, data: result };
     }
-    catch (e) {
-      const err = e instanceof Error ? e : new Error('Unknown error');
-      error.value = err;
-      handlers?.onError?.(err);
+    catch (err) {
+      const appError = handleError(err);
+      error.value = appError;
+      handlers?.onError?.(appError);
       return { ok: false };
     }
     finally {
