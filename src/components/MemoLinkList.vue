@@ -27,7 +27,7 @@
                 class="text-xs font-semibold"
               >[From]
               </span>
-              {{ link.title }}
+              {{ extractBasenameFromTitle(link.title) }}
             </NuxtLink>
           </div>
         </li>
@@ -55,7 +55,7 @@
                   class="text-xs font-bold"
                 >[From]
                 </span>
-                {{ link.title }}
+                {{ extractBasenameFromTitle(link.title) }}
               </NuxtLink>
             </div>
 
@@ -79,7 +79,7 @@
                       class="text-xs font-bold"
                     >[From]
                     </span>
-                    {{ thl.title }}
+                    {{ extractBasenameFromTitle(thl.title) }}
                   </NuxtLink>
                 </div>
               </li>
@@ -97,6 +97,10 @@ import type { Link } from '~/models/link';
 const props = defineProps<{
   links: Array<Link>;
 }>();
+
+function extractBasenameFromTitle(title: string): string {
+  return title.includes('/') ? title.split('/').pop() ?? title : title;
+}
 
 const previousRoute = usePreviousRoute();
 
