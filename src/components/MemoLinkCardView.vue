@@ -49,7 +49,7 @@
             >
               <template #header>
                 <h3 class="truncate-multiline text-sm font-semibold text-gray-700">
-                  {{ truncateString(memo.title, 32) }}
+                    {{ truncateString(extractBasenameFromTitle(memo.title), 32) }}
                 </h3>
               </template>
               <img
@@ -95,7 +95,7 @@
                     }"
                   >
                     <h3 class="truncate-multiline flex flex-col items-center gap-1 text-sm font-semibold text-gray-700">
-                      {{ truncateString(link.title, 32) }}
+                      {{ truncateString(extractBasenameFromTitle(link.title), 32) }}
                       <Icon
                         :name="iconKey.link"
                         class="text-xl"
@@ -124,7 +124,7 @@
                   >
                     <template #header>
                       <h3 class="truncate-multiline text-sm font-semibold text-gray-700">
-                        {{ truncateString(thl.title, 32) }}
+                        {{ truncateString(extractBasenameFromTitle(thl.title), 32) }}
                       </h3>
                     </template>
                     <img
@@ -156,6 +156,10 @@ import type { Link } from '~/models/link';
 const props = defineProps<{
   links: Array<Link>;
 }>();
+
+function extractBasenameFromTitle(title: string): string {
+  return title.includes('/') ? title.split('/').pop() ?? title : title;
+}
 
 const route = useRoute();
 
