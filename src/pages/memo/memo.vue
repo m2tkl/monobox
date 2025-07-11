@@ -170,6 +170,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 
+import { getMemoTitleWithHeading } from './actions/updateMemoEdit';
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteMemoWorkflow from './units/DeleteMemoWorkflow.vue';
 import ExportDialogToCopyResult from './units/ExportDialogToCopyResult.vue';
@@ -546,15 +547,7 @@ async function saveMemo_(
 
         toast.add({ title: 'Saved', duration: 1000, icon: iconKey.success });
 
-        let fullTitle = newTitle;
-        if (route.hash) {
-          const headingId = route.hash.replace(/^#/, '');
-          const headingTitle = EditorAction.getHeadingTextById(editor.getJSON(), headingId);
-          if (headingTitle) {
-            fullTitle = `${newTitle} › ${headingTitle}`;
-          }
-        }
-
+        const fullTitle = getMemoTitleWithHeading(newTitle, editor, route.hash);
         recentStore.addMemo(
           fullTitle,
           encodeForSlug(newTitle),
