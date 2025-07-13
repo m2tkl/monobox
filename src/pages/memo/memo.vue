@@ -170,7 +170,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 
-import { getMemoTitleWithHeading } from './actions/updateMemoEdit';
+import { useUpdateMemoEditAction } from './actions/updateMemoEdit';
 import AltEditDialog from './units/AltEditDialog.vue';
 import DeleteMemoWorkflow from './units/DeleteMemoWorkflow.vue';
 import ExportDialogToCopyResult from './units/ExportDialogToCopyResult.vue';
@@ -494,10 +494,7 @@ const {
 } = useDialog();
 
 /* --- Commands --- */
-
-const {
-  execute: executeSaveFlow,
-} = useActionFlow(store.saveMemo);
+const { executeUpdateMemoEdit } = useUpdateMemoEditAction();
 
 async function saveMemo() {
   if (!editor.value) {
@@ -510,7 +507,7 @@ async function saveMemo() {
     return;
   }
 
-  await saveMemo_(
+  const result = await executeUpdateMemoEdit(
     {
       workspaceSlug: workspaceSlug.value,
       memoSlug: memoSlug.value,
@@ -518,50 +515,19 @@ async function saveMemo() {
     editor.value,
     currentTitle,
     headImageRef.value ?? '',
+    route.hash,
   );
+
+  if (result.ok) {
+    emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitle });
+    router.replace(`/${workspaceSlug.value}/${encodeForSlug(currentTitle)}${route.hash}`);
+
+    toast.add({ title: 'Saved', duration: 1000, icon: iconKey.success });
+  }
+  else {
+    toast.add({ title: result.error.name, description: result.error.message, icon: iconKey.failed, color: 'error' });
+  }
 }
-
-async function saveMemo_(
-  target: { workspaceSlug: string; memoSlug: string },
-  editor: _Editor,
-  newTitle: string,
-  thumbnailImage: string,
-) {
-  const newContent = {
-    title: newTitle,
-    content: JSON.stringify(editor.getJSON()),
-    description: truncateString(editor.getText(), 256),
-    thumbnailImage,
-  };
-
-  await executeSaveFlow(
-    [
-      target.workspaceSlug,
-      target.memoSlug,
-      newContent,
-    ],
-    {
-      onSuccess: () => {
-        emitEvent('memo/updated', { workspaceSlug: target.workspaceSlug, memoSlug: newTitle });
-        router.replace(`/${target.workspaceSlug}/${encodeForSlug(newTitle)}${route.hash}`);
-
-        toast.add({ title: 'Saved', duration: 1000, icon: iconKey.success });
-
-        const fullTitle = getMemoTitleWithHeading(newTitle, editor, route.hash);
-        recentStore.addMemo(
-          fullTitle,
-          encodeForSlug(newTitle),
-          target.workspaceSlug,
-          route.hash || undefined,
-          true,
-        );
-      },
-      onError: (error) => {
-        window.alert(`Failed to save. (${error.message})`);
-      },
-    },
-  );
-};
 
 const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();
 async function runDeleteWorkflow() {

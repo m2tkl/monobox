@@ -2,6 +2,81 @@ import type { Editor } from '@tiptap/vue-3';
 
 import { getHeadingTextById } from '~/lib/editor';
 
+export function useUpdateMemoEditAction() {
+  const command = useCommand();
+  const recentStore = useRecentMemoStore();
+
+  const { runTask: executeUpdateMemoEdit } = useAsyncTask(updateMemoEdit);
+
+  async function updateMemoEdit(
+    target: { workspaceSlug: string; memoSlug: string },
+    editor: Editor,
+    newTitle: string,
+    thumbnailImage: string,
+    routeHash: string,
+  ): Promise<void> {
+    await updateMemoContent(
+      target,
+      editor,
+      newTitle,
+      thumbnailImage,
+    );
+
+    addMemoHistory(
+      newTitle,
+      editor,
+      routeHash,
+      target.workspaceSlug,
+    );
+  };
+
+  const updateMemoContent = async (
+    target: { workspaceSlug: string; memoSlug: string },
+    editor: Editor,
+    newTitle: string,
+    thumbnailImage: string,
+  ): Promise<void> => {
+    const newSlugTitle = encodeForSlug(newTitle);
+    const newContent = {
+      title: newTitle,
+      content: JSON.stringify(editor.getJSON()),
+      description: truncateString(editor.getText(), 256),
+      thumbnailImage,
+    };
+
+    await command.memo.save({
+      ...target,
+    }, {
+      slugTitle: newSlugTitle,
+      title: newContent.title,
+      content: newContent.content,
+      description: newContent.description,
+      thumbnailImage: newContent.thumbnailImage,
+    });
+  };
+
+  const addMemoHistory = (
+    newTitle: string,
+    editor: Editor,
+    routeHash: string,
+    workspaceSlug: string,
+  ): void => {
+    const titleForHistory = getMemoTitleWithHeading(newTitle, editor, routeHash);
+    const historyItem = [
+      titleForHistory,
+      encodeForSlug(newTitle),
+      workspaceSlug,
+      routeHash || undefined,
+      true,
+    ] as const;
+    recentStore.addMemo(...historyItem);
+  };
+
+  return {
+    executeUpdateMemoEdit,
+  };
+}
+
 /**
  * Returns the memo title, possibly including the heading in view.
  */

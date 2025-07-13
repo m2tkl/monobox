@@ -1,6 +1,6 @@
 type AsyncResult<T> =
   | { ok: true; data: T }
-  | { ok: false };
+  | { ok: false; error: AppError };
 
 /**
  * Composable for managing an asynchronous task with loading, success, and error states.
@@ -46,7 +46,7 @@ export function useAsyncTask<T, Args extends any[]>(
     catch (err) {
       const appError = handleError(err);
       error.value = appError;
-      return { ok: false };
+      return { ok: false, error: appError };
     }
     finally {
       isLoading.value = false;
