@@ -188,7 +188,7 @@ import OutlineView from '~/components/OutlineView.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorCommand from '~/lib/editor/command';
-import { convertEditorJsonToHtml } from '~/lib/editor/command/htmlExport';
+import { renderMemoAsHtml } from '~/lib/editor/command/htmlExport';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 
@@ -556,13 +556,7 @@ const copyPageAsMarkdown = withToast(
 );
 
 const copyPageAsHtml = withToast(
-  async (editor: _Editor, title: string) => {
-    const json = editor.getJSON();
-    const htmlBody = convertEditorJsonToHtml(json);
-    const htmlPage = `<h1>${title}</h1>${htmlBody}`;
-
-    await navigator.clipboard.writeText(htmlPage);
-  },
+  EditorCommand.copyPageAsHtml,
   { success: 'Copied page as html.', error: 'Failed to copy.' },
 );
 
@@ -598,23 +592,29 @@ const exportCandidates = computed(() => {
 
 const htmlExport = ref<string>('');
 
+async function renderLinkedMemosAsHtml(links: Array<LinkModel>): Promise<string[]> {
+  const htmls = [];
+
+  for (const link of links) {
+    const memo = await command.memo.get({
+      workspaceSlugName: workspaceSlug.value,
+      memoSlugTitle: link.title,
+    });
+
+    const json = JSON.parse(memo.content);
+    htmls.push(renderMemoAsHtml(json, link.title));
+  }
+
+  return htmls;
+}
+
 const exportPagesV2 = async (targets: Array<LinkModel>) => {
   if (!editor.value || !store.memo) return;
 
-  const json = editor.value.getJSON();
-  const htmlBody = convertEditorJsonToHtml(json);
-  const htmlPage = `<h1>${store.memo.title}</h1>${htmlBody}`;
+  const currentMemoHtml = renderMemoAsHtml(editor.value.getJSON(), store.memo.title);
+  const linkedHtmls = await renderLinkedMemosAsHtml(targets);
 
-  const htmls = [htmlPage];
-
-  for (const link of targets) {
-    const jsonContent = JSON.parse((await command.memo.get({ workspaceSlugName: workspaceSlug.value, memoSlugTitle: link.title })).content);
-    const html = convertEditorJsonToHtml(jsonContent);
-    htmls.push(`<h1>${link.title}</h1>${html}`);
-  }
-
-  const onePageHtml = htmls.join('\n');
-  htmlExport.value = onePageHtml;
+  htmlExport.value = [currentMemoHtml, ...linkedHtmls].join('\n');
 
   exportDialogOn.value = false;
   exportResultDialogOn.value = true;

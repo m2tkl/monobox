@@ -8,6 +8,18 @@ export function convertEditorJsonToHtml(json: JSONContent): string {
 }
 
 /**
+ * Render a complete memo as HTML with title and content.
+ *
+ * @param json - The TipTap JSON content representing the memo body
+ * @param title - The memo title to be rendered as an H1 heading
+ * @returns Complete HTML string with the title as H1 followed by the memo content
+ */
+export function renderMemoAsHtml(json: JSONContent, title: string): string {
+  const htmlBody = convertEditorJsonToHtml(json);
+  return `<h1>${title}</h1>${htmlBody}`;
+}
+
+/**
  * Render tiptap node as html
  */
 function renderNode(node: JSONContent): string {
