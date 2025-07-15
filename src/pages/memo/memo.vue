@@ -236,7 +236,8 @@ const extensions = [
 
 const route = useRoute();
 const router = useRouter();
-const { toast, withToast } = useToast_();
+const { toast } = useToast_();
+const { createEffectHandler } = useEffectHandler();
 const command = useCommand();
 const store = useWorkspaceStore();
 const recentStore = useRecentMemoStore();
@@ -536,10 +537,9 @@ async function runDeleteWorkflow() {
   }
 
   const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
-    const result = await withToast(
-      store.deleteMemo,
-      { success: 'Delete memo successfully.', error: 'Failed to delete.' },
-    )(workspaceSlug.value, memoSlug.value);
+    const result = await createEffectHandler(() => store.deleteMemo(workspaceSlug.value, memoSlug.value))
+      .withToast('Delete memo successfully.', 'Failed to delete.')
+      .execute();
 
     if (!result.ok) throw new Error ('Failed to delete.');
   });
@@ -550,20 +550,20 @@ async function runDeleteWorkflow() {
   }
 }
 
-const copyPageAsMarkdown = withToast(
-  EditorCommand.copyAsMarkdown,
-  { success: 'Copied page as markdown.', error: 'Failed to copy.' },
-);
+const copyPageAsMarkdown = (editor: _Editor, title: string) =>
+  createEffectHandler(() => EditorCommand.copyAsMarkdown(editor, title))
+    .withToast('Copied page as markdown.', 'Failed to copy.')
+    .execute();
 
-const copyPageAsHtml = withToast(
-  EditorCommand.copyPageAsHtml,
-  { success: 'Copied page as html.', error: 'Failed to copy.' },
-);
+const copyPageAsHtml = (editor: _Editor, title: string) =>
+  createEffectHandler(() => EditorCommand.copyPageAsHtml(editor, title))
+    .withToast('Copied page as html.', 'Failed to copy.')
+    .execute();
 
-const copySelectedTextAsMarkdown = withToast(
-  EditorCommand.copySelectedAsMarkdown,
-  { success: 'Copied as markdown.', error: 'Failed to copy.' },
-);
+const copySelectedTextAsMarkdown = (editor: _Editor) =>
+  createEffectHandler(() => EditorCommand.copySelectedAsMarkdown(editor))
+    .withToast('Copied as markdown.', 'Failed to copy.')
+    .execute();
 
 /**
  * Copy link to heading as html link format
@@ -571,10 +571,10 @@ const copySelectedTextAsMarkdown = withToast(
  * @param headingId
  * @param headingText
  */
-const copyLinkToHeading = withToast(
-  EditorCommand.copyLinkAsHtml,
-  { success: 'Copied link to heading.', error: 'Failed to copy.' },
-);
+const copyLinkToHeading = (fullUrl: string, titleWithHeading: string) =>
+  createEffectHandler(() => EditorCommand.copyLinkAsHtml(fullUrl, titleWithHeading))
+    .withToast('Copied link to heading.', 'Failed to copy.')
+    .execute();
 
 /* --- Export with related pages (Step1: select targets) --- */
 
