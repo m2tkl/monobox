@@ -508,26 +508,24 @@ async function saveMemo() {
     return;
   }
 
-  const result = await executeUpdateMemoEdit(
+  await createEffectHandler((editor: _Editor, title: string) => executeUpdateMemoEdit(
     {
       workspaceSlug: workspaceSlug.value,
       memoSlug: memoSlug.value,
     },
-    editor.value,
-    currentTitle,
+    editor,
+    title,
     headImageRef.value ?? '',
     route.hash,
-  );
-
-  if (result.ok) {
-    emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitle });
-    router.replace(`/${workspaceSlug.value}/${encodeForSlug(currentTitle)}${route.hash}`);
-
-    toast.add({ title: 'Saved', duration: 1000, icon: iconKey.success });
-  }
-  else {
-    toast.add({ title: result.error.name, description: result.error.message, icon: iconKey.failed, color: 'error' });
-  }
+  ))
+    .withToast('Saved', 'Failed to save')
+    .withCallback(
+      () => {
+        emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitle });
+        router.replace(`/${workspaceSlug.value}/${encodeForSlug(currentTitle)}${route.hash}`);
+      },
+    )
+    .execute(editor.value, currentTitle);
 }
 
 const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();

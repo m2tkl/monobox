@@ -19,7 +19,7 @@ export const useEffectHandler = () => {
   /**
    * Creates a chainable effect handler for the given operation
    */
-  function createEffectHandler<T>(operation: () => Promise<T>) {
+  function createEffectHandler<T, Args extends unknown[] = []>(operation: (...args: Args) => Promise<T>) {
     const effects = {
       success: [] as Array<(result: T) => void>,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,9 +74,9 @@ export const useEffectHandler = () => {
        * Executes the operation and all registered side effects
        */
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      execute: async (): Promise<{ ok: true; data: T } | { ok: false; error?: any }> => {
+      execute: async (...args: Args): Promise<{ ok: true; data: T } | { ok: false; error?: any }> => {
         try {
-          const result = await operation();
+          const result = await operation(...args);
           effects.success.forEach(effect => effect(result));
           return { ok: true, data: result };
         }
