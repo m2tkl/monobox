@@ -1,6 +1,5 @@
 import type { Level } from '@tiptap/extension-heading';
-import type { EditorView } from '@tiptap/pm/view';
-import type { Editor, JSONContent } from '@tiptap/vue-3';
+import type { Editor } from '@tiptap/vue-3';
 
 export const setLink = (editor: Editor, link: string) => {
   const target = isInternalLink(link) ? null : '_blank';
@@ -65,51 +64,6 @@ export const resetStyle = (
   editor.chain().focus().clearNodes().unsetAllMarks().run();
 };
 
-export const isInternalLink = (url: string): boolean => {
-  const appHost = window.location.origin;
-  try {
-    const linkHost = new URL(url, appHost).origin;
-    return linkHost === appHost;
-  }
-  catch (error) {
-    console.error(error);
-    return false;
-  }
-};
-
-export const getLinkFromMouseClickEvent = (
-  event: MouseEvent,
-): string | undefined => {
-  if (!event.target) {
-    return;
-  }
-
-  const link = (event.target as HTMLElement).closest('a');
-  if (!link) {
-    return;
-  }
-
-  const url = link.getAttribute('href');
-  if (!url) {
-    return;
-  }
-
-  return url;
-};
-
-/**
- * Return selected text in editor
- *
- * @param editorInstance Tiptap Editor instance
- * @returns
- */
-export function getSelectedTextV2(editorView: EditorView): string {
-  const { from, to } = editorView.state.selection;
-  const selectedText = editorView.state.doc.textBetween(from, to, '');
-
-  return selectedText;
-}
-
 /**
  * Insert link into editor
  *
@@ -140,21 +94,4 @@ export function insertLinkToMemo(
   // NOTE:
   //   Explicitly unset the link input to prevent subsequent input from being linked after inserting a link.
   editor.commands.unsetMark('link');
-}
-
-export function getHeadingTextById(json: JSONContent, id: string): string | null {
-  const heading = json.content?.find(
-    node =>
-      node.type === 'heading'
-      && node.attrs?.id === id
-      && Array.isArray(node.content)
-      && typeof node.content[0]?.text === 'string',
-  );
-  if (heading && heading.content) {
-    if (heading.content.length > 0) {
-      return heading.content[0].text || null;
-    }
-  }
-
-  return null;
 }

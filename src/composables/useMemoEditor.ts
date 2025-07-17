@@ -5,8 +5,8 @@ import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
-import * as EditorAction from '~/lib/editor/action.js';
 import * as CustomExtension from '~/lib/editor/extensions';
+import * as EditorQuery from '~/lib/editor/query';
 import * as EditorUtil from '~/lib/editor/util';
 
 type MemoEditorOptions = {
@@ -72,7 +72,7 @@ export function useMemoEditor(
       editor.registerPlugin(CustomExtension.removeHeadingIdOnPastePlugin);
 
       const handleLinkClick = async (event: MouseEvent) => {
-        const url = EditorAction.getLinkFromMouseClickEvent(event);
+        const url = EditorQuery.getLinkFromMouseClickEvent(event);
 
         // If clicked element is not link, do nothing.
         if (!url) {

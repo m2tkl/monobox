@@ -44,6 +44,7 @@ import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
 
 import * as EditorAction from '~/lib/editor/action.js';
+import * as EditorQuery from '~/lib/editor/query';
 
 const props = defineProps<{
   type: 'search' | 'link';
@@ -249,7 +250,7 @@ const handleKeydownShortcut = (event: KeyboardEvent) => {
     // - If text is selected, use that.
     // - Otherwise, if the current title has a path-like structure, use the parent path.
     // - If neither applies, use an empty string.
-    const selectedText = props.editor ? EditorAction.getSelectedTextV2(props.editor.view) : '';
+    const selectedText = props.editor ? EditorQuery.getSelectedTextV2(props.editor.view) : '';
     const parentPath = props.currentMemoTitle ? extractParentPathFromTitle(props.currentMemoTitle) : '';
     const initialTerm = selectedText || parentPath || '';
 

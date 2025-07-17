@@ -178,7 +178,7 @@ import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
+import type { JSONContent, NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
 import type { Link as LinkModel } from '~/models/link';
 
@@ -191,6 +191,7 @@ import * as EditorCommand from '~/lib/editor/command';
 import { renderMemoAsHtml } from '~/lib/editor/command/htmlExport';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
+import * as EditorQuery from '~/lib/editor/query.js';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -423,7 +424,7 @@ const bubbleMenuItems = [
     {
       icon: iconKey.memoLink,
       action: () => {
-        const selectedText = editor.value ? EditorAction.getSelectedTextV2(editor.value.view) : '';
+        const selectedText = editor.value ? EditorQuery.getSelectedTextV2(editor.value.view) : '';
         linkPaletteRef.value?.openCommandPalette(selectedText);
       },
     },
