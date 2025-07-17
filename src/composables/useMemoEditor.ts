@@ -5,6 +5,7 @@ import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
+import * as EditorAction from '~/lib/editor/action';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query';
 import * as EditorUtil from '~/lib/editor/util';
@@ -109,10 +110,10 @@ export function useMemoEditor(
     onTransaction: async ({ editor: _editor, transaction }) => {
       if (!transaction.docChanged) return;
 
-      applyTargetBlankToExternalLinks(_editor);
+      EditorAction.applyTargetBlankToExternalLinks(_editor);
       await updateLinks(transaction);
       updateHeadImage(transaction);
-      assignUniqueHeadingIds(_editor);
+      EditorAction.assignUniqueHeadingIds(_editor);
     },
     onSelectionUpdate: ({ editor }) => {
       const editorContainer = document.getElementById('main');
@@ -126,25 +127,7 @@ export function useMemoEditor(
         // and set a flag to skip heading identification based on scrolling.
         wasCaretOut.value = false;
 
-        // If the cursor is currently inside a heading, prioritaize it.
-        const { $anchor } = editor.state.selection;
-        for (let depth = $anchor.depth; depth >= 0; depth--) {
-          const node = $anchor.node(depth);
-          if (node.type.name === 'heading') {
-            activeHeadingId.value = node.attrs.id;
-            return;
-          }
-        }
-
-        // If the cursor is not inside a heading node, find the preceding heading.
-        const { state } = editor;
-        const { from } = state.selection;
-        let foundHeadingId: string | null = null;
-        state.doc.nodesBetween(0, from, (node) => {
-          if (node.type.name === 'heading') {
-            foundHeadingId = node.attrs.id ?? null;
-          }
-        });
+        const foundHeadingId = EditorQuery.findActiveHeadingId(editor);
 
         if (foundHeadingId) {
           activeHeadingId.value = foundHeadingId;
@@ -185,69 +168,6 @@ export function useMemoEditor(
     const foundFirstImage = EditorUtil.findHeadImage(transaction);
     if (foundFirstImage !== headImageRef.value) {
       headImageRef.value = foundFirstImage;
-    }
-  };
-
-  const applyTargetBlankToExternalLinks = (_editor: Editor) => {
-    const { state, view } = _editor;
-    const { schema, doc, tr } = state;
-    const linkMarkType = schema.marks.link;
-
-    let modified = false;
-
-    doc.nodesBetween(0, doc.content.size, (node, pos) => {
-      if (node.isText && node.marks.length > 0) {
-        node.marks.forEach((mark) => {
-          if (mark.type.name === 'link') {
-            const href = mark.attrs.href;
-            const target = mark.attrs.target;
-            if (href && !isInternalLink(href) && target !== '_blank') {
-              const textLength = node.text?.length ?? 0;
-              // Remove existing link mark
-              tr.removeMark(pos, pos + textLength, mark.type);
-              // Add new link mark with target="_blank"
-              tr.addMark(
-                pos,
-                pos + textLength,
-                linkMarkType.create({ ...mark.attrs, target: '_blank' }),
-              );
-              modified = true;
-            }
-          }
-        });
-      }
-    });
-
-    if (modified) {
-      view.dispatch(tr);
-    }
-  };
-
-  /**
-   * Assigns unique IDs for heading elements in the doc.
-   *
-   * If a heading node does not have an `id` attribute,
-   * it assigns a new unique ID.
-   *
-   * @param editor
-   */
-  const assignUniqueHeadingIds = (editor: Editor) => {
-    const { state, view } = editor;
-    const tr = state.tr;
-    let modified = false;
-
-    state.doc.descendants((node, pos) => {
-      if (node.type.name === 'heading') {
-        if (!node.attrs.id) {
-          const newId = crypto.randomUUID();
-          tr.setNodeMarkup(pos, undefined, { ...node.attrs, id: newId });
-          modified = true;
-        }
-      }
-    });
-
-    if (modified) {
-      view.dispatch(tr);
     }
   };
 
