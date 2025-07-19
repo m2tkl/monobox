@@ -2,7 +2,7 @@
   <NuxtLayout name="default">
     <template #main>
       <div class="size-full">
-        <div class="size-full px-4 pb-8 overflow-y-auto">
+        <div class="size-full px-4 pb-4 overflow-y-auto">
           <!-- Memo List -->
           <LoadingSpinner v-if="workspaceMemosLoading" />
           <p v-else-if="memos.length === 0">
@@ -39,7 +39,20 @@
             </div>
           </div>
 
-          <MemoCards :memos="recentMemos" />
+          <MemoCards :memos="limitedRecentMemos" />
+
+          <div
+            v-if="hasMoreRecentMemos"
+            class="mt-4 text-center"
+          >
+            <UButton
+              variant="outline"
+              class="text-sm"
+              @click="loadMore"
+            >
+              Load more
+            </UButton>
+          </div>
         </div>
       </div>
     </template>
@@ -87,10 +100,22 @@ const workspace = computed(() => store.workspace);
 const memos = computed(() => store.workspaceMemos);
 const workspaceMemosLoading = computed(() => store.workspaceMemosLoading);
 
+const recentMemosDisplayCount = ref(64);
+
 const recentMemos = computed(() => {
   return store.workspaceMemos.filter(memo => !store.bookmarkedMemos.map(item => item.title).includes(memo.title));
 });
+const limitedRecentMemos = computed(() => {
+  return recentMemos.value.slice(0, recentMemosDisplayCount.value);
+});
+const hasMoreRecentMemos = computed(() => {
+  return recentMemos.value.length > recentMemosDisplayCount.value;
+});
 const bookmarks = computed(() => store.bookmarkedMemos);
+
+const loadMore = () => {
+  recentMemosDisplayCount.value += 64;
+};
 </script>
 
 <style scoped>
