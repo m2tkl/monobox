@@ -46,7 +46,8 @@
             class="mt-4 text-center"
           >
             <UButton
-              variant="outline"
+              variant="link"
+              color="info"
               class="text-sm"
               @click="loadMore"
             >
