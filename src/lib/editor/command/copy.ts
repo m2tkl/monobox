@@ -1,8 +1,8 @@
 import { writeHtml } from '@tauri-apps/plugin-clipboard-manager';
 
-import { renderMemoAsHtml } from './htmlExport';
-
 import type { Editor } from '@tiptap/vue-3';
+
+import { convertMemotoHtml } from '~/lib/memo/exporter/toHtml';
 
 /**
  * Copy link as html link
@@ -23,7 +23,7 @@ export const copyLinkAsHtml = async (href: string, text: string): Promise<void> 
  */
 export const copyPageAsHtml = async (editor: Editor, title: string) => {
   const json = editor.getJSON();
-  const htmlPage = renderMemoAsHtml(json, title);
+  const htmlPage = convertMemotoHtml(json, title);
 
   await writeHtml(htmlPage);
 };

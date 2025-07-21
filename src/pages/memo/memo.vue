@@ -188,10 +188,10 @@ import OutlineView from '~/components/OutlineView.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorCommand from '~/lib/editor/command';
-import { renderMemoAsHtml } from '~/lib/editor/command/htmlExport';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
+import { convertMemotoHtml } from '~/lib/memo/exporter/toHtml';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -237,7 +237,6 @@ const extensions = [
 
 const route = useRoute();
 const router = useRouter();
-const { toast } = useToast_();
 const { createEffectHandler } = useEffectHandler();
 const command = useCommand();
 const store = useWorkspaceStore();
@@ -601,7 +600,7 @@ async function renderLinkedMemosAsHtml(links: Array<LinkModel>): Promise<string[
     });
 
     const json = JSON.parse(memo.content);
-    htmls.push(renderMemoAsHtml(json, link.title));
+    htmls.push(convertMemotoHtml(json, link.title));
   }
 
   return htmls;
@@ -610,13 +609,20 @@ async function renderLinkedMemosAsHtml(links: Array<LinkModel>): Promise<string[
 const exportPagesV2 = async (targets: Array<LinkModel>) => {
   if (!editor.value || !store.memo) return;
 
-  const currentMemoHtml = renderMemoAsHtml(editor.value.getJSON(), store.memo.title);
-  const linkedHtmls = await renderLinkedMemosAsHtml(targets);
-
-  htmlExport.value = [currentMemoHtml, ...linkedHtmls].join('\n');
-
-  exportDialogOn.value = false;
-  exportResultDialogOn.value = true;
+  await createEffectHandler(async (targets: Array<LinkModel>, editorJson: JSONContent, memoTitle: string) => {
+    const currentMemoHtml = convertMemotoHtml(editorJson, memoTitle);
+    const linkedHtmls = await renderLinkedMemosAsHtml(targets);
+    return [currentMemoHtml, ...linkedHtmls].join('\n');
+  })
+    .withToast('Export prepared successfully!', 'Failed to prepare export.')
+    .withCallback(
+      (result: string) => {
+        htmlExport.value = result;
+        exportDialogOn.value = false;
+        exportResultDialogOn.value = true;
+      },
+    )
+    .execute(targets, editor.value.getJSON(), store.memo.title);
 };
 
 /* --- Export with related pages (Step2: copy result) */
@@ -624,15 +630,14 @@ const exportPagesV2 = async (targets: Array<LinkModel>) => {
 const exportResultDialogOn = ref(false);
 
 const copyExportedResult = async (textToCopy: string) => {
-  await executeWithToast(
-    async (text) => {
-      navigator.clipboard.writeText(text);
-    },
-    [textToCopy],
-    { success: 'Exported result copied!', error: 'Failed to copy.' },
-  );
-
-  exportResultDialogOn.value = false;
+  await createEffectHandler((text: string) =>
+    Promise.resolve(navigator.clipboard.writeText(text)),
+  )
+    .withToast('Exported result copied!', 'Failed to copy.')
+    .withCallback(() => {
+      exportResultDialogOn.value = false;
+    })
+    .execute(textToCopy);
 };
 </script>
 
