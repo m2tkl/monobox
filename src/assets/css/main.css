@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "./modules/base.css";
+@import "./modules/utilities.css";
 @import "./modules/editor.css";
 
 @theme {
