@@ -1,14 +1,6 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "./modules/tokens.css";
 @import "./modules/base.css";
 @import "./modules/utilities.css";
 @import "./modules/editor.css";
-
-@theme {
-  --color-slate-75: #e2e8f0bf;
-  --color-modal-overlay: #e2e8f0bf;
-  --color-surface: #e2e8f0;
-  --color-focus-bg: #e2e8f0;
-  --color-border-default: #555;
-  --color-border-muted: #888;
-}

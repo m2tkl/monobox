@@ -1,0 +1,101 @@
+/* Design Tokens - Systematic Color Variables */
+
+:root {
+  /* === Color System === */
+
+  /* Primary Colors */
+  --color-primary: #4285F4;
+  --color-primary-hover: #3367D6;
+  --color-primary-light: #b3c8f5;
+
+  /* Surface Colors (backgrounds & elevated surfaces) */
+  --color-background: rgb(226 232 240);        /* Global background */
+  --color-surface: #e2e8f0;                   /* Default surface */
+  --color-surface-elevated: #ffffff;          /* Elevated surface (cards, modals) */
+  --color-surface-hover: #cbd5e1;             /* Hover state surface */
+  --color-surface-active: #94a3b8;            /* Active state surface */
+  --color-surface-muted: #f8fafc;             /* Muted background */
+
+  /* Text Colors */
+  --color-text-primary: #1e293b;              /* Main text */
+  --color-text-secondary: #475569;            /* Secondary text */
+  --color-text-muted: #64748b;                /* Muted text */
+  --color-text-disabled: #94a3b8;             /* Disabled text */
+  --color-text-light: #cbd5e1;                /* Light text */
+
+  /* Gray Scale (systematic replacement for hex values) */
+  --color-gray-100: #f8fafc;                  /* Lightest gray */
+  --color-gray-200: #e2e8f0;                  /* Light gray */
+  --color-gray-300: #cbd5e1;                  /* Medium light gray */
+  --color-gray-400: #94a3b8;                  /* Medium gray */
+  --color-gray-500: #64748b;                  /* Base gray */
+  --color-gray-600: #475569;                  /* Medium dark gray */
+  --color-gray-700: #334155;                  /* Dark gray */
+  --color-gray-800: #1e293b;                  /* Darker gray */
+  --color-gray-900: #0f172a;                  /* Darkest gray */
+
+  /* Legacy gray values (for gradual migration) */
+  --color-gray-ccc: #cccccc;                  /* #ccc equivalent */
+  --color-gray-999: #999999;                  /* #999 equivalent */
+  --color-gray-888: #888888;                  /* #888 equivalent */
+  --color-gray-777: #777777;                  /* #777 equivalent */
+  --color-gray-666: #666666;                  /* #666 equivalent */
+  --color-gray-555: #555555;                  /* #555 equivalent */
+
+  /* Border Colors */
+  --color-border-default: #555555;            /* Default border (existing) */
+  --color-border-muted: #888888;              /* Muted border (existing) */
+  --color-border-light: rgb(180, 187, 195);   /* Light border */
+  --color-border-focus: #3b82f6;              /* Focus border */
+  --color-border-hover: #64748b;              /* Hover border */
+
+  /* State Colors */
+  --color-focus-bg: #e2e8f0;                  /* Focus background (existing) */
+  --color-hover-bg: #f1f5f9;                  /* Hover background */
+  --color-active-bg: #e2e8f0;                 /* Active background */
+  --color-selected-bg: var(--color-border-muted); /* Selected background */
+
+  /* Special Colors */
+  --color-modal-overlay: #e2e8f0bf;           /* Modal overlay (existing) */
+  --color-slate-75: #e2e8f0bf;                /* Special slate with opacity (existing) */
+
+  /* Code & Editor Colors */
+  --color-code-bg: #232B3B;                   /* Code block background */
+  --color-code-bg-focus: #000000;             /* Focused code block background */
+  --color-code-inline-bg: rgb(227, 199, 255); /* Inline code background */
+  --color-code-border: #424851;               /* Code block border */
+  --color-code-text: #ffffff;                 /* Code text */
+
+  /* Code & Editor base colors only (shared) */
+  --color-editor-text: #ffffff;               /* Editor text color */
+
+  /* Scrollbar Colors */
+  --color-scrollbar-thumb: rgba(73, 73, 73, 0.2);       /* Scrollbar thumb */
+  --color-scrollbar-thumb-hover: rgba(83, 83, 83, 0.3); /* Scrollbar thumb hover */
+  --color-scrollbar-track: transparent;                  /* Scrollbar track */
+
+  /* Link Colors */
+  --color-link: blue;                          /* Default link color */
+  --color-link-hover: blue;                   /* Link hover color */
+  --color-link-completed: rgba(0, 0, 255, 0.578); /* Completed task link */
+
+  /* Spacing Scale (for future use) */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 1rem;       /* 16px */
+  --spacing-lg: 1.5rem;     /* 24px */
+  --spacing-xl: 2rem;       /* 32px */
+
+  /* Border Radius Scale */
+  --radius-sm: 0.25rem;     /* 4px */
+  --radius-md: 0.5rem;      /* 8px */
+  --radius-lg: 0.75rem;     /* 12px */
+
+  /* Shadow Scale */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px var(--color-primary-light);
+}

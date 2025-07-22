@@ -1,5 +1,16 @@
 /* Editor Styles - Extracted from app.vue */
 
+/* Editor-specific design tokens */
+.tiptap {
+  /* Syntax highlighting colors - organized by visual similarity */
+  --editor-syntax-gray: #cccccc;      /* Comments, quotes */
+  --editor-syntax-red: #f98181;       /* Variables, tags, selectors */
+  --editor-syntax-orange: #fbbc88;    /* Numbers, literals, types */
+  --editor-syntax-green: #b9f18d;     /* Strings, symbols */
+  --editor-syntax-yellow: #faf594;    /* Titles, sections */
+  --editor-syntax-blue: #70cff8;      /* Keywords */
+}
+
 /* Basic editor styles */
 .tiptap :first-child {
   margin-top: 0;
@@ -59,18 +70,18 @@
 
 /* Code and preformatted text styles */
 .tiptap code {
-  background-color: rgb(227, 199, 255);
-  border-radius: 0.4rem;
+  background-color: var(--color-code-inline-bg);
+  border-radius: var(--radius-md);
   color: black;
   font-size: 0.85rem;
   padding: 0.25em 0.3em;
 }
 
 .tiptap pre {
-  background: #232B3B;
-  border-bottom-left-radius: 0.5rem;
-  border-bottom-right-radius: 0.5rem;
-  color: white;
+  background: var(--color-code-bg);
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  color: var(--color-code-text);
   font-family: "JetBrainsMono", monospace;
   margin: 1rem 0;
   padding: 0.75rem 1rem;
@@ -84,9 +95,10 @@
 }
 
 /* Code highlighting */
+
 .tiptap pre code .hljs-comment,
 .tiptap pre code .hljs-quote {
-  color: #ccc;
+  color: var(--editor-syntax-gray);
 }
 
 .tiptap pre code .hljs-variable,
@@ -97,8 +109,9 @@
 .tiptap pre code .hljs-regexp,
 .tiptap pre code .hljs-link,
 .tiptap pre code .hljs-selector-id,
-.tiptap pre code .hljs-selector-class {
-  color: #f98181;
+.tiptap pre code .hljs-selector-class,
+.tiptap pre code .hljs-selector-tag {
+  color: var(--editor-syntax-red);
 }
 
 .tiptap pre code .hljs-number,
@@ -108,23 +121,22 @@
 .tiptap pre code .hljs-literal,
 .tiptap pre code .hljs-type,
 .tiptap pre code .hljs-params {
-  color: #fbbc88;
+  color: var(--editor-syntax-orange);
 }
 
 .tiptap pre code .hljs-string,
 .tiptap pre code .hljs-symbol,
 .tiptap pre code .hljs-bullet {
-  color: #b9f18d;
+  color: var(--editor-syntax-green);
 }
 
 .tiptap pre code .hljs-title,
 .tiptap pre code .hljs-section {
-  color: #faf594;
+  color: var(--editor-syntax-yellow);
 }
 
-.tiptap pre code .hljs-keyword,
-.tiptap pre code .hljs-selector-tag {
-  color: #70cff8;
+.tiptap pre code .hljs-keyword {
+  color: var(--editor-syntax-blue);
 }
 
 .tiptap pre code .hljs-emphasis {
@@ -149,13 +161,13 @@
 }
 
 .tiptap a {
-  color: blue;
+  color: var(--color-link);
   cursor: pointer;
 }
 
 .tiptap a:hover {
-  color: blue;
-  text-decoration: underline blue;
+  color: var(--color-link-hover);
+  text-decoration: underline var(--color-link-hover);
   text-underline-offset: 0.2em;
   text-decoration-style: solid;
   text-decoration-skip-ink: none;
@@ -174,19 +186,19 @@
 
 /* Focus highlight */
 .tiptap .has-focus {
-  box-shadow: 0 0 0 2px #b3c8f5;
+  box-shadow: var(--focus-ring);
   background-color: var(--color-focus-bg);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
 }
 
 /* Override background color for focused code blocks */
 .tiptap pre.has-focus {
-  background-color: black;
+  background-color: var(--color-code-bg-focus);
 }
 
 .tiptap img {
   box-shadow: 0 0 0 1px var(--color-surface);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -294,7 +306,7 @@
   font-size: 0.8em;
   text-align: center;
   margin-top: 4px;
-  color: #666;
+  color: var(--color-gray-666);
 }
 
 /* Remove focus outline of editor */
