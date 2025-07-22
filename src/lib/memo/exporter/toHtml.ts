@@ -9,7 +9,11 @@ import { convertEditorJsonToHtml } from '~/lib/editor/serializer/html';
  * @param title - The memo title to be rendered as an H1 heading
  * @returns Complete HTML string with the title as H1 followed by the memo content
  */
-export function convertMemotoHtml(content: JSONContent, title: string): string {
+export function convertMemoToHtml(content: JSONContent, title: string): string {
   const htmlBody = convertEditorJsonToHtml(content);
   return `<h1>${title}</h1>${htmlBody}`;
+}
+
+export function createHtmlLink(href: string, text: string): string {
+  return `<a href="${href}">${text}</a>`;
 }

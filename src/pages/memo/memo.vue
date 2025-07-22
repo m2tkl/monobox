@@ -186,12 +186,13 @@ import CodeBlockComponent from '~/components/CodeBlock.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import OutlineView from '~/components/OutlineView.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
+import { writeHtml } from '~/lib/clipboard';
 import * as EditorAction from '~/lib/editor/action.js';
-import * as EditorCommand from '~/lib/editor/command';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
-import { convertMemotoHtml } from '~/lib/memo/exporter/toHtml';
+import { convertToMarkdown } from '~/lib/editor/serializer/markdown';
+import { convertMemoToHtml, createHtmlLink } from '~/lib/memo/exporter/toHtml';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -549,17 +550,27 @@ async function runDeleteWorkflow() {
 }
 
 const copyPageAsMarkdown = (editor: _Editor, title: string) =>
-  createEffectHandler(() => EditorCommand.copyAsMarkdown(editor, title))
-    .withToast('Copied page as markdown.', 'Failed to copy.')
+  createEffectHandler(async () => {
+    const markdown = convertToMarkdown(editor.state.doc, title);
+    await writeHtml(markdown);
+  })
+    .withToast('Copied as markdown.', 'Failed to copy.')
     .execute();
 
 const copyPageAsHtml = (editor: _Editor, title: string) =>
-  createEffectHandler(() => EditorCommand.copyPageAsHtml(editor, title))
-    .withToast('Copied page as html.', 'Failed to copy.')
+  createEffectHandler(async () => {
+    const html = convertMemoToHtml(editor.getJSON(), title);
+    await writeHtml(html);
+  })
+    .withToast('Copied as html.', 'Failed to copy.')
     .execute();
 
 const copySelectedTextAsMarkdown = (editor: _Editor) =>
-  createEffectHandler(() => EditorCommand.copySelectedAsMarkdown(editor))
+  createEffectHandler(async () => {
+    const selectedContent = EditorQuery.getSelectedNode(editor);
+    const markdown = convertToMarkdown(selectedContent);
+    await navigator.clipboard.writeText(markdown);
+  })
     .withToast('Copied as markdown.', 'Failed to copy.')
     .execute();
 
@@ -570,7 +581,10 @@ const copySelectedTextAsMarkdown = (editor: _Editor) =>
  * @param headingText
  */
 const copyLinkToHeading = (fullUrl: string, titleWithHeading: string) =>
-  createEffectHandler(() => EditorCommand.copyLinkAsHtml(fullUrl, titleWithHeading))
+  createEffectHandler(async () => {
+    const htmlLink = createHtmlLink(fullUrl, titleWithHeading);
+    await writeHtml(htmlLink);
+  })
     .withToast('Copied link to heading.', 'Failed to copy.')
     .execute();
 
@@ -590,8 +604,8 @@ const exportCandidates = computed(() => {
 
 const htmlExport = ref<string>('');
 
-async function renderLinkedMemosAsHtml(links: Array<LinkModel>): Promise<string[]> {
-  const htmls = [];
+async function fetchLinkedMemos(links: Array<LinkModel>): Promise<Array<{ content: string; title: string }>> {
+  const memos = [];
 
   for (const link of links) {
     const memo = await command.memo.get({
@@ -599,20 +613,22 @@ async function renderLinkedMemosAsHtml(links: Array<LinkModel>): Promise<string[
       memoSlugTitle: link.title,
     });
 
-    const json = JSON.parse(memo.content);
-    htmls.push(convertMemotoHtml(json, link.title));
+    memos.push({ content: memo.content, title: link.title });
   }
 
-  return htmls;
+  return memos;
 }
 
 const exportPagesV2 = async (targets: Array<LinkModel>) => {
   if (!editor.value || !store.memo) return;
 
   await createEffectHandler(async (targets: Array<LinkModel>, editorJson: JSONContent, memoTitle: string) => {
-    const currentMemoHtml = convertMemotoHtml(editorJson, memoTitle);
-    const linkedHtmls = await renderLinkedMemosAsHtml(targets);
-    return [currentMemoHtml, ...linkedHtmls].join('\n');
+    const currentMemoHtml = convertMemoToHtml(editorJson, memoTitle);
+
+    const linkedMemos = await fetchLinkedMemos(targets);
+    const linkedMemoHtmls = linkedMemos.map(linkedMemo => convertMemoToHtml(JSON.parse(linkedMemo.content), linkedMemo.title));
+
+    return [currentMemoHtml, ...linkedMemoHtmls].join('\n');
   })
     .withToast('Export prepared successfully!', 'Failed to prepare export.')
     .withCallback(

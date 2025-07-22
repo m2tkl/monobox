@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/core';
+import type { Node } from '@tiptap/pm/model';
 import type { EditorView } from '@tiptap/pm/view';
 import type { JSONContent } from '@tiptap/vue-3';
 
@@ -13,6 +14,13 @@ export function getSelectedTextV2(editorView: EditorView): string {
   const selectedText = editorView.state.doc.textBetween(from, to, '');
 
   return selectedText;
+}
+
+export function getSelectedNode(editor: Editor): Node {
+  const { from, to } = editor.state.selection;
+  const selectedContent = editor.state.doc.cut(from, to);
+
+  return selectedContent;
 }
 
 export function getHeadingTextById(json: JSONContent, id: string): string | null {
