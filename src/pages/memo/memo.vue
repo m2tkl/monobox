@@ -149,12 +149,12 @@
 
       <!-- Export with related pages -->
       <ExportDialogToSelectTargets
-        v-model:open="exportDialogOn"
+        v-model:open="isSelectingTargets"
         :export-candidates="exportCandidates"
         @select="(targets) => exportPagesV2(targets)"
       />
       <ExportDialogToCopyResult
-        v-model:open="exportResultDialogOn"
+        v-model:open="isCopyingResult"
         :text-to-export="htmlExport"
         @copy="copyExportedResult"
       />
@@ -406,7 +406,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Export with linked pages',
       icon: iconKey.pageLink,
-      onSelect: () => { exportDialogOn.value = true; },
+      onSelect: () => { exportMode.value = 'selectingTargets'; },
     },
   ],
   [
@@ -590,7 +590,22 @@ const copyLinkToHeading = (fullUrl: string, titleWithHeading: string) =>
 
 /* --- Export with related pages (Step1: select targets) --- */
 
-const exportDialogOn = ref(false);
+const exportMode = ref<'idle' | 'selectingTargets' | 'copyingResult'>('idle');
+const htmlExport = ref<string>('');
+
+const isSelectingTargets = computed({
+  get: () => exportMode.value === 'selectingTargets',
+  set: (value: boolean) => {
+    exportMode.value = value ? 'selectingTargets' : 'idle';
+  },
+});
+
+const isCopyingResult = computed({
+  get: () => exportMode.value === 'copyingResult',
+  set: (value: boolean) => {
+    exportMode.value = value ? 'copyingResult' : 'idle';
+  },
+});
 
 const exportCandidates = computed(() => {
   if (store.links) {
@@ -601,8 +616,6 @@ const exportCandidates = computed(() => {
   }
   return [];
 });
-
-const htmlExport = ref<string>('');
 
 async function fetchLinkedMemos(links: Array<LinkModel>): Promise<Array<{ content: string; title: string }>> {
   const memos = [];
@@ -634,8 +647,7 @@ const exportPagesV2 = async (targets: Array<LinkModel>) => {
     .withCallback(
       (result: string) => {
         htmlExport.value = result;
-        exportDialogOn.value = false;
-        exportResultDialogOn.value = true;
+        exportMode.value = 'copyingResult';
       },
     )
     .execute(targets, editor.value.getJSON(), store.memo.title);
@@ -643,15 +655,13 @@ const exportPagesV2 = async (targets: Array<LinkModel>) => {
 
 /* --- Export with related pages (Step2: copy result) */
 
-const exportResultDialogOn = ref(false);
-
 const copyExportedResult = async (textToCopy: string) => {
   await createEffectHandler((text: string) =>
     Promise.resolve(navigator.clipboard.writeText(text)),
   )
     .withToast('Exported result copied!', 'Failed to copy.')
     .withCallback(() => {
-      exportResultDialogOn.value = false;
+      exportMode.value = 'idle';
     })
     .execute(textToCopy);
 };
