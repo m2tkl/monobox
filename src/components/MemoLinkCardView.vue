@@ -2,7 +2,8 @@
   <div class="border-t border-slate-300 p-0">
     <!-- Link Header -->
     <div
-      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-2 border-b-2 border-slate-400 bg-surface px-2 py-1 text-sm font-semibold text-gray-800"
+      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-2 border-b-2 border-slate-400 px-2 py-1 text-sm font-semibold text-gray-800"
+      style="background-color: var(--color-surface)"
     >
       <UIcon :name="iconKey.link" />
       Links
@@ -49,7 +50,7 @@
             >
               <template #header>
                 <h3 class="truncate-multiline text-sm font-semibold text-gray-700">
-                    {{ truncateString(extractBasenameFromTitle(memo.title), 32) }}
+                  {{ truncateString(extractBasenameFromTitle(memo.title), 32) }}
                 </h3>
               </template>
               <img
