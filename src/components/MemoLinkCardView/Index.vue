@@ -15,22 +15,10 @@
     >
       <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 px-4">
         <li>
-          <UCard
-            class="flex aspect-[1/1] items-center justify-center"
-            :ui="{
-              header: 'px-3 pt-3 pb-0 sm:px-3',
-              body: 'px-3 pb-4 pt-1 sm:p-3',
-              root: 'divide-white',
-            }"
-          >
-            <h3 class="truncate-multiline flex flex-col items-center gap-1 text-sm font-semibold text-gray-700">
-              Links
-              <Icon
-                :name="iconKey.link"
-                class="text-lg"
-              />
-            </h3>
-          </UCard>
+          <TitleCard
+            title="Links"
+            card-type="text"
+          />
         </li>
 
         <li
@@ -49,7 +37,7 @@
             >
               <template #header>
                 <h3 class="truncate-multiline text-sm font-semibold text-gray-700">
-                    {{ truncateString(extractBasenameFromTitle(memo.title), 32) }}
+                  {{ truncateString(extractBasenameFromTitle(memo.title), 32) }}
                 </h3>
               </template>
               <img
@@ -85,23 +73,10 @@
                   :to="`/${route.params.workspace}/${link.slug_title}`"
                   class="flex flex-col"
                 >
-
-                  <UCard
-                    class="flex aspect-[1/1] items-center justify-center bg-blue-200 hover:bg-blue-300"
-                    :ui="{
-                      header: 'px-3 pt-3 pb-0 sm:px-3',
-                      body: 'px-3 pb-4 pt-1 sm:p-3',
-                      root: 'divide-blue-200 hover:divide-blue-300',
-                    }"
-                  >
-                    <h3 class="truncate-multiline flex flex-col items-center gap-1 text-sm font-semibold text-gray-700">
-                      {{ truncateString(extractBasenameFromTitle(link.title), 32) }}
-                      <Icon
-                        :name="iconKey.link"
-                        class="text-xl"
-                      />
-                    </h3>
-                  </UCard>
+                  <TitleCard
+                    :title="truncateString(extractBasenameFromTitle(link.title), 32)"
+                    card-type="link"
+                  />
                 </NuxtLink>
               </li>
 
@@ -151,6 +126,8 @@
 </template>
 
 <script setup lang="ts">
+import TitleCard from './TitleCard.vue';
+
 import type { Link } from '~/models/link';
 
 const props = defineProps<{
