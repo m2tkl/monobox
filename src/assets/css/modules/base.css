@@ -1,9 +1,9 @@
-/* Base Styles - Extracted from app.vue */
+/* Base Styles */
 
 /* Base HTML/Body setup */
 html,
 body {
-  background-color: rgb(226 232 240);
+  background-color: var(--color-background);
   /* Disable bounce */
   overscroll-behavior: none;
   box-sizing: border-box;
@@ -24,14 +24,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(73, 73, 73, 0.2);
-  border-radius: 4px;
+  background: var(--color-scrollbar-thumb);
+  border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(83, 83, 83, 0.3);
+  background: var(--color-scrollbar-thumb-hover);
 }
