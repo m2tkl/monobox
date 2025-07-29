@@ -23,7 +23,10 @@
         v-if="bookmarks.length > 0"
         class="pb-2"
       >
-        <div class="sticky top-0 z-10 bg-surface">
+        <div
+          class="sticky top-0 z-10"
+          style="background-color: var(--color-surface)"
+        >
           <div class="flex h-12 items-center ml-1">
             <UIcon
               :name="iconKey.bookmark"
@@ -53,7 +56,10 @@
 
       <!-- Recently viewed memos section -->
       <section>
-        <div class="sticky top-0 z-10 bg-surface">
+        <div
+          class="sticky top-0 z-10"
+          style="background-color: var(--color-surface)"
+        >
           <div class="flex h-12 items-center ml-1">
             <UIcon
               :name="iconKey.recent"
