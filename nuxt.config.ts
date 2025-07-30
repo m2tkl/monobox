@@ -13,6 +13,13 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
 
   css: ['~/assets/css/main.css'],
+
+  // Color mode configuration
+  colorMode: {
+    preference: 'system',
+    fallback: 'light',
+    storageKey: 'nuxt-color-mode',
+  },
   // Change nuxt app root dir
   srcDir: 'src/',
 
