@@ -1,20 +1,22 @@
 /* Design Tokens - Systematic Color Variables */
 
 :root {
+  /* Light theme (default) */
   /* === Color System === */
 
   /* Primary Colors */
-  --color-primary: #4285F4;
-  --color-primary-hover: #3367D6;
+  --color-primary: #3367D6;
+  --color-primary-hover: #2563eb;
   --color-primary-light: #b3c8f5;
 
   /* Surface Colors (backgrounds & elevated surfaces) */
   --color-background: rgb(226 232 240);        /* Global background */
   --color-surface: #e2e8f0;                   /* Default surface */
   --color-surface-elevated: #ffffff;          /* Elevated surface (cards, modals) */
-  --color-surface-hover: #cbd5e1;             /* Hover state surface */
-  --color-surface-active: #94a3b8;            /* Active state surface */
+  --color-surface-hover: #f1f5f9;             /* Hover state surface */
+  --color-surface-active: #e0e7ff;            /* Active state surface - more distinct blue tint */
   --color-surface-muted: #f8fafc;             /* Muted background */
+  --color-card-bg: #ffffff;                   /* Card background */
 
   /* Text Colors */
   --color-text-primary: #1e293b;              /* Main text */
@@ -48,6 +50,7 @@
   --color-border-light: rgb(180, 187, 195);   /* Light border */
   --color-border-focus: #3b82f6;              /* Focus border */
   --color-border-hover: #64748b;              /* Hover border */
+  --color-card-border: #d1d5db;               /* Card border */
 
   /* State Colors */
   --color-focus-bg: #e2e8f0;                  /* Focus background (existing) */
@@ -62,7 +65,8 @@
   /* Code & Editor Colors */
   --color-code-bg: #232B3B;                   /* Code block background */
   --color-code-bg-focus: #000000;             /* Focused code block background */
-  --color-code-inline-bg: rgb(227, 199, 255); /* Inline code background */
+  --color-code-inline-bg: #e2e8f0;            /* Inline code background - Light gray */
+  --color-code-inline-text: #1e293b;          /* Inline code text - Dark text */
   --color-code-border: #424851;               /* Code block border */
   --color-code-text: #ffffff;                 /* Code text */
 
@@ -75,9 +79,11 @@
   --color-scrollbar-track: transparent;                  /* Scrollbar track */
 
   /* Link Colors */
-  --color-link: blue;                          /* Default link color */
-  --color-link-hover: blue;                   /* Link hover color */
+  --color-link: #3b82f6;                      /* Default link color */
+  --color-link-hover: #2563eb;               /* Link hover color */
   --color-link-completed: rgba(0, 0, 255, 0.578); /* Completed task link */
+  --color-link-sidebar: #2563eb;             /* Sidebar link color */
+  --color-link-sidebar-hover: #1d4ed8;      /* Sidebar link hover color */
 
   /* Spacing Scale (for future use) */
   --spacing-xs: 0.25rem;    /* 4px */
@@ -95,6 +101,68 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px var(--color-primary-light);
+}
+
+/* Dark Theme */
+.dark {
+  /* Primary Colors */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: #93c5fd;
+
+  /* Surface Colors */
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-rgb: 30, 41, 59;
+  --color-surface-elevated: #334155;
+  --color-surface-hover: #475569;
+  --color-surface-active: #64748b;
+  --color-surface-muted: #1e293b;
+  --color-card-bg: #334155;
+
+  /* Text Colors */
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-disabled: #64748b;
+  --color-text-light: #475569;
+
+  /* Border Colors */
+  --color-border-default: #475569;
+  --color-border-muted: #64748b;
+  --color-border-light: #374151;
+  --color-border-focus: #60a5fa;
+  --color-border-hover: #94a3b8;
+  --color-card-border: #374151;
+
+  /* State Colors */
+  --color-focus-bg: #334155;
+  --color-hover-bg: #1e293b;
+  --color-active-bg: #334155;
+
+  /* Special Colors */
+  --color-modal-overlay: #0f172abf;
+  --color-slate-75: #1e293bbf;
+
+  /* Code & Editor Colors */
+  --color-code-bg: #0d1117;
+  --color-code-bg-focus: #000000;
+  --color-code-inline-bg: #475569;            /* Inline code background - Darker gray */
+  --color-code-inline-text: #f1f5f9;          /* Inline code text - Light text */
+  --color-code-text: #e5e7eb;
+
+  /* Scrollbar Colors */
+  --color-scrollbar-thumb: rgba(148, 163, 184, 0.3);
+  --color-scrollbar-thumb-hover: rgba(148, 163, 184, 0.5);
+
+  /* Link Colors (Dark theme) */
+  --color-link: #60a5fa;
+  --color-link-hover: #3b82f6;
+  --color-link-sidebar: #60a5fa;
+  --color-link-sidebar-hover: #3b82f6;
 
   /* Focus Ring */
   --focus-ring: 0 0 0 2px var(--color-primary-light);

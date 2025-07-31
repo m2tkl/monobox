@@ -34,7 +34,7 @@
         size="xs"
         block
       >
-        <span class="text-gray-500">
+        <span class="titlebar-search-text">
           {{ workspaceTitle || "monobox" }}
         </span>
       </UButton>
@@ -62,22 +62,3 @@ const goHome = () => router.push(`/${route.params.workspace}`);
 
 const { toggleSidebar } = useUIState();
 </script>
-
-<style scoped>
-.titlebar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 30px;
-  width: 100%;
-  color: white;
-  padding: 0 10px;
-  user-select: none;
-  overscroll-behavior: none;
-  border-bottom: 1px solid rgb(180, 187, 195);
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-}
-</style>

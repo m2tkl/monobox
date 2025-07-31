@@ -25,14 +25,14 @@
       >
         <div
           class="sticky top-0 z-10"
-          style="background-color: var(--color-surface)"
+          style="background-color: var(--color-background)"
         >
           <div class="flex h-12 items-center ml-1">
             <UIcon
               :name="iconKey.bookmark"
               class="mr-2"
             />
-            <h2 class="font-bold text-gray-600">
+            <h2 class="font-bold sidebar-heading">
               Bookmarks
             </h2>
           </div>
@@ -45,8 +45,8 @@
           >
             <NuxtLink
               :to="`/${workspaceSlug}/${memo.slug_title}`"
-              class="block rounded-md px-2 py-1 text-sm text-gray-600 hover:bg-slate-100 hover:text-blue-700"
-              active-class="bg-slate-100 font-bold"
+              class="block rounded-md px-2 py-1 text-sm sidebar-link"
+              active-class="is-active"
             >
               {{ memo.title }}
             </NuxtLink>
@@ -58,14 +58,14 @@
       <section>
         <div
           class="sticky top-0 z-10"
-          style="background-color: var(--color-surface)"
+          style="background-color: var(--color-background)"
         >
           <div class="flex h-12 items-center ml-1">
             <UIcon
               :name="iconKey.recent"
               class="mr-2"
             />
-            <h2 class="font-bold text-gray-600">
+            <h2 class="font-bold sidebar-heading">
               Recent
             </h2>
             <USelect
@@ -88,11 +88,10 @@
             <NuxtLink
               :to="`/${memo.workspace}/${memo.slug}${memo.hash || ''}`"
               :class="{
-                'font-bold bg-slate-100': isActive(memo),
-                'hover:bg-slate-100 hover:text-blue-700': true,
+                'sidebar-link': true,
+                'is-active': isActive(memo),
+                'sidebar-external': memo.workspace !== workspaceSlug,
                 'block rounded-md px-2 py-1 text-sm': true,
-                'text-gray-600': memo.workspace === workspaceSlug,
-                'text-gray-400 italic': memo.workspace !== workspaceSlug,
               }"
             >
               {{ memo.title }}<span v-if="memo.workspace !== workspaceSlug"> [external]</span>
@@ -102,7 +101,7 @@
 
         <p
           v-else
-          class="pl-2 text-sm text-gray-600"
+          class="pl-2 text-sm sidebar-no-memos"
         >
           No memos
         </p>

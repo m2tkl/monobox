@@ -1,8 +1,8 @@
 <template>
-  <div class="border-x border-t border-slate-300 bg-slate-100 p-0">
+  <div class="border-x border-t memo-link-list-container p-0">
     <!-- Link Header -->
     <div
-      class="sticky left-0 top-0 z-50 flex items-center gap-2 border-b-2 border-slate-400 bg-slate-300 px-2 py-1 text-sm font-semibold text-gray-800"
+      class="sticky left-0 top-0 z-50 flex items-center gap-2 border-b-2 memo-link-list-header px-2 py-1 text-sm font-semibold"
     >
       <UIcon :name="iconKey.link" />
       Links
@@ -16,7 +16,7 @@
           :key="link.link_id"
         >
           <div
-            class="border-b border-slate-300 bg-slate-50 px-2 py-0.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
+            class="border-b memo-link-list-item px-2 py-0.5 text-sm"
           >
             <NuxtLink
               :to="`/${$route.params.workspace}/${link.slug_title}`"
@@ -44,7 +44,7 @@
           >
             <!-- Direct forward link -->
             <div
-              class="border-b-2 border-blue-500 bg-blue-200 px-2 py-0.5 text-sm font-semibold text-gray-700 hover:bg-blue-300 hover:text-gray-800"
+              class="border-b-2 memo-link-list-forward px-2 py-0.5 text-sm"
             >
               <NuxtLink
                 :to="`/${$route.params.workspace}/${link.slug_title}`"
@@ -68,7 +68,7 @@
                 :key="thl.link_id"
               >
                 <div
-                  class="border-b border-slate-300 bg-slate-50 px-2 py-0.5 text-sm text-gray-700 hover:bg-slate-200 hover:text-gray-900"
+                  class="border-b memo-link-list-item px-2 py-0.5 text-sm"
                 >
                   <NuxtLink
                     :to="`/${$route.params.workspace}/${thl.slug_title}`"

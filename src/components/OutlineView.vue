@@ -1,10 +1,10 @@
 <template>
   <div
     ref="outlineRef"
-    class="hide-scrollbar h-full overflow-y-auto bg-slate-100"
+    class="hide-scrollbar h-full overflow-y-auto outline-container"
   >
     <div
-      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-1.5 border-b-2 border-slate-400 px-2 py-1.5 text-sm text-gray-700"
+      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-1.5 border-b memo-separator outline-header px-2 py-1.5 text-sm"
       style="background-color: var(--color-surface)"
     >
       <UIcon :name="iconKey.tree" />
@@ -17,16 +17,16 @@
         :key="item.text"
       >
         <div
-          class="group relative flex min-h-8 cursor-pointer items-center border-slate-300 px-2 py-1.5 text-sm text-gray-700 hover:bg-blue-100 hover:text-gray-900"
-          :class="{ 'bg-blue-200 font-bold': activeHeadingId === item.id,
-                    'bg-slate-200': activeAncestorHeadingIds.includes(item.id ?? ''), // ancestor highlight
+          class="group relative flex min-h-8 cursor-pointer items-center outline-item px-2 py-1.5 text-sm"
+          :class="{ 'is-active': activeHeadingId === item.id,
+                    'is-ancestor': activeAncestorHeadingIds.includes(item.id ?? ''), // ancestor highlight
           }"
           :data-id="item.id"
 
           @click="item.id && emits('click', item.id, item.text)"
         >
           <span :class="indent(item.level)" />
-          <span class="pr-1 text-xs font-semibold text-gray-400">{{ '#'.repeat(item.level) }}</span>
+          <span class="pr-1 text-xs font-semibold outline-item-level">{{ '#'.repeat(item.level) }}</span>
           <span
             v-if="item"
             class="text-wrap"

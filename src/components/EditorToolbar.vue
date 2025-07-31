@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor"
-    class="flex gap-0.5 overflow-auto bg-slate-200 px-2 py-1"
+    class="flex gap-0.5 overflow-auto px-2 py-1"
   >
     <EditorToolbarButton
       label="H1"

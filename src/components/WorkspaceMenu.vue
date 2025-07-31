@@ -4,7 +4,7 @@
     :popper="{ placement: 'bottom-start' }"
   >
     <div class="flex items-center">
-      <span class="text-md font-bold text-gray-600">
+      <span class="text-md font-bold sidebar-heading">
         {{ workspaceSlug }}
       </span>
       <UIcon
@@ -32,6 +32,11 @@ const workspaceMenuItems: DropdownMenuItem[][] = [
       label: 'Workspace setting',
       icon: iconKey.setting,
       to: `/${props.workspaceSlug}/_setting`,
+    },
+    {
+      label: 'App setting',
+      icon: iconKey.setting,
+      to: `/_setting`,
     },
   ],
 ];
