@@ -30,6 +30,7 @@ export const useEffectHandler = () => {
       /**
        * Adds a side effect to be executed on success or error
        */
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       addEffect: (type: 'success' | 'error', effect: (data: any) => void) => {
         effects[type].push(effect);
         return handler;

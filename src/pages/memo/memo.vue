@@ -180,7 +180,7 @@ import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { JSONContent, NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
+import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
 import type { Link as LinkModel } from '~/models/link';
 
@@ -239,7 +239,6 @@ const extensions = [
 
 const route = useRoute();
 const router = useRouter();
-const { toast } = useToast_();
 const { createEffectHandler } = useEffectHandler();
 const command = useCommand();
 const store = useWorkspaceStore();
