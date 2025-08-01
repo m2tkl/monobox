@@ -1,14 +1,14 @@
 <template>
   <UCard
-    class="aspect-[1/1] hover:bg-slate-100"
+    class="aspect-[1/1] card-interactive"
     :ui="{
       header: 'px-3 pt-3 pb-0 sm:px-3',
       body: 'px-3 pb-4 pt-1 sm:p-3',
-      root: 'divide-white hover:divide-slate-100',
+      root: 'overflow-hidden',
     }"
   >
     <template #header>
-      <h3 class="truncate-multiline text-sm font-semibold text-gray-700">
+      <h3 class="truncate-multiline text-sm font-semibold memo-link-title">
         {{ title }}
       </h3>
     </template>
@@ -20,7 +20,7 @@
       v-for="p in truncateString(description ? description : '', 128)?.split('\n')"
       v-else
       :key="p"
-      class="truncate-multiline text-sm text-gray-500"
+      class="truncate-multiline text-sm memo-link-description"
     >
       {{ p }}
     </p>
@@ -34,3 +34,37 @@ defineProps<{
   thumbnailImage: string | undefined | null;
 }>();
 </script>
+
+<style scoped>
+/* Completely hide any dividers in the card */
+:deep(.divide-y > *) {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+:deep(.divide-gray-200 > *) {
+  border-top: none !important;
+}
+
+:deep([class*="divide-"]) {
+  border: none !important;
+}
+
+/* Force hide all borders and dividers */
+:deep(*) {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+:deep(.card > *) {
+  border: none !important;
+}
+
+:deep(.card-header) {
+  border-bottom: none !important;
+}
+
+:deep(.card-body) {
+  border-top: none !important;
+}
+</style>

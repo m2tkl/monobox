@@ -12,14 +12,14 @@
           <section v-if="bookmarks.length > 0">
             <div
               class="sticky top-0 z-10"
-              style="background-color: var(--color-surface)"
+              style="background-color: var(--color-background)"
             >
               <div class="flex h-12 items-center">
                 <UIcon
                   :name="iconKey.bookmark"
                   class="mr-2"
                 />
-                <h2 class="font-bold text-gray-600">
+                <h2 class="font-bold sidebar-heading">
                   Bookmarks
                 </h2>
               </div>
@@ -32,14 +32,14 @@
 
           <div
             class="sticky top-0 z-10"
-            style="background-color: var(--color-surface)"
+            style="background-color: var(--color-background)"
           >
             <div class="flex h-12 items-center">
               <UIcon
                 :name="iconKey.recent"
                 class="mr-2"
               />
-              <h2 class="font-bold text-gray-600">
+              <h2 class="font-bold sidebar-heading">
                 Recent
               </h2>
             </div>
@@ -73,7 +73,7 @@
             square
             variant="solid"
             size="xl"
-            class="bg-slate-600"
+            style="background-color: var(--color-primary)"
           />
         </NuxtLink>
       </div>

@@ -19,8 +19,14 @@
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
           class="size-full overflow-hidden"
         >
-          <header class="border-bottom sticky top-0 z-[100] flex h-10 w-full items-center gap-2 bg-slate-200 px-2 min-w-0">
-            <div class="flex w-full items-center gap-1 text-slate-500">
+          <header
+            class="border-bottom sticky top-0 z-[100] flex h-10 w-full items-center gap-2 px-2 min-w-0"
+            style="background-color: var(--color-background)"
+          >
+            <div
+              class="flex w-full items-center gap-1"
+              style="color: var(--color-text-secondary)"
+            >
               <IconButton
                 v-if="!ui.isSidebarOpen"
                 :icon="iconKey.sidebarOpen"
@@ -46,8 +52,11 @@
               />
               <span class="text-xs">/</span>
               <div class="text-xs w-full truncate">
-                <span class="text-slate-800">{{ memoTitleSlug }}</span>
-                <span class="ml-2 text-slate-500">{{ route.hash }}</span>
+                <span style="color: var(--color-text-primary)">{{ memoTitleSlug }}</span>
+                <span
+                  class="ml-2"
+                  style="color: var(--color-text-muted)"
+                >{{ route.hash }}</span>
               </div>
             </div>
 

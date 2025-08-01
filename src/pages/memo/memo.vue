@@ -26,6 +26,7 @@
       >
         <div
           class="scrollbar border-right flex h-full w-[250px] shrink-0 flex-col gap-3"
+          style="background-color: var(--color-background)"
         >
           <OutlineView
             v-if="editor"
@@ -42,7 +43,8 @@
 
         <div
           id="main"
-          class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto bg-slate-200"
+          class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto"
+          style="background-color: var(--color-background)"
         >
           <MemoEditor
             v-if="editor"
@@ -718,12 +720,14 @@ const copyExportedResult = async (textToCopy: string) => {
 
 .custom-task-item[data-checked="true"] div a {
   text-decoration: line-through;
-  color: rgba(0, 0, 255, 0.578);
+  color: var(--color-link);
+  opacity: 0.7;
 }
 
 .custom-task-item[data-checked="true"] div a:hover {
   text-decoration: line-through;
-  color: blue;
+  color: var(--color-link-hover);
+  opacity: 0.8;
 }
 
 a.external-link {

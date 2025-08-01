@@ -1,8 +1,9 @@
 <template>
-  <div class="border-t border-slate-300 p-0">
+  <div class="border-t memo-link-container p-0">
     <!-- Link Header -->
     <div
-      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-2 border-b-2 border-slate-400 bg-surface px-2 py-1 text-sm font-semibold text-gray-800"
+      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-2 border-b memo-separator memo-link-header px-2 py-1 text-sm font-semibold"
+      style="background-color: var(--color-surface)"
     >
       <UIcon :name="iconKey.link" />
       Links
@@ -14,7 +15,7 @@
       class="my-4"
     >
       <ul class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 px-4">
-        <li>
+        <li class="aspect-[1/1] rounded-lg">
           <TitleCard
             title="Links"
             card-type="text"

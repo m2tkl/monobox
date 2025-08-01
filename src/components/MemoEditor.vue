@@ -1,8 +1,9 @@
 <template>
-  <div class="bg-slate-100">
+  <div style="background-color: var(--color-background)">
     <!-- Toolbar -->
     <div
-      class="sticky h-8 left-0 top-0 z-50 border-b-2 border-slate-400 bg-slate-200"
+      class="sticky h-8 left-0 top-0 z-50 border-b-1"
+      style="border-color: var(--color-border-light); background-color: var(--color-surface)"
     >
       <div
         class="h-8 flex items-center gap-0.5 overflow-auto px-2"
@@ -20,11 +21,17 @@
     </div>
 
     <!-- Editor area -->
-    <div class="max-w-[820px] bg-white p-6">
+    <div
+      class="max-w-[820px] p-6"
+      style="background-color: var(--color-surface-elevated)"
+    >
       <TitleFieldAutoResize v-model="memoTitle" />
 
       <div class="relative">
-        <USeparator class="py-6" />
+        <USeparator
+          class="py-6"
+          style="border-color: var(--color-border-light) !important;"
+        />
 
         <UProgress
           v-if="!editorReady"
@@ -49,7 +56,8 @@
     <!-- Bubble menu -->
     <BubbleMenu
       :editor="editor"
-      class="flex gap-0.5 rounded-lg bg-slate-200 p-1 outline outline-slate-400"
+      class="flex gap-0.5 rounded-lg p-1 outline"
+      style="background-color: var(--color-surface); outline-color: var(--color-border-muted)"
     >
       <slot
         name="bubble-menu"
@@ -99,3 +107,14 @@ watch(editorReady, (ready) => {
   }
 });
 </script>
+
+<style scoped>
+/* Force separator color to match theme */
+:deep(.separator) {
+  border-color: var(--color-border-light) !important;
+}
+
+:deep(hr) {
+  border-color: var(--color-border-light) !important;
+}
+</style>

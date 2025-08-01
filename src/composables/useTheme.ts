@@ -40,19 +40,20 @@ export const useTheme = () => {
   );
 
   // Theme switching functions
-  const setTheme = (mode: ThemeMode) => {
+  const setTheme = async (mode: ThemeMode) => {
     colorMode.preference = mode;
   };
 
-  const toggleDarkMode = () => {
-    colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
+  const toggleDarkMode = async () => {
+    const newMode = colorMode.value === 'dark' ? 'light' : 'dark';
+    await setTheme(newMode as ThemeMode);
   };
 
-  const nextTheme = () => {
+  const nextTheme = async () => {
     const themes = Object.keys(themeConfig) as ThemeMode[];
     const currentIndex = themes.indexOf(colorMode.value as ThemeMode);
     const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
+    await setTheme(themes[nextIndex]);
   };
 
   return {

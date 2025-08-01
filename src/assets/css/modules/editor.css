@@ -48,6 +48,7 @@
   margin-top: 2.0rem;
   margin-bottom: 1.0rem;
   text-wrap: pretty;
+  color: var(--color-text-primary);
 }
 
 .tiptap h1 {
@@ -72,9 +73,10 @@
 .tiptap code {
   background-color: var(--color-code-inline-bg);
   border-radius: var(--radius-md);
-  color: black;
+  color: var(--color-code-inline-text);
   font-size: 0.85rem;
   padding: 0.25em 0.3em;
+  font-weight: 500;
 }
 
 .tiptap pre {

@@ -7,15 +7,15 @@
     >
       <NuxtLink :to="`/${route.params.workspace}/${memo.slug_title}`">
         <UCard
-          class="aspect-[1/1] hover:bg-slate-100"
+          class="aspect-[1/1] card-interactive"
           :ui="{
-            header: 'px-3 pt-3 pb-0 sm:px-3 divide-white',
-            body: 'px-3 pb-4 pt-1 sm:p-3 divide-white',
-            root: 'divide-white hover:divide-slate-100',
+            header: 'px-3 pt-3 pb-0 sm:px-3',
+            body: 'px-3 pb-4 pt-1 sm:p-3',
+            root: 'overflow-hidden',
           }"
         >
           <template #header>
-            <h3 class="truncate-multiline text-sm font-semibold text-gray-700">
+            <h3 class="truncate-multiline text-sm font-semibold card-title">
               {{ truncateString(memo.title, 32) }}
             </h3>
           </template>
@@ -27,7 +27,7 @@
             v-for="p in truncateString(memo.description ? memo.description : '', 128)?.split('\n')"
             v-else
             :key="p"
-            class="truncate-multiline text-sm text-gray-500"
+            class="truncate-multiline text-sm card-description"
           >
             {{ p }}
           </p>
@@ -46,3 +46,19 @@ defineProps<{
 
 const route = useRoute();
 </script>
+
+<style scoped>
+/* Completely hide any dividers in the card */
+:deep(.divide-y > *) {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+:deep(.divide-gray-200 > *) {
+  border-top: none !important;
+}
+
+:deep([class*="divide-"]) {
+  border: none !important;
+}
+</style>

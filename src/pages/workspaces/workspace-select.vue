@@ -5,11 +5,14 @@
         <div>
           <!-- Project collection header -->
           <div class="flex items-center justify-between space-x-3 pb-4 pt-2">
-            <h2 class="pl-1 text-2xl font-bold text-gray-600">
+            <h2
+              class="pl-1 text-2xl font-bold"
+              style="color: var(--color-text-primary)"
+            >
               Workspace
             </h2>
             <UButton
-              class="bg-slate-600"
+              style="background-color: var(--color-primary); color: white;"
               @click="openNewWorkspaceModal"
             >
               New
@@ -17,19 +20,28 @@
           </div>
 
           <!-- Project collection -->
-          <div v-if="workspaces.length === 0">
+          <div
+            v-if="workspaces.length === 0"
+            style="color: var(--color-text-secondary)"
+          >
             No workspace
           </div>
           <div v-else>
-            <ul class="divide-y divide-gray-400 rounded-md border border-gray-400">
+            <ul
+              class="rounded-md border workspace-list"
+              style="border-color: var(--color-border-muted);"
+            >
               <li
                 v-for="workspace in workspaces"
                 :key="workspace.id"
-                class="hover:bg-slate-300"
+                class="workspace-item transition-colors duration-200"
               >
                 <NuxtLink :to="`/${workspace.slug_name}`">
-                  <div class="flex items-center justify-between px-4 py-2">
-                    <span class="font-bold text-gray-600">
+                  <div class="flex items-center justify-between px-4 py-2 hover:bg-[var(--color-surface-hover)]">
+                    <span
+                      class="font-bold"
+                      style="color: var(--color-text-primary)"
+                    >
                       {{ workspace.name }}
                     </span>
                   </div>
@@ -72,7 +84,7 @@
             <UButton
               form="create-workspace-form"
               type="submit"
-              class="bg-slate-600"
+              style="background-color: var(--color-primary); color: white;"
             >
               Create
             </UButton>
@@ -133,3 +145,9 @@ const onSubmit = async () => {
   }
 };
 </script>
+
+<style scoped>
+.workspace-item:not(:last-child) {
+  border-bottom: 1px solid var(--color-border-light);
+}
+</style>

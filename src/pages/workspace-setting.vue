@@ -3,20 +3,30 @@
     <template #main>
       <div class="py-4">
         <UContainer>
-          <UCard>
+          <UCard
+            class="card-themed"
+          >
             <template #header>
-              <h2 class="text-lg font-bold text-gray-600">
+              <h2
+                class="text-lg font-bold"
+                style="color: var(--color-text-primary)"
+              >
                 Workspace setting
               </h2>
             </template>
-            <p>
+            <p style="color: var(--color-text-secondary)">
               🚧 Under construction...
             </p>
           </UCard>
 
-          <UCard class="mt-6">
+          <UCard
+            class="mt-6 card-themed"
+          >
             <template #header>
-              <h2 class="text-lg font-bold text-gray-600">
+              <h2
+                class="text-lg font-bold"
+                style="color: var(--color-text-primary)"
+              >
                 Danger zone
               </h2>
             </template>
@@ -100,3 +110,20 @@ const _deleteWorkspace = async () => {
   }
 };
 </script>
+
+<style scoped>
+.card-themed {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border-muted);
+}
+
+:deep(.card-themed .divide-y > *) {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+:deep(.card-themed [data-headlessui-state]) {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+}
+</style>
