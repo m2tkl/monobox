@@ -3,21 +3,7 @@
     v-if="isOpen"
     class="size-full"
   >
-    <!-- Workspace section -->
-    <div class="border-bottom flex h-10 items-center gap-1 px-2">
-      <UIcon
-        :name="iconKey.memoLink"
-        class="mx-1"
-      />
-      <WorkspaceMenu :workspace-slug="workspaceSlug" />
-      <div class="flex-1" />
-      <IconButton
-        :icon="iconKey.sidebarClose"
-        @click="toggleSidebar"
-      />
-    </div>
-
-    <div class="h-[calc(100%-40px)] overflow-y-auto px-3">
+    <div class="h-full overflow-y-auto px-3">
       <!-- Bookmark section -->
       <section
         v-if="bookmarks.length > 0"

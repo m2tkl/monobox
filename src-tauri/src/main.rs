@@ -12,7 +12,6 @@ mod repositories;
 use mime_guess;
 use std::{fs, path::PathBuf};
 use tauri::http::{Request, Response};
-use tauri::{WebviewUrl, WebviewWindowBuilder};
 
 fn main() {
     database::initialize_database().expect("Failed to initialize database");
@@ -24,39 +23,7 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
-        .setup(|app| {
-            let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
-                .title("monobox")
-                .inner_size(800.0, 600.0);
-
-            #[cfg(target_os = "macos")]
-            let win_builder = win_builder.title_bar_style(tauri::TitleBarStyle::Transparent);
-
-            #[cfg(target_os = "windows")]
-            let win_builder = win_builder;
-
-            let window: tauri::WebviewWindow = win_builder.build().unwrap();
-
-            #[cfg(target_os = "macos")]
-            {
-                use cocoa::appkit::{NSColor, NSWindow};
-                use cocoa::base::{id, nil};
-
-                let ns_window = window.ns_window().unwrap() as id;
-                unsafe {
-                    let bg_color = NSColor::colorWithRed_green_blue_alpha_(
-                        nil,
-                        226.0 / 255.0,
-                        232.0 / 255.0,
-                        240.0 / 255.0,
-                        1.0,
-                    );
-                    ns_window.setBackgroundColor_(bg_color);
-                }
-            }
-
-            Ok(())
-        })
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .manage(app_config.clone())
         .register_uri_scheme_protocol(

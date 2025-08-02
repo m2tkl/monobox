@@ -3,7 +3,8 @@
     <NuxtRouteAnnouncer />
 
     <UApp>
-      <NuxtPage />
+      <TitleBar />
+      <NuxtPage class="h-screen pt-[3rem]" />
     </UApp>
   </div>
 </template>

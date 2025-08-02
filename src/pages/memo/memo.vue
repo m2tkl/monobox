@@ -1,25 +1,5 @@
 <template>
   <NuxtLayout name="default">
-    <template #context-menu>
-      <IconButton
-        :icon="iconKey.shuffle"
-        @click="showRandomMemo"
-      />
-      <IconButton
-        :icon="store.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
-        @click="toggleBookmark"
-      />
-      <UDropdownMenu
-        :items="contextMenuItems"
-      >
-        <div class="flex items-center">
-          <UIcon
-            :name="iconKey.dotMenuVertical"
-          />
-        </div>
-      </UDropdownMenu>
-    </template>
-
     <template #main>
       <div
         class="flex size-full justify-center"
@@ -62,6 +42,15 @@
             </template>
 
             <template #context-menu>
+              <IconButton
+                :icon="iconKey.shuffle"
+                @click="showRandomMemo"
+              />
+              <IconButton
+                :icon="store.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+                @click="toggleBookmark"
+              />
+
               <UDropdownMenu
                 :items="contextMenuItems"
               >

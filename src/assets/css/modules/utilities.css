@@ -210,28 +210,6 @@
   color: var(--color-text-primary);
 }
 
-/* Title bar utilities */
-.titlebar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 30px;
-  width: 100%;
-  color: var(--color-text-primary);
-  padding: 0 10px;
-  user-select: none;
-  overscroll-behavior: none;
-  border-bottom: 1px solid var(--color-border-light);
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-  background-color: var(--color-background);
-}
-
-.titlebar-search-text {
-  color: var(--color-text-muted);
-}
 
 /* Separator utilities */
 .memo-separator {
