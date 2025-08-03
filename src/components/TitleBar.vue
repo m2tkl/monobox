@@ -8,7 +8,7 @@
 
     <!-- Left section -->
     <div
-      class="flex flex-1 items-center gap-1.5 min-w-0"
+      class="flex flex-1 items-center gap-1.5 min-w-0 pl-4"
       data-tauri-drag-region
     >
       <!-- Essential controls that should always be visible -->
@@ -62,7 +62,7 @@
 
     <!-- Right section -->
     <div
-      class="flex items-center justify-end gap-1.5 flex-shrink-0"
+      class="flex items-center justify-end gap-1.5 flex-shrink-0 pr-4"
       data-tauri-drag-region
     >
       <ThemeToggle />
@@ -106,7 +106,7 @@ const { ui, toggleSidebar } = useUIState();
   height: 3rem;
   width: 100%;
   color: var(--color-text-primary);
-  padding: 0 16px;
+  padding: 0;
   user-select: none;
   overscroll-behavior: none;
   position: fixed;
@@ -114,7 +114,6 @@ const { ui, toggleSidebar } = useUIState();
   left: 0;
   z-index: 1000;
   background-color: var(--color-background);
-  gap: 12px;
 }
 
 .titlebar-search-text {

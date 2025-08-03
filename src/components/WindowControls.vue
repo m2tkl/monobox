@@ -148,6 +148,10 @@ const toggleMaximize = async () => {
 }
 
 /* macOS style buttons */
+.window-controls.macos {
+  padding-left: 16px;
+}
+
 .window-controls.macos .control-button {
   width: 12px;
   height: 12px;
@@ -194,8 +198,8 @@ const toggleMaximize = async () => {
 /* Windows style buttons */
 .window-controls.windows .control-button {
   width: 46px;
-  height: 32px;
-  color: var(--color-text-primary);
+  height: 100%;
+  color: var(--color-text-muted);
 }
 
 .window-controls.windows .control-button:hover {
@@ -203,7 +207,7 @@ const toggleMaximize = async () => {
 }
 
 .window-controls.windows .control-button .control-icon {
-  font-size: 10px;
+  font-size: 16px;
   line-height: 1;
 }
 
