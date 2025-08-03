@@ -1,16 +1,20 @@
 <template>
+  <!-- :popper="{ placement: 'bottom-start' }" -->
   <UDropdownMenu
     :items="workspaceMenuItems"
-    :popper="{ placement: 'bottom-start' }"
+    :content="{
+      align: 'start',
+      side: 'bottom',
+      sideOffset: 8,
+    }"
   >
     <div class="flex items-center">
-      <span class="text-md font-bold sidebar-heading">
-        {{ workspaceSlug }}
-      </span>
-      <UIcon
-        :name="iconKey.chevronDown"
-        class="ml-1"
-        size="2xs"
+      <UButton
+        :label="workspaceSlug"
+        variant="subtle"
+        color="neutral"
+        size="sm"
+        :icon="workspaceSlug ? '' : iconKey.database"
       />
     </div>
   </UDropdownMenu>
