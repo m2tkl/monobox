@@ -75,6 +75,18 @@ definePageMeta({
 });
 
 const { currentTheme } = useTheme();
+
+/**
+ * FIXME: Accessing the "_setting" route but triggers an error on Windows
+ * due to a different configuration file path.
+ *
+ * On Windows, Tauri attempts to load:
+ *  C:\Users\$username\AppData\Roaming\com.m2tkl.monobox\config.json
+ *  which fails with "The system cannot find the path specified (os error 3)".
+ *
+ * The actual config file was found here instead:
+ * C:\Users\$username\AppData\Roaming\m2tkl\monobox\config\config.json
+ */
 const _appConfig = JSON.parse(await readTextFile('config.json', { baseDir: BaseDirectory.AppData }));
 </script>
 

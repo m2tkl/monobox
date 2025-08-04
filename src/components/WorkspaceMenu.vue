@@ -37,11 +37,6 @@ const workspaceMenuItems: DropdownMenuItem[][] = [
       icon: iconKey.setting,
       to: `/${props.workspaceSlug}/_setting`,
     },
-    {
-      label: 'App setting',
-      icon: iconKey.setting,
-      to: `/_setting`,
-    },
   ],
 ];
 </script>
