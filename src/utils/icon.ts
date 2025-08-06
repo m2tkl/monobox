@@ -43,4 +43,7 @@ export const iconKey = {
 
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',
+
+  sun: 'carbon:sun',
+  moon: 'carbon:moon',
 };

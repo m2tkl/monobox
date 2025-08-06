@@ -9,12 +9,12 @@ export const useTheme = () => {
   const themeConfig = {
     light: {
       name: 'Light',
-      icon: 'i-heroicons-sun',
+      icon: iconKey.sun,
       description: 'Clean and bright theme',
     },
     dark: {
       name: 'Dark',
-      icon: 'i-heroicons-moon',
+      icon: iconKey.moon,
       description: 'Easy on the eyes',
     },
   } as const;

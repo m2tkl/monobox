@@ -93,6 +93,8 @@ export default defineNuxtConfig({
         'carbon:html',
         'carbon:app-connectivity',
         'carbon:shuffle',
+        'carbon:sun',
+        'carbon:moon',
 
         // Nuxt
         'heroicons:x-mark-20-solid',
