@@ -11,6 +11,12 @@
       <h3 class="truncate-multiline text-sm font-semibold memo-link-title">
         {{ title }}
       </h3>
+      <p
+        v-if="context"
+        class="truncate-multiline text-xs memo-link-description"
+      >
+        @{{ context }}
+      </p>
     </template>
     <img
       v-if="thumbnailImage"
@@ -30,6 +36,7 @@
 <script setup lang="ts">
 defineProps<{
   title: string;
+  context?: string;
   description: string | undefined | null;
   thumbnailImage: string | undefined | null;
 }>();

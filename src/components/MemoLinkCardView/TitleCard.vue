@@ -13,6 +13,12 @@
   >
     <h3 class="truncate-multiline flex flex-col items-center gap-1 text-sm font-semibold memo-link-title">
       {{ title }}
+      <p
+        v-if="context"
+        class="truncate-multiline text-xs memo-link-description"
+      >
+        @{{ context }}
+      </p>
       <Icon
         :name="iconKey.link"
         class="text-lg"
@@ -22,7 +28,11 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ title: string; cardType: 'text' | 'link' }>();
+defineProps<{
+  title: string;
+  context?: string;
+  cardType: 'text' | 'link';
+}>();
 </script>
 
 <style scoped>
