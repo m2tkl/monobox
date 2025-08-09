@@ -109,7 +109,11 @@
           </MemoEditor>
 
           <!-- Related links -->
-          <MemoLinkCardView :links="store.links" />
+          <MemoLinkCardView
+            v-if="store.memo"
+            :memo-title="store.memo.title"
+            :links="store.links"
+          />
           <MarginForEditorScroll />
         </div>
       </div>

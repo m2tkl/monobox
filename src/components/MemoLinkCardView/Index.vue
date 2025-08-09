@@ -29,7 +29,8 @@
         >
           <NuxtLink :to="`/${route.params.workspace}/${memo.slug_title}`">
             <ThumbnailCard
-              :title="truncateString(extractBasenameFromTitle(memo.title), 32)"
+              :title="truncateString(extractsTitleParts(memo.title).memoTitle, 32)"
+              :context="extractsTitleParts(memo.title).context !== memoTitle ? extractsTitleParts(memo.title).context : undefined"
               :description="memo.description"
               :thumbnail-image="memo.thumbnail_image"
             />
@@ -54,7 +55,8 @@
                   class="flex flex-col"
                 >
                   <TitleCard
-                    :title="truncateString(extractBasenameFromTitle(link.title), 32)"
+                    :title="truncateString(extractsTitleParts(link.title).memoTitle, 32)"
+                    :context="extractsTitleParts(link.title).context !== memoTitle ? extractsTitleParts(link.title).context : undefined"
                     card-type="link"
                   />
                 </NuxtLink>
@@ -70,7 +72,8 @@
               >
                 <NuxtLink :to="`/${route.params.workspace}/${thl.slug_title}`">
                   <ThumbnailCard
-                    :title="truncateString(extractBasenameFromTitle(thl.title), 32)"
+                    :title="truncateString(extractsTitleParts(thl.title).memoTitle, 32)"
+                    :context="extractsTitleParts(thl.title).context !== link.title ? extractsTitleParts(thl.title).context : undefined"
                     :description="thl.description"
                     :thumbnail-image="thl.thumbnail_image"
                   />
@@ -91,11 +94,15 @@ import TitleCard from './TitleCard.vue';
 import type { Link } from '~/models/link';
 
 const props = defineProps<{
+  memoTitle: string;
   links: Array<Link>;
 }>();
 
-function extractBasenameFromTitle(title: string): string {
-  return title.includes('/') ? title.split('/').pop() ?? title : title;
+function extractsTitleParts(title: string): { memoTitle: string; context: string } {
+  const parts = title.split('/');
+  const memoTitle = parts.pop() ?? title;
+  const context = parts.join('/');
+  return { memoTitle, context };
 }
 
 const route = useRoute();
