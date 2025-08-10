@@ -27,9 +27,9 @@
           :key="memo.id"
           class="aspect-[1/1] overflow-hidden rounded-lg"
         >
-          <NuxtLink :to="`/${route.params.workspace}/${memo.slug_title}`">
+          <NuxtLink :to="buildMemoPath(memo.slug_title)">
             <ThumbnailCard
-              :title="truncateString(extractsTitleParts(memo.title).memoTitle, 32)"
+              :title="truncateString(extractsTitleParts(memo.title).memoTitle, TITLE_TRUNCATE)"
               :context="extractsTitleParts(memo.title).context !== memoTitle ? extractsTitleParts(memo.title).context : undefined"
               :description="memo.description"
               :thumbnail-image="memo.thumbnail_image"
@@ -51,11 +51,11 @@
             <ul class="my-4 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 px-4">
               <li class="aspect-[1/1] overflow-hidden rounded-lg ">
                 <NuxtLink
-                  :to="`/${route.params.workspace}/${link.slug_title}`"
+                  :to="buildMemoPath(link.slug_title)"
                   class="flex flex-col"
                 >
                   <TitleCard
-                    :title="truncateString(extractsTitleParts(link.title).memoTitle, 32)"
+                    :title="truncateString(extractsTitleParts(link.title).memoTitle, TITLE_TRUNCATE)"
                     :context="extractsTitleParts(link.title).context !== memoTitle ? extractsTitleParts(link.title).context : undefined"
                     card-type="link"
                   />
@@ -70,9 +70,9 @@
                 :key="thl.link_id"
                 class="aspect-[1/1] overflow-hidden rounded-lg"
               >
-                <NuxtLink :to="`/${route.params.workspace}/${thl.slug_title}`">
+                <NuxtLink :to="buildMemoPath(thl.slug_title)">
                   <ThumbnailCard
-                    :title="truncateString(extractsTitleParts(thl.title).memoTitle, 32)"
+                    :title="truncateString(extractsTitleParts(thl.title).memoTitle, TITLE_TRUNCATE)"
                     :context="extractsTitleParts(thl.title).context !== link.title ? extractsTitleParts(thl.title).context : undefined"
                     :description="thl.description"
                     :thumbnail-image="thl.thumbnail_image"
@@ -98,14 +98,10 @@ const props = defineProps<{
   links: Array<Link>;
 }>();
 
-function extractsTitleParts(title: string): { memoTitle: string; context: string } {
-  const parts = title.split('/');
-  const memoTitle = parts.pop() ?? title;
-  const context = parts.join('/');
-  return { memoTitle, context };
-}
+const TITLE_TRUNCATE = 32;
 
 const route = useRoute();
+const buildMemoPath = (slug: string) => `/${route.params.workspace}/${slug}`;
 
 const forwardLinks = computed(() =>
   props.links.filter(link => link.link_type === 'Forward'),
@@ -116,4 +112,10 @@ const backLinks = computed(() =>
 const twoHopLinks = computed(() =>
   props.links.filter(link => link.link_type === 'TwoHop'),
 );
+
+function extractsTitleParts(title: string): { memoTitle: string; context: string } {
+  const parts = title.split('/');
+  const memoTitle = parts.pop() ?? title;
+  return { memoTitle, context: parts.join('/') };
+}
 </script>
