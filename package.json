@@ -38,9 +38,13 @@
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.3.0",
     "prosemirror-markdown": "^1.13.1",
+    "reveal.js": "^5.2.1",
     "tailwindcss": "^4.0.17",
     "vue": "latest",
     "vue-router": "latest"
   },
-  "version": "0.4.0"
+  "version": "0.4.0",
+  "devDependencies": {
+    "@types/reveal.js": "^5.2.0"
+  }
 }
