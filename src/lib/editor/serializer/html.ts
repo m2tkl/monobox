@@ -1,5 +1,29 @@
 import type { JSONContent } from '@tiptap/vue-3';
 
+function escapeHtml(str: string): string {
+  return str
+    .replaceAll(/&/g, '&amp;')
+    .replaceAll(/</g, '&lt;')
+    .replaceAll(/>/g, '&gt;')
+    .replaceAll(/"/g, '&quot;')
+    .replaceAll(/'/g, '&#39;');
+}
+
+function extractText(node: JSONContent): string {
+  if (!node) return '';
+  if (typeof node.text === 'string') return node.text;
+  return (node.content ?? []).map(extractText).join('');
+}
+
+function mapLanguage(lang: string): string {
+  const l = lang.toLowerCase();
+  const aliases: Record<string, string> = {
+    html: 'xml',
+    vue: 'xml',
+  };
+  return aliases[l] || l;
+}
+
 /**
  * Convert tiptap json to html
  */
@@ -51,13 +75,17 @@ function renderNode(node: JSONContent): string {
     case 'blockquote':
       return `<blockquote>${renderChildren(node)}</blockquote>`;
 
-    case 'codeBlock':
-      return `<pre><code>${renderChildren(node)}</code></pre>`;
+    case 'codeBlock': {
+      const rawLang = typeof node.attrs?.language === 'string' ? node.attrs.language.trim() : '';
+      const mapped = rawLang ? mapLanguage(rawLang) : '';
+      const langClass = mapped ? ` class="language-${escapeHtml(mapped)}"` : '';
+      return `<pre><code${langClass}>${escapeHtml(extractText(node))}</code></pre>`;
+    }
 
     case 'image': {
       const src = node.attrs?.src ?? '';
       const alt = node.attrs?.alt ?? '';
-      return `<img src="${src}" alt="${alt}">`;
+      return `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}">`;
     }
 
     case 'hardBreak':
@@ -83,7 +111,13 @@ function renderChildren(node: JSONContent): string {
  * Wrap mark texts
  */
 function wrapWithMarks(text: string, marks?: JSONContent['marks']): string {
-  if (!marks) return text;
+  const base = escapeHtml(text);
+  if (!marks) return base;
+
+  // If code mark exists, prefer escaped text inside <code>, ignoring other marks
+  if (marks.some(m => m.type === 'code')) {
+    return `<code>${base}</code>`;
+  }
 
   return marks.reduce((acc, mark) => {
     switch (mark.type) {
@@ -93,14 +127,12 @@ function wrapWithMarks(text: string, marks?: JSONContent['marks']): string {
         return `<em>${acc}</em>`;
       case 'strike':
         return `<s>${acc}</s>`;
-      case 'code':
-        return `<code>${acc}</code>`;
       case 'link': {
         const href = mark.attrs?.href ?? '#';
-        return `<a href="${href}">${acc}</a>`;
+        return `<a href="${escapeHtml(href)}">${acc}</a>`;
       }
       default:
         return acc;
     }
-  }, text);
+  }, base);
 }
