@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "reveal.js/dist/reveal.css";
+@import "reveal.js/dist/theme/white.css";
+@import "reveal.js/plugin/highlight/monokai.css";
+
 @import "./modules/tokens.css";
 @import "./modules/base.css";
 @import "./modules/utilities.css";
 @import "./modules/editor.css";
+@import "./modules/slide.css"
