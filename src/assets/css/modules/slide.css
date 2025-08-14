@@ -84,6 +84,24 @@
   font-size: 20px;
 }
 
+/* Compact list spacing */
+.reveal ul li,
+.reveal ol li {
+  line-height: 1.35;
+  margin-bottom: 4px; /* tighter gap between items */
+}
+
+.reveal ul li p,
+.reveal ol li p {
+  margin: 0; /* avoid large gaps from paragraph margin */
+  line-height: 1.35;
+}
+
+.reveal ul ul,
+.reveal ol ol {
+  margin-top: 4px; /* small separation for nested lists */
+}
+
 /* Make code blocks fill available slide height */
 .reveal pre {
   flex: 1 1 auto;
