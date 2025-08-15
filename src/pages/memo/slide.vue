@@ -83,6 +83,8 @@ function buildSlidesFromHtml(fullHtml: string, cfg: SlideSplitConfig = splitConf
 
   const sections: HTMLElement[] = [];
   let current: HTMLElement | null = null;
+  let lastHeadingEl: HTMLElement | null = null; // Remember the latest heading as the current chapter
+  let needChapterOnNextSlide = false; // Flag set when a slide is cut by <hr>
 
   const nodes = Array.from(wrapper.childNodes);
   for (const node of nodes) {
@@ -103,6 +105,8 @@ function buildSlidesFromHtml(fullHtml: string, cfg: SlideSplitConfig = splitConf
     if (node.tagName === 'HR' && cfg.breakOnHorizontalRule) {
       if (current) sections.push(current);
       current = null; // Do not include the HR itself in slides
+      // Next slide (created by subsequent nodes) should display the current chapter title
+      needChapterOnNextSlide = true;
       continue;
     }
 
@@ -113,13 +117,25 @@ function buildSlidesFromHtml(fullHtml: string, cfg: SlideSplitConfig = splitConf
       if (cfg.breakOnHeadingLevels.includes(level)) {
         if (current) sections.push(current);
         current = document.createElement('section');
-        current.appendChild(node.cloneNode(true));
+        // Update chapter context to this heading
+        lastHeadingEl = node.cloneNode(true) as HTMLElement;
+        // This slide shows the heading itself; no need to prepend chapter label
+        needChapterOnNextSlide = false;
+        current.appendChild(lastHeadingEl.cloneNode(true));
         continue;
       }
     }
 
     if (!current) {
       current = document.createElement('section');
+      // If the previous break was an <hr>, prepend the current chapter title
+      if (needChapterOnNextSlide && lastHeadingEl) {
+        const tag = (lastHeadingEl.tagName || 'H2').toLowerCase();
+        const chapter = document.createElement(tag);
+        chapter.textContent = lastHeadingEl.textContent || '';
+        current.appendChild(chapter);
+        needChapterOnNextSlide = false;
+      }
     }
     current.appendChild(node.cloneNode(true));
   }
