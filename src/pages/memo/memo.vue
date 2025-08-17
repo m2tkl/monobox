@@ -173,7 +173,7 @@ import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
+import type { JSONContent, NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
 import type { Link as LinkModel } from '~/models/link';
 
@@ -388,6 +388,11 @@ const toggleBookmark = async () => {
 /* --- Contect menu items --- */
 const contextMenuItems: DropdownMenuItem[][] = [
   [
+    {
+      label: 'Slide mode',
+      icon: iconKey.pageLink,
+      onSelect: () => { router.push(`/${workspaceSlug.value}/${encodeForSlug(memoSlug.value)}/_slide`); },
+    },
     {
       label: 'Copy as markdown',
       icon: iconKey.copy,
