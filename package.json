@@ -43,7 +43,7 @@
     "vue": "latest",
     "vue-router": "latest"
   },
-  "version": "0.4.0",
+  "version": "0.4.1",
   "devDependencies": {
     "@types/reveal.js": "^5.2.0"
   }
