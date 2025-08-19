@@ -102,6 +102,15 @@
   margin-top: 4px; /* small separation for nested lists */
 }
 
+/* Blockquotes: expand to full slide width */
+.reveal .slides section blockquote {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0px 24px; /* increase inner spacing for readability */
+  box-sizing: border-box;
+}
+
 /* Make code blocks fill available slide height */
 .reveal pre {
   flex: 1 1 auto;
