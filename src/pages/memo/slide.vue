@@ -27,10 +27,10 @@
         <UButton
           :icon="iconKey.arrowLeft"
           color="neutral"
-          variant="solid"
+          variant="soft"
           @click="$router.go(-1)"
         >
-          Back
+          Exit
         </UButton>
       </div>
     </template>
@@ -158,6 +158,7 @@ onMounted(async () => {
     const deck = new Reveal(revealRoot.value, {
       hash: true,
       controls: true,
+      controlsLayout: 'edges',
       progress: true,
       slideNumber: true,
       center: false,
