@@ -34,7 +34,13 @@
               class="block rounded-md px-2 py-1 text-sm sidebar-link"
               active-class="is-active"
             >
-              {{ memo.title }}
+              {{ extractsTitleParts(memo.title).memoTitle }}
+              <span
+                v-if="extractsTitleParts(memo.title).context"
+                class="memo-link-description text-xs"
+              >
+                @{{ extractsTitleParts(memo.title).context }}
+              </span>
             </NuxtLink>
           </li>
         </ul>
@@ -80,7 +86,14 @@
                 'block rounded-md px-2 py-1 text-sm': true,
               }"
             >
-              {{ memo.title }}<span v-if="memo.workspace !== workspaceSlug"> [external]</span>
+              {{ extractsTitleParts(memo.title).memoTitle }}
+              <span v-if="memo.workspace !== workspaceSlug"> [external]</span>
+              <span
+                v-if="extractsTitleParts(memo.title).context"
+                class="memo-link-description text-xs"
+              >
+                @{{ extractsTitleParts(memo.title).context }}
+              </span>
             </NuxtLink>
           </li>
         </ul>
@@ -106,8 +119,6 @@ const store = useWorkspaceStore();
 
 const workspaceSlug = computed(() => route.params.workspace as string);
 
-const { toggleSidebar } = useUIState();
-
 const recentStore = useRecentMemoStore();
 const recentMemos = computed(() => recentStore.history);
 const bookmarks = computed(() => store.bookmarkedMemos);
@@ -130,6 +141,12 @@ const isActive = (memo: { workspace: string; slug: string; hash?: string }) => {
     && hashMatches
   );
 };
+
+function extractsTitleParts(title: string): { memoTitle: string; context: string } {
+  const parts = title.split('/');
+  const memoTitle = parts.pop() ?? title;
+  return { memoTitle, context: parts.join('/') };
+}
 </script>
 
 <style scoped>
