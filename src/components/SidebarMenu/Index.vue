@@ -29,19 +29,10 @@
             v-for="memo in bookmarks"
             :key="memo.id"
           >
-            <NuxtLink
+            <MemoLinkRow
               :to="`/${workspaceSlug}/${memo.slug_title}`"
-              class="block rounded-md px-2 py-1 text-sm sidebar-link"
-              active-class="is-active"
-            >
-              {{ extractsTitleParts(memo.title).memoTitle }}
-              <span
-                v-if="extractsTitleParts(memo.title).context"
-                class="memo-link-description text-xs"
-              >
-                @{{ extractsTitleParts(memo.title).context }}
-              </span>
-            </NuxtLink>
+              :memo-title="memo.title"
+            />
           </li>
         </ul>
       </section>
@@ -77,24 +68,12 @@
             v-for="memo in recentMemos"
             :key="`${memo.workspace}/${memo.slug}${memo.hash || ''}`"
           >
-            <NuxtLink
+            <MemoLinkRow
               :to="`/${memo.workspace}/${memo.slug}${memo.hash || ''}`"
-              :class="{
-                'sidebar-link': true,
-                'is-active': isActive(memo),
-                'sidebar-external': memo.workspace !== workspaceSlug,
-                'block rounded-md px-2 py-1 text-sm': true,
-              }"
-            >
-              {{ extractsTitleParts(memo.title).memoTitle }}
-              <span v-if="memo.workspace !== workspaceSlug"> [external]</span>
-              <span
-                v-if="extractsTitleParts(memo.title).context"
-                class="memo-link-description text-xs"
-              >
-                @{{ extractsTitleParts(memo.title).context }}
-              </span>
-            </NuxtLink>
+              :memo-title="memo.title"
+              :external="memo.workspace !== workspaceSlug"
+              :active="isActive(memo)"
+            />
           </li>
         </ul>
 
@@ -111,6 +90,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+
+import MemoLinkRow from './MemoLinkRow.vue';
 
 defineProps<{ isOpen: boolean }>();
 
@@ -141,12 +122,6 @@ const isActive = (memo: { workspace: string; slug: string; hash?: string }) => {
     && hashMatches
   );
 };
-
-function extractsTitleParts(title: string): { memoTitle: string; context: string } {
-  const parts = title.split('/');
-  const memoTitle = parts.pop() ?? title;
-  return { memoTitle, context: parts.join('/') };
-}
 </script>
 
 <style scoped>
