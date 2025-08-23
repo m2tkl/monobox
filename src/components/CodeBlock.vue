@@ -61,7 +61,7 @@ const languages = ref(
     .sort((a: string, b: string) => a.localeCompare(b)),
 );
 
-const codeBlockRef = ref();
+const codeBlockRef = ref<HTMLElement | null>(null);
 
 const selectedLanguage = computed({
   get: () => props.node.attrs.language,
@@ -79,8 +79,8 @@ const codeBlockName = computed({
 
 const copyToClipboard = async () => {
   try {
-    const codeElement = codeBlockRef.value.querySelector('pre code');
-    const codeContent = (codeElement ? codeElement.innerText : '').trimEnd();
+    const codeElement = codeBlockRef.value!.querySelector('pre code');
+    const codeContent = (codeElement!.textContent ?? '').trimEnd();
 
     await navigator.clipboard.writeText(codeContent);
 
