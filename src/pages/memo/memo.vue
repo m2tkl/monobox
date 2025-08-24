@@ -217,6 +217,7 @@ const extensions = [
   CustomExtension.imageExtention(),
   CustomExtension.headingExtension(),
   CustomExtension.codeBlockExtension(CodeBlockComponent as Component<NodeViewProps>),
+  CustomExtension.codeBlockNavExtension(),
   Focus.configure({
     className: 'has-focus',
     mode: 'deepest',
