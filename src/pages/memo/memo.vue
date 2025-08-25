@@ -177,7 +177,7 @@ import type { JSONContent, NodeViewProps, Editor as _Editor } from '@tiptap/vue-
 import type { EditorMsg } from '~/lib/editor/msg';
 import type { Link as LinkModel } from '~/models/link';
 
-import CodeBlockComponent from '~/components/CodeBlock.vue';
+import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import OutlineView from '~/components/OutlineView.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
@@ -217,6 +217,7 @@ const extensions = [
   CustomExtension.imageExtention(),
   CustomExtension.headingExtension(),
   CustomExtension.codeBlockExtension(CodeBlockComponent as Component<NodeViewProps>),
+  CustomExtension.codeBlockNavExtension(),
   Focus.configure({
     className: 'has-focus',
     mode: 'deepest',
