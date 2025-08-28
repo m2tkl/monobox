@@ -6,32 +6,12 @@
       class="aspect-[1/1] overflow-hidden rounded-lg"
     >
       <NuxtLink :to="`/${route.params.workspace}/${memo.slug_title}`">
-        <UCard
-          class="aspect-[1/1] card-interactive"
-          :ui="{
-            header: 'px-3 pt-3 pb-0 sm:px-3',
-            body: 'px-3 pb-4 pt-1 sm:p-3',
-            root: 'overflow-hidden',
-          }"
-        >
-          <template #header>
-            <h3 class="truncate-multiline text-sm font-semibold card-title">
-              {{ truncateString(memo.title, 32) }}
-            </h3>
-          </template>
-          <img
-            v-if="memo.thumbnail_image"
-            :src="transformImageSrc(memo.thumbnail_image)"
-          >
-          <p
-            v-for="p in truncateString(memo.description ? memo.description : '', 128)?.split('\n')"
-            v-else
-            :key="p"
-            class="truncate-multiline text-sm card-description"
-          >
-            {{ p }}
-          </p>
-        </UCard>
+        <MemoThumbnail
+          :title="truncateString(extractsTitleParts(memo.title).memoTitle, TITLE_TRUNCATE)"
+          :context="extractsTitleParts(memo.title).context"
+          :description="memo.description"
+          :thumbnail-image="memo.thumbnail_image"
+        />
       </NuxtLink>
     </li>
   </ul>
@@ -44,7 +24,15 @@ defineProps<{
   memos: MemoIndexItem[];
 }>();
 
+const TITLE_TRUNCATE = 32;
+
 const route = useRoute();
+
+function extractsTitleParts(title: string): { memoTitle: string; context: string } {
+  const parts = title.split('/');
+  const memoTitle = parts.pop() ?? title;
+  return { memoTitle, context: parts.join('/') };
+}
 </script>
 
 <style scoped>
