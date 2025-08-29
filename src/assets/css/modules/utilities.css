@@ -44,6 +44,10 @@
   font-weight: bold;
 }
 
+.sidebar-link.is-active:hover {
+  color: var(--color-link-sidebar-hover);
+}
+
 .sidebar-heading {
   color: var(--color-text-secondary);
 }
