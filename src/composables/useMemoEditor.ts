@@ -33,6 +33,18 @@ type MemoEditorOptions = {
   router: Router;
 };
 
+type _Heading = {
+  type: 'heading';
+  attrs: { level: number; id: string };
+  content?: Array<{ type: 'text'; text: string }>;
+};
+
+type Heading = {
+  id: string;
+  level: number;
+  text: string;
+};
+
 export function useMemoEditor(
   memoContent: string,
   options: MemoEditorOptions,
@@ -137,6 +149,60 @@ export function useMemoEditor(
   });
 
   /**
+   * Outline items in editor content
+   */
+  const outline = computed<Heading[]>(() => {
+    const editorContent = editor.value?.getJSON();
+
+    const headings = editorContent?.content?.filter(c => c.type === 'heading') as _Heading[] | undefined;
+    if (headings === undefined) {
+      return [];
+    }
+
+    return headings.map(h => ({
+      id: h.attrs ? (h.attrs.id as string) : '',
+      text: h.content ? (h.content[0].text as string) : '',
+      level: h.attrs ? (h.attrs.level as number) : 1,
+    }));
+  });
+
+  const activeHeading = computed<Heading | undefined>(() => {
+    return outline.value.find(item => item.id === activeHeadingId.value);
+  });
+
+  /**
+   * Computes the list of ancestor heading IDs for the currently active heading.
+   *
+   * Starting from the active heading, this function walks backwards through the list of headings,
+   * collecting all headings that have a lower level (i.e., higher in the document structure).
+   * It stops when it reaches the top-level heading (level 1).
+   *
+   * @returns An array of heading IDs representing the ancestors of the active heading,
+   *          ordered from closest parent to farthest (i.e., immediate parent first).
+   */
+  const activeAncestorHeadings = computed<Heading[]>(() => {
+    if (!activeHeadingId.value) return [];
+
+    const index = outline.value.findIndex(item => item.id === activeHeadingId.value);
+    if (index === -1) return [];
+
+    const ancestors: Heading[] = [];
+    let currentLevel = outline.value[index].level;
+
+    for (let i = index - 1; i >= 0; i--) {
+      const item = outline.value[i];
+      if (item.level < currentLevel && item.id) {
+        ancestors.push(item);
+        currentLevel = item.level;
+
+        if (currentLevel === 1) break;
+      }
+    }
+
+    return ancestors;
+  });
+
+  /**
    * Moves the focus to a specific heading in the editor.
    *
    * This function ensures that the specified heading is scrolled into view
@@ -193,6 +259,9 @@ export function useMemoEditor(
   return {
     editor,
     activeHeadingId,
+    outline,
+    activeHeading,
+    activeAncestorHeadings,
     wasCaretOut,
     headImageRef,
     focusHeading,

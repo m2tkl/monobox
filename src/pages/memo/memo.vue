@@ -9,9 +9,9 @@
           style="background-color: var(--color-background)"
         >
           <OutlineView
-            v-if="editor"
-            :editor-content="editor.getJSON()"
+            :outline="outline"
             :active-heading-id="activeHeadingId"
+            :active-ancestor-headings="activeAncestorHeadings"
             @click="(id: any, title: string) => {
               focusHeading(editor, id);
               navigateToHeading(id);
@@ -260,6 +260,8 @@ const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
 const {
   editor,
   activeHeadingId,
+  outline,
+  activeAncestorHeadings,
   focusHeading,
   headImageRef,
   updateActiveHeadingOnScroll,

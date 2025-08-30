@@ -19,7 +19,7 @@
         <div
           class="group relative flex min-h-8 cursor-pointer items-center outline-item px-2 py-1.5 text-sm"
           :class="{ 'is-active': activeHeadingId === item.id,
-                    'is-ancestor': activeAncestorHeadingIds.includes(item.id ?? ''), // ancestor highlight
+                    'is-ancestor': activeAncestorHeadings.map(h => h.id).includes(item.id ?? ''), // ancestor highlight
           }"
           :data-id="item.id"
 
@@ -48,14 +48,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { JSONContent } from '@tiptap/vue-3';
-
-type _Heading = {
-  type: 'heading';
-  attrs?: { level: number; id: string };
-  content?: Array<{ type: 'text'; text: string }>;
-};
-
 type Heading = {
   id: string;
   level: number;
@@ -64,16 +56,15 @@ type Heading = {
 
 const props = defineProps<{
   /**
-   * Editor content with JSON structure
-   */
-  editorContent: JSONContent;
-
-  /**
    * Heading ID currently active
    *
    * This ID is specified into memo view.
    */
   activeHeadingId?: string;
+
+  outline: Heading[];
+  activeHeading?: Heading;
+  activeAncestorHeadings: Heading[];
 }>();
 
 const emits = defineEmits<{
@@ -81,57 +72,6 @@ const emits = defineEmits<{
   // eslint-disable-next-line @typescript-eslint/unified-signatures
   (e: 'copy-link', id: string, text: string): void;
 }>();
-
-/* --- State --- */
-/**
- * Outline items in editor content
- */
-const outline = computed<Heading[]>(() => {
-  const content = props.editorContent.content;
-
-  const headings = content?.filter(c => c.type === 'heading') as _Heading[] | undefined;
-  if (headings === undefined) {
-    return [];
-  }
-
-  return headings.map(h => ({
-    id: h.attrs ? (h.attrs.id as string) : '',
-    text: h.content ? (h.content[0].text as string) : '',
-    level: h.attrs ? (h.attrs.level as number) : 1,
-  }));
-});
-
-/**
- * Computes the list of ancestor heading IDs for the currently active heading.
- *
- * Starting from the active heading, this function walks backwards through the list of headings,
- * collecting all headings that have a lower level (i.e., higher in the document structure).
- * It stops when it reaches the top-level heading (level 1).
- *
- * @returns An array of heading IDs representing the ancestors of the active heading,
- *          ordered from closest parent to farthest (i.e., immediate parent first).
- */
-const activeAncestorHeadingIds = computed(() => {
-  if (!props.activeHeadingId) return [];
-
-  const index = outline.value.findIndex(item => item.id === props.activeHeadingId);
-  if (index === -1) return [];
-
-  const ancestors: string[] = [];
-  let currentLevel = outline.value[index].level;
-
-  for (let i = index - 1; i >= 0; i--) {
-    const item = outline.value[i];
-    if (item.level < currentLevel && item.id) {
-      ancestors.push(item.id);
-      currentLevel = item.level;
-
-      if (currentLevel === 1) break;
-    }
-  }
-
-  return ancestors;
-});
 
 /* --- Outline auto scroll --- */
 /**
