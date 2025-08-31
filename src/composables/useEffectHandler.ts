@@ -15,6 +15,7 @@ import { useToast } from '#imports';
  */
 export const useEffectHandler = () => {
   const toast = useToast();
+  const logger = useConsoleLogger('composables/useEffectHandler');
 
   /**
    * Creates a chainable effect handler for the given operation
@@ -44,13 +45,15 @@ export const useEffectHandler = () => {
           .addEffect('success', () =>
             toast.add({ title: success, icon: iconKey.success, duration: 1000 }),
           )
-          .addEffect('error', () =>
+          .addEffect('error', (data) => {
+            logger.error(data);
             toast.add({
               title: error,
               description: 'Please try again',
               color: 'error',
               icon: iconKey.failed,
-            }),
+            });
+          },
           ),
 
       /**

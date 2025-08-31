@@ -181,7 +181,7 @@ import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import OutlineView from '~/components/OutlineView.vue';
 import SearchPalette from '~/components/SearchPalette.vue';
-import { writeHtml } from '~/lib/clipboard';
+import { writeHtml, writeText } from '~/lib/clipboard';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
@@ -555,7 +555,7 @@ async function runDeleteWorkflow() {
 const copyPageAsMarkdown = (editor: _Editor, title: string) =>
   createEffectHandler(async () => {
     const markdown = convertToMarkdown(editor.state.doc, title);
-    await writeHtml(markdown);
+    await writeText(markdown);
   })
     .withToast('Copied as markdown.', 'Failed to copy.')
     .execute();
