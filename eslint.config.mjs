@@ -29,6 +29,7 @@ export default withNuxt({
       },
     ],
     'vue/no-multiple-template-root': 'off',
+    'vue/multi-word-component-names': 'off',
   },
 });
 // .append(
