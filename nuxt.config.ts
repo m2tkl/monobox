@@ -6,6 +6,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
+    '@nuxt/test-utils/module',
   ],
 
   // Enable SSG
