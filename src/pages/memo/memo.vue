@@ -177,10 +177,10 @@ import type { JSONContent, NodeViewProps, Editor as _Editor } from '@tiptap/vue-
 import type { EditorMsg } from '~/lib/editor/msg';
 import type { Link as LinkModel } from '~/models/link';
 
+import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import OutlineView from '~/components/OutlineView.vue';
-import SearchPalette from '~/components/SearchPalette.vue';
 import { writeHtml, writeText } from '~/lib/clipboard';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';

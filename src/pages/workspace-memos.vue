@@ -91,7 +91,7 @@
 </template>
 
 <script lang="ts" setup>
-import SearchPalette from '~/components/SearchPalette.vue';
+import SearchPalette from '~/app/features/search/SearchPalette.vue';
 
 definePageMeta({
   path: '/:workspace',
