@@ -28,7 +28,7 @@ import type { JSONContent } from '@tiptap/vue-3';
 // Slide styles (Reveal core, theme, highlight theme)
 import '~/assets/css/modules/slide.css';
 
-import Slide from '~/app/features/slide/ui/Slide.vue';
+import Slide from '~/app/features/slide/Slide.vue';
 import { convertMemoToHtml } from '~/lib/memo/exporter/toHtml';
 
 definePageMeta({

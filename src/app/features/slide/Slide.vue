@@ -26,7 +26,7 @@ import RevealHighlight from 'reveal.js/plugin/highlight/highlight.esm.js';
 
 // Slide styles (Reveal core, theme, highlight theme)
 import '~/assets/css/modules/slide.css';
-import { buildSlidesFromHtml } from '../lib/buildSlidesFromHtml';
+import { buildSlidesFromHtml } from './lib/buildSlidesFromHtml';
 
 defineOptions({ name: 'Slide' });
 
