@@ -173,21 +173,20 @@ import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue
 import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { JSONContent, NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
+import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
-import type { Link as LinkModel } from '~/models/link';
 
+import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
+import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
+import { useMemoLoader } from '~/app/features/memo/loader/useMemoLoader';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import OutlineView from '~/components/OutlineView.vue';
-import { writeHtml, writeText } from '~/lib/clipboard';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
-import { convertToMarkdown } from '~/lib/editor/serializer/markdown';
-import { convertMemoToHtml, createHtmlLink } from '~/lib/memo/exporter/toHtml';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -243,11 +242,7 @@ const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
 
 /* --- Workspace and memo loader --- */
-const { error, ready } = loadMemoData(workspaceSlug.value, memoSlug.value);
-
-if (error.value) {
-  showError({ statusCode: 404, statusMessage: 'Page not found', message: `Memo ${memoSlug.value} not found.` });
-}
+const { error, ready } = useMemoLoader(workspaceSlug.value, memoSlug.value);
 
 const { memo } = await ready;
 const memoTitle = ref(memo.title);
@@ -552,109 +547,16 @@ async function runDeleteWorkflow() {
   }
 }
 
-const copyPageAsMarkdown = (editor: _Editor, title: string) =>
-  createEffectHandler(async () => {
-    const markdown = convertToMarkdown(editor.state.doc, title);
-    await writeText(markdown);
-  })
-    .withToast('Copied as markdown.', 'Failed to copy.')
-    .execute();
-
-const copyPageAsHtml = (editor: _Editor, title: string) =>
-  createEffectHandler(async () => {
-    const html = convertMemoToHtml(editor.getJSON(), title);
-    await writeHtml(html);
-  })
-    .withToast('Copied as html.', 'Failed to copy.')
-    .execute();
-
-const copySelectedTextAsMarkdown = (editor: _Editor) =>
-  createEffectHandler(async () => {
-    const selectedContent = EditorQuery.getSelectedNode(editor);
-    const markdown = convertToMarkdown(selectedContent);
-    await navigator.clipboard.writeText(markdown);
-  })
-    .withToast('Copied as markdown.', 'Failed to copy.')
-    .execute();
-
-/**
- * Copy link to heading as html link format
- *
- * @param headingId
- * @param headingText
- */
-const copyLinkToHeading = (fullUrl: string, titleWithHeading: string) =>
-  createEffectHandler(async () => {
-    const htmlLink = createHtmlLink(fullUrl, titleWithHeading);
-    await writeHtml(htmlLink);
-  })
-    .withToast('Copied link to heading.', 'Failed to copy.')
-    .execute();
+const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useCopyActions();
 
 /* --- Export with related pages (Step1: select targets) --- */
-
-const exportMode = ref<'idle' | 'selectingTargets' | 'copyingResult'>('idle');
-const htmlExport = ref<string>('');
-
-const isSelectingTargets = computed({
-  get: () => exportMode.value === 'selectingTargets',
-  set: (value: boolean) => {
-    exportMode.value = value ? 'selectingTargets' : 'idle';
-  },
+const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useExportLinked({
+  command,
+  workspaceSlug: () => workspaceSlug.value,
+  store,
+  editor,
+  memoTitle,
 });
-
-const isCopyingResult = computed({
-  get: () => exportMode.value === 'copyingResult',
-  set: (value: boolean) => {
-    exportMode.value = value ? 'copyingResult' : 'idle';
-  },
-});
-
-const exportCandidates = computed(() => {
-  if (store.links) {
-    const uniqueLinks = Array.from(
-      new Map(store.links.map(link => [link.id, link])).values(),
-    );
-    return uniqueLinks;
-  }
-  return [];
-});
-
-async function fetchLinkedMemos(links: Array<LinkModel>): Promise<Array<{ content: string; title: string }>> {
-  const memos = [];
-
-  for (const link of links) {
-    const memo = await command.memo.get({
-      workspaceSlugName: workspaceSlug.value,
-      memoSlugTitle: link.title,
-    });
-
-    memos.push({ content: memo.content, title: link.title });
-  }
-
-  return memos;
-}
-
-const exportPagesV2 = async (targets: Array<LinkModel>) => {
-  if (!editor.value || !store.memo) return;
-
-  await createEffectHandler(async (targets: Array<LinkModel>, editorJson: JSONContent, memoTitle: string) => {
-    const currentMemoHtml = convertMemoToHtml(editorJson, memoTitle);
-
-    const linkedMemos = await fetchLinkedMemos(targets);
-    const linkedMemoHtmls = linkedMemos.map(linkedMemo => convertMemoToHtml(JSON.parse(linkedMemo.content), linkedMemo.title));
-
-    return [currentMemoHtml, ...linkedMemoHtmls].join('\n');
-  })
-    .withToast('Export prepared successfully!', 'Failed to prepare export.')
-    .withCallback(
-      (result: string) => {
-        htmlExport.value = result;
-        exportMode.value = 'copyingResult';
-      },
-    )
-    .execute(targets, editor.value.getJSON(), store.memo.title);
-};
 
 /* --- Export with related pages (Step2: copy result) */
 
