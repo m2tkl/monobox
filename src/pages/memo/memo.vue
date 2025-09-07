@@ -166,17 +166,17 @@ import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 
 import { useUpdateMemoEditAction } from './actions/updateMemoEdit';
-import AltEditDialog from './units/AltEditDialog.vue';
-import DeleteMemoWorkflow from './units/DeleteMemoWorkflow.vue';
-import ExportDialogToCopyResult from './units/ExportDialogToCopyResult.vue';
-import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue';
-import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
 
+import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
+import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
+import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
 import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
+import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
+import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
 import { useMemoLoader } from '~/app/features/memo/loader/useMemoLoader';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
