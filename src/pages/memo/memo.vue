@@ -4,30 +4,25 @@
       <div
         class="flex size-full justify-center"
       >
-        <div
-          class="scrollbar border-right flex h-full w-[250px] shrink-0 flex-col gap-3"
-          style="background-color: var(--color-background)"
-        >
-          <OutlineView
-            :outline="outline"
-            :active-heading-id="activeHeadingId"
-            :active-ancestor-headings="activeAncestorHeadings"
-            @click="(id: any, title: string) => {
-              focusHeading(editor, id);
-              navigateToHeading(id);
-              recentStore.addMemo(`${store.memo!.title} › ${title}`, encodeForSlug(memoSlug), workspaceSlug, `#${id}`);
-            }"
-            @copy-link="(id, text) => copyLinkToHeading(`${route.path}#${id}`, `${route.path}#${text}`)"
-          />
-        </div>
+        <OutlinePanel
+          :outline="outline"
+          :active-heading-id="activeHeadingId"
+          :active-ancestor-headings="activeAncestorHeadings"
+          :memo-title="store.memo?.title || memoTitle"
+          :memo-slug="memoSlug"
+          :workspace-slug="workspaceSlug"
+          :route-path="route.path"
+          :focus-heading="(id: string) => focusHeading(editor.value, id)"
+          :navigate-to-heading="navigateToHeading"
+          :copy-link-to-heading="copyLinkToHeading"
+        />
 
         <div
           id="main"
           class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto"
           style="background-color: var(--color-background)"
         >
-          <MemoEditor
-            v-if="editor"
+          <MemoEditorShell
             v-model:memo-title="memoTitle"
             :editor="editor"
           >
@@ -106,7 +101,7 @@
                 @exit="finishImgAltEditing"
               />
             </template>
-          </MemoEditor>
+          </MemoEditorShell>
 
           <!-- Related links -->
           <MemoLinkCardView
@@ -182,7 +177,8 @@ import { useMemoLoader } from '~/app/features/memo/loader/useMemoLoader';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
-import OutlineView from '~/components/OutlineView.vue';
+import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
+import MemoEditorShell from '~/app/features/memo/editor/MemoEditorShell.vue';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
