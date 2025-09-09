@@ -12,7 +12,7 @@ export function useExportLinked(params: {
   command: ReturnType<typeof useCommand>;
   workspaceSlug: () => string;
   store: ReturnType<typeof useWorkspaceStore>;
-  editor: Ref<_Editor | null>;
+  editor: Ref<_Editor | undefined>;
   memoTitle: Ref<string>;
 }) {
   const { command, workspaceSlug, store, editor, memoTitle } = params;

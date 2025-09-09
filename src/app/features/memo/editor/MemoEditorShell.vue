@@ -15,8 +15,11 @@
       <slot name="context-menu" />
     </template>
 
-    <template #bubble-menu>
-      <slot name="bubble-menu" />
+    <template #bubble-menu="slotProps">
+      <slot
+        name="bubble-menu"
+        v-bind="slotProps"
+      />
     </template>
 
     <template #dialogs="slotProps">

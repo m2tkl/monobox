@@ -12,7 +12,7 @@
           :memo-slug="memoSlug"
           :workspace-slug="workspaceSlug"
           :route-path="route.path"
-          :focus-heading="(id: string) => focusHeading(editor.value, id)"
+          :focus-heading="(id: string) => focusHeading(editor, id)"
           :navigate-to-heading="navigateToHeading"
           :copy-link-to-heading="copyLinkToHeading"
         />
@@ -57,8 +57,8 @@
               </UDropdownMenu>
             </template>
 
-            <template #bubble-menu>
-              <template v-if="editor.isActive('image')">
+            <template #bubble-menu="{ editor: _editor }">
+              <template v-if="_editor.isActive('image')">
                 <EditorToolbarButton
                   :icon="iconKey.annotation"
                   @exec="startImgAltEditing"
@@ -169,16 +169,16 @@ import type { EditorMsg } from '~/lib/editor/msg';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
+import MemoEditorShell from '~/app/features/memo/editor/MemoEditorShell.vue';
 import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
 import { useMemoLoader } from '~/app/features/memo/loader/useMemoLoader';
+import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
-import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
-import MemoEditorShell from '~/app/features/memo/editor/MemoEditorShell.vue';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
@@ -238,7 +238,7 @@ const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
 
 /* --- Workspace and memo loader --- */
-const { error, ready } = useMemoLoader(workspaceSlug.value, memoSlug.value);
+const { ready } = useMemoLoader(workspaceSlug.value, memoSlug.value);
 
 const { memo } = await ready;
 const memoTitle = ref(memo.title);
