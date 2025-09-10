@@ -4,30 +4,25 @@
       <div
         class="flex size-full justify-center"
       >
-        <div
-          class="scrollbar border-right flex h-full w-[250px] shrink-0 flex-col gap-3"
-          style="background-color: var(--color-background)"
-        >
-          <OutlineView
-            :outline="outline"
-            :active-heading-id="activeHeadingId"
-            :active-ancestor-headings="activeAncestorHeadings"
-            @click="(id: any, title: string) => {
-              focusHeading(editor, id);
-              navigateToHeading(id);
-              recentStore.addMemo(`${store.memo!.title} › ${title}`, encodeForSlug(memoSlug), workspaceSlug, `#${id}`);
-            }"
-            @copy-link="(id, text) => copyLinkToHeading(`${route.path}#${id}`, `${route.path}#${text}`)"
-          />
-        </div>
+        <OutlinePanel
+          :outline="outline"
+          :active-heading-id="activeHeadingId"
+          :active-ancestor-headings="activeAncestorHeadings"
+          :memo-title="store.memo?.title || memoTitle"
+          :memo-slug="memoSlug"
+          :workspace-slug="workspaceSlug"
+          :route-path="route.path"
+          :focus-heading="(id: string) => focusHeading(editor, id)"
+          :navigate-to-heading="navigateToHeading"
+          :copy-link-to-heading="copyLinkToHeading"
+        />
 
         <div
           id="main"
           class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto"
           style="background-color: var(--color-background)"
         >
-          <MemoEditor
-            v-if="editor"
+          <MemoEditorShell
             v-model:memo-title="memoTitle"
             :editor="editor"
           >
@@ -62,8 +57,8 @@
               </UDropdownMenu>
             </template>
 
-            <template #bubble-menu>
-              <template v-if="editor.isActive('image')">
+            <template #bubble-menu="{ editor: _editor }">
+              <template v-if="_editor.isActive('image')">
                 <EditorToolbarButton
                   :icon="iconKey.annotation"
                   @exec="startImgAltEditing"
@@ -106,7 +101,7 @@
                 @exit="finishImgAltEditing"
               />
             </template>
-          </MemoEditor>
+          </MemoEditorShell>
 
           <!-- Related links -->
           <MemoLinkCardView
@@ -166,28 +161,28 @@ import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 
 import { useUpdateMemoEditAction } from './actions/updateMemoEdit';
-import AltEditDialog from './units/AltEditDialog.vue';
-import DeleteMemoWorkflow from './units/DeleteMemoWorkflow.vue';
-import ExportDialogToCopyResult from './units/ExportDialogToCopyResult.vue';
-import ExportDialogToSelectTargets from './units/ExportDialogToSelectTargets.vue';
-import LinkEditDialog from './units/LinkEditDialog.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { JSONContent, NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
+import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
-import type { Link as LinkModel } from '~/models/link';
 
+import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
+import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
+import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
+import MemoEditorShell from '~/app/features/memo/editor/MemoEditorShell.vue';
+import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
+import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
+import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
+import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
+import { useMemoLoader } from '~/app/features/memo/loader/useMemoLoader';
+import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
+import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
-import OutlineView from '~/components/OutlineView.vue';
-import SearchPalette from '~/components/SearchPalette.vue';
-import { writeHtml, writeText } from '~/lib/clipboard';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
-import { convertToMarkdown } from '~/lib/editor/serializer/markdown';
-import { convertMemoToHtml, createHtmlLink } from '~/lib/memo/exporter/toHtml';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -243,11 +238,7 @@ const workspaceSlug = computed(() => route.params.workspace as string);
 const memoSlug = computed(() => route.params.memo as string);
 
 /* --- Workspace and memo loader --- */
-const { error, ready } = loadMemoData(workspaceSlug.value, memoSlug.value);
-
-if (error.value) {
-  showError({ statusCode: 404, statusMessage: 'Page not found', message: `Memo ${memoSlug.value} not found.` });
-}
+const { ready } = useMemoLoader(workspaceSlug.value, memoSlug.value);
 
 const { memo } = await ready;
 const memoTitle = ref(memo.title);
@@ -552,109 +543,16 @@ async function runDeleteWorkflow() {
   }
 }
 
-const copyPageAsMarkdown = (editor: _Editor, title: string) =>
-  createEffectHandler(async () => {
-    const markdown = convertToMarkdown(editor.state.doc, title);
-    await writeText(markdown);
-  })
-    .withToast('Copied as markdown.', 'Failed to copy.')
-    .execute();
-
-const copyPageAsHtml = (editor: _Editor, title: string) =>
-  createEffectHandler(async () => {
-    const html = convertMemoToHtml(editor.getJSON(), title);
-    await writeHtml(html);
-  })
-    .withToast('Copied as html.', 'Failed to copy.')
-    .execute();
-
-const copySelectedTextAsMarkdown = (editor: _Editor) =>
-  createEffectHandler(async () => {
-    const selectedContent = EditorQuery.getSelectedNode(editor);
-    const markdown = convertToMarkdown(selectedContent);
-    await navigator.clipboard.writeText(markdown);
-  })
-    .withToast('Copied as markdown.', 'Failed to copy.')
-    .execute();
-
-/**
- * Copy link to heading as html link format
- *
- * @param headingId
- * @param headingText
- */
-const copyLinkToHeading = (fullUrl: string, titleWithHeading: string) =>
-  createEffectHandler(async () => {
-    const htmlLink = createHtmlLink(fullUrl, titleWithHeading);
-    await writeHtml(htmlLink);
-  })
-    .withToast('Copied link to heading.', 'Failed to copy.')
-    .execute();
+const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useCopyActions();
 
 /* --- Export with related pages (Step1: select targets) --- */
-
-const exportMode = ref<'idle' | 'selectingTargets' | 'copyingResult'>('idle');
-const htmlExport = ref<string>('');
-
-const isSelectingTargets = computed({
-  get: () => exportMode.value === 'selectingTargets',
-  set: (value: boolean) => {
-    exportMode.value = value ? 'selectingTargets' : 'idle';
-  },
+const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useExportLinked({
+  command,
+  workspaceSlug: () => workspaceSlug.value,
+  store,
+  editor,
+  memoTitle,
 });
-
-const isCopyingResult = computed({
-  get: () => exportMode.value === 'copyingResult',
-  set: (value: boolean) => {
-    exportMode.value = value ? 'copyingResult' : 'idle';
-  },
-});
-
-const exportCandidates = computed(() => {
-  if (store.links) {
-    const uniqueLinks = Array.from(
-      new Map(store.links.map(link => [link.id, link])).values(),
-    );
-    return uniqueLinks;
-  }
-  return [];
-});
-
-async function fetchLinkedMemos(links: Array<LinkModel>): Promise<Array<{ content: string; title: string }>> {
-  const memos = [];
-
-  for (const link of links) {
-    const memo = await command.memo.get({
-      workspaceSlugName: workspaceSlug.value,
-      memoSlugTitle: link.title,
-    });
-
-    memos.push({ content: memo.content, title: link.title });
-  }
-
-  return memos;
-}
-
-const exportPagesV2 = async (targets: Array<LinkModel>) => {
-  if (!editor.value || !store.memo) return;
-
-  await createEffectHandler(async (targets: Array<LinkModel>, editorJson: JSONContent, memoTitle: string) => {
-    const currentMemoHtml = convertMemoToHtml(editorJson, memoTitle);
-
-    const linkedMemos = await fetchLinkedMemos(targets);
-    const linkedMemoHtmls = linkedMemos.map(linkedMemo => convertMemoToHtml(JSON.parse(linkedMemo.content), linkedMemo.title));
-
-    return [currentMemoHtml, ...linkedMemoHtmls].join('\n');
-  })
-    .withToast('Export prepared successfully!', 'Failed to prepare export.')
-    .withCallback(
-      (result: string) => {
-        htmlExport.value = result;
-        exportMode.value = 'copyingResult';
-      },
-    )
-    .execute(targets, editor.value.getJSON(), store.memo.title);
-};
 
 /* --- Export with related pages (Step2: copy result) */
 
