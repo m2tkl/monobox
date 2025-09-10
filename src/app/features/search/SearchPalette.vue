@@ -22,7 +22,7 @@
         :autoclear="false"
         :icon="type === 'link' ? iconKey.link : iconKey.search"
         placeholder="Type something to see the empty label change"
-        :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 10 }"
+        :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: SEARCH_RESULT_LIMIT }"
         command-attribute="title"
         :empty-state="{
           icon: iconKey.search,
@@ -50,6 +50,8 @@ const props = defineProps<{
   editor?: Editor;
   shortcutSymbol: string;
 }>();
+
+const SEARCH_RESULT_LIMIT = 30;
 
 const {
   searchTerm,
