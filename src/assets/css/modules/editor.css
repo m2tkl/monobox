@@ -19,8 +19,9 @@
 /* List styles */
 .tiptap ul,
 .tiptap ol {
-  padding: 0 1.5rem;
-  margin: 0.4rem 1rem 0.4rem 0.4rem;
+  /* Indent only on the left to avoid cumulative width shrink on nesting */
+  padding: 0 0 0 1.5rem;
+  margin: 0.4rem 0 0.4rem 0.4rem;
 }
 
 .tiptap ul {
