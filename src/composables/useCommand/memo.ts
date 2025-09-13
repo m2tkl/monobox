@@ -15,6 +15,23 @@ export const memoCommand = {
     }
   },
 
+  create: async (memo: { workspaceSlugName: string; title: string }) => {
+    try {
+      return await invoke<MemoDetail>('create_memo', {
+        args: {
+          workspace_slug_name: memo.workspaceSlugName,
+          slug_title: encodeForSlug(memo.title),
+          title: memo.title,
+          content: JSON.stringify(''),
+        },
+      });
+    }
+    catch (err) {
+      const errorInfo = createCommandErrorInfo(err);
+      throw new AppError(errorInfo, true);
+    }
+  },
+
   get: async (memo: { workspaceSlugName: string; memoSlugTitle: string }) => {
     try {
       return await invoke<MemoDetail>('get_memo', {
