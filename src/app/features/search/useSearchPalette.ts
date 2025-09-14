@@ -36,6 +36,7 @@ export type UseSearchPaletteOptions = {
 export const useSearchPalette = (options: UseSearchPaletteOptions) => {
   const router = useRouter();
   const logger = useConsoleLogger('components/Search/SearchPalette');
+  const command = useCommand();
 
   const selected = ref<unknown[]>([]);
   const isSearchPaletteOpen = ref(false);
@@ -88,13 +89,9 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     let linkMemoTitle = option.label;
 
     if (option.tag === 'new') {
-      const newMemo = await invoke<MemoDetail>('create_memo', {
-        args: {
-          workspace_slug_name: options.workspace.value.slug_name,
-          slug_title: encodeForSlug(searchTerm.value),
-          title: searchTerm.value,
-          content: JSON.stringify(''),
-        },
+      const newMemo = await command.memo.create({
+        workspaceSlugName: options.workspace.value.slug_name,
+        title: searchTerm.value,
       });
 
       linkMemoSlug = newMemo.slug_title;
