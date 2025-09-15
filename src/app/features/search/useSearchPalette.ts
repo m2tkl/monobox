@@ -1,9 +1,8 @@
-import { invoke } from '@tauri-apps/api/core';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
 import type { CommandPaletteItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/vue-3';
-import type { MemoDetail, MemoIndexItem } from '~/models/memo';
+import type { MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
 
 import * as EditorAction from '~/lib/editor/action.js';
