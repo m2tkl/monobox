@@ -230,7 +230,6 @@ const extensions = [
 const route = useRoute();
 const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
-const command = useCommand();
 const store = useWorkspaceStore();
 const recentStore = useRecentMemoStore();
 
@@ -547,7 +546,6 @@ const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLink
 
 /* --- Export with related pages (Step1: select targets) --- */
 const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useExportLinked({
-  command,
   workspaceSlug: () => workspaceSlug.value,
   store,
   editor,

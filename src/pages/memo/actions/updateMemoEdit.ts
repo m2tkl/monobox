@@ -1,9 +1,9 @@
 import type { Editor } from '@tiptap/vue-3';
 
+import { command } from '~/external/tauri/command';
 import { getHeadingTextById } from '~/lib/editor';
 
 export function useUpdateMemoEditAction() {
-  const command = useCommand();
   const recentStore = useRecentMemoStore();
 
   const { runTask: executeUpdateMemoEdit } = useAsyncTask(updateMemoEdit);

@@ -5,6 +5,7 @@ import type { Editor } from '@tiptap/vue-3';
 import type { MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
 
+import { command } from '~/external/tauri/command';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorQuery from '~/lib/editor/query';
 import { isCmdKey } from '~/utils/event';
@@ -35,7 +36,6 @@ export type UseSearchPaletteOptions = {
 export const useSearchPalette = (options: UseSearchPaletteOptions) => {
   const router = useRouter();
   const logger = useConsoleLogger('components/Search/SearchPalette');
-  const command = useCommand();
 
   const selected = ref<unknown[]>([]);
   const isSearchPaletteOpen = ref(false);

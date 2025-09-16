@@ -2,6 +2,7 @@ import type { JSONContent, Editor as _Editor } from '@tiptap/vue-3';
 import type { Ref } from 'vue';
 import type { Link as LinkModel } from '~/models/link';
 
+import { command } from '~/external/tauri/command';
 import { convertMemoToHtml } from '~/lib/memo/exporter/toHtml';
 
 /**
@@ -9,13 +10,12 @@ import { convertMemoToHtml } from '~/lib/memo/exporter/toHtml';
  * Manages small state machine and derived candidates list.
  */
 export function useExportLinked(params: {
-  command: ReturnType<typeof useCommand>;
   workspaceSlug: () => string;
   store: ReturnType<typeof useWorkspaceStore>;
   editor: Ref<_Editor | undefined>;
   memoTitle: Ref<string>;
 }) {
-  const { command, workspaceSlug, store, editor, memoTitle } = params;
+  const { workspaceSlug, store, editor, memoTitle } = params;
   const { createEffectHandler } = useEffectHandler();
 
   const exportMode = ref<'idle' | 'selectingTargets' | 'copyingResult'>('idle');

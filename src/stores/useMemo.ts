@@ -1,11 +1,11 @@
 import type { Link as LinkType } from '~/models/link';
 import type { MemoDetail } from '~/models/memo';
 
+import { command } from '~/external/tauri/command';
+
 const LogPrefix = 'memoStore';
 
 export const useMemoStore = defineStore('memo', () => {
-  const command = useCommand();
-
   const memo = ref<MemoDetail>();
   const links = ref<LinkType[]>([]);
 

@@ -1,11 +1,11 @@
 import type { MemoIndexItem } from '~/models/memo';
 import type { Workspace } from '~/models/workspace';
 
+import { command } from '~/external/tauri/command';
+
 const LogPrefix = 'workspaceStore';
 
 export const useWorkspaceStore = defineStore('workspace', () => {
-  const command = useCommand();
-
   /* --- States --- */
   const workspaces = ref<Workspace[]>([]);
   const workspace = ref<Workspace>();

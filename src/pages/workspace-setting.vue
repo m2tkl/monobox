@@ -70,13 +70,14 @@
 </template>
 
 <script setup lang="ts">
+import { command } from '~/external/tauri/command';
+
 definePageMeta({
   path: '/:workspace/_setting',
 });
 
 const router = useRouter();
 const toast = useToast();
-const command = useCommand();
 const store = useWorkspaceStore();
 
 const workspace = computed(() => store.workspace);

@@ -1,10 +1,10 @@
 import type { Bookmark } from '~/models/bookmark';
 
+import { command } from '~/external/tauri/command';
+
 const LogPrefix = 'workspaceStore/bookmark';
 
 export const useBookmark = defineStore('bookmark', () => {
-  const command = useCommand();
-
   const bookmarks = ref<Bookmark[]>([]);
 
   const {
