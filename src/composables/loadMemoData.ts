@@ -1,4 +1,4 @@
-import { useWorkspaceStore } from '~/stores/useWorkspace';
+import { useWorkspaceStore } from '~/stores/workspace';
 
 export function loadMemoData(workspaceSlug: string, memoSlug: string) {
   const store = useWorkspaceStore();
