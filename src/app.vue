@@ -10,9 +10,12 @@
 </template>
 
 <script setup lang="ts">
-useEventHandler();
+import { emitEvent as emitEvent_ } from './resource-state/infra/eventBus';
+import { startRules } from './resource-state/rules';
+
+startRules();
 useRouteWatcher();
-useTitleUpdater();
 
 emitEvent('app/init', undefined);
+emitEvent_('app/init', undefined);
 </script>

@@ -1,13 +1,13 @@
-import { invoke } from '@tauri-apps/api/core';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
 import type { CommandPaletteItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/vue-3';
-import type { MemoDetail, MemoIndexItem } from '~/models/memo';
-import type { Workspace } from '~/models/workspace';
+import type { MemoIndexItem } from '~/models/memo';
 
+import { command } from '~/external/tauri/command';
 import * as EditorAction from '~/lib/editor/action.js';
 import * as EditorQuery from '~/lib/editor/query';
+import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';
@@ -26,7 +26,7 @@ function isCommand(item: CommandPaletteItem): item is Command {
 
 export type UseSearchPaletteOptions = {
   type: Ref<'search' | 'link'>;
-  workspace: Ref<Workspace>;
+  workspaceSlug: Ref<string>;
   memos: Ref<MemoIndexItem[]>;
   currentMemoTitle?: Ref<string | undefined>;
   editor?: Ref<Editor | undefined>;
@@ -36,7 +36,6 @@ export type UseSearchPaletteOptions = {
 export const useSearchPalette = (options: UseSearchPaletteOptions) => {
   const router = useRouter();
   const logger = useConsoleLogger('components/Search/SearchPalette');
-  const command = useCommand();
 
   const selected = ref<unknown[]>([]);
   const isSearchPaletteOpen = ref(false);
@@ -90,17 +89,19 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
 
     if (option.tag === 'new') {
       const newMemo = await command.memo.create({
-        workspaceSlugName: options.workspace.value.slug_name,
+        workspaceSlugName: options.workspaceSlug.value,
         title: searchTerm.value,
       });
 
       linkMemoSlug = newMemo.slug_title;
       linkMemoTitle = newMemo.title;
+
+      emitEvent_('memo/created', { workspaceSlug: options.workspaceSlug.value });
     }
 
     if (options.type.value === 'link') {
       if (options.editor?.value) {
-        EditorAction.insertLinkToMemo(options.editor.value, linkMemoTitle, `/${options.workspace.value.slug_name}/${linkMemoSlug}`);
+        EditorAction.insertLinkToMemo(options.editor.value, linkMemoTitle, `/${options.workspaceSlug.value}/${linkMemoSlug}`);
       }
     }
 
@@ -110,7 +111,7 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     logger.log('onSearchPaletteSelect() end.');
 
     if (options.type.value === 'search') {
-      router.push(`/${options.workspace.value.slug_name}/${linkMemoSlug}`);
+      router.push(`/${options.workspaceSlug.value}/${linkMemoSlug}`);
     }
   }
 

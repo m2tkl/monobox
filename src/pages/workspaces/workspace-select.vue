@@ -20,34 +20,37 @@
           </div>
 
           <!-- Project collection -->
-          <div
-            v-if="workspaces.length === 0"
-            style="color: var(--color-text-secondary)"
-          >
-            No workspace
-          </div>
-          <div v-else>
-            <ul
-              class="rounded-md border workspace-list"
-              style="border-color: var(--color-border-muted);"
+          <div v-if="!workspacesVM.flags.isLoading">
+            <div
+              v-if="workspacesVM.data.items.length === 0"
+              class="flex items-center justify-center py-16 text-center"
+              style="color: var(--color-text-secondary)"
             >
-              <li
-                v-for="workspace in workspaces"
-                :key="workspace.id"
-                class="workspace-item transition-colors duration-200"
+              No workspace
+            </div>
+            <div v-else>
+              <ul
+                class="rounded-md border workspace-list"
+                style="border-color: var(--color-border-muted);"
               >
-                <NuxtLink :to="`/${workspace.slug_name}`">
-                  <div class="flex items-center justify-between px-4 py-2 hover:bg-[var(--color-surface-hover)]">
-                    <span
-                      class="font-bold"
-                      style="color: var(--color-text-primary)"
-                    >
-                      {{ workspace.name }}
-                    </span>
-                  </div>
-                </NuxtLink>
-              </li>
-            </ul>
+                <li
+                  v-for="workspace in workspacesVM.data.items"
+                  :key="workspace.id"
+                  class="workspace-item transition-colors duration-200"
+                >
+                  <NuxtLink :to="`/${workspace.slug_name}`">
+                    <div class="flex items-center justify-between px-4 py-2 hover:bg-[var(--color-surface-hover)]">
+                      <span
+                        class="font-bold"
+                        style="color: var(--color-text-primary)"
+                      >
+                        {{ workspace.name }}
+                      </span>
+                    </div>
+                  </NuxtLink>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </UContainer>
@@ -98,7 +101,9 @@
 <script setup lang="ts">
 import { useCreateWorkspaceAction } from './actions/useCreateWorkspaceAction';
 import { useWorkspaceFormState } from './forms/useWorkspaceFormState';
-import { useWorkspacesLoader } from './loaders/useWorkspacesLoader';
+
+import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { useWorkspacesViewModel } from '~/resource-state/viewmodels/workspaces';
 
 definePageMeta({
   path: '/',
@@ -106,12 +111,13 @@ definePageMeta({
 
 const toast = useToast();
 
+const workspacesVM = useWorkspacesViewModel();
+
 const isOpen = ref(false);
 const openNewWorkspaceModal = () => {
   isOpen.value = true;
 };
 
-const { workspaces } = useWorkspacesLoader();
 const form = useWorkspaceFormState();
 const { execute } = useCreateWorkspaceAction();
 
@@ -133,6 +139,7 @@ const onSubmit = async () => {
     form.reset();
     isOpen.value = false;
     emitEvent('workspace/created', undefined);
+    emitEvent_('workspace/created', undefined);
   }
   else {
     toast.add({
@@ -140,7 +147,6 @@ const onSubmit = async () => {
       description: 'Please create again.',
       color: 'error',
       icon: iconKey.failed,
-
     });
   }
 };

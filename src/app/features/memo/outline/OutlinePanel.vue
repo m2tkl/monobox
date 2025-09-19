@@ -40,7 +40,7 @@ const recentStore = useRecentMemoStore();
 const onClickHeading = (id: string, title: string) => {
   props.focusHeading(id);
   props.navigateToHeading(id);
-  recentStore.addMemo(`${props.memoTitle} › ${title}`, encodeForSlug(props.memoSlug), props.workspaceSlug, `#${id}`);
+  recentStore.addMemo(`${props.memoTitle} › ${title}`, props.memoSlug, props.workspaceSlug, `#${id}`);
 };
 
 const onCopyLink = (id: string, text: string) => {

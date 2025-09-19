@@ -10,7 +10,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "lint:fix": "eslint ./src --fix"
+    "lint:fix": "eslint ./src --fix",
+    "test": "vitest"
   },
   "dependencies": {
     "@iconify-json/carbon": "^1.2.5",

@@ -89,30 +89,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-
 import MemoLinkRow from './MemoLinkRow.vue';
+
+import { useBookmarkListViewModel } from '~/resource-state/viewmodels/bookmarkList';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
 
 const route = useRoute();
-const store = useWorkspaceStore();
 
-const workspaceSlug = computed(() => route.params.workspace as string);
+const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
+const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 
 const recentStore = useRecentMemoStore();
 const recentMemos = computed(() => recentStore.history);
-const bookmarks = computed(() => store.bookmarkedMemos);
+
+const bookmarkVM = useBookmarkListViewModel();
+const bookmarks = computed(() => bookmarkVM.value.data.items);
 
 const recentMenuItems = [
   'Modified',
 ];
 const sortTypeSelected = ref(recentMenuItems[0]);
-
-const memoSlug = computed(() => {
-  const memoSlugParam = (route.params.memo) as string | undefined;
-  return memoSlugParam ? encodeForSlug(memoSlugParam) : '';
-});
 
 const isActive = (memo: { workspace: string; slug: string; hash?: string }) => {
   const hashMatches = memo.hash ? memo.hash === route.hash : !route.hash;

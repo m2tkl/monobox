@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
+import { computed } from 'vue';
 
 import type { JSONContent } from '@tiptap/vue-3';
 
@@ -30,25 +30,24 @@ import '~/assets/css/modules/slide.css';
 
 import Slide from '~/app/features/slide/Slide.vue';
 import { convertMemoToHtml } from '~/lib/memo/exporter/toHtml';
+import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 
 definePageMeta({
   path: '/:workspace/:memo/_slide',
 });
 
 const route = useRoute();
-const workspaceSlug = computed(() => route.params.workspace as string);
-const memoSlug = computed(() => route.params.memo as string);
 
-const { ready, error } = loadMemoData(workspaceSlug.value, memoSlug.value);
+const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 
-if (error.value) {
-  showError({ statusCode: 404, statusMessage: 'Page not found', message: `Memo ${memoSlug.value} not found.` });
-}
-
-const slidesHtml = ref('');
-
-onMounted(async () => {
-  const { memo } = await ready;
-  slidesHtml.value = convertMemoToHtml(JSON.parse(memo.content) as JSONContent, memo.title);
+await usePageLoader(async () => {
+  await loadMemo(workspaceSlug.value, memoSlug.value);
 });
+
+const memo = requireMemoValue();
+
+const slidesHtml = computed(() =>
+  convertMemoToHtml(JSON.parse(memo.value.content) as JSONContent, memo.value.title),
+);
 </script>

@@ -28,14 +28,35 @@
         />
 
         <IconButton
+          v-if="workspaceSlug"
           :icon="iconKey.home"
           @click="goHome"
         />
 
-        <WorkspaceMenu
-          :workspace-slug="workspaceSlug"
-          class="pl-1 flex-shrink-0"
+        <IconButton
+          v-else
+          :icon="iconKey.database"
         />
+
+        <UDropdownMenu
+          v-if="workspaceSlug"
+          class="pl-1 flex-shrink-0"
+          :items="workspaceMenuItems"
+          :content="{
+            align: 'start',
+            side: 'bottom',
+            sideOffset: 8,
+          }"
+        >
+          <div class="flex items-center">
+            <UButton
+              :label="workspaceName"
+              variant="subtle"
+              color="neutral"
+              size="sm"
+            />
+          </div>
+        </UDropdownMenu>
 
         <span
           class="text-xs"
@@ -94,6 +115,10 @@
 </template>
 
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui';
+
+import { useCurrentWorkspaceViewModel } from '~/resource-state/viewmodels/currentWorkspace';
+
 defineProps<{
   workspaceTitle?: string;
 }>();
@@ -101,15 +126,36 @@ defineProps<{
 const route = useRoute();
 const router = useRouter();
 
-const workspaceSlug = computed(() => route.params.workspace as string);
-const memoTitleSlug = computed(() => route.params.memo as string);
-const workspaceStore = useWorkspaceStore();
+const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+const memoTitleSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
+
+const currentWorkspaceVM = useCurrentWorkspaceViewModel();
 
 const goBack = () => router.go(-1);
 const goNext = () => router.go(1);
-const goHome = () => router.push(`/${workspaceStore.workspace?.slug_name}`);
+const goHome = () => {
+  const slug = currentWorkspaceVM.value.data.workspace?.slug_name || workspaceSlug.value || '';
+  if (slug) router.push(`/${slug}`);
+};
 
 const { ui, toggleSidebar } = useUIState();
+
+const workspaceName = computed(() => currentWorkspaceVM.value.data?.workspace?.name ?? '');
+
+const workspaceMenuItems: ComputedRef<DropdownMenuItem[][]> = computed(() => [
+  [
+    {
+      label: 'Switch workspace',
+      icon: iconKey.switch,
+      to: '/',
+    },
+    {
+      label: 'Workspace setting',
+      icon: iconKey.setting,
+      to: `/${workspaceSlug.value}/_setting`,
+    },
+  ],
+]);
 </script>
 
 <style scoped>

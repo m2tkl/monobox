@@ -38,13 +38,12 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3';
 import type { MemoIndexItem } from '~/models/memo';
-import type { Workspace } from '~/models/workspace';
 
 import { useSearchPalette } from '~/app/features/search/useSearchPalette';
 
 const props = defineProps<{
   type: 'search' | 'link';
-  workspace: Workspace;
+  workspaceSlug: string;
   memos: MemoIndexItem[];
   currentMemoTitle?: string;
   editor?: Editor;
