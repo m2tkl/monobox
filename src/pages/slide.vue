@@ -36,8 +36,8 @@ definePageMeta({
 });
 
 const route = useRoute();
-const workspaceSlug = computed(() => route.params.workspace as string);
-const memoSlug = computed(() => route.params.memo as string);
+const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 
 const { ready, error } = loadMemoData(workspaceSlug.value, memoSlug.value);
 
