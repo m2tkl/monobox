@@ -1,5 +1,4 @@
 <template>
-  <!-- :popper="{ placement: 'bottom-start' }" -->
   <UDropdownMenu
     :items="workspaceMenuItems"
     :content="{
@@ -25,7 +24,7 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 
 const props = defineProps<{ workspaceSlug: string }>();
 
-const workspaceMenuItems: DropdownMenuItem[][] = [
+const workspaceMenuItems: ComputedRef<DropdownMenuItem[][]> = computed(() => [
   [
     {
       label: 'Switch workspace',
@@ -38,5 +37,5 @@ const workspaceMenuItems: DropdownMenuItem[][] = [
       to: `/${props.workspaceSlug}/_setting`,
     },
   ],
-];
+]);
 </script>
