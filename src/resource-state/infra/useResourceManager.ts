@@ -15,6 +15,15 @@ export const useResourceManager = defineStore('resourceManager', {
     select<T>(key: readonly unknown[]): ComputedRef<ResourceState<T>> {
       return computed(() => this.get<T>(key));
     },
+    /**
+     * Required access: returns a ComputedRef that synchronously exposes the
+     * resource value for the given key. Throws if the resource is not in a
+     * success state. Use when the page-level loader (e.g. usePageLoader)
+     * has already guaranteed readiness.
+     */
+    selectRequired<T>(key: readonly unknown[]): ComputedRef<T> {
+      return computed(() => this.require<T>(key));
+    },
     get<T>(key: readonly unknown[]): ResourceState<T> {
       const s = this.status.get(k(key)) ?? init();
       const d = this.data.get(k(key)) as T | undefined;
@@ -28,6 +37,17 @@ export const useResourceManager = defineStore('resourceManager', {
         case 'error':
           return { status: 'error', inflight: s.inflight, error: s.error } as ResourceState<T>;
       }
+    },
+    /**
+     * Internal accessor: returns the value when in success state,
+     * otherwise throws.
+     */
+    require<T>(key: readonly unknown[]): T {
+      const r = this.get<T>(key);
+      if (r.status !== 'success') {
+        throw new Error(`Resource not ready: ${k(key)} (status=${r.status})`);
+      }
+      return r.data;
     },
     start(key: readonly unknown[]) {
       const cur = this.status.get(k(key)) ?? init();
