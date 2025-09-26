@@ -42,35 +42,7 @@ export const useMemoStore = defineStore('memo', () => {
     },
   );
 
-  const {
-    runTask: saveMemo,
-  } = useAsyncTask(
-    async (
-      workspaceSlug: string,
-      memoSlug: string,
-      newContent: {
-        title: string;
-        content: string;
-        description: string;
-        thumbnailImage: string;
-      }) => {
-      const logger = useConsoleLogger(`${LogPrefix}/saveMemo`);
-      logger.log('Start to save memo.');
-
-      const newSlugTitle = encodeForSlug(newContent.title);
-
-      await command.memo.save({ workspaceSlug, memoSlug }, {
-        slugTitle: newSlugTitle,
-        title: newContent.title,
-        content: newContent.content,
-        description: newContent.description,
-        thumbnailImage: newContent.thumbnailImage,
-      });
-
-      logger.log('Finish saving memo successfully.');
-      return { newSlugTitle };
-    },
-  );
+  // NOTE: Removed saveMemo since it was not being used
 
   const {
     runTask: deleteMemo,
@@ -122,7 +94,6 @@ export const useMemoStore = defineStore('memo', () => {
 
     loadMemo,
     loadLinks,
-    saveMemo,
     deleteMemo,
     createLink,
     deleteLink,

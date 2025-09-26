@@ -174,7 +174,6 @@ import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
-import { useMemoLoader } from '~/app/features/memo/loader/useMemoLoader';
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
@@ -183,12 +182,21 @@ import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
+import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 
 definePageMeta({
   path: '/:workspace/:memo',
   validate(route) {
     return route.params.memo !== '_settings';
   },
+});
+
+const route = useRoute();
+const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
+
+await usePageLoader(async () => {
+  await loadMemo(workspaceSlug.value, memoSlug.value);
 });
 
 const extensions = [
@@ -227,20 +235,14 @@ const extensions = [
   CustomExtension.CustomTab,
 ];
 
-const route = useRoute();
 const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
 const store = useWorkspaceStore();
 const recentStore = useRecentMemoStore();
 
-const workspaceSlug = computed(() => route.params.workspace as string);
-const memoSlug = computed(() => route.params.memo as string);
+const memo = requireMemoValue();
 
-/* --- Workspace and memo loader --- */
-const { ready } = useMemoLoader(workspaceSlug.value, memoSlug.value);
-
-const { memo } = await ready;
-const memoTitle = ref(memo.title);
+const memoTitle = ref(memo.value.title);
 
 /* --- States for editor --- */
 
@@ -255,7 +257,7 @@ const {
   focusHeading,
   headImageRef,
   updateActiveHeadingOnScroll,
-} = useMemoEditor(memo.content, {
+} = useMemoEditor(memo.value.content, {
   extensions: extensions,
   saveMemo: async () => { await saveMemo(); },
   updateLinks: async (added, deleted) => {
@@ -321,7 +323,7 @@ onMounted(() => {
   document.getElementById('main')?.addEventListener('scroll', handleScroll, { passive: true });
 
   if (store.memo) {
-    const slug = encodeForSlug(memoSlug.value);
+    const slug = memoSlug.value;
     const workspace = workspaceSlug.value;
     const hash = route.hash || undefined;
 
@@ -384,7 +386,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Slide mode',
       icon: iconKey.pageLink,
-      onSelect: () => { router.push(`/${workspaceSlug.value}/${encodeForSlug(memoSlug.value)}/_slide`); },
+      onSelect: () => { router.push(`/${workspaceSlug.value}/${memoSlug.value}/_slide`); },
     },
     {
       label: 'Copy as markdown',
@@ -471,7 +473,7 @@ const showRandomMemo = async () => {
   const randomIndex = Math.floor(Math.random() * store.workspaceMemos.length);
   const randomMemo = store.workspaceMemos[randomIndex];
   if (randomMemo) {
-    router.push(`/${workspaceSlug.value}/${encodeForSlug(randomMemo.title)}`);
+    router.push(`/${workspaceSlug.value}/${randomMemo.slug_title}`);
   }
 };
 
@@ -502,6 +504,8 @@ async function saveMemo() {
     return;
   }
 
+  const currentTitleForSlug = encodeForSlug(currentTitle);
+
   await createEffectHandler((editor: _Editor, title: string) => executeUpdateMemoEdit(
     {
       workspaceSlug: workspaceSlug.value,
@@ -515,8 +519,8 @@ async function saveMemo() {
     .withToast('Saved', 'Failed to save')
     .withCallback(
       () => {
-        emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitle });
-        router.replace(`/${workspaceSlug.value}/${encodeForSlug(currentTitle)}${route.hash}`);
+        emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
+        router.replace(`/${workspaceSlug.value}/${currentTitleForSlug}${route.hash}`);
       },
     )
     .execute(editor.value, currentTitle);

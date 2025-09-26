@@ -84,7 +84,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const {
     loadMemo,
     loadLinks,
-    saveMemo,
     deleteMemo,
     createLink,
     deleteLink,
@@ -143,7 +142,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
 
     // Actions
     exitWorkspace,
-    saveMemo,
     deleteMemo,
     createLink,
     deleteLink,
