@@ -1,0 +1,22 @@
+import { loadResource } from '../infra/loadResource';
+import { useResourceManager } from '../infra/useResourceManager';
+
+import type { ResourceState } from '../infra/types';
+import type { ComputedRef } from 'vue';
+import type { MemoIndexItem } from '~/models/memo';
+
+import { memoCommand } from '~/external/tauri/memo';
+
+const key = ['workspace', 'current', 'memos'] as const;
+
+export function readMemoCollectionState(): ComputedRef<ResourceState<MemoIndexItem[]>> {
+  return useResourceManager().select<MemoIndexItem[]>(key);
+}
+
+export function requireMemoCollectionValue(): ComputedRef<MemoIndexItem[]> {
+  return useResourceManager().selectRequired<MemoIndexItem[]>(key);
+}
+
+export async function loadWorkspaceMemos(workspaceSlug: string) {
+  return loadResource(key, () => memoCommand.list({ slugName: workspaceSlug }));
+}

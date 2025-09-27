@@ -56,7 +56,7 @@
                   form="create-workspace-form"
                   type="submit"
                   color="error"
-                  @click="_deleteWorkspace"
+                  @click="deleteWorkspace"
                 >
                   Delete
                 </UButton>
@@ -71,6 +71,7 @@
 
 <script setup lang="ts">
 import { command } from '~/external/tauri/command';
+import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 
 definePageMeta({
   path: '/:workspace/_setting',
@@ -78,18 +79,24 @@ definePageMeta({
 
 const router = useRouter();
 const toast = useToast();
-const store = useWorkspaceStore();
 
-const workspace = computed(() => store.workspace);
+const route = useRoute();
+
+const workspaceSlug = getEncodedWorkspaceSlugFromPath(route);
 
 const isOpen = ref(false);
 const openDeleteConfirmation = () => {
   isOpen.value = true;
 };
 
-const _deleteWorkspace = async () => {
+const deleteWorkspace = async () => {
+  if (!workspaceSlug) {
+    console.warn(`Workspace slug is undefined.`);
+    return;
+  }
+
   try {
-    await command.workspace.delete({ slugName: workspace.value!.slug_name });
+    await command.workspace.delete({ slugName: workspaceSlug });
 
     toast.add({
       title: 'Delete successfully.',
@@ -98,6 +105,8 @@ const _deleteWorkspace = async () => {
     });
 
     emitEvent('workspace/deleted', undefined);
+    emitEvent_('workspace/deleted', undefined);
+
     router.replace('/');
   }
   catch (error) {
