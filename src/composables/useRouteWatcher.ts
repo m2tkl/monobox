@@ -8,6 +8,8 @@ export function useRouteWatcher() {
     () => {
       const workspaceSlug = getEncodedWorkspaceSlugFromPath(route) || '';
 
+      if (!workspaceSlug) return;
+
       emitEvent('workspace/switched', { workspaceSlug });
       emitEvent_('workspace/switched', { workspaceSlug });
     },
@@ -18,7 +20,9 @@ export function useRouteWatcher() {
     () => route.params.memo,
     () => {
       const workspaceSlug = getEncodedWorkspaceSlugFromPath(route) || '';
-      const memoSlug = getEncodedMemoSlugFromPath(route) || '';
+      const memoSlug = getEncodedMemoSlugFromPath(route);
+
+      if (!workspaceSlug || !memoSlug) return;
 
       emitEvent('memo/switched', { workspaceSlug, memoSlug });
       emitEvent_('memo/switched', { workspaceSlug, memoSlug });
