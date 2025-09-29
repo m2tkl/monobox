@@ -13,11 +13,10 @@
 import { emitEvent as emitEvent_ } from './resource-state/infra/eventBus';
 import { startRules } from './resource-state/rules';
 
+startRules();
 useEventHandler();
 useRouteWatcher();
 useTitleUpdater();
-
-startRules();
 
 emitEvent('app/init', undefined);
 emitEvent_('app/init', undefined);
