@@ -17,6 +17,10 @@ export function requireMemoCollectionValue(): ComputedRef<MemoIndexItem[]> {
   return useResourceManager().selectRequired<MemoIndexItem[]>(key);
 }
 
+export function readMemoCollectionSnapshot() {
+  return useResourceManager().selectSnapshot<MemoIndexItem[]>(key);
+}
+
 export async function loadWorkspaceMemos(workspaceSlug: string) {
   return loadResource(key, () => memoCommand.list({ slugName: workspaceSlug }));
 }

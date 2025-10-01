@@ -182,6 +182,7 @@ import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
+import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 
 definePageMeta({
@@ -378,6 +379,7 @@ const toggleBookmark = async () => {
     await store.deleteBookmark(workspaceSlug.value, memoSlug.value);
   }
   emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
+  emitEvent_('bookmark/updated', { workspaceSlug: workspaceSlug.value });
 };
 
 /* --- Contect menu items --- */

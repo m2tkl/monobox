@@ -91,19 +91,21 @@
 <script setup lang="ts">
 import MemoLinkRow from './MemoLinkRow.vue';
 
+import { useBookmarkListViewModel } from '~/resource-state/viewmodels/bookmarkList';
 import { getEncodedMemoSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
 
 const route = useRoute();
-const store = useWorkspaceStore();
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
 const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 
 const recentStore = useRecentMemoStore();
 const recentMemos = computed(() => recentStore.history);
-const bookmarks = computed(() => store.bookmarkedMemos);
+
+const bookmarkVM = useBookmarkListViewModel();
+const bookmarks = computed(() => bookmarkVM.value.data.items);
 
 const recentMenuItems = [
   'Modified',

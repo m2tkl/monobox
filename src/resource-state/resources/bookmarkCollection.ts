@@ -13,6 +13,10 @@ export function readBookmarkCollectionState(): ComputedRef<ResourceState<Bookmar
   return useResourceManager().select<Bookmark[]>(key);
 }
 
+export function readBookmarkCollectionSnapshot() {
+  return useResourceManager().selectSnapshot<Bookmark[]>(key);
+}
+
 export function requireBookmarkCollectionValue(): ComputedRef<Bookmark[]> {
   return useResourceManager().selectRequired<Bookmark[]>(key);
 }
