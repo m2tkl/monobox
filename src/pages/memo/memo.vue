@@ -184,6 +184,7 @@ import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -519,12 +520,12 @@ async function saveMemo() {
     route.hash,
   ))
     .withToast('Saved', 'Failed to save')
-    .withCallback(
-      () => {
-        emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
-        router.replace(`/${workspaceSlug.value}/${currentTitleForSlug}${route.hash}`);
-      },
-    )
+    .withCallback(() => {
+      // Emit to both event buses (legacy store + resource-state rules)
+      emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
+      emitEvent_('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
+      router.replace(`/${workspaceSlug.value}/${currentTitleForSlug}${route.hash}`);
+    })
     .execute(editor.value, currentTitle);
 }
 
@@ -543,7 +544,9 @@ async function runDeleteWorkflow() {
   });
 
   if (workflowResult === 'completed') {
+    // Emit to both buses so lists refresh
     emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
+    emitEvent_('memo/deleted', { workspaceSlug: workspaceSlug.value });
     router.replace(`/${workspaceSlug.value}`);
   }
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { getEncodedParamFromPath, getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from './route';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath, getEncodedParamsFromRoute } from './route';
 
 import type { RouteLocationNormalizedLoaded } from 'vue-router';
 
@@ -31,26 +31,36 @@ const makeRoute = (path: string, pattern: string, params: Record<string, any> = 
   } as unknown as RouteLocationNormalizedLoaded;
 };
 
-describe('getEncodedParamFromPath', () => {
-  it('extracts encoded memo slug from simple pattern', () => {
-    const route = makeRoute('/ws/Hello%20World', '/:workspace/:memo', { workspace: 'ws', memo: 'Hello World' });
-    expect(getEncodedParamFromPath(route, 'memo')).toBe('Hello%20World');
-    expect(getEncodedMemoSlugFromPath(route)).toBe('Hello%20World');
+describe('getEncodedParamsFromRoute', () => {
+  it('encodes memo and workspace from params', () => {
+    const route = makeRoute('/ws/Hello_World', '/:workspace/:memo', { workspace: 'ws', memo: 'Hello World' });
+    const { workspace, memo } = getEncodedParamsFromRoute(route);
+    expect(workspace).toBe('ws');
+    expect(memo).toBe('Hello_World');
   });
 
-  it('extracts encoded workspace slug from simple pattern', () => {
+  it('applies symbol encoding for memo', () => {
     const route = makeRoute('/my-ws/Note%23One', '/:workspace/:memo', { workspace: 'my-ws', memo: 'Note#One' });
-    expect(getEncodedParamFromPath(route, 'workspace')).toBe('my-ws');
-    expect(getEncodedWorkspaceSlugFromPath(route)).toBe('my-ws');
+    const { workspace, memo } = getEncodedParamsFromRoute(route);
+    expect(workspace).toBe('my-ws');
+    expect(memo).toBe('Note%23One');
   });
 
-  it('works with optional param modifiers', () => {
+  it('supports optional param values', () => {
     const route = makeRoute('/ws/Note%3F', '/:workspace/:memo?', { workspace: 'ws', memo: 'Note?' });
-    expect(getEncodedParamFromPath(route, 'memo')).toBe('Note%3F');
+    const { memo } = getEncodedParamsFromRoute(route);
+    expect(memo).toBe('Note%3F');
   });
 
-  it('returns undefined if param not found', () => {
-    const route = makeRoute('/ws/abc', '/:workspace/:memo', { workspace: 'ws', memo: 'abc' });
-    expect(getEncodedParamFromPath(route, 'missing')).toBeUndefined();
+  it('returns undefined when param missing', () => {
+    const route = makeRoute('/ws', '/:workspace', { workspace: 'ws' });
+    const { memo } = getEncodedParamsFromRoute(route);
+    expect(memo).toBeUndefined();
+  });
+
+  it('shortcut helpers return encoded strings', () => {
+    const route = makeRoute('/my-ws/こんにちは_世界', '/:workspace/:memo', { workspace: 'my-ws', memo: 'こんにちは 世界' });
+    expect(getEncodedWorkspaceSlugFromPath(route)).toBe('my-ws');
+    expect(getEncodedMemoSlugFromPath(route)).toBe('こんにちは_世界');
   });
 });

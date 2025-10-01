@@ -1,4 +1,5 @@
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export function useRouteWatcher() {
   const route = useRoute();

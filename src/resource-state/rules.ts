@@ -30,6 +30,10 @@ const rules: AnyRule<AppEvent>[] = [
     ]);
   } },
   {
+    on: 'memo/created',
+    run: p => loadWorkspaceMemos(p.workspaceSlug),
+  },
+  {
     on: 'memo/updated',
     run: async (p) => {
       await Promise.all([

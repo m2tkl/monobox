@@ -1,6 +1,31 @@
+import { encodeForSlug } from './slug';
+
 import type { RouteLocationNormalizedLoaded, RouteRecordNormalized } from 'vue-router';
 
 /**
+ * Background / Rationale
+ *
+ * - Vue Router exposes `route.params` as URL-decoded values (e.g., `Hello%20World` → `Hello World`).
+ * - Many parts of this app expect slug strings (spaces become `_`, reserved symbols percent-encoded) when
+ *   building API paths or identifiers.
+ * - We previously introduced `getEncodedParamFromPath` to extract an already-encoded segment from `route.path`,
+ *   but differences in path representation when navigating via browser back/forward made this approach brittle
+ *   and led to "page not found" issues in certain cases.
+ *
+ * Current approach:
+ * - Always start from `route.params` and apply `encodeForSlug` right before use to normalize to slug form.
+ * - This avoids discrepancies caused by navigation history and ensures callers always receive the expected slug.
+ * - Prefer using `getEncodedParamsFromRoute()` to retrieve encoded `workspace` / `memo` slugs.
+ */
+
+/**
+ * @deprecated
+ * Kept for backward compatibility. Prefer `getEncodedParamsFromRoute` for new code.
+ * This relies on `route.path` and may be affected by path representation differences
+ * when navigating via browser history (e.g., appearing re-encoded).
+ *
+ * ---
+ *
  * Get the encoded value of a dynamic param from the current `route.path`.
  *
  * Vue Router decodes `route.params`, so use this when you need the
@@ -44,9 +69,30 @@ export function getEncodedParamFromPath(
   return actualSegs[targetIndex];
 }
 
-/** Convenience accessor for common params */
+/** Convenience accessors for common params (delegates to params-based API) */
 export const getEncodedMemoSlugFromPath = (route: RouteLocationNormalizedLoaded) =>
-  getEncodedParamFromPath(route, 'memo');
+  getEncodedParamsFromRoute(route).memo;
 
 export const getEncodedWorkspaceSlugFromPath = (route: RouteLocationNormalizedLoaded) =>
-  getEncodedParamFromPath(route, 'workspace');
+  getEncodedParamsFromRoute(route).workspace;
+
+/**
+ * Return encoded slugs derived from `route.params`.
+ *
+ * Rationale:
+ * - Vue Router decodes `route.params` by design.
+ * - Callers expect already-encoded slug strings (to build API paths, etc.).
+ * - Therefore we re-encode params using our domain-specific `encodeForSlug`.
+ */
+export function getEncodedParamsFromRoute(route: RouteLocationNormalizedLoaded): {
+  workspace?: string;
+  memo?: string;
+} {
+  const workspaceParam = route?.params?.workspace as string | undefined;
+  const memoParam = route?.params?.memo as string | undefined;
+
+  return {
+    workspace: workspaceParam ? encodeForSlug(workspaceParam) : undefined,
+    memo: memoParam ? encodeForSlug(memoParam) : undefined,
+  };
+}

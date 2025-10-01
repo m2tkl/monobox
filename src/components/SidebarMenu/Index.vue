@@ -92,7 +92,7 @@
 import MemoLinkRow from './MemoLinkRow.vue';
 
 import { useBookmarkListViewModel } from '~/resource-state/viewmodels/bookmarkList';
-import { getEncodedMemoSlugFromPath } from '~/utils/route';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
 
