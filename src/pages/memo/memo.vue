@@ -118,7 +118,7 @@
       <div v-if="store.workspaceMemos && store.workspace && store.memo">
         <SearchPalette
           ref="linkPaletteRef"
-          :workspace="store.workspace"
+          :workspace-slug="workspaceSlug"
           :memos="store.workspaceMemos"
           :current-memo-title="store.memo.title"
           type="link"
@@ -126,7 +126,7 @@
           :editor="editor"
         />
         <SearchPalette
-          :workspace="store.workspace"
+          :workspace-slug="workspaceSlug"
           :memos="store.workspaceMemos"
           :current-memo-title="store.memo.title"
           type="search"
