@@ -20,9 +20,9 @@
           </div>
 
           <!-- Project collection -->
-          <div v-if="workspaceCollection.status === 'success'">
+          <div v-if="!workspacesVM.flags.isLoading">
             <div
-              v-if="workspaceCollection.data.length === 0"
+              v-if="workspacesVM.data.items.length === 0"
               class="flex items-center justify-center py-16 text-center"
               style="color: var(--color-text-secondary)"
             >
@@ -34,7 +34,7 @@
                 style="border-color: var(--color-border-muted);"
               >
                 <li
-                  v-for="workspace in workspaceCollection.data"
+                  v-for="workspace in workspacesVM.data.items"
                   :key="workspace.id"
                   class="workspace-item transition-colors duration-200"
                 >
@@ -103,7 +103,7 @@ import { useCreateWorkspaceAction } from './actions/useCreateWorkspaceAction';
 import { useWorkspaceFormState } from './forms/useWorkspaceFormState';
 
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
-import { readWorkspaceCollectionState } from '~/resource-state/resources/workspaceCollection';
+import { useWorkspacesViewModel } from '~/resource-state/viewmodels/workspaces';
 
 definePageMeta({
   path: '/',
@@ -111,7 +111,7 @@ definePageMeta({
 
 const toast = useToast();
 
-const workspaceCollection = readWorkspaceCollectionState();
+const workspacesVM = useWorkspacesViewModel();
 
 const isOpen = ref(false);
 const openNewWorkspaceModal = () => {

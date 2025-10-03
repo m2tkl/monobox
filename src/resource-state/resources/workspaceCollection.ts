@@ -17,6 +17,10 @@ export function requireWorkspaceCollectionValue(): ComputedRef<Workspace[]> {
   return useResourceManager().selectRequired<Workspace[]>(key);
 }
 
+export function readWorkspaceCollectionSnapshot() {
+  return useResourceManager().selectSnapshot<Workspace[]>(key);
+}
+
 export async function loadWorkspaceCollection() {
   return loadResource(key, () => workspaceCommand.list());
 }
