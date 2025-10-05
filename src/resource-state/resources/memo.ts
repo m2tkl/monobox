@@ -17,6 +17,10 @@ export function requireMemoValue(): ComputedRef<MemoDetail> {
   return useResourceManager().selectRequired<MemoDetail>(key);
 }
 
+export function readMemoSnapshot() {
+  return useResourceManager().selectSnapshot<MemoDetail>(key);
+}
+
 export async function loadMemo(workspaceSlug: string, memoSlug: string) {
   return loadResource(key, () =>
     memoCommand.get({ workspaceSlugName: workspaceSlug, memoSlugTitle: memoSlug }),

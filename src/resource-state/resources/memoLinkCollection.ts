@@ -17,6 +17,10 @@ export function requireMemoLinkCollectionValue(): ComputedRef<Link[]> {
   return useResourceManager().selectRequired<Link[]>(key);
 }
 
+export function readMemoLinkCollectionSnapshot() {
+  return useResourceManager().selectSnapshot<Link[]>(key);
+}
+
 export async function loadMemoLinkCollection(workspaceSlug: string, memoSlug: string) {
   return loadResource(key, () => linkCommand.list({ workspaceSlug, memoSlug }));
 }
