@@ -8,7 +8,7 @@
           :outline="outline"
           :active-heading-id="activeHeadingId"
           :active-ancestor-headings="activeAncestorHeadings"
-          :memo-title="store.memo?.title || memoTitle"
+          :memo-title="memoVM.data.memo?.title || memoTitle"
           :memo-slug="memoSlug"
           :workspace-slug="workspaceSlug"
           :route-path="route.path"
@@ -42,7 +42,7 @@
                 @click="showRandomMemo"
               />
               <IconButton
-                :icon="store.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+                :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
                 @click="toggleBookmark"
               />
 
@@ -105,9 +105,9 @@
 
           <!-- Related links -->
           <MemoLinkCardView
-            v-if="store.memo"
-            :memo-title="store.memo.title"
-            :links="store.links"
+            v-if="memoVM.data.memo"
+            :memo-title="memoVM.data.memo.title"
+            :links="memoVM.data.links"
           />
           <MarginForEditorScroll />
         </div>
@@ -115,20 +115,20 @@
     </template>
 
     <template #actions>
-      <div v-if="store.workspaceMemos && store.workspace && store.memo">
+      <div v-if="memoVM.data.workspaceMemos && memoVM.data.memo">
         <SearchPalette
           ref="linkPaletteRef"
           :workspace-slug="workspaceSlug"
-          :memos="store.workspaceMemos"
-          :current-memo-title="store.memo.title"
+          :memos="memoVM.data.workspaceMemos"
+          :current-memo-title="memoVM.data.memo.title"
           type="link"
           shortcut-symbol="i"
           :editor="editor"
         />
         <SearchPalette
           :workspace-slug="workspaceSlug"
-          :memos="store.workspaceMemos"
-          :current-memo-title="store.memo.title"
+          :memos="memoVM.data.workspaceMemos"
+          :current-memo-title="memoVM.data.memo.title"
           type="search"
           shortcut-symbol="k"
           :editor="editor"
@@ -184,6 +184,7 @@ import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
+import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
@@ -240,6 +241,7 @@ const extensions = [
 const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
 const store = useWorkspaceStore();
+const memoVM = useCurrentMemoViewModel();
 const recentStore = useRecentMemoStore();
 
 const memo = requireMemoValue();
@@ -324,7 +326,7 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
   document.getElementById('main')?.addEventListener('scroll', handleScroll, { passive: true });
 
-  if (store.memo) {
+  if (memoVM.value.data.memo) {
     const slug = memoSlug.value;
     const workspace = workspaceSlug.value;
     const hash = route.hash || undefined;
@@ -334,7 +336,7 @@ onMounted(() => {
     );
 
     if (!exists) {
-      recentStore.addMemo(store.memo.title, slug, workspace, hash);
+      recentStore.addMemo(memoVM.value.data.memo.title, slug, workspace, hash);
     }
   }
 });
@@ -369,11 +371,11 @@ const editorToolbarActionItems: {
 ];
 
 const toggleBookmark = async () => {
-  if (!store.memo) {
+  if (!memoVM.value.data.memo) {
     return;
   }
 
-  if (!store.isBookmarked) {
+  if (!memoVM.value.data.isBookmarked) {
     await store.createBookmark(workspaceSlug.value, memoSlug.value);
   }
   else {
@@ -469,12 +471,12 @@ const bubbleMenuItems = [
  * Opens a randomly selected memo from the current workspace.
  */
 const showRandomMemo = async () => {
-  if (!store.workspaceMemos || store.workspaceMemos.length === 0) {
+  if (!memoVM.value.data.workspaceMemos || memoVM.value.data.workspaceMemos.length === 0) {
     return;
   }
 
-  const randomIndex = Math.floor(Math.random() * store.workspaceMemos.length);
-  const randomMemo = store.workspaceMemos[randomIndex];
+  const randomIndex = Math.floor(Math.random() * memoVM.value.data.workspaceMemos.length);
+  const randomMemo = memoVM.value.data.workspaceMemos[randomIndex];
   if (randomMemo) {
     router.push(`/${workspaceSlug.value}/${randomMemo.slug_title}`);
   }
