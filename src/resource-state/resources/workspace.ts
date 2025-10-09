@@ -17,6 +17,10 @@ export function requireCurrentWorkspaceValue(): ComputedRef<Workspace> {
   return useResourceManager().selectRequired<Workspace>(key);
 }
 
+export function readCurrentWorkspaceSnapshot() {
+  return useResourceManager().selectSnapshot<Workspace>(key);
+}
+
 export async function loadWorkspace(workspaceSlug: string) {
   return loadResource(key, () => workspaceCommand.get({ slugName: workspaceSlug }));
 }
