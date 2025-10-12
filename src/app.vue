@@ -15,7 +15,6 @@ import { startRules } from './resource-state/rules';
 
 startRules();
 useRouteWatcher();
-useTitleUpdater();
 
 emitEvent('app/init', undefined);
 emitEvent_('app/init', undefined);
