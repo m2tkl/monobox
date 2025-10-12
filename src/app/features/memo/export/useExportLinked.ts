@@ -44,7 +44,7 @@ export function useExportLinked(params: {
     for (const link of links) {
       const memo = await command.memo.get({
         workspaceSlugName: workspaceSlug(),
-        memoSlugTitle: link.title,
+        memoSlugTitle: link.slug_title,
       });
       memos.push({ content: memo.content, title: link.title });
     }
