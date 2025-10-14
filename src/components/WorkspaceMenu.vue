@@ -9,7 +9,7 @@
   >
     <div class="flex items-center">
       <UButton
-        :label="workspaceSlug"
+        :label="workspaceName"
         variant="subtle"
         color="neutral"
         size="sm"
@@ -22,7 +22,10 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
 
-const props = defineProps<{ workspaceSlug: string }>();
+const props = defineProps<{
+  workspaceSlug: string;
+  workspaceName: string;
+}>();
 
 const workspaceMenuItems: ComputedRef<DropdownMenuItem[][]> = computed(() => [
   [
