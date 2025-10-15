@@ -34,6 +34,7 @@
 
         <WorkspaceMenu
           :workspace-slug="workspaceSlug"
+          :workspace-name="currentWorkspaceVM.data?.workspace?.name ?? ''"
           class="pl-1 flex-shrink-0"
         />
 
@@ -94,6 +95,8 @@
 </template>
 
 <script setup lang="ts">
+import { useCurrentWorkspaceViewModel } from '~/resource-state/viewmodels/currentWorkspace';
+
 defineProps<{
   workspaceTitle?: string;
 }>();
@@ -103,11 +106,15 @@ const router = useRouter();
 
 const workspaceSlug = computed(() => route.params.workspace as string);
 const memoTitleSlug = computed(() => route.params.memo as string);
-const workspaceStore = useWorkspaceStore();
+
+const currentWorkspaceVM = useCurrentWorkspaceViewModel();
 
 const goBack = () => router.go(-1);
 const goNext = () => router.go(1);
-const goHome = () => router.push(`/${workspaceStore.workspace?.slug_name}`);
+const goHome = () => {
+  const slug = currentWorkspaceVM.value.data.workspace?.slug_name || workspaceSlug.value || '';
+  if (slug) router.push(`/${slug}`);
+};
 
 const { ui, toggleSidebar } = useUIState();
 </script>
