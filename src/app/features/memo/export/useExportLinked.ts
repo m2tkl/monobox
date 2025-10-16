@@ -11,11 +11,11 @@ import { convertMemoToHtml } from '~/lib/memo/exporter/toHtml';
  */
 export function useExportLinked(params: {
   workspaceSlug: () => string;
-  store: ReturnType<typeof useWorkspaceStore>;
+  links: Ref<LinkModel[]>;
   editor: Ref<_Editor | undefined>;
   memoTitle: Ref<string>;
 }) {
-  const { workspaceSlug, store, editor, memoTitle } = params;
+  const { workspaceSlug, links, editor, memoTitle } = params;
   const { createEffectHandler } = useEffectHandler();
 
   const exportMode = ref<'idle' | 'selectingTargets' | 'copyingResult'>('idle');
@@ -32,11 +32,8 @@ export function useExportLinked(params: {
   });
 
   const exportCandidates = computed(() => {
-    if (store.links) {
-      const uniqueLinks = Array.from(new Map(store.links.map(link => [link.id, link])).values());
-      return uniqueLinks;
-    }
-    return [] as LinkModel[];
+    const uniqueLinks = Array.from(new Map(links.value.map(link => [link.id, link])).values());
+    return uniqueLinks as LinkModel[];
   });
 
   async function fetchLinkedMemos(links: Array<LinkModel>): Promise<Array<{ content: string; title: string }>> {

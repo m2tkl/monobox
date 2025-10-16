@@ -178,12 +178,16 @@ import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
+import { bookmarkCommand } from '~/external/tauri/bookmark';
+import { linkCommand } from '~/external/tauri/link';
+import { memoCommand } from '~/external/tauri/memo';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
+import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
@@ -240,7 +244,6 @@ const extensions = [
 
 const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
-const store = useWorkspaceStore();
 const memoVM = useCurrentMemoViewModel();
 const recentStore = useRecentMemoStore();
 
@@ -266,14 +269,10 @@ const {
   saveMemo: async () => { await saveMemo(); },
   updateLinks: async (added, deleted) => {
     await Promise.all([
-      ...added.map(href =>
-        store.createLink(workspaceSlug.value, memoSlug.value, href),
-      ),
-      ...deleted.map(href =>
-        store.deleteLink(workspaceSlug.value, memoSlug.value, href),
-      ),
-      store.loadLinks(workspaceSlug.value, memoSlug.value),
+      ...added.map(href => linkCommand.create({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
+      ...deleted.map(href => linkCommand.delete({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
     ]);
+    await loadMemoLinkCollection(workspaceSlug.value, memoSlug.value);
   },
   route,
   router,
@@ -376,10 +375,10 @@ const toggleBookmark = async () => {
   }
 
   if (!memoVM.value.data.isBookmarked) {
-    await store.createBookmark(workspaceSlug.value, memoSlug.value);
+    await bookmarkCommand.add(workspaceSlug.value, memoSlug.value);
   }
   else {
-    await store.deleteBookmark(workspaceSlug.value, memoSlug.value);
+    await bookmarkCommand.delete(workspaceSlug.value, memoSlug.value);
   }
   emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
   emitEvent_('bookmark/updated', { workspaceSlug: workspaceSlug.value });
@@ -538,7 +537,7 @@ async function runDeleteWorkflow() {
   }
 
   const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
-    const result = await createEffectHandler(() => store.deleteMemo(workspaceSlug.value, memoSlug.value))
+    const result = await createEffectHandler(() => memoCommand.trash({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }))
       .withToast('Delete memo successfully.', 'Failed to delete.')
       .execute();
 
@@ -558,7 +557,7 @@ const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLink
 /* --- Export with related pages (Step1: select targets) --- */
 const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useExportLinked({
   workspaceSlug: () => workspaceSlug.value,
-  store,
+  links: computed(() => memoVM.value.data.links),
   editor,
   memoTitle,
 });
