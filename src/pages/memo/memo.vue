@@ -8,7 +8,7 @@
           :outline="outline"
           :active-heading-id="activeHeadingId"
           :active-ancestor-headings="activeAncestorHeadings"
-          :memo-title="store.memo?.title || memoTitle"
+          :memo-title="memoVM.data.memo?.title || memoTitle"
           :memo-slug="memoSlug"
           :workspace-slug="workspaceSlug"
           :route-path="route.path"
@@ -42,7 +42,7 @@
                 @click="showRandomMemo"
               />
               <IconButton
-                :icon="store.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+                :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
                 @click="toggleBookmark"
               />
 
@@ -105,9 +105,9 @@
 
           <!-- Related links -->
           <MemoLinkCardView
-            v-if="store.memo"
-            :memo-title="store.memo.title"
-            :links="store.links"
+            v-if="memoVM.data.memo"
+            :memo-title="memoVM.data.memo.title"
+            :links="memoVM.data.links"
           />
           <MarginForEditorScroll />
         </div>
@@ -115,20 +115,20 @@
     </template>
 
     <template #actions>
-      <div v-if="store.workspaceMemos && store.workspace && store.memo">
+      <div v-if="memoVM.data.workspaceMemos && memoVM.data.memo">
         <SearchPalette
           ref="linkPaletteRef"
-          :workspace="store.workspace"
-          :memos="store.workspaceMemos"
-          :current-memo-title="store.memo.title"
+          :workspace-slug="workspaceSlug"
+          :memos="memoVM.data.workspaceMemos"
+          :current-memo-title="memoVM.data.memo.title"
           type="link"
           shortcut-symbol="i"
           :editor="editor"
         />
         <SearchPalette
-          :workspace="store.workspace"
-          :memos="store.workspaceMemos"
-          :current-memo-title="store.memo.title"
+          :workspace-slug="workspaceSlug"
+          :memos="memoVM.data.workspaceMemos"
+          :current-memo-title="memoVM.data.memo.title"
           type="search"
           shortcut-symbol="k"
           :editor="editor"
@@ -174,21 +174,36 @@ import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
-import { useMemoLoader } from '~/app/features/memo/loader/useMemoLoader';
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
+import { bookmarkCommand } from '~/external/tauri/bookmark';
+import { linkCommand } from '~/external/tauri/link';
+import { memoCommand } from '~/external/tauri/memo';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
+import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
+import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
+import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
   path: '/:workspace/:memo',
   validate(route) {
     return route.params.memo !== '_settings';
   },
+});
+
+const route = useRoute();
+const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
+
+await usePageLoader(async () => {
+  await loadMemo(workspaceSlug.value, memoSlug.value);
 });
 
 const extensions = [
@@ -227,21 +242,14 @@ const extensions = [
   CustomExtension.CustomTab,
 ];
 
-const route = useRoute();
 const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
-const command = useCommand();
-const store = useWorkspaceStore();
+const memoVM = useCurrentMemoViewModel();
 const recentStore = useRecentMemoStore();
 
-const workspaceSlug = computed(() => route.params.workspace as string);
-const memoSlug = computed(() => route.params.memo as string);
+const memo = requireMemoValue();
 
-/* --- Workspace and memo loader --- */
-const { ready } = useMemoLoader(workspaceSlug.value, memoSlug.value);
-
-const { memo } = await ready;
-const memoTitle = ref(memo.title);
+const memoTitle = ref(memo.value.title);
 
 /* --- States for editor --- */
 
@@ -256,19 +264,15 @@ const {
   focusHeading,
   headImageRef,
   updateActiveHeadingOnScroll,
-} = useMemoEditor(memo.content, {
+} = useMemoEditor(memo.value.content, {
   extensions: extensions,
   saveMemo: async () => { await saveMemo(); },
   updateLinks: async (added, deleted) => {
     await Promise.all([
-      ...added.map(href =>
-        store.createLink(workspaceSlug.value, memoSlug.value, href),
-      ),
-      ...deleted.map(href =>
-        store.deleteLink(workspaceSlug.value, memoSlug.value, href),
-      ),
-      store.loadLinks(workspaceSlug.value, memoSlug.value),
+      ...added.map(href => linkCommand.create({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
+      ...deleted.map(href => linkCommand.delete({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
     ]);
+    await loadMemoLinkCollection(workspaceSlug.value, memoSlug.value);
   },
   route,
   router,
@@ -321,8 +325,8 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
   document.getElementById('main')?.addEventListener('scroll', handleScroll, { passive: true });
 
-  if (store.memo) {
-    const slug = encodeForSlug(memoSlug.value);
+  if (memoVM.value.data.memo) {
+    const slug = memoSlug.value;
     const workspace = workspaceSlug.value;
     const hash = route.hash || undefined;
 
@@ -331,7 +335,7 @@ onMounted(() => {
     );
 
     if (!exists) {
-      recentStore.addMemo(store.memo.title, slug, workspace, hash);
+      recentStore.addMemo(memoVM.value.data.memo.title, slug, workspace, hash);
     }
   }
 });
@@ -366,17 +370,18 @@ const editorToolbarActionItems: {
 ];
 
 const toggleBookmark = async () => {
-  if (!store.memo) {
+  if (!memoVM.value.data.memo) {
     return;
   }
 
-  if (!store.isBookmarked) {
-    await store.createBookmark(workspaceSlug.value, memoSlug.value);
+  if (!memoVM.value.data.isBookmarked) {
+    await bookmarkCommand.add(workspaceSlug.value, memoSlug.value);
   }
   else {
-    await store.deleteBookmark(workspaceSlug.value, memoSlug.value);
+    await bookmarkCommand.delete(workspaceSlug.value, memoSlug.value);
   }
   emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
+  emitEvent_('bookmark/updated', { workspaceSlug: workspaceSlug.value });
 };
 
 /* --- Contect menu items --- */
@@ -385,7 +390,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Slide mode',
       icon: iconKey.pageLink,
-      onSelect: () => { router.push(`/${workspaceSlug.value}/${encodeForSlug(memoSlug.value)}/_slide`); },
+      onSelect: () => { router.push(`/${workspaceSlug.value}/${memoSlug.value}/_slide`); },
     },
     {
       label: 'Copy as markdown',
@@ -465,14 +470,14 @@ const bubbleMenuItems = [
  * Opens a randomly selected memo from the current workspace.
  */
 const showRandomMemo = async () => {
-  if (!store.workspaceMemos || store.workspaceMemos.length === 0) {
+  if (!memoVM.value.data.workspaceMemos || memoVM.value.data.workspaceMemos.length === 0) {
     return;
   }
 
-  const randomIndex = Math.floor(Math.random() * store.workspaceMemos.length);
-  const randomMemo = store.workspaceMemos[randomIndex];
+  const randomIndex = Math.floor(Math.random() * memoVM.value.data.workspaceMemos.length);
+  const randomMemo = memoVM.value.data.workspaceMemos[randomIndex];
   if (randomMemo) {
-    router.push(`/${workspaceSlug.value}/${encodeForSlug(randomMemo.title)}`);
+    router.push(`/${workspaceSlug.value}/${randomMemo.slug_title}`);
   }
 };
 
@@ -503,6 +508,8 @@ async function saveMemo() {
     return;
   }
 
+  const currentTitleForSlug = encodeForSlug(currentTitle);
+
   await createEffectHandler((editor: _Editor, title: string) => executeUpdateMemoEdit(
     {
       workspaceSlug: workspaceSlug.value,
@@ -514,12 +521,12 @@ async function saveMemo() {
     route.hash,
   ))
     .withToast('Saved', 'Failed to save')
-    .withCallback(
-      () => {
-        emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitle });
-        router.replace(`/${workspaceSlug.value}/${encodeForSlug(currentTitle)}${route.hash}`);
-      },
-    )
+    .withCallback(() => {
+      // Emit to both event buses (legacy store + resource-state rules)
+      emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
+      emitEvent_('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
+      router.replace(`/${workspaceSlug.value}/${currentTitleForSlug}${route.hash}`);
+    })
     .execute(editor.value, currentTitle);
 }
 
@@ -530,7 +537,7 @@ async function runDeleteWorkflow() {
   }
 
   const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
-    const result = await createEffectHandler(() => store.deleteMemo(workspaceSlug.value, memoSlug.value))
+    const result = await createEffectHandler(() => memoCommand.trash({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }))
       .withToast('Delete memo successfully.', 'Failed to delete.')
       .execute();
 
@@ -538,7 +545,9 @@ async function runDeleteWorkflow() {
   });
 
   if (workflowResult === 'completed') {
+    // Emit to both buses so lists refresh
     emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
+    emitEvent_('memo/deleted', { workspaceSlug: workspaceSlug.value });
     router.replace(`/${workspaceSlug.value}`);
   }
 }
@@ -547,9 +556,8 @@ const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLink
 
 /* --- Export with related pages (Step1: select targets) --- */
 const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useExportLinked({
-  command,
   workspaceSlug: () => workspaceSlug.value,
-  store,
+  links: computed(() => memoVM.value.data.links),
   editor,
   memoTitle,
 });

@@ -9,8 +9,8 @@ export const encodeForSlug = (title: string) => {
   // Replace space to '_'
   const titleEncodedSpace = title.replaceAll(' ', '_');
 
-  // Replace symbols to '_'
-  // " < > # % { } | \ ^ ~ [ ] ` ?
+  // Percent-encode disallowed/unsafe symbols (not replace with '_')
+  // e.g. ": ; ` / : @ & = + $ , < > # % { } | ^ ~ [ ] \\ ?
   const charsToReplace = /["`;/:@&=+$,<>#%{}|^~[\]?]/g;
   const titleEncodedOnlySybols = titleEncodedSpace.replace(charsToReplace, char => encodeURIComponent(char));
   return titleEncodedOnlySybols;

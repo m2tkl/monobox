@@ -1,27 +1,32 @@
+import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
+
 export function useRouteWatcher() {
   const route = useRoute();
 
   watch(
     () => route.params.workspace,
-    (workspaceSlug) => {
-      if (typeof workspaceSlug === 'string') {
-        emitEvent('workspace/switched', { workspaceSlug });
-      }
+    () => {
+      const workspaceSlug = getEncodedWorkspaceSlugFromPath(route) || '';
+
+      if (!workspaceSlug) return;
+
+      emitEvent('workspace/switched', { workspaceSlug });
+      emitEvent_('workspace/switched', { workspaceSlug });
     },
     { immediate: true },
   );
 
   watch(
     () => route.params.memo,
-    (memoSlug) => {
-      const workspaceSlug = route.params.workspace;
+    () => {
+      const workspaceSlug = getEncodedWorkspaceSlugFromPath(route) || '';
+      const memoSlug = getEncodedMemoSlugFromPath(route);
 
-      if (
-        typeof memoSlug === 'string'
-        && typeof workspaceSlug === 'string'
-      ) {
-        emitEvent('memo/switched', { workspaceSlug, memoSlug });
-      }
+      if (!workspaceSlug || !memoSlug) return;
+
+      emitEvent('memo/switched', { workspaceSlug, memoSlug });
+      emitEvent_('memo/switched', { workspaceSlug, memoSlug });
     },
     { immediate: true },
   );

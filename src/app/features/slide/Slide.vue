@@ -37,7 +37,7 @@ const props = defineProps<{
 const slidesHtml = ref('');
 const revealRoot = ref<HTMLDivElement | null>(null);
 
-watch(() => props.html, async () => {
+onMounted(async () => {
   slidesHtml.value = buildSlidesFromHtml(props.html);
 
   // Wait DOM update then init Reveal
