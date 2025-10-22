@@ -66,7 +66,7 @@
               ref="imgEl"
               :src="state.src"
               :alt="state.alt"
-              class="block select-none"
+              class="block select-none max-w-none max-h-none"
               draggable="false"
               :style="transformImageStyle"
               @load="onImageLoad"
@@ -157,6 +157,8 @@ const ty = ref(0);
 const transformImageStyle = computed(() => ({
   width: `${naturalWidth.value}px`,
   height: `${naturalHeight.value}px`,
+  maxWidth: 'none',
+  maxHeight: 'none',
   transform: `translate(${tx.value}px, ${ty.value}px) scale(${fitScale.value * zoom.value})`,
   transformOrigin: '0 0',
 }));
