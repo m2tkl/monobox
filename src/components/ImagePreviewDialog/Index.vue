@@ -9,6 +9,11 @@
       >
         <template #header>
           <header class="flex flex-wrap items-center justify-between gap-3">
+            <!-- Dummy element for initial focus to prevent showing tooltip unexpectedly -->
+            <div
+              ref="initialFocusEl"
+              tabindex="-1"
+            />
             <p
               v-if="state.alt"
               class="max-w-full flex-1 truncate text-sm text-[var(--color-gray-666)]"
@@ -106,6 +111,7 @@ const ZOOM_STEP = 0.15;
 const zoom = ref(1);
 const imageContainer = ref<HTMLDivElement | null>(null);
 const imgEl = ref<HTMLImageElement | null>(null);
+const initialFocusEl = ref<HTMLDivElement | null>(null);
 
 const naturalWidth = ref(0);
 const naturalHeight = ref(0);
@@ -229,6 +235,8 @@ watch(
     if (open) {
       zoom.value = 1;
       nextTick(() => {
+        // Focus dummy element to prevent tooltip from showing
+        initialFocusEl.value?.focus?.();
         updateContainerSize();
         nextTick(() => centerContent());
       });
