@@ -26,7 +26,7 @@
                 <UButton
                   :icon="iconKey.zoomOut"
                   variant="ghost"
-                  size="xs"
+                  size="sm"
                   :disabled="!canZoomOut"
                   @click="zoomOut"
                 />
@@ -35,7 +35,7 @@
                 <UButton
                   :icon="iconKey.zoomIn"
                   variant="ghost"
-                  size="xs"
+                  size="sm"
                   :disabled="!canZoomIn"
                   @click="zoomIn"
                 />
@@ -44,14 +44,17 @@
                 <UButton
                   :icon="iconKey.zoomReset"
                   variant="ghost"
-                  size="xs"
+                  size="sm"
                   :disabled="zoom === 1"
                   @click="resetZoom"
                 />
               </UTooltip>
-              <UButton @click="state.open = false">
-                Close
-              </UButton>
+              <UButton
+                :icon="iconKey.close"
+                variant="ghost"
+                size="sm"
+                @click="state.open = false"
+              />
             </div>
           </header>
         </template>

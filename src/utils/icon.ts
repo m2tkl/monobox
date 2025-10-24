@@ -43,7 +43,9 @@ export const iconKey = {
 
   zoomIn: 'carbon:zoom-in',
   zoomOut: 'carbon:zoom-out',
-  zoomReset: 'carbon:screen',
+  zoomReset: 'carbon:zoom-reset',
+
+  close: 'carbon:close',
 
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',

@@ -98,7 +98,8 @@ export default defineNuxtConfig({
         'carbon:moon',
         'carbon:zoom-in',
         'carbon:zoom-out',
-        'carbon:screen',
+        'carbon:zoom-reset',
+        'carbon:close',
 
         // Nuxt
         'heroicons:x-mark-20-solid',
