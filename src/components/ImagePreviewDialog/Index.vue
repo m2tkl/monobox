@@ -31,6 +31,7 @@
                 <UButton
                   :icon="iconKey.zoomOut"
                   variant="ghost"
+                  color="neutral"
                   size="sm"
                   :disabled="!canZoomOut"
                   @click="zoomOut"
@@ -40,6 +41,7 @@
                 <UButton
                   :icon="iconKey.zoomIn"
                   variant="ghost"
+                  color="neutral"
                   size="sm"
                   :disabled="!canZoomIn"
                   @click="zoomIn"
@@ -49,6 +51,7 @@
                 <UButton
                   :icon="iconKey.zoomReset"
                   variant="ghost"
+                  color="neutral"
                   size="sm"
                   :disabled="zoom === 1"
                   @click="resetZoom"
@@ -57,6 +60,7 @@
               <UButton
                 :icon="iconKey.close"
                 variant="ghost"
+                color="neutral"
                 size="sm"
                 @click="state.open = false"
               />
@@ -89,6 +93,8 @@
           <div class="flex items-center h-8">
             <USlider
               v-model="currentZoomPercent"
+              color="neutral"
+              size="sm"
               :max="500"
               :min="50"
             />
