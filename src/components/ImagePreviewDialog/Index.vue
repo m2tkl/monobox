@@ -5,7 +5,12 @@
   >
     <template #content>
       <UCard
-        class="h-full w-full"
+        class="h-full w-full flex flex-col"
+        :ui="{
+          header: 'shrink-0',
+          body: 'flex-1 min-h-0 sm:p-0 p-0 overflow-hidden',
+          footer: 'shrink-0',
+        }"
       >
         <template #header>
           <header class="flex flex-wrap items-center justify-between gap-3">
@@ -59,27 +64,25 @@
           </header>
         </template>
 
-        <div class="flex flex-col h-full w-full">
-          <div
-            ref="imageContainer"
-            :class="[
-              'h-[calc(80vh-64px)] overflow-hidden rounded-lg bg-[var(--color-surface-elevated)]',
-              isPanning ? 'cursor-grabbing' : 'cursor-grab',
-            ]"
-            @wheel="handleWheel"
-            @pointerdown="onPointerDown"
+        <div
+          ref="imageContainer"
+          :class="[
+            'h-full w-full overflow-hidden bg-[var(--color-surface-elevated)]',
+            isPanning ? 'cursor-grabbing' : 'cursor-grab',
+          ]"
+          @wheel="handleWheel"
+          @pointerdown="onPointerDown"
+        >
+          <img
+            v-if="state.src"
+            ref="imgEl"
+            :src="state.src"
+            :alt="state.alt"
+            class="block select-none max-w-none max-h-none"
+            draggable="false"
+            :style="transformImageStyle"
+            @load="onImageLoad"
           >
-            <img
-              v-if="state.src"
-              ref="imgEl"
-              :src="state.src"
-              :alt="state.alt"
-              class="block select-none max-w-none max-h-none"
-              draggable="false"
-              :style="transformImageStyle"
-              @load="onImageLoad"
-            >
-          </div>
         </div>
 
         <template #footer>
