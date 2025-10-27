@@ -5,6 +5,7 @@
     <UApp>
       <TitleBar />
       <NuxtPage class="h-screen pt-[3rem]" />
+      <ImagePreviewDialog />
     </UApp>
   </div>
 </template>

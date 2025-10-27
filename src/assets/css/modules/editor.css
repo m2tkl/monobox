@@ -305,6 +305,10 @@
   margin: 16px 0;
 }
 
+.tiptap-image img {
+  cursor: zoom-in;
+}
+
 .tiptap-image figcaption {
   font-size: 0.8em;
   text-align: center;

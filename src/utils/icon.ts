@@ -41,6 +41,12 @@ export const iconKey = {
   pageLink: 'carbon:app-connectivity',
   shuffle: 'carbon:shuffle',
 
+  zoomIn: 'carbon:zoom-in',
+  zoomOut: 'carbon:zoom-out',
+  zoomReset: 'carbon:zoom-reset',
+
+  close: 'carbon:close',
+
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',
 
