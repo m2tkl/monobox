@@ -63,6 +63,10 @@
                   :icon="iconKey.annotation"
                   @exec="startImgAltEditing"
                 />
+                <EditorToolbarButton
+                  :icon="iconKey.zoomIn"
+                  @exec="openSelectedImagePreview"
+                />
               </template>
 
               <template v-else>
@@ -178,6 +182,7 @@ import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
+import { useImagePreview } from '~/components/ImagePreviewDialog/useImagePreview';
 import { bookmarkCommand } from '~/external/tauri/bookmark';
 import { linkCommand } from '~/external/tauri/link';
 import { memoCommand } from '~/external/tauri/memo';
@@ -340,6 +345,8 @@ onMounted(() => {
   }
 });
 
+const { openPreview } = useImagePreview();
+
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown);
   document.getElementById('main')?.removeEventListener('scroll', handleScroll);
@@ -347,6 +354,27 @@ onBeforeUnmount(() => {
   // Destroy editor
   editor.value?.destroy();
 });
+
+/**
+ * Show preview on selected image
+ */
+function openSelectedImagePreview() {
+  const ed = editor.value;
+  if (!ed) return;
+
+  const sel = ed.state.selection;
+  const { $from } = sel;
+  const node = ($from?.nodeAfter ?? $from?.nodeBefore);
+  if (node && node.type?.name === 'image') {
+    const src: string | undefined = node.attrs?.src;
+    const alt: string = node.attrs?.alt || '';
+    if (src) {
+      openPreview(src, alt);
+      return;
+    }
+  }
+  window.alert('Failed to find preview target.');
+}
 
 /**
  * Editor toolbar action items

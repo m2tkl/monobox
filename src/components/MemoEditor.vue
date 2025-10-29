@@ -75,8 +75,6 @@
 <script setup lang="ts">
 import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 
-import { useImagePreview } from './ImagePreviewDialog/useImagePreview';
-
 import type { Editor } from '@tiptap/vue-3';
 
 import { focusNodeById } from '~/lib/editor';
@@ -88,78 +86,12 @@ const props = defineProps<{
 const memoTitle = defineModel<string>('memoTitle', { required: true });
 
 const editorReady = ref(false);
-const editorDom = ref<HTMLElement | null>(null);
-
-const { openPreview } = useImagePreview();
-
-const cleanupPreviewListener = () => {
-  if (!editorDom.value) {
-    return;
-  }
-
-  editorDom.value.removeEventListener('click', handleImagePreviewClick);
-  editorDom.value = null;
-};
-
-const registerPreviewListener = (instance: Editor | null | undefined) => {
-  cleanupPreviewListener();
-
-  if (!instance) {
-    return;
-  }
-
-  editorDom.value = instance.view.dom as HTMLElement;
-  editorDom.value.addEventListener('click', handleImagePreviewClick);
-};
-
-function handleImagePreviewClick(event: MouseEvent) {
-  const target = event.target as HTMLElement | null;
-
-  if (!(target instanceof HTMLImageElement)) {
-    return;
-  }
-
-  const figure = target.closest('.tiptap-image');
-
-  if (!figure) {
-    return;
-  }
-
-  const src = target.getAttribute('src');
-
-  if (!src) {
-    return;
-  }
-
-  const figCaptionText = figure
-    .querySelector('figcaption')
-    ?.textContent?.trim();
-
-  const alt = target.getAttribute('alt') || figCaptionText || '';
-
-  openPreview(src, alt);
-}
 
 onMounted(async () => {
   setTimeout(() => {
     editorReady.value = true;
   }, 500);
 });
-
-onMounted(() => {
-  registerPreviewListener(props.editor);
-});
-
-onBeforeUnmount(() => {
-  cleanupPreviewListener();
-});
-
-watch(
-  () => props.editor,
-  (nextEditor) => {
-    registerPreviewListener(nextEditor);
-  },
-);
 
 const route = useRoute();
 
