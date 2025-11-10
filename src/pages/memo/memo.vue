@@ -157,19 +157,13 @@
 </template>
 
 <script lang="ts" setup>
-import { mergeAttributes } from '@tiptap/core';
-import Focus from '@tiptap/extension-focus';
-import Link from '@tiptap/extension-link';
-import TaskItem from '@tiptap/extension-task-item';
-import TaskList from '@tiptap/extension-task-list';
-import StarterKit from '@tiptap/starter-kit';
-
 import { useUpdateMemoEditAction } from './actions/updateMemoEdit';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsg } from '~/lib/editor/msg';
 
+import { buildExtensions } from '~/app/features/editor';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
@@ -188,7 +182,6 @@ import { linkCommand } from '~/external/tauri/link';
 import { memoCommand } from '~/external/tauri/memo';
 import * as EditorAction from '~/lib/editor/action.js';
 import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
-import * as CustomExtension from '~/lib/editor/extensions';
 import * as EditorQuery from '~/lib/editor/query.js';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
@@ -211,41 +204,9 @@ await usePageLoader(async () => {
   await loadMemo(workspaceSlug.value, memoSlug.value);
 });
 
-const extensions = [
-  StarterKit.configure({ heading: false, codeBlock: false }),
-  Link.configure({
-    openOnClick: false,
-    HTMLAttributes: {
-      target: null,
-    },
-  }).extend({
-    // Unset link after link text
-    inclusive: false,
-    renderHTML({ HTMLAttributes }) {
-      const href = HTMLAttributes.href;
-      if (!isInternalLink(href)) {
-        HTMLAttributes.class = `${HTMLAttributes.class || ''} external-link`.trim();
-      }
-      return ['a', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
-    },
-  }),
-  CustomExtension.imageExtention(),
-  CustomExtension.headingExtension(),
-  CustomExtension.codeBlockExtension(CodeBlockComponent as Component<NodeViewProps>),
-  CustomExtension.codeBlockNavExtension(),
-  Focus.configure({
-    className: 'has-focus',
-    mode: 'deepest',
-  }),
-  TaskList,
-  TaskItem.configure({
-    nested: true,
-    HTMLAttributes: {
-      class: 'custom-task-item',
-    },
-  }),
-  CustomExtension.CustomTab,
-];
+const extensions = buildExtensions({
+  CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
+});
 
 const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
