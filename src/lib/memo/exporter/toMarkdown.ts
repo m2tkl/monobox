@@ -1,6 +1,6 @@
 import type { Node } from '@tiptap/pm/model';
 
-import { customMarkdownSerializer } from '~/app/features/editor';
+import { customMarkdownSerializer } from '~/lib/editor';
 
 export const convertToMarkdown = (node: Node, title?: string) => {
   const titleMarkdown = title ? `# ${title}\n\n` : '';

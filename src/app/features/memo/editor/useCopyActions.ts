@@ -1,7 +1,7 @@
 import type { Editor as _Editor } from '@tiptap/vue-3';
 
-import { EditorQuery, convertToMarkdown } from '~/app/features/editor';
 import { writeHtml, writeText } from '~/lib/clipboard';
+import { EditorQuery, convertToMarkdown } from '~/lib/editor';
 import { convertMemoToHtml, createHtmlLink } from '~/lib/memo/exporter/toHtml';
 
 /**

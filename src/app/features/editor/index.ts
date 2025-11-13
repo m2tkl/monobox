@@ -5,26 +5,27 @@ import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
 import StarterKit from '@tiptap/starter-kit';
 
+import * as CustomExtension from './extensions';
+
 import type { NodeViewProps } from '@tiptap/vue-3';
 import type { Component } from 'vue';
 
-import * as CustomExtension from '~/lib/editor/extensions';
 import { isInternalLink } from '~/utils/link';
 
 // Re-export existing editor APIs for gradual migration
-export * as EditorAction from '~/lib/editor/action';
-export * as EditorQuery from '~/lib/editor/query';
-export * as EditorUtil from '~/lib/editor/util';
-export * as EditorMsg from '~/lib/editor/msg';
-export type { EditorMsg as EditorMsgType } from '~/lib/editor/msg';
-export { dispatchEditorMsg } from '~/lib/editor/dispatcher';
-export * as CustomExtension from '~/lib/editor/extensions';
-// Also re-export top-level lib/editor for direct function imports (e.g. setLink)
-export * from '~/lib/editor';
+export * as EditorAction from './core/action';
+// Backward-compatible named exports for common actions
+export { setLink, unsetLink } from './core/action';
+export * as EditorQuery from './core/query';
+export * as EditorUtil from './core/util';
+export * as EditorMsg from './core/msg';
+export type { EditorMsg as EditorMsgType } from './core/msg';
+export { dispatchEditorMsg } from './core/dispatcher';
+export * as CustomExtension from './extensions';
 
 // Serializer helpers for consumers
-export { convertEditorJsonToHtml } from '~/lib/editor/serializer/html';
-export { customMarkdownSerializer, convertToMarkdown } from '~/lib/editor/serializer/markdown';
+export { convertEditorJsonToHtml } from './serializer/html';
+export { customMarkdownSerializer, convertToMarkdown } from './serializer/markdown';
 
 type BuildExtensionsOptions = {
   CodeBlockComponent: Component<NodeViewProps>;

@@ -1,6 +1,6 @@
 import type { Editor } from '@tiptap/vue-3';
 
-import { getHeadingTextById } from '~/app/features/editor';
+import { getHeadingTextById } from '~/app/features/editor/core/query';
 import { command } from '~/external/tauri/command';
 
 export function useUpdateMemoEditAction() {

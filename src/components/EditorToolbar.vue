@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3';
 
-import { EditorAction } from '~/app/features/editor';
+import { EditorAction } from '~/lib/editor';
 
 defineProps<{ editor: Editor }>();
 </script>

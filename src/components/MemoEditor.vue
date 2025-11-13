@@ -77,7 +77,7 @@ import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 
 import type { Editor } from '@tiptap/vue-3';
 
-import { focusNodeById } from '~/app/features/editor';
+import { EditorUtil } from '~/lib/editor';
 
 const props = defineProps<{
   editor: Editor;
@@ -102,7 +102,7 @@ watch(editorReady, (ready) => {
   if (id) {
     setTimeout(() => {
       scrollToElementWithOffset(id, 100);
-      focusNodeById(props.editor, id);
+      EditorUtil.focusNodeById(props.editor, id);
     }, 0);
   }
 });
