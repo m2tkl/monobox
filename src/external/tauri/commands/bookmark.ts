@@ -1,4 +1,4 @@
-import { invokeCommand } from './invoker';
+import { invokeCommand } from '../core/invoker';
 
 import type { Bookmark } from '~/models/bookmark';
 

@@ -177,9 +177,7 @@ import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import { useImagePreview } from '~/components/ImagePreviewDialog/useImagePreview';
-import { bookmarkCommand } from '~/external/tauri/bookmark';
-import { linkCommand } from '~/external/tauri/link';
-import { memoCommand } from '~/external/tauri/memo';
+import { command } from '~/external/tauri/command';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
@@ -232,8 +230,8 @@ const {
   saveMemo: async () => { await saveMemo(); },
   updateLinks: async (added, deleted) => {
     await Promise.all([
-      ...added.map(href => linkCommand.create({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
-      ...deleted.map(href => linkCommand.delete({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
+      ...added.map(href => command.link.create({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
+      ...deleted.map(href => command.link.delete({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
     ]);
     await loadMemoLinkCollection(workspaceSlug.value, memoSlug.value);
   },
@@ -361,10 +359,10 @@ const toggleBookmark = async () => {
   }
 
   if (!memoVM.value.data.isBookmarked) {
-    await bookmarkCommand.add(workspaceSlug.value, memoSlug.value);
+    await command.bookmark.add(workspaceSlug.value, memoSlug.value);
   }
   else {
-    await bookmarkCommand.delete(workspaceSlug.value, memoSlug.value);
+    await command.bookmark.delete(workspaceSlug.value, memoSlug.value);
   }
   emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
   emitEvent_('bookmark/updated', { workspaceSlug: workspaceSlug.value });
@@ -523,7 +521,7 @@ async function runDeleteWorkflow() {
   }
 
   const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
-    const result = await createEffectHandler(() => memoCommand.trash({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }))
+    const result = await createEffectHandler(() => command.memo.trash({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }))
       .withToast('Delete memo successfully.', 'Failed to delete.')
       .execute();
 

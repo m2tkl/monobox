@@ -5,7 +5,7 @@ import type { ResourceState } from '../infra/types';
 import type { ComputedRef } from 'vue';
 import type { MemoDetail } from '~/models/memo';
 
-import { memoCommand } from '~/external/tauri/memo';
+import { command } from '~/external/tauri/command';
 
 const key = ['memo'] as const;
 
@@ -23,6 +23,6 @@ export function readMemoSnapshot() {
 
 export async function loadMemo(workspaceSlug: string, memoSlug: string) {
   return loadResource(key, () =>
-    memoCommand.get({ workspaceSlugName: workspaceSlug, memoSlugTitle: memoSlug }),
+    command.memo.get({ workspaceSlugName: workspaceSlug, memoSlugTitle: memoSlug }),
   );
 }

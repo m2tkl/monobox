@@ -5,7 +5,7 @@ import type { ResourceState } from '../infra/types';
 import type { ComputedRef } from 'vue';
 import type { Workspace } from '~/models/workspace';
 
-import { workspaceCommand } from '~/external/tauri/workspace';
+import { command } from '~/external/tauri/command';
 
 const key = ['workspace', 'current'] as const;
 
@@ -22,5 +22,5 @@ export function readCurrentWorkspaceSnapshot() {
 }
 
 export async function loadWorkspace(workspaceSlug: string) {
-  return loadResource(key, () => workspaceCommand.get({ slugName: workspaceSlug }));
+  return loadResource(key, () => command.workspace.get({ slugName: workspaceSlug }));
 }

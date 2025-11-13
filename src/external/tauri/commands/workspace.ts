@@ -1,4 +1,4 @@
-import { defineCommand, invokeCommand } from './invoker';
+import { defineCommand, invokeCommand } from '../core/invoker';
 
 import type { Workspace } from '~/models/workspace';
 

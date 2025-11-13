@@ -5,7 +5,7 @@ import type { ResourceState } from '../infra/types';
 import type { ComputedRef } from 'vue';
 import type { Workspace } from '~/models/workspace';
 
-import { workspaceCommand } from '~/external/tauri/workspace';
+import { command } from '~/external/tauri/command';
 
 const key = ['workspace', 'collection'] as const;
 
@@ -22,5 +22,5 @@ export function readWorkspaceCollectionSnapshot() {
 }
 
 export async function loadWorkspaceCollection() {
-  return loadResource(key, () => workspaceCommand.list());
+  return loadResource(key, () => command.workspace.list());
 }

@@ -1,1 +1,1 @@
-export { writeHtml, writeText } from '@tauri-apps/plugin-clipboard-manager';
+export { writeHtml, writeText } from './plugins/clipboard';
