@@ -16,8 +16,15 @@ export * as EditorAction from '~/lib/editor/action';
 export * as EditorQuery from '~/lib/editor/query';
 export * as EditorUtil from '~/lib/editor/util';
 export * as EditorMsg from '~/lib/editor/msg';
+export type { EditorMsg as EditorMsgType } from '~/lib/editor/msg';
 export { dispatchEditorMsg } from '~/lib/editor/dispatcher';
 export * as CustomExtension from '~/lib/editor/extensions';
+// Also re-export top-level lib/editor for direct function imports (e.g. setLink)
+export * from '~/lib/editor';
+
+// Serializer helpers for consumers
+export { convertEditorJsonToHtml } from '~/lib/editor/serializer/html';
+export { customMarkdownSerializer, convertToMarkdown } from '~/lib/editor/serializer/markdown';
 
 type BuildExtensionsOptions = {
   CodeBlockComponent: Component<NodeViewProps>;

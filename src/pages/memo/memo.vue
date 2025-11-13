@@ -161,9 +161,10 @@ import { useUpdateMemoEditAction } from './actions/updateMemoEdit';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
-import type { EditorMsg } from '~/lib/editor/msg';
+import type { EditorMsgType } from '~/app/features/editor';
 
-import { buildExtensions } from '~/app/features/editor';
+import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
+import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
@@ -174,15 +175,11 @@ import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialog
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
-import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
 import EditorToolbarButton from '~/components/EditorToolbarButton.vue';
 import { useImagePreview } from '~/components/ImagePreviewDialog/useImagePreview';
 import { bookmarkCommand } from '~/external/tauri/bookmark';
 import { linkCommand } from '~/external/tauri/link';
 import { memoCommand } from '~/external/tauri/memo';
-import * as EditorAction from '~/lib/editor/action.js';
-import { dispatchEditorMsg } from '~/lib/editor/dispatcher';
-import * as EditorQuery from '~/lib/editor/query.js';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
@@ -343,7 +340,7 @@ function openSelectedImagePreview() {
 const editorToolbarActionItems: {
   label?: string;
   icon?: string;
-  msg: EditorMsg;
+  msg: EditorMsgType;
 }[] = [
   { label: 'H1', msg: { type: 'toggleHeading', level: 1 } },
   { label: 'H2', msg: { type: 'toggleHeading', level: 2 } },

@@ -1,6 +1,6 @@
 import type { JSONContent } from '@tiptap/vue-3';
 
-import { convertEditorJsonToHtml } from '~/lib/editor/serializer/html';
+import { convertEditorJsonToHtml } from '~/app/features/editor';
 
 function escapeHtml(str: string): string {
   return str

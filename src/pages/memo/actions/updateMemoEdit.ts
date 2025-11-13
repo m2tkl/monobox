@@ -1,7 +1,7 @@
 import type { Editor } from '@tiptap/vue-3';
 
+import { getHeadingTextById } from '~/app/features/editor';
 import { command } from '~/external/tauri/command';
-import { getHeadingTextById } from '~/lib/editor';
 
 export function useUpdateMemoEditAction() {
   const recentStore = useRecentMemoStore();

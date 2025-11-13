@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3';
 
-import { setLink, unsetLink } from '~/lib/editor';
+import { setLink, unsetLink } from '~/app/features/editor';
 
 const props = defineProps<{
   editor: Editor;

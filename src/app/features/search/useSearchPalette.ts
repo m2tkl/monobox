@@ -4,9 +4,8 @@ import type { CommandPaletteItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/vue-3';
 import type { MemoIndexItem } from '~/models/memo';
 
+import { EditorAction, EditorQuery } from '~/app/features/editor';
 import { command } from '~/external/tauri/command';
-import * as EditorAction from '~/lib/editor/action.js';
-import * as EditorQuery from '~/lib/editor/query';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';

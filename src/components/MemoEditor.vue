@@ -77,7 +77,7 @@ import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 
 import type { Editor } from '@tiptap/vue-3';
 
-import { focusNodeById } from '~/lib/editor';
+import { focusNodeById } from '~/app/features/editor';
 
 const props = defineProps<{
   editor: Editor;
