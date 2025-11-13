@@ -2,8 +2,8 @@ import type { JSONContent, Editor as _Editor } from '@tiptap/vue-3';
 import type { Ref } from 'vue';
 import type { Link as LinkModel } from '~/models/link';
 
+import { convertMemoToHtml } from '~/app/features/memo/export/converters';
 import { command } from '~/external/tauri/command';
-import { convertMemoToHtml } from '~/lib/memo/exporter/toHtml';
 
 /**
  * Logic to prepare HTML export with linked memos.

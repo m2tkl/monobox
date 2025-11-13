@@ -1,8 +1,8 @@
 import type { Editor as _Editor } from '@tiptap/vue-3';
 
 import { EditorQuery, convertToMarkdown } from '~/app/features/editor';
+import { convertMemoToHtml, createHtmlLink } from '~/app/features/memo/export/converters';
 import { writeHtml, writeText } from '~/lib/clipboard';
-import { convertMemoToHtml, createHtmlLink } from '~/lib/memo/exporter/toHtml';
 
 /**
  * Provide copy-related actions used on the memo page.
