@@ -161,8 +161,9 @@ import { useUpdateMemoEditAction } from './actions/updateMemoEdit';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
-import type { EditorMsgType } from '~/lib/editor';
+import type { EditorMsgType } from '~/app/features/editor';
 
+import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
@@ -179,7 +180,6 @@ import { useImagePreview } from '~/components/ImagePreviewDialog/useImagePreview
 import { bookmarkCommand } from '~/external/tauri/bookmark';
 import { linkCommand } from '~/external/tauri/link';
 import { memoCommand } from '~/external/tauri/memo';
-import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/lib/editor';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';

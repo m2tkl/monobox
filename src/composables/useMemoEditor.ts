@@ -5,7 +5,7 @@ import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
-import { EditorAction, CustomExtension, EditorQuery, EditorUtil } from '~/lib/editor';
+import { EditorAction, CustomExtension, EditorQuery, EditorUtil } from '~/app/features/editor';
 
 type MemoEditorOptions = {
   /**

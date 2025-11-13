@@ -77,7 +77,7 @@ import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 
 import type { Editor } from '@tiptap/vue-3';
 
-import { EditorUtil } from '~/lib/editor';
+import { EditorUtil } from '~/app/features/editor';
 
 const props = defineProps<{
   editor: Editor;
