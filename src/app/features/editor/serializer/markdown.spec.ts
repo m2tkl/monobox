@@ -23,6 +23,7 @@ describe('serializer/markdown - convertToMarkdown', () => {
     const mdWithTitle = convertToMarkdown(editor.state.doc, 'PageTitle');
     expect(mdWithTitle.startsWith('# PageTitle\n\n')).toBe(true);
     expect(mdWithTitle).toContain('## Hello');
+    editor.destroy();
   });
 
   it('serializes code block with language fence', () => {
@@ -39,5 +40,6 @@ describe('serializer/markdown - convertToMarkdown', () => {
     expect(md).toContain('```ts');
     expect(md).toContain('const a = 1;');
     expect(md).toContain('```');
+    editor.destroy();
   });
 });

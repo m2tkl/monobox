@@ -18,7 +18,7 @@ describe('serializer/html - convertEditorJsonToHtml', () => {
   });
 
   it('renders paragraph and marks', () => {
-    const json = {
+    const json: JSONContent = {
       type: 'doc',
       content: [
         { type: 'paragraph', content: [
@@ -30,7 +30,7 @@ describe('serializer/html - convertEditorJsonToHtml', () => {
       ],
     } as const;
 
-    const html = convertEditorJsonToHtml(json as any);
+    const html = convertEditorJsonToHtml(json);
     expect(html).toContain('<p>');
     expect(html).toContain('<strong>bold</strong>');
     expect(html).toContain('<a href="/path">link</a>');
