@@ -75,3 +75,6 @@ logs
 
 # For development
 .dev
+
+# Tests
+coverage
