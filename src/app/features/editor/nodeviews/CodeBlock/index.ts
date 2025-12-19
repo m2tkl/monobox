@@ -1,3 +1,3 @@
-import CodeBlockComponent from '~/components/Editor/CodeBlock/Index.vue';
+import CodeBlockComponent from './Index.vue';
 
 export default CodeBlockComponent;
