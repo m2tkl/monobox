@@ -11,6 +11,8 @@
 </template>
 
 <script setup lang="ts">
+import TitleBar from '~/app/chrome/TitleBar.vue';
+
 import { emitEvent as emitEvent_ } from './resource-state/infra/eventBus';
 import { startRules } from './resource-state/rules';
 
