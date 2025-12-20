@@ -20,9 +20,10 @@ export * as EditorQuery from './core/query';
 export * as EditorDom from './core/dom';
 export * as EditorSelector from './core/selector';
 export * as EditorUtil from './core/util';
-export * as EditorMsg from './core/msg';
-export type { EditorMsg as EditorMsgType } from './core/msg';
-export { dispatchEditorMsg } from './core/dispatcher';
+export * as EditorMsg from './core/command';
+export type { EditorMsg as EditorMsgType } from './core/command';
+export type { EditorCommandHandler, EditorCommandHandlerMap } from './core/command';
+export { createEditorDispatcher, dispatchEditorMsg } from './core/command';
 export * as CustomExtension from './extensions';
 
 // Serializer helpers for consumers
