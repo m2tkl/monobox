@@ -5,7 +5,14 @@ import type { Transaction } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
-import { EditorAction, CustomExtension, EditorQuery, EditorUtil } from '~/app/features/editor';
+import {
+  EditorAction,
+  CustomExtension,
+  EditorDom,
+  EditorQuery,
+  EditorSelector,
+  EditorUtil,
+} from '~/app/features/editor';
 
 type MemoEditorOptions = {
   /**
@@ -82,7 +89,7 @@ export function useMemoEditor(
       editor.registerPlugin(CustomExtension.removeHeadingIdOnPastePlugin);
 
       const handleLinkClick = async (event: MouseEvent) => {
-        const url = EditorQuery.getLinkFromMouseClickEvent(event);
+        const url = EditorDom.getLinkFromMouseClickEvent(event);
 
         // If clicked element is not link, do nothing.
         if (!url) {
@@ -136,7 +143,7 @@ export function useMemoEditor(
         // and set a flag to skip heading identification based on scrolling.
         wasCaretOut.value = false;
 
-        const foundHeadingId = EditorQuery.findActiveHeadingId(editor);
+        const foundHeadingId = EditorSelector.findActiveHeadingId(editor);
 
         if (foundHeadingId) {
           activeHeadingId.value = foundHeadingId;

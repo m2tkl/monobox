@@ -17,6 +17,8 @@ export * as EditorAction from './core/action';
 // Backward-compatible named exports for common actions
 export { setLink, unsetLink } from './core/action';
 export * as EditorQuery from './core/query';
+export * as EditorDom from './core/dom';
+export * as EditorSelector from './core/selector';
 export * as EditorUtil from './core/util';
 export * as EditorMsg from './core/msg';
 export type { EditorMsg as EditorMsgType } from './core/msg';
