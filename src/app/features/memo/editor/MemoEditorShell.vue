@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import type { Editor as _Editor } from '@tiptap/vue-3';
 
-import MemoEditor from '~/components/MemoEditor.vue';
+import MemoEditor from '~/app/features/memo/editor/MemoEditor.vue';
 
 defineProps<{
   editor: _Editor | null | undefined;

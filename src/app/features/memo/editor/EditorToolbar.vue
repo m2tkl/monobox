@@ -55,6 +55,7 @@
 import type { Editor } from '@tiptap/vue-3';
 
 import { EditorAction } from '~/app/features/editor';
+import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 
 defineProps<{ editor: Editor }>();
 </script>

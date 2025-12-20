@@ -97,6 +97,7 @@
 </template>
 
 <script lang="ts" setup>
+import MemoCards from '~/app/features/memo/list/MemoCards.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import { useBookmarkListViewModel } from '~/resource-state/viewmodels/bookmarkList';
 import { useWorkspaceMemosViewModel } from '~/resource-state/viewmodels/workspaceMemos';

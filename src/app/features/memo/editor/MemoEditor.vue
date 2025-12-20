@@ -78,6 +78,8 @@ import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 import type { Editor } from '@tiptap/vue-3';
 
 import { EditorUtil } from '~/app/features/editor';
+import EditorLoadingSkelton from '~/app/features/memo/editor/EditorLoadingSkelton.vue';
+import TitleFieldAutoResize from '~/app/features/memo/editor/TitleFieldAutoResize.vue';
 
 const props = defineProps<{
   editor: Editor;

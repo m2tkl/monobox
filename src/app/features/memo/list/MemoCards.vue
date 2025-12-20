@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+import MemoThumbnail from '~/app/features/memo/list/MemoThumbnail.vue';
+
 import type { MemoIndexItem } from '~/models/memo';
 
 defineProps<{
