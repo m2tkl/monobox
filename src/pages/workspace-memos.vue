@@ -97,6 +97,7 @@
 </template>
 
 <script lang="ts" setup>
+import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import MemoCards from '~/app/features/memo/list/MemoCards.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import { useBookmarkListViewModel } from '~/resource-state/viewmodels/bookmarkList';

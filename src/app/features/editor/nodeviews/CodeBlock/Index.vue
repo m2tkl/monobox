@@ -78,6 +78,8 @@ import { UInput } from '#components';
 </script>
 
 <script lang="ts" setup>
+import IconButton from '~/app/ui/IconButton.vue';
+
 defineComponent({
   props: nodeViewProps,
 }) as Component<NodeViewProps>;

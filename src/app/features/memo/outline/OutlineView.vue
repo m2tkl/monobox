@@ -48,6 +48,8 @@
 </template>
 
 <script lang="ts" setup>
+import IconButton from '~/app/ui/IconButton.vue';
+
 type Heading = {
   id: string;
   level: number;

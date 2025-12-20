@@ -179,6 +179,7 @@ import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 import MarginForEditorScroll from '~/app/features/memo/editor/MarginForEditorScroll.vue';
 import { useImagePreview } from '~/app/features/memo/editor/ImagePreviewDialog/useImagePreview';
+import IconButton from '~/app/ui/IconButton.vue';
 import { command } from '~/external/tauri/command';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';

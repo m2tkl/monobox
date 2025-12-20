@@ -117,6 +117,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
 
+import IconButton from '~/app/ui/IconButton.vue';
 import ThemeToggle from '~/app/chrome/ThemeToggle.vue';
 import WindowControls from '~/app/chrome/WindowControls.vue';
 
