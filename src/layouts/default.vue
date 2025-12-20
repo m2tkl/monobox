@@ -38,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+import SidebarMenu from '~/app/chrome/SidebarMenu/Index.vue';
+
 const { ui } = useUIState();
 </script>
 

@@ -117,6 +117,9 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
 
+import ThemeToggle from '~/app/chrome/ThemeToggle.vue';
+import WindowControls from '~/app/chrome/WindowControls.vue';
+
 import { useCurrentWorkspaceViewModel } from '~/resource-state/viewmodels/currentWorkspace';
 
 defineProps<{
