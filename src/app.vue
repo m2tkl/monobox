@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import TitleBar from '~/app/chrome/TitleBar.vue';
+import ImagePreviewDialog from '~/app/features/memo/editor/ImagePreviewDialog/Index.vue';
 
 import { emitEvent as emitEvent_ } from './resource-state/infra/eventBus';
 import { startRules } from './resource-state/rules';

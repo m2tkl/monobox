@@ -178,7 +178,7 @@ import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 import MarginForEditorScroll from '~/app/features/memo/editor/MarginForEditorScroll.vue';
-import { useImagePreview } from '~/components/ImagePreviewDialog/useImagePreview';
+import { useImagePreview } from '~/app/features/memo/editor/ImagePreviewDialog/useImagePreview';
 import { command } from '~/external/tauri/command';
 import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
