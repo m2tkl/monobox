@@ -7,11 +7,12 @@ import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
 import {
   EditorAction,
+  EditorDoc,
   CustomExtension,
   EditorDom,
   EditorQuery,
+  EditorFocus,
   EditorSelector,
-  EditorUtil,
 } from '~/app/features/editor';
 
 type MemoEditorOptions = {
@@ -135,7 +136,7 @@ export function useMemoEditor(
       const editorContainer = document.getElementById('main');
       if (!editorContainer) return;
 
-      const caretVisible = EditorUtil.isCaretVisible(editor, editorContainer);
+      const caretVisible = EditorDom.isCaretVisible(editor, editorContainer);
 
       if (caretVisible) {
         // When a cursor operation is performed and the cursor is visible on the screen,
@@ -221,12 +222,12 @@ export function useMemoEditor(
     }
 
     scrollToElementWithOffset(id, 100);
-    EditorUtil.focusNodeById(_editor, id);
+    EditorFocus.focusNodeById(_editor, id);
     activeHeadingId.value = id;
   }
 
   const updateLinks = async (transaction: Transaction) => {
-    const { deletedLinks, addedLinks } = EditorUtil.getChangedLinks(transaction);
+    const { deletedLinks, addedLinks } = EditorDoc.getChangedLinks(transaction);
 
     if (deletedLinks.length === 0 && addedLinks.length === 0) return;
 
@@ -235,7 +236,7 @@ export function useMemoEditor(
   };
 
   const updateHeadImage = async (transaction: Transaction) => {
-    const foundFirstImage = EditorUtil.findHeadImage(transaction);
+    const foundFirstImage = EditorDoc.findHeadImage(transaction);
     if (foundFirstImage !== headImageRef.value) {
       headImageRef.value = foundFirstImage;
     }
@@ -251,12 +252,12 @@ export function useMemoEditor(
   function updateActiveHeadingOnScroll(editorInstance: Editor, editorContainer: HTMLElement) {
     // Set a flag to disable heading identification based on the cursor position
     // when scrolling moves the cursor out of the screen.
-    if (!EditorUtil.isCaretVisible(editorInstance, editorContainer)) {
+    if (!EditorDom.isCaretVisible(editorInstance, editorContainer)) {
       wasCaretOut.value = true;
     }
 
     if (wasCaretOut.value) {
-      activeHeadingId.value = EditorUtil.getLastVisibleHeadingId(editorContainer);
+      activeHeadingId.value = EditorDom.getLastVisibleHeadingId(editorContainer);
     }
   }
 

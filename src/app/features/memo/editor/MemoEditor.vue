@@ -77,7 +77,7 @@ import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 
 import type { Editor } from '@tiptap/vue-3';
 
-import { EditorUtil } from '~/app/features/editor';
+import { EditorFocus } from '~/app/features/editor';
 import EditorLoadingSkelton from '~/app/features/memo/editor/EditorLoadingSkelton.vue';
 import TitleFieldAutoResize from '~/app/features/memo/editor/TitleFieldAutoResize.vue';
 
@@ -104,7 +104,7 @@ watch(editorReady, (ready) => {
   if (id) {
     setTimeout(() => {
       scrollToElementWithOffset(id, 100);
-      EditorUtil.focusNodeById(props.editor, id);
+      EditorFocus.focusNodeById(props.editor, id);
     }, 0);
   }
 });
