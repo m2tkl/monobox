@@ -157,16 +157,14 @@
 </template>
 
 <script lang="ts" setup>
-import { useUpdateMemoEditAction } from './actions/updateMemoEdit';
-
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
-import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
+import { useUpdateMemoEditAction } from '~/app/features/memo/editor/actions/updateMemoEdit';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 import { useImagePreview } from '~/app/features/memo/editor/ImagePreviewDialog/useImagePreview';
@@ -174,6 +172,7 @@ import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
 import MarginForEditorScroll from '~/app/features/memo/editor/MarginForEditorScroll.vue';
 import MemoEditorShell from '~/app/features/memo/editor/MemoEditorShell.vue';
 import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
+import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
