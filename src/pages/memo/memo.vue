@@ -181,7 +181,7 @@ import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
 import { command } from '~/external/tauri/command';
-import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { emitEvent } from '~/resource-state/infra/eventBus';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
@@ -367,8 +367,8 @@ const toggleBookmark = async () => {
   else {
     await command.bookmark.delete(workspaceSlug.value, memoSlug.value);
   }
+
   emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
-  emitEvent_('bookmark/updated', { workspaceSlug: workspaceSlug.value });
 };
 
 /* --- Contect menu items --- */
@@ -509,9 +509,7 @@ async function saveMemo() {
   ))
     .withToast('Saved', 'Failed to save')
     .withCallback(() => {
-      // Emit to both event buses (legacy store + resource-state rules)
       emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
-      emitEvent_('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
       router.replace(`/${workspaceSlug.value}/${currentTitleForSlug}${route.hash}`);
     })
     .execute(editor.value, currentTitle);
@@ -532,9 +530,7 @@ async function runDeleteWorkflow() {
   });
 
   if (workflowResult === 'completed') {
-    // Emit to both buses so lists refresh
     emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
-    emitEvent_('memo/deleted', { workspaceSlug: workspaceSlug.value });
     router.replace(`/${workspaceSlug.value}`);
   }
 }

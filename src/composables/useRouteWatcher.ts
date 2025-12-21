@@ -1,4 +1,4 @@
-import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { emitEvent } from '~/resource-state/infra/eventBus';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export function useRouteWatcher() {
@@ -12,7 +12,6 @@ export function useRouteWatcher() {
       if (!workspaceSlug) return;
 
       emitEvent('workspace/switched', { workspaceSlug });
-      emitEvent_('workspace/switched', { workspaceSlug });
     },
     { immediate: true },
   );
@@ -26,7 +25,6 @@ export function useRouteWatcher() {
       if (!workspaceSlug || !memoSlug) return;
 
       emitEvent('memo/switched', { workspaceSlug, memoSlug });
-      emitEvent_('memo/switched', { workspaceSlug, memoSlug });
     },
     { immediate: true },
   );

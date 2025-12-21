@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { command } from '~/external/tauri/command';
-import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { emitEvent } from '~/resource-state/infra/eventBus';
 
 definePageMeta({
   path: '/:workspace/_setting',
@@ -105,7 +105,6 @@ const deleteWorkspace = async () => {
     });
 
     emitEvent('workspace/deleted', undefined);
-    emitEvent_('workspace/deleted', undefined);
 
     router.replace('/');
   }

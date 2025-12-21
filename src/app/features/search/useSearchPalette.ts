@@ -6,7 +6,7 @@ import type { MemoIndexItem } from '~/models/memo';
 
 import { EditorAction, EditorQuery } from '~/app/features/editor';
 import { command } from '~/external/tauri/command';
-import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { emitEvent } from '~/resource-state/infra/eventBus';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';
@@ -95,7 +95,7 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
       linkMemoSlug = newMemo.slug_title;
       linkMemoTitle = newMemo.title;
 
-      emitEvent_('memo/created', { workspaceSlug: options.workspaceSlug.value });
+      emitEvent('memo/created', { workspaceSlug: options.workspaceSlug.value });
     }
 
     if (options.type.value === 'link') {

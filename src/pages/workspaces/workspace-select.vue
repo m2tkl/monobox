@@ -102,7 +102,7 @@
 import { useCreateWorkspaceAction } from './actions/useCreateWorkspaceAction';
 import { useWorkspaceFormState } from './forms/useWorkspaceFormState';
 
-import { emitEvent as emitEvent_ } from '~/resource-state/infra/eventBus';
+import { emitEvent } from '~/resource-state/infra/eventBus';
 import { useWorkspacesViewModel } from '~/resource-state/viewmodels/workspaces';
 
 definePageMeta({
@@ -139,7 +139,6 @@ const onSubmit = async () => {
     form.reset();
     isOpen.value = false;
     emitEvent('workspace/created', undefined);
-    emitEvent_('workspace/created', undefined);
   }
   else {
     toast.add({
