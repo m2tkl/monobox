@@ -10,7 +10,6 @@ import {
   EditorDoc,
   CustomExtension,
   EditorDom,
-  EditorQuery,
   EditorFocus,
   EditorSelector,
 } from '~/app/features/editor';

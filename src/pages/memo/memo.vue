@@ -165,6 +165,7 @@ import type { EditorMsgType } from '~/app/features/editor';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
+import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
