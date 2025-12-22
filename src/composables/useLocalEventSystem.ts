@@ -1,10 +1,12 @@
 type EventMap = Record<string, unknown>;
 
-export type LocalEventRule<E extends EventMap, K extends keyof E & string = keyof E & string> = {
-  on: K;
-  description: string;
-  run: (payload: E[K], ctx: { emit: <T extends keyof E & string>(name: T, payload: E[T]) => Promise<void> }) => Promise<unknown> | unknown;
-};
+export type LocalEventRule<E extends EventMap> = {
+  [K in keyof E & string]: {
+    on: K;
+    description: string;
+    run: (payload: E[K], ctx: { emit: <T extends keyof E & string>(name: T, payload: E[T]) => Promise<void> }) => Promise<unknown> | unknown;
+  }
+}[keyof E & string];
 
 export type LocalEventOverviewItem<E extends EventMap> = {
   event: keyof E & string;
@@ -32,7 +34,7 @@ export function useLocalEventSystem<E extends EventMap>(rules: ReadonlyArray<Loc
     }
 
     for (const rule of list) {
-      await rule.run(payload, { emit });
+      await rule.run(payload as E[K], { emit });
     }
   };
 
