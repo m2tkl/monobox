@@ -160,6 +160,7 @@
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
+import type { LocalEventRule } from '~/composables/useLocalEventSystem';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
@@ -210,10 +211,193 @@ const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
 const recentStore = useRecentMemoStore();
+const { executeUpdateMemoEdit } = useUpdateMemoEditAction();
 
 const memo = requireMemoValue();
 
 const memoTitle = ref(memo.value.title);
+type MemoEditState = 'clean' | 'dirty' | 'saving_explicit' | 'saving_auto';
+
+const editState = ref<MemoEditState>('clean');
+
+type MemoSnapshot = {
+  title: string;
+  content: string;
+};
+
+const lastSavedSnapshot = ref<MemoSnapshot>({
+  title: memo.value.title,
+  content: memo.value.content,
+});
+
+const getCurrentSnapshot = (): MemoSnapshot => {
+  const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : memo.value.content;
+  return {
+    title: memoTitle.value,
+    content: currentContent,
+  };
+};
+
+const updateDirtyState = () => {
+  if (editState.value === 'saving_explicit' || editState.value === 'saving_auto') {
+    return;
+  }
+
+  const current = getCurrentSnapshot();
+  editState.value = current.title !== lastSavedSnapshot.value.title
+    || current.content !== lastSavedSnapshot.value.content
+    ? 'dirty'
+    : 'clean';
+};
+
+const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();
+
+type MemoEvent = {
+  'memo/changed': undefined;
+  'save/requested': { mode: 'explicit' | 'auto' };
+  'save/succeeded': { memoSlug: string };
+  'save/failed': { error?: unknown };
+  'delete/requested': undefined;
+};
+
+const memoEventRules: LocalEventRule<MemoEvent>[] = [
+  {
+    on: 'memo/changed',
+    description: 'Sync dirty state with current memo snapshot',
+    run: () => {
+      updateDirtyState();
+    },
+  },
+  {
+    on: 'save/requested',
+    description: 'Persist memo content and emit outcome',
+    run: async ({ mode }, { emit }) => {
+      if (editState.value === 'saving_explicit' || editState.value === 'saving_auto') {
+        return;
+      }
+
+      updateDirtyState();
+      if (editState.value !== 'dirty') {
+        return;
+      }
+
+      editState.value = mode === 'explicit' ? 'saving_explicit' : 'saving_auto';
+      let result: Awaited<ReturnType<typeof saveMemoContent>>;
+      try {
+        result = await saveMemoContent(mode);
+      }
+      catch (error) {
+        await emit('save/failed', { error });
+        return;
+      }
+
+      if (result.ok && result.memoSlug) {
+        await emit('save/succeeded', { memoSlug: result.memoSlug });
+      }
+      else {
+        await emit('save/failed', { error: result.error });
+      }
+    },
+  },
+  {
+    on: 'save/succeeded',
+    description: 'Finalize save state and notify resource updates',
+    run: ({ memoSlug }) => {
+      lastSavedSnapshot.value = getCurrentSnapshot();
+      editState.value = 'clean';
+      emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug });
+      router.replace(`/${workspaceSlug.value}/${memoSlug}${route.hash}`);
+    },
+  },
+  {
+    on: 'save/failed',
+    description: 'Recalculate dirty state after save failure',
+    run: () => {
+      editState.value = 'dirty';
+      updateDirtyState();
+    },
+  },
+  {
+    on: 'delete/requested',
+    description: 'Confirm and execute memo deletion',
+    run: async (_, { emit }) => {
+      if (!deleteMemoWithUserConfirmation.value) {
+        throw new Error('Workflow ref is not set correctlly.');
+      }
+
+      if (editState.value === 'dirty') {
+        const shouldSaveBeforeDelete = window.confirm('You have unsaved changes. Save before deleting?');
+        if (shouldSaveBeforeDelete) {
+          await emit('save/requested', { mode: 'explicit' });
+          if (editState.value === 'dirty') {
+            return;
+          }
+        }
+        else {
+          const confirmDeleteWithoutSave = window.confirm('Delete without saving changes?');
+          if (!confirmDeleteWithoutSave) {
+            return;
+          }
+        }
+      }
+
+      const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
+        const result = await createEffectHandler(() => command.memo.trash({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }))
+          .withToast('Delete memo successfully.', 'Failed to delete.')
+          .execute();
+
+        if (!result.ok) throw new Error('Failed to delete.');
+      });
+
+      if (workflowResult === 'completed') {
+        emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
+        router.replace(`/${workspaceSlug.value}`);
+      }
+    },
+  },
+];
+
+async function saveMemoContent(mode: 'explicit' | 'auto') {
+  if (!editor.value) {
+    if (mode === 'explicit') {
+      throw new Error('Editor instance not set.');
+    }
+    return { ok: false };
+  }
+
+  const currentTitle = memoTitle.value;
+  if (!currentTitle) {
+    if (mode === 'explicit') {
+      window.alert('Please set title.');
+    }
+    return { ok: false };
+  }
+
+  const currentTitleForSlug = encodeForSlug(currentTitle);
+  const handler = createEffectHandler((editor: _Editor, title: string) => executeUpdateMemoEdit(
+    {
+      workspaceSlug: workspaceSlug.value,
+      memoSlug: memoSlug.value,
+    },
+    editor,
+    title,
+    headImageRef.value ?? '',
+    route.hash,
+  ));
+
+  if (mode === 'explicit') {
+    handler.withToast('Saved', 'Failed to save');
+  }
+
+  const result = await handler.execute(editor.value, currentTitle);
+  return {
+    ok: result.ok,
+    memoSlug: currentTitleForSlug,
+    error: result.ok ? undefined : result.error,
+  };
+}
+
+const { emit: emitMemoEvent } = useLocalEventSystem<MemoEvent>(memoEventRules);
 
 /* --- States for editor --- */
 
@@ -230,7 +414,7 @@ const {
   updateActiveHeadingOnScroll,
 } = useMemoEditor(memo.value.content, {
   extensions: extensions,
-  saveMemo: async () => { await saveMemo(); },
+  saveMemoAuto: async () => { await emitMemoEvent('save/requested', { mode: 'auto' }); },
   updateLinks: async (added, deleted) => {
     await Promise.all([
       ...added.map(href => command.link.create({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
@@ -238,14 +422,19 @@ const {
     ]);
     await loadMemoLinkCollection(workspaceSlug.value, memoSlug.value);
   },
+  onChanged: () => { void emitMemoEvent('memo/changed', undefined); },
   route,
   router,
+});
+
+watch(memoTitle, () => {
+  void emitMemoEvent('memo/changed', undefined);
 });
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (isCmdKey(event) && event.key === 's') {
     event.preventDefault();
-    saveMemo();
+    void emitMemoEvent('save/requested', { mode: 'explicit' });
     return;
   }
 };
@@ -399,7 +588,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      onSelect: () => { runDeleteWorkflow(); },
+      onSelect: () => { void emitMemoEvent('delete/requested', undefined); },
     },
   ],
 ];
@@ -480,60 +669,6 @@ const {
   open: startImgAltEditing,
   close: finishImgAltEditing,
 } = useDialog();
-
-/* --- Commands --- */
-const { executeUpdateMemoEdit } = useUpdateMemoEditAction();
-
-async function saveMemo() {
-  if (!editor.value) {
-    throw new Error('Editor instance not set.');
-  }
-
-  const currentTitle = memoTitle.value;
-  if (!currentTitle) {
-    window.alert('Please set title.');
-    return;
-  }
-
-  const currentTitleForSlug = encodeForSlug(currentTitle);
-
-  await createEffectHandler((editor: _Editor, title: string) => executeUpdateMemoEdit(
-    {
-      workspaceSlug: workspaceSlug.value,
-      memoSlug: memoSlug.value,
-    },
-    editor,
-    title,
-    headImageRef.value ?? '',
-    route.hash,
-  ))
-    .withToast('Saved', 'Failed to save')
-    .withCallback(() => {
-      emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug: currentTitleForSlug });
-      router.replace(`/${workspaceSlug.value}/${currentTitleForSlug}${route.hash}`);
-    })
-    .execute(editor.value, currentTitle);
-}
-
-const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();
-async function runDeleteWorkflow() {
-  if (!deleteMemoWithUserConfirmation.value) {
-    throw new Error('Workflow ref is not set correctlly.');
-  }
-
-  const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
-    const result = await createEffectHandler(() => command.memo.trash({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }))
-      .withToast('Delete memo successfully.', 'Failed to delete.')
-      .execute();
-
-    if (!result.ok) throw new Error ('Failed to delete.');
-  });
-
-  if (workflowResult === 'completed') {
-    emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
-    router.replace(`/${workspaceSlug.value}`);
-  }
-}
 
 const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useCopyActions();
 

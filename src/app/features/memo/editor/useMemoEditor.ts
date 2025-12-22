@@ -27,8 +27,9 @@ type MemoEditorOptions = {
   /**
    * Command callbacks
    */
-  saveMemo: () => Promise<void>;
+  saveMemoAuto?: () => Promise<void>;
   updateLinks: (added: string[], deleted: string[]) => Promise<void>;
+  onChanged?: () => void;
 
   /**
    * Router object for callback
@@ -126,6 +127,7 @@ export function useMemoEditor(
     onTransaction: async ({ editor: _editor, transaction }) => {
       if (!transaction.docChanged) return;
 
+      options.onChanged?.();
       EditorAction.applyTargetBlankToExternalLinks(_editor);
       await updateLinks(transaction);
       updateHeadImage(transaction);
@@ -231,7 +233,7 @@ export function useMemoEditor(
     if (deletedLinks.length === 0 && addedLinks.length === 0) return;
 
     await options.updateLinks(addedLinks, deletedLinks);
-    await options.saveMemo();
+    await options.saveMemoAuto?.();
   };
 
   const updateHeadImage = async (transaction: Transaction) => {
