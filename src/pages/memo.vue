@@ -113,7 +113,13 @@
             :memo-title="memoVM.data.memo.title"
             :links="memoVM.data.links"
           />
-          <MarginForEditorScroll />
+
+          <!-- Margin for editor scroll -->
+          <div class="flex h-[calc(100vh-40px)] items-center justify-center">
+            <p class="font-bold text-slate-400">
+              Happy writing... 📝
+            </p>
+          </div>
         </div>
       </div>
     </template>
@@ -170,7 +176,6 @@ import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 import { useImagePreview } from '~/app/features/memo/editor/ImagePreviewDialog/useImagePreview';
 import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
-import MarginForEditorScroll from '~/app/features/memo/editor/MarginForEditorScroll.vue';
 import MemoEditorShell from '~/app/features/memo/editor/MemoEditorShell.vue';
 import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
 import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
