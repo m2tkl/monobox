@@ -27,9 +27,8 @@ type MemoEditorOptions = {
   /**
    * Command callbacks
    */
-  saveMemoAuto?: () => Promise<void>;
-  updateLinks: (added: string[], deleted: string[]) => Promise<void>;
-  onChanged?: () => void;
+  onChanged?: (reason: 'content') => void;
+  onLinksChanged?: (added: string[], deleted: string[]) => void;
 
   /**
    * Router object for callback
@@ -127,9 +126,12 @@ export function useMemoEditor(
     onTransaction: async ({ editor: _editor, transaction }) => {
       if (!transaction.docChanged) return;
 
-      options.onChanged?.();
+      options.onChanged?.('content');
       EditorAction.applyTargetBlankToExternalLinks(_editor);
-      await updateLinks(transaction);
+      const linksChanged = await updateLinks(transaction);
+      if (linksChanged) {
+        options.onLinksChanged?.(linksChanged.added, linksChanged.deleted);
+      }
       updateHeadImage(transaction);
       EditorAction.assignUniqueHeadingIds(_editor);
     },
@@ -230,10 +232,9 @@ export function useMemoEditor(
   const updateLinks = async (transaction: Transaction) => {
     const { deletedLinks, addedLinks } = EditorDoc.getChangedLinks(transaction);
 
-    if (deletedLinks.length === 0 && addedLinks.length === 0) return;
+    if (deletedLinks.length === 0 && addedLinks.length === 0) return null;
 
-    await options.updateLinks(addedLinks, deletedLinks);
-    await options.saveMemoAuto?.();
+    return { added: addedLinks, deleted: deletedLinks };
   };
 
   const updateHeadImage = async (transaction: Transaction) => {
