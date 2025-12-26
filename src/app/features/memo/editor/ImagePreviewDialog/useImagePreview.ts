@@ -1,6 +1,6 @@
 import { transformImageSrc } from '~/utils/imageSrc';
 
-type ImagePreviewState = {
+export type ImagePreviewState = {
   open: boolean;
   src: string;
   alt: string;
