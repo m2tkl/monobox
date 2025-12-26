@@ -172,13 +172,13 @@ import type { MemoEvent, MemoState } from '~/app/features/memo/memoMachine';
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
-import { useUpdateMemoEditAction } from '~/app/features/memo/editor/actions/updateMemoEdit';
+import { useMemoSave } from '~/app/features/memo/editor/useMemoSave';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 import { useImagePreview } from '~/app/features/memo/editor/ImagePreviewDialog/useImagePreview';
 import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
 import MemoEditor from '~/app/features/memo/editor/MemoEditor.vue';
-import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
+import { useMemoCopy } from '~/app/features/memo/editor/useMemoCopy';
 import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
@@ -219,7 +219,7 @@ const router = useRouter();
 const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
 const recentStore = useRecentMemoStore();
-const { executeUpdateMemoEdit } = useUpdateMemoEditAction();
+const { executeMemoSave } = useMemoSave();
 const logger = useConsoleLogger('pages/memo');
 
 const memo = requireMemoValue();
@@ -271,7 +271,7 @@ async function saveMemoContent(mode: 'explicit' | 'auto') {
   }
 
   const currentTitleForSlug = encodeForSlug(currentTitle);
-  const handler = createEffectHandler((editor: _Editor, title: string) => executeUpdateMemoEdit(
+  const handler = createEffectHandler((editor: _Editor, title: string) => executeMemoSave(
     {
       workspaceSlug: workspaceSlug.value,
       memoSlug: memoSlug.value,
@@ -628,7 +628,7 @@ const {
   close: finishImgAltEditing,
 } = useDialog();
 
-const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useCopyActions();
+const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useMemoCopy();
 
 /* --- Export with related pages (Step1: select targets) --- */
 const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useExportLinked({

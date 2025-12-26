@@ -5,9 +5,9 @@ import { convertMemoToHtml, createHtmlLink } from '~/app/features/memo/export/co
 import { writeHtml, writeText } from '~/external/tauri/clipboard';
 
 /**
- * Provide copy-related actions used on the memo page.
+ * Provide copy operations used on the memo page.
  */
-export function useCopyActions() {
+export function useMemoCopy() {
   const { createEffectHandler } = useEffectHandler();
 
   const copyPageAsMarkdown = (editor: _Editor, title: string) =>

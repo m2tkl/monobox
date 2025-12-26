@@ -3,12 +3,12 @@ import type { Editor } from '@tiptap/vue-3';
 import { getHeadingTextById } from '~/app/features/editor/core/query';
 import { command } from '~/external/tauri/command';
 
-export function useUpdateMemoEditAction() {
+export function useMemoSave() {
   const recentStore = useRecentMemoStore();
 
-  const { runTask: executeUpdateMemoEdit } = useAsyncTask(updateMemoEdit);
+  const { runTask: executeMemoSave } = useAsyncTask(saveMemo);
 
-  async function updateMemoEdit(
+  async function saveMemo(
     target: { workspaceSlug: string; memoSlug: string },
     editor: Editor,
     newTitle: string,
@@ -73,7 +73,7 @@ export function useUpdateMemoEditAction() {
   };
 
   return {
-    executeUpdateMemoEdit,
+    executeMemoSave,
   };
 }
 
