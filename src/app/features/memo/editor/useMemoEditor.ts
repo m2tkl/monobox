@@ -116,6 +116,10 @@ export function useMemoEditor(
       if (options.route.hash) {
         const id = options.route.hash.replace(/^#/, '');
         activeHeadingId.value = id;
+        // Delay to allow editor UI to settle before focusing.
+        setTimeout(() => {
+          focusHeading(editor, id);
+        }, 500);
       }
 
       editor.view.dom.addEventListener('click', handleLinkClick);
