@@ -22,7 +22,8 @@
           class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto"
           style="background-color: var(--color-background)"
         >
-          <MemoEditorShell
+          <MemoEditor
+            v-if="editor"
             v-model:memo-title="memoTitle"
             :editor="editor"
           >
@@ -105,7 +106,7 @@
                 @exit="finishImgAltEditing"
               />
             </template>
-          </MemoEditorShell>
+          </MemoEditor>
 
           <!-- Related links -->
           <MemoLinkCardView
@@ -176,7 +177,7 @@ import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 import { useImagePreview } from '~/app/features/memo/editor/ImagePreviewDialog/useImagePreview';
 import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
-import MemoEditorShell from '~/app/features/memo/editor/MemoEditorShell.vue';
+import MemoEditor from '~/app/features/memo/editor/MemoEditor.vue';
 import { useCopyActions } from '~/app/features/memo/editor/useCopyActions';
 import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
