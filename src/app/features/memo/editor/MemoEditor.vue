@@ -25,7 +25,7 @@
       class="max-w-[820px] p-6"
       style="background-color: var(--color-surface-elevated)"
     >
-      <TitleFieldAutoResize v-model="memoTitle" />
+      <TitleFieldStableInput v-model="memoTitle" />
 
       <div class="relative">
         <USeparator
@@ -78,7 +78,7 @@ import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 import type { Editor } from '@tiptap/vue-3';
 
 import EditorLoadingSkelton from '~/app/features/memo/editor/EditorLoadingSkelton.vue';
-import TitleFieldAutoResize from '~/app/features/memo/editor/TitleFieldAutoResize.vue';
+import TitleFieldStableInput from '~/app/features/memo/editor/TitleFieldStableInput.vue';
 
 defineProps<{
   editor: Editor;
