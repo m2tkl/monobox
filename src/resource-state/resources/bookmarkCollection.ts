@@ -5,7 +5,7 @@ import type { ResourceState } from '../infra/types';
 import type { ComputedRef } from 'vue';
 import type { Bookmark } from '~/models/bookmark';
 
-import { bookmarkCommand } from '~/external/tauri/bookmark';
+import { command } from '~/external/tauri/command';
 
 const key = ['bookmark', 'collection'] as const;
 
@@ -22,5 +22,5 @@ export function requireBookmarkCollectionValue(): ComputedRef<Bookmark[]> {
 }
 
 export async function loadBookmarkCollection(workspaceSlug: string) {
-  return loadResource(key, () => bookmarkCommand.list(workspaceSlug));
+  return loadResource(key, () => command.bookmark.list(workspaceSlug));
 }

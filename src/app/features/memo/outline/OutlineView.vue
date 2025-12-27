@@ -1,0 +1,157 @@
+<template>
+  <div
+    ref="outlineRef"
+    class="hide-scrollbar h-full overflow-y-auto outline-container"
+  >
+    <div
+      class="sticky left-0 top-0 z-50 flex h-8 items-center gap-1.5 border-b memo-separator outline-header px-2 py-1.5 text-sm"
+      style="background-color: var(--color-surface)"
+    >
+      <UIcon :name="iconKey.tree" />
+      Outline
+    </div>
+
+    <ul class="flex flex-col">
+      <li
+        v-for="item in outline"
+        :key="item.text"
+      >
+        <div
+          class="group relative flex min-h-8 cursor-pointer items-center outline-item px-2 py-1.5 text-sm"
+          :class="{ 'is-active': activeHeadingId === item.id,
+                    'is-ancestor': activeAncestorHeadings.map(h => h.id).includes(item.id ?? ''), // ancestor highlight
+          }"
+          :data-id="item.id"
+
+          @click="item.id && emits('click', item.id, item.text)"
+        >
+          <span :class="indent(item.level)" />
+          <span class="pr-1 text-xs font-semibold outline-item-level">{{ '#'.repeat(item.level) }}</span>
+          <span
+            v-if="item"
+            class="text-wrap"
+          >
+            {{ item.text }}
+          </span>
+
+          <!-- Link copy -->
+          <IconButton
+            v-if="item.id"
+            :icon="iconKey.link"
+            class="absolute right-1 rounded bg-transparent p-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            @click.stop="emits('copy-link', item.id, item.text)"
+          />
+        </div>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import IconButton from '~/app/ui/IconButton.vue';
+
+type Heading = {
+  id: string;
+  level: number;
+  text: string;
+};
+
+const props = defineProps<{
+  /**
+   * Heading ID currently active
+   *
+   * This ID is specified into memo view.
+   */
+  activeHeadingId?: string;
+
+  outline: Heading[];
+  activeHeading?: Heading;
+  activeAncestorHeadings: Heading[];
+}>();
+
+const emits = defineEmits<{
+  (e: 'click', id: string, title: string): void;
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
+  (e: 'copy-link', id: string, text: string): void;
+}>();
+
+/* --- Outline auto scroll --- */
+/**
+ * Reference to control the outline auto scroll
+ */
+const outlineRef = ref<HTMLElement | null>(null);
+
+/**
+ * Auto scroll for active outline item
+ *
+ * If the active heading is outside the visible bounds of the outline container,
+ * it scrolls the container to bring the heading into view.
+ *
+ * @watch props.activeHeadingId - The ID of the currently active heading in the editor content.
+ */
+watch(() => props.activeHeadingId, (newId) => {
+  if (!newId || !outlineRef.value) return;
+
+  const activeOutlineItem = outlineRef.value.querySelector(`[data-id="${newId}"]`);
+  const outlineContainer = outlineRef.value;
+
+  if (!activeOutlineItem) {
+    return;
+  }
+
+  scrollOutlineItemIntoView(activeOutlineItem, outlineContainer);
+});
+
+/**
+ * Scroll into outline item into view
+ *
+ * @param outlineItem - target outline item to scroll into container
+ * @param outlineContainer - Outline view container
+ */
+const scrollOutlineItemIntoView = (outlineItem: Element, outlineContainer: HTMLElement) => {
+  const tocHeadingHeight = 48;
+  const offset = 48;
+
+  // Get the bounding rectangles of the active ToC item and the ToC container
+  const itemRect = outlineItem.getBoundingClientRect();
+  const containerRect = outlineContainer.getBoundingClientRect();
+
+  // Check if the active item is out of the visible range
+  const isAbove = itemRect.top < containerRect.top + tocHeadingHeight + offset;
+  const isBelow = itemRect.bottom > containerRect.bottom - offset;
+
+  if (isAbove || isBelow) {
+    const currentScrollTop = outlineContainer.scrollTop;
+    const itemTopRelativeToContainer = itemRect.top - containerRect.top;
+
+    // Determine the new scroll position
+    const targetScrollTop = isAbove
+      ? currentScrollTop + itemTopRelativeToContainer - (tocHeadingHeight + offset)
+      : currentScrollTop + (itemRect.bottom - containerRect.bottom) + offset;
+
+    outlineContainer.scrollTo({
+      top: targetScrollTop,
+      behavior: 'smooth',
+    });
+  }
+};
+
+/* --- Helper --- */
+/**
+ * Indent style definitions for heading level
+ */
+const indentStyle: Record<number, string> = {
+  1: '',
+  2: 'pl-4',
+  3: 'pl-8',
+  4: 'pl-12',
+  5: 'pl-16',
+  6: 'pl-20',
+};
+
+/**
+ * Apply outline heading with indent style
+ * @param level - Outline level
+ */
+const indent = (level: number) => indentStyle[level] ?? '';
+</script>

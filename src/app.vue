@@ -11,12 +11,10 @@
 </template>
 
 <script setup lang="ts">
-import { emitEvent as emitEvent_ } from './resource-state/infra/eventBus';
-import { startRules } from './resource-state/rules';
+import { bootstrapResourceState } from './resource-state/index';
 
-startRules();
-useRouteWatcher();
+import TitleBar from '~/app/chrome/TitleBar.vue';
+import ImagePreviewDialog from '~/app/features/memo/editor/ImagePreviewDialog/Index.vue';
 
-emitEvent('app/init', undefined);
-emitEvent_('app/init', undefined);
+bootstrapResourceState();
 </script>

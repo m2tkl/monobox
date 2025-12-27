@@ -5,7 +5,7 @@ import type { ResourceState } from '../infra/types';
 import type { ComputedRef } from 'vue';
 import type { Link } from '~/models/link';
 
-import { linkCommand } from '~/external/tauri/link';
+import { command } from '~/external/tauri/command';
 
 const key = ['link', 'collection'] as const;
 
@@ -22,5 +22,5 @@ export function readMemoLinkCollectionSnapshot() {
 }
 
 export async function loadMemoLinkCollection(workspaceSlug: string, memoSlug: string) {
-  return loadResource(key, () => linkCommand.list({ workspaceSlug, memoSlug }));
+  return loadResource(key, () => command.link.list({ workspaceSlug, memoSlug }));
 }

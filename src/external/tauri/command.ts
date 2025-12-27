@@ -1,7 +1,7 @@
-import { bookmarkCommand } from './bookmark';
-import { linkCommand } from './link';
-import { memoCommand } from './memo';
-import { workspaceCommand } from './workspace';
+import { bookmarkCommand } from './commands/bookmark';
+import { linkCommand } from './commands/link';
+import { memoCommand } from './commands/memo';
+import { workspaceCommand } from './commands/workspace';
 
 export const command = {
   workspace: workspaceCommand,

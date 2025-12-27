@@ -70,6 +70,8 @@
 <script setup lang="ts">
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
+import ThemeSelector from '~/app/features/settings/ThemeSelector.vue';
+
 definePageMeta({
   path: '/_setting',
 });
