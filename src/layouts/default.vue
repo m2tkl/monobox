@@ -1,6 +1,9 @@
 <template>
   <div class="size-full">
     <div class="border-top flex h-full w-full overflow-hidden">
+      <!-- Activity Bar -->
+      <ActivityBar />
+
       <!-- Sidebar -->
       <aside
         class="border-right h-full"
@@ -12,8 +15,8 @@
 
       <!-- Main content -->
       <div
-        class="flex h-full w-[calc(100%-250px)] min-w-0 flex-1"
-        :class="{ 'w-full justify-center': !ui.isSidebarOpen }"
+        class="flex h-full min-w-0 flex-1"
+        :class="{ 'justify-center': !ui.isSidebarOpen }"
       >
         <div
           :class="{ 'max-w-7xl': !ui.isSidebarOpen }"
@@ -38,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import ActivityBar from '~/app/chrome/ActivityBar/Index.vue';
 import SidebarMenu from '~/app/chrome/SidebarMenu/Index.vue';
 
 const { ui } = useUIState();
