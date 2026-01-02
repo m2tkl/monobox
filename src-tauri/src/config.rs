@@ -75,10 +75,32 @@ pub fn save_config(config: &AppConfig, config_path: &PathBuf) -> Result<(), Stri
     let json = serde_json::to_string_pretty(config)
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
 
-    let mut file = fs::File::create(config_path)
-        .map_err(|e| format!("Failed to create config file: {}", e))?;
+    let parent_dir = config_path
+        .parent()
+        .ok_or_else(|| "Failed to resolve config directory".to_string())?;
+    let file_name = config_path
+        .file_name()
+        .ok_or_else(|| "Failed to resolve config filename".to_string())?;
+    let tmp_path = parent_dir.join(format!(
+        ".{}.tmp",
+        file_name.to_string_lossy()
+    ));
+
+    let mut file = fs::File::create(&tmp_path)
+        .map_err(|e| format!("Failed to create temp config file: {}", e))?;
     file.write_all(json.as_bytes())
         .map_err(|e| format!("Failed to write config file: {}", e))?;
+    file.sync_all()
+        .map_err(|e| format!("Failed to flush config file: {}", e))?;
+
+    #[cfg(windows)]
+    if config_path.exists() {
+        fs::remove_file(config_path)
+            .map_err(|e| format!("Failed to remove old config file: {}", e))?;
+    }
+
+    fs::rename(&tmp_path, config_path)
+        .map_err(|e| format!("Failed to replace config file: {}", e))?;
 
     Ok(())
 }
