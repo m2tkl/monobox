@@ -18,8 +18,8 @@ impl Default for AppConfig {
     }
 }
 
-// Load the configuration and replace `${app_data_dir}` with the actual `config_dir` path.
-pub fn load_config(config_dir: &Path) -> Result<AppConfig, String> {
+// Load the configuration and replace `${app_data_dir}` with the actual data directory path.
+pub fn load_config(config_dir: &Path, data_dir: &Path) -> Result<AppConfig, String> {
     let config_path = config_dir.join("config.json");
 
     ensure_config_directory_exists(&config_path)?;
@@ -32,29 +32,29 @@ pub fn load_config(config_dir: &Path) -> Result<AppConfig, String> {
             serde_json::from_str(&content).map_err(|e| format!("Failed to parse config: {}", e))?;
 
         // Replace placeholders in the configuration
-        config.database_path = replace_placeholders(&config.database_path, config_dir);
-        config.asset_dir_path = replace_placeholders(&config.asset_dir_path, config_dir);
+        config.database_path = replace_placeholders(&config.database_path, data_dir);
+        config.asset_dir_path = replace_placeholders(&config.asset_dir_path, data_dir);
 
         Ok(config)
     } else {
         // If config does not exist, create a default one
         let mut default_config = AppConfig::default();
         default_config.database_path =
-            replace_placeholders(&default_config.database_path, config_dir);
+            replace_placeholders(&default_config.database_path, data_dir);
         default_config.asset_dir_path =
-            replace_placeholders(&default_config.asset_dir_path, config_dir);
+            replace_placeholders(&default_config.asset_dir_path, data_dir);
 
         save_config(&default_config, &config_path)?;
         Ok(default_config)
     }
 }
 
-// Replace placeholders like `${app_data_dir}` with the actual config_dir path.
-fn replace_placeholders(path: &str, config_dir: &Path) -> String {
+// Replace placeholders like `${app_data_dir}` with the actual data_dir path.
+fn replace_placeholders(path: &str, data_dir: &Path) -> String {
     if path.contains("${app_data_dir}") {
-        let dir_str = config_dir
+        let dir_str = data_dir
             .to_str()
-            .expect("Failed to convert config directory to string");
+            .expect("Failed to convert data directory to string");
         path.replace("${app_data_dir}", dir_str)
     } else {
         path.to_string()

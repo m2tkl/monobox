@@ -18,8 +18,8 @@ fn main() {
 
     let proj_dirs = directories::ProjectDirs::from("com", "m2tkl", "monobox")
         .expect("Failed to determine project directories");
-    let app_config =
-        config::load_config(proj_dirs.config_dir()).expect("Failed to load or create config");
+    let app_config = config::load_config(proj_dirs.config_dir(), proj_dirs.data_dir())
+        .expect("Failed to load or create config");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
