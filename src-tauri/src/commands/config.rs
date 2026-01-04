@@ -93,51 +93,7 @@ pub fn get_default_storage_paths() -> Result<DefaultStoragePaths, String> {
 
 #[command]
 pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
-    let db_path = PathBuf::from(&args.database_path);
-    if db_path.is_dir() {
-        return Err("DB_PATH_IS_DIR:Database path points to a directory".to_string());
-    }
-
-    let db_parent = db_path
-        .parent()
-        .ok_or_else(|| "DB_PARENT_MISSING:Database path has no parent".to_string())?;
-    if !db_parent.exists() {
-        if args.create_missing {
-            fs::create_dir_all(db_parent)
-                .map_err(|e| format!("DB_PARENT_CREATE_FAILED:Failed to create db directory: {}", e))?;
-        }
-        else {
-            return Err("DB_PARENT_MISSING:Database directory does not exist".to_string());
-        }
-    }
-
-    if !db_path.exists() {
-        if args.create_missing {
-            OpenOptions::new()
-                .write(true)
-                .create(true)
-                .open(&db_path)
-                .map_err(|e| format!("DB_FILE_CREATE_FAILED:Failed to create db file: {}", e))?;
-        }
-        else {
-            return Err("DB_FILE_MISSING:Database file does not exist".to_string());
-        }
-    }
-
-    let asset_path = PathBuf::from(&args.asset_dir_path);
-    if asset_path.exists() && !asset_path.is_dir() {
-        return Err("ASSET_PATH_NOT_DIR:Asset path is not a directory".to_string());
-    }
-
-    if !asset_path.exists() {
-        if args.create_missing {
-            fs::create_dir_all(&asset_path)
-                .map_err(|e| format!("ASSET_DIR_CREATE_FAILED:Failed to create asset directory: {}", e))?;
-        }
-        else {
-            return Err("ASSET_DIR_MISSING:Asset directory does not exist".to_string());
-        }
-    }
+    validate_storage_paths(&args.database_path, &args.asset_dir_path, args.create_missing)?;
 
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
@@ -158,13 +114,40 @@ pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
     })
 }
 
-fn validate_storage_paths(database_path: &str, asset_dir_path: &str) -> Result<(), String> {
+fn validate_storage_paths(
+    database_path: &str,
+    asset_dir_path: &str,
+    create_missing: bool,
+) -> Result<(), String> {
     let db_path = PathBuf::from(database_path);
     if db_path.is_dir() {
         return Err("DB_PATH_IS_DIR:Database path points to a directory".to_string());
     }
+
+    let db_parent = db_path
+        .parent()
+        .ok_or_else(|| "DB_PARENT_MISSING:Database path has no parent".to_string())?;
+    if !db_parent.exists() {
+        if create_missing {
+            fs::create_dir_all(db_parent)
+                .map_err(|e| format!("DB_PARENT_CREATE_FAILED:Failed to create db directory: {}", e))?;
+        }
+        else {
+            return Err("DB_PARENT_MISSING:Database directory does not exist".to_string());
+        }
+    }
+
     if !db_path.exists() {
-        return Err("DB_FILE_MISSING:Database file does not exist".to_string());
+        if create_missing {
+            OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(&db_path)
+                .map_err(|e| format!("DB_FILE_CREATE_FAILED:Failed to create db file: {}", e))?;
+        }
+        else {
+            return Err("DB_FILE_MISSING:Database file does not exist".to_string());
+        }
     }
 
     let asset_path = PathBuf::from(asset_dir_path);
@@ -172,7 +155,13 @@ fn validate_storage_paths(database_path: &str, asset_dir_path: &str) -> Result<(
         return Err("ASSET_PATH_NOT_DIR:Asset path is not a directory".to_string());
     }
     if !asset_path.exists() {
-        return Err("ASSET_DIR_MISSING:Asset directory does not exist".to_string());
+        if create_missing {
+            fs::create_dir_all(&asset_path)
+                .map_err(|e| format!("ASSET_DIR_CREATE_FAILED:Failed to create asset directory: {}", e))?;
+        }
+        else {
+            return Err("ASSET_DIR_MISSING:Asset directory does not exist".to_string());
+        }
     }
 
     Ok(())
@@ -183,5 +172,5 @@ pub fn validate_app_config() -> Result<(), String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
     let config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
-    validate_storage_paths(&config.database_path, &config.asset_dir_path)
+    validate_storage_paths(&config.database_path, &config.asset_dir_path, false)
 }

@@ -28,19 +28,10 @@ const toast = useToast();
 onMounted(async () => {
   try {
     const config = await command.config.get();
-    const hasPaths = config.database_path.length > 0 && config.asset_dir_path.length > 0;
-    if ((!config.setup_complete || !hasPaths) && route.path !== '/_setup') {
+    const shouldRedirect = await needsSetup(config);
+    if (shouldRedirect) {
       await router.replace('/_setup');
       return;
-    }
-    try {
-      await command.config.validate();
-    }
-    catch {
-      if (route.path !== '/_setup') {
-        await router.replace('/_setup');
-        return;
-      }
     }
     bootstrapResourceState();
   }
@@ -53,4 +44,23 @@ onMounted(async () => {
     });
   }
 });
+
+const needsSetup = async (config: { database_path: string; asset_dir_path: string; setup_complete: boolean }) => {
+  if (route.path === '/_setup') {
+    return false;
+  }
+
+  const hasPaths = config.database_path.length > 0 && config.asset_dir_path.length > 0;
+  if (!config.setup_complete || !hasPaths) {
+    return true;
+  }
+
+  try {
+    await command.config.validate();
+    return false;
+  }
+  catch {
+    return true;
+  }
+};
 </script>
