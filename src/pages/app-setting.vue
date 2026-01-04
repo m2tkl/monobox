@@ -42,6 +42,22 @@
           </div>
         </UCard>
 
+        <!-- Storage Paths -->
+        <UCard
+          class="card-themed"
+        >
+          <template #header>
+            <h3
+              class="text-base font-semibold"
+              style="color: var(--color-text-primary)"
+            >
+              Storage Paths
+            </h3>
+          </template>
+
+          <StoragePathsForm mode="settings" />
+        </UCard>
+
         <!-- Other Settings -->
         <UCard
           class="card-themed"
@@ -71,6 +87,7 @@
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
 import ThemeSelector from '~/app/features/settings/ThemeSelector.vue';
+import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
 
 definePageMeta({
   path: '/_setting',

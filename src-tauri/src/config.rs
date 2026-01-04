@@ -7,6 +7,12 @@ use std::path::{Path, PathBuf};
 pub struct AppConfig {
     pub database_path: String,
     pub asset_dir_path: String,
+    #[serde(default = "default_setup_complete")]
+    pub setup_complete: bool,
+}
+
+fn default_setup_complete() -> bool {
+    true
 }
 
 impl Default for AppConfig {
@@ -14,6 +20,7 @@ impl Default for AppConfig {
         AppConfig {
             database_path: "${app_data_dir}/data.db".to_string(),
             asset_dir_path: "${app_data_dir}/_assets/".to_string(),
+            setup_complete: false,
         }
     }
 }

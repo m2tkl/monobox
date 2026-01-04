@@ -24,6 +24,7 @@
       ]
     },
     "shell:allow-open",
+    "dialog:default",
     "clipboard-manager:default",
     "clipboard-manager:allow-write-html",
     "clipboard-manager:allow-write-text"
