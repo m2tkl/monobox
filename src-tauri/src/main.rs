@@ -26,6 +26,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .manage(app_config.clone())
@@ -71,6 +72,7 @@ fn main() {
             commands::config::detect_storage_candidates,
             commands::config::validate_app_config,
             commands::config::get_default_storage_paths,
+            commands::config::set_theme_preference,
             // Workspace
             commands::workspace::get_workspaces,
             commands::workspace::get_workspace,

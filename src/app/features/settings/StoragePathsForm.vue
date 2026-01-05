@@ -290,11 +290,24 @@
           >
             Reset
           </UButton>
+        </div>
+
+        <div
+          v-if="savedOnce"
+          class="flex items-center gap-2"
+        >
+          <UButton
+            type="button"
+            :style="{ backgroundColor: 'var(--color-primary)', color: 'white' }"
+            @click="restartApp"
+          >
+            Restart now
+          </UButton>
           <span
             class="text-xs"
             style="color: var(--color-text-muted)"
           >
-            Changes take effect after restart.
+            Restart required to apply storage changes.
           </span>
         </div>
       </UForm>
@@ -345,6 +358,7 @@
 
 <script setup lang="ts">
 import { open } from '@tauri-apps/plugin-dialog';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { command } from '~/external/tauri/command';
@@ -372,6 +386,7 @@ const toast = useToast();
 
 const isLoading = ref(true);
 const isSaving = ref(false);
+const savedOnce = ref(false);
 const showMissingDialog = ref(false);
 const missingDetail = ref('');
 
@@ -497,6 +512,7 @@ const saveConfig = async (createMissing: boolean) => {
       title: 'Config saved.',
       description: 'Restart the app to apply changes.',
     });
+    savedOnce.value = true;
     emit('saved');
   }
   catch (error) {
@@ -515,6 +531,20 @@ const saveConfig = async (createMissing: boolean) => {
   }
   finally {
     isSaving.value = false;
+  }
+};
+
+const restartApp = async () => {
+  try {
+    await relaunch();
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to restart.',
+      description: appError.message,
+      color: 'error',
+    });
   }
 };
 

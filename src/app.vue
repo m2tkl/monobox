@@ -24,10 +24,14 @@ const bootstrapResourceState = async () => {
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
+const colorMode = useColorMode();
 
 onMounted(async () => {
   try {
     const config = await command.config.get();
+    if (config.theme_preference === 'light' || config.theme_preference === 'dark') {
+      colorMode.preference = config.theme_preference;
+    }
     const shouldRedirect = await needsSetup(config);
     if (shouldRedirect) {
       await router.replace('/_setup');
@@ -45,7 +49,11 @@ onMounted(async () => {
   }
 });
 
-const needsSetup = async (config: { database_path: string; asset_dir_path: string; setup_complete: boolean }) => {
+const needsSetup = async (config: {
+  database_path: string;
+  asset_dir_path: string;
+  setup_complete: boolean;
+}) => {
   if (route.path === '/_setup') {
     return false;
   }

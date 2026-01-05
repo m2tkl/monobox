@@ -18,18 +18,7 @@
         </div>
 
         <div class="space-y-4">
-          <StoragePathsForm
-            mode="setup"
-            @saved="handleSaved"
-          />
-
-          <div
-            v-if="savedOnce"
-            class="text-sm"
-            style="color: var(--color-text-secondary)"
-          >
-            Restart the app to apply the new storage settings.
-          </div>
+          <StoragePathsForm mode="setup" />
         </div>
       </div>
     </UContainer>
@@ -42,11 +31,6 @@ import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
 definePageMeta({
   path: '/_setup',
 });
-
-const savedOnce = ref(false);
-const handleSaved = () => {
-  savedOnce.value = true;
-};
 </script>
 
 <style scoped>

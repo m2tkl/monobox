@@ -12,6 +12,7 @@ pub struct ConfigPayload {
     pub database_path: String,
     pub asset_dir_path: String,
     pub setup_complete: bool,
+    pub theme_preference: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -34,6 +35,11 @@ pub struct DefaultStoragePaths {
     pub asset_dir_path: String,
 }
 
+#[derive(serde::Deserialize)]
+pub struct ThemePreferenceArgs {
+    pub mode: String,
+}
+
 #[command]
 pub fn get_app_config() -> Result<ConfigPayload, String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
@@ -44,6 +50,7 @@ pub fn get_app_config() -> Result<ConfigPayload, String> {
         database_path: config.database_path,
         asset_dir_path: config.asset_dir_path,
         setup_complete: config.setup_complete,
+        theme_preference: config.theme_preference,
     })
 }
 
@@ -99,11 +106,10 @@ pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
     let config_path = proj_dirs.config_dir().join("config.json");
 
-    let config = AppConfig {
-        database_path: args.database_path.clone(),
-        asset_dir_path: args.asset_dir_path.clone(),
-        setup_complete: args.setup_complete,
-    };
+    let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    config.database_path = args.database_path.clone();
+    config.asset_dir_path = args.asset_dir_path.clone();
+    config.setup_complete = args.setup_complete;
 
     save_config(&config, &config_path)?;
 
@@ -111,6 +117,7 @@ pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
         database_path: args.database_path,
         asset_dir_path: args.asset_dir_path,
         setup_complete: args.setup_complete,
+        theme_preference: config.theme_preference,
     })
 }
 
@@ -173,4 +180,23 @@ pub fn validate_app_config() -> Result<(), String> {
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
     let config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
     validate_storage_paths(&config.database_path, &config.asset_dir_path, false)
+}
+
+#[command]
+pub fn set_theme_preference(args: ThemePreferenceArgs) -> Result<ConfigPayload, String> {
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config_path = proj_dirs.config_dir().join("config.json");
+
+    let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    config.theme_preference = Some(args.mode);
+
+    save_config(&config, &config_path)?;
+
+    Ok(ConfigPayload {
+        database_path: config.database_path,
+        asset_dir_path: config.asset_dir_path,
+        setup_complete: config.setup_complete,
+        theme_preference: config.theme_preference,
+    })
 }

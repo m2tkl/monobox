@@ -9,6 +9,8 @@ pub struct AppConfig {
     pub asset_dir_path: String,
     #[serde(default = "default_setup_complete")]
     pub setup_complete: bool,
+    #[serde(default)]
+    pub theme_preference: Option<String>,
 }
 
 fn default_setup_complete() -> bool {
@@ -21,6 +23,7 @@ impl Default for AppConfig {
             database_path: "${app_data_dir}/data.db".to_string(),
             asset_dir_path: "${app_data_dir}/_assets/".to_string(),
             setup_complete: false,
+            theme_preference: None,
         }
     }
 }

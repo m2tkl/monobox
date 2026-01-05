@@ -858,7 +858,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users 0.5.0",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2316,6 +2316,7 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-opener",
  "tauri-plugin-os",
+ "tauri-plugin-process",
  "tauri-plugin-shell",
  "uuid",
 ]
@@ -2448,7 +2449,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 2.0.0",
+ "proc-macro-crate 3.4.0",
  "proc-macro2",
  "quote",
  "syn 2.0.90",
@@ -4263,6 +4264,16 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.7",
+]
+
+[[package]]
+name = "tauri-plugin-process"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7461c622a5ea00eb9cd9f7a08dbd3bf79484499fd5c21aa2964677f64ca651ab"
+dependencies = [
+ "tauri",
+ "tauri-plugin",
 ]
 
 [[package]]

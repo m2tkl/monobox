@@ -4,6 +4,7 @@ export type AppConfigPayload = {
   database_path: string;
   asset_dir_path: string;
   setup_complete: boolean;
+  theme_preference?: string | null;
 };
 
 export type StorageCandidates = {
@@ -31,6 +32,10 @@ export const configCommand = {
 
   validate: async () => {
     await invokeCommand('validate_app_config');
+  },
+
+  setThemePreference: async (mode: string) => {
+    return await invokeCommand<AppConfigPayload>('set_theme_preference', { mode });
   },
 
   save: async (args: {
