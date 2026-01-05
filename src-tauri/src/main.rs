@@ -14,15 +14,19 @@ use std::{fs, path::PathBuf};
 use tauri::http::{Request, Response};
 
 fn main() {
-    database::initialize_database().expect("Failed to initialize database");
-
     let proj_dirs = directories::ProjectDirs::from("com", "m2tkl", "monobox")
         .expect("Failed to determine project directories");
-    let app_config =
-        config::load_config(proj_dirs.config_dir()).expect("Failed to load or create config");
+    let app_config = config::load_config(proj_dirs.config_dir(), proj_dirs.data_dir())
+        .expect("Failed to load or create config");
+
+    if app_config.setup_complete {
+        database::initialize_database().expect("Failed to initialize database");
+    }
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .manage(app_config.clone())
@@ -62,6 +66,13 @@ fn main() {
         )
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
+            // Config
+            commands::config::get_app_config,
+            commands::config::save_app_config,
+            commands::config::detect_storage_candidates,
+            commands::config::validate_app_config,
+            commands::config::get_default_storage_paths,
+            commands::config::set_theme_preference,
             // Workspace
             commands::workspace::get_workspaces,
             commands::workspace::get_workspace,

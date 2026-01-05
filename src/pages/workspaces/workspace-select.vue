@@ -11,12 +11,21 @@
             >
               Workspace
             </h2>
-            <UButton
-              style="background-color: var(--color-primary); color: white;"
-              @click="openNewWorkspaceModal"
-            >
-              New
-            </UButton>
+            <div class="flex items-center gap-2">
+              <UButton
+                variant="ghost"
+                :style="{ color: 'var(--color-text-primary)' }"
+                @click="goToSettings"
+              >
+                Settings
+              </UButton>
+              <UButton
+                style="background-color: var(--color-primary); color: white;"
+                @click="openNewWorkspaceModal"
+              >
+                New
+              </UButton>
+            </div>
           </div>
 
           <!-- Project collection -->
@@ -110,12 +119,17 @@ definePageMeta({
 });
 
 const toast = useToast();
+const router = useRouter();
 
 const workspacesVM = useWorkspacesViewModel();
 
 const isOpen = ref(false);
 const openNewWorkspaceModal = () => {
   isOpen.value = true;
+};
+
+const goToSettings = async () => {
+  await router.push('/_setting');
 };
 
 const form = useWorkspaceFormState();
