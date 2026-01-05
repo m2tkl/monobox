@@ -1,6 +1,6 @@
 <template>
   <div>
-    <UContainer>
+    <UContainer style="padding-bottom: max(var(--spacing-xl), env(safe-area-inset-bottom));">
       <div class="space-y-6">
         <div class="flex items-center justify-between space-x-3 pt-2">
           <h2
@@ -42,25 +42,20 @@
           </div>
         </UCard>
 
-        <!-- Other Settings -->
+        <!-- Storage Paths -->
         <UCard
           class="card-themed"
-          :ui="{
-            divide: '',
-          }"
         >
           <template #header>
             <h3
               class="text-base font-semibold"
               style="color: var(--color-text-primary)"
             >
-              Other Settings
+              Storage Paths
             </h3>
           </template>
 
-          <p style="color: var(--color-text-secondary)">
-            🚧 Under construction
-          </p>
+          <StoragePathsForm mode="settings" />
         </UCard>
       </div>
     </UContainer>
@@ -70,6 +65,7 @@
 <script setup lang="ts">
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
+import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
 import ThemeSelector from '~/app/features/settings/ThemeSelector.vue';
 
 definePageMeta({

@@ -7,6 +7,14 @@ use std::path::{Path, PathBuf};
 pub struct AppConfig {
     pub database_path: String,
     pub asset_dir_path: String,
+    #[serde(default = "default_setup_complete")]
+    pub setup_complete: bool,
+    #[serde(default)]
+    pub theme_preference: Option<String>,
+}
+
+fn default_setup_complete() -> bool {
+    true
 }
 
 impl Default for AppConfig {
@@ -14,12 +22,14 @@ impl Default for AppConfig {
         AppConfig {
             database_path: "${app_data_dir}/data.db".to_string(),
             asset_dir_path: "${app_data_dir}/_assets/".to_string(),
+            setup_complete: false,
+            theme_preference: None,
         }
     }
 }
 
-// Load the configuration and replace `${app_data_dir}` with the actual `config_dir` path.
-pub fn load_config(config_dir: &Path) -> Result<AppConfig, String> {
+// Load the configuration and replace `${app_data_dir}` with the actual data directory path.
+pub fn load_config(config_dir: &Path, data_dir: &Path) -> Result<AppConfig, String> {
     let config_path = config_dir.join("config.json");
 
     ensure_config_directory_exists(&config_path)?;
@@ -32,29 +42,29 @@ pub fn load_config(config_dir: &Path) -> Result<AppConfig, String> {
             serde_json::from_str(&content).map_err(|e| format!("Failed to parse config: {}", e))?;
 
         // Replace placeholders in the configuration
-        config.database_path = replace_placeholders(&config.database_path, config_dir);
-        config.asset_dir_path = replace_placeholders(&config.asset_dir_path, config_dir);
+        config.database_path = replace_placeholders(&config.database_path, data_dir);
+        config.asset_dir_path = replace_placeholders(&config.asset_dir_path, data_dir);
 
         Ok(config)
     } else {
         // If config does not exist, create a default one
         let mut default_config = AppConfig::default();
         default_config.database_path =
-            replace_placeholders(&default_config.database_path, config_dir);
+            replace_placeholders(&default_config.database_path, data_dir);
         default_config.asset_dir_path =
-            replace_placeholders(&default_config.asset_dir_path, config_dir);
+            replace_placeholders(&default_config.asset_dir_path, data_dir);
 
         save_config(&default_config, &config_path)?;
         Ok(default_config)
     }
 }
 
-// Replace placeholders like `${app_data_dir}` with the actual config_dir path.
-fn replace_placeholders(path: &str, config_dir: &Path) -> String {
+// Replace placeholders like `${app_data_dir}` with the actual data_dir path.
+fn replace_placeholders(path: &str, data_dir: &Path) -> String {
     if path.contains("${app_data_dir}") {
-        let dir_str = config_dir
+        let dir_str = data_dir
             .to_str()
-            .expect("Failed to convert config directory to string");
+            .expect("Failed to convert data directory to string");
         path.replace("${app_data_dir}", dir_str)
     } else {
         path.to_string()
@@ -75,10 +85,32 @@ pub fn save_config(config: &AppConfig, config_path: &PathBuf) -> Result<(), Stri
     let json = serde_json::to_string_pretty(config)
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
 
-    let mut file = fs::File::create(config_path)
-        .map_err(|e| format!("Failed to create config file: {}", e))?;
+    let parent_dir = config_path
+        .parent()
+        .ok_or_else(|| "Failed to resolve config directory".to_string())?;
+    let file_name = config_path
+        .file_name()
+        .ok_or_else(|| "Failed to resolve config filename".to_string())?;
+    let tmp_path = parent_dir.join(format!(
+        ".{}.tmp",
+        file_name.to_string_lossy()
+    ));
+
+    let mut file = fs::File::create(&tmp_path)
+        .map_err(|e| format!("Failed to create temp config file: {}", e))?;
     file.write_all(json.as_bytes())
         .map_err(|e| format!("Failed to write config file: {}", e))?;
+    file.sync_all()
+        .map_err(|e| format!("Failed to flush config file: {}", e))?;
+
+    #[cfg(windows)]
+    if config_path.exists() {
+        fs::remove_file(config_path)
+            .map_err(|e| format!("Failed to remove old config file: {}", e))?;
+    }
+
+    fs::rename(&tmp_path, config_path)
+        .map_err(|e| format!("Failed to replace config file: {}", e))?;
 
     Ok(())
 }

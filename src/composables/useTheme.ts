@@ -1,9 +1,13 @@
+import { command } from '~/external/tauri/command';
+import { handleError } from '~/utils/error';
+
 /**
  * Extended theme management composable
  * Extends @nuxt/ui useColorMode with theme metadata and utilities
  */
 export const useTheme = () => {
   const colorMode = useColorMode();
+  const toast = useToast();
 
   // Theme configuration with metadata
   const themeConfig = {
@@ -42,6 +46,17 @@ export const useTheme = () => {
   // Theme switching functions
   const setTheme = async (mode: ThemeMode) => {
     colorMode.preference = mode;
+    try {
+      await command.config.setThemePreference(mode);
+    }
+    catch (error) {
+      const appError = handleError(error);
+      toast.add({
+        title: 'Failed to save theme.',
+        description: appError.message,
+        color: 'error',
+      });
+    }
   };
 
   const toggleDarkMode = async () => {
