@@ -13,7 +13,12 @@ export default defineNuxtConfig({
   ssr: false,
   devtools: { enabled: false },
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    'reveal.js/dist/reveal.css',
+    'reveal.js/dist/theme/white.css',
+    'reveal.js/plugin/highlight/monokai.css',
+  ],
 
   // Color mode configuration
   colorMode: {
@@ -102,7 +107,6 @@ export default defineNuxtConfig({
         'carbon:close',
 
         // Nuxt
-        'heroicons:x-mark-20-solid',
       ],
       scan: true,
     },

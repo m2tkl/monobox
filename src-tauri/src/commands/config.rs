@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use directories::ProjectDirs;
 use tauri::command;
 
-use crate::config::{load_config, save_config, AppConfig};
+use crate::config::{load_config, save_config};
 
 #[derive(serde::Serialize)]
 pub struct ConfigPayload {
