@@ -21,3 +21,12 @@ export type MemoIndexItem = {
   updated_at: string;
   modified_at: string;
 };
+
+export type MemoSearchItem = {
+  id: number;
+  slug_title: string;
+  title: string;
+  description?: string;
+  modified_at: string;
+  snippet?: string;
+};

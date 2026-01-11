@@ -77,6 +77,24 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
             FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
         );",
     ),
+    (
+        "20250530_add_body_text_to_memo",
+        "
+        ALTER TABLE memo ADD COLUMN body_text TEXT;
+        ",
+    ),
+    (
+        "20250530_create_memo_fts",
+        "CREATE VIRTUAL TABLE IF NOT EXISTS memo_fts USING fts5(
+            title,
+            description,
+            body_text,
+            memo_id UNINDEXED,
+            workspace_id UNINDEXED,
+            slug_title UNINDEXED,
+            tokenize = 'trigram'
+        );",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

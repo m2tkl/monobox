@@ -7,6 +7,12 @@
         :to="mainRoute"
         :active="isMainActive"
       />
+      <ActivityBarItem
+        label="Search"
+        :icon="iconKey.search"
+        :to="searchRoute"
+        :active="isSearchActive"
+      />
     </div>
 
     <div class="activity-bar-group activity-bar-group--bottom">
@@ -30,8 +36,10 @@ const route = useRoute();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
 
 const mainRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}` : '/');
+const searchRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_search` : '/');
 const isSettingsActive = computed(() => route.path === '/_setting');
-const isMainActive = computed(() => !!workspaceSlug.value && !isSettingsActive.value);
+const isSearchActive = computed(() => !!workspaceSlug.value && route.path === searchRoute.value);
+const isMainActive = computed(() => !!workspaceSlug.value && !isSettingsActive.value && !isSearchActive.value);
 </script>
 
 <style scoped>
@@ -55,5 +63,4 @@ const isMainActive = computed(() => !!workspaceSlug.value && !isSettingsActive.v
   margin-top: auto;
   padding-bottom: 12px;
 }
-
 </style>

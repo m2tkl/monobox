@@ -1,4 +1,4 @@
-use crate::models::memo::{MemoDetail, MemoIndexItem};
+use crate::models::memo::{MemoDetail, MemoIndexItem, MemoSearchItem};
 use rusqlite::{Connection, OptionalExtension, Result};
 use serde_json::Value;
 
@@ -108,13 +108,21 @@ impl MemoRepository {
         title: &str,
         content: &str,
     ) -> Result<MemoDetail> {
+        let body_text = extract_plain_text_from_json_str(content);
+
         conn.execute(
-            "INSERT INTO memo (workspace_id, slug_title, title, content, modified_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
-            (workspace_id, slug_title, title, content),
+            "INSERT INTO memo (workspace_id, slug_title, title, content, body_text, modified_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+            (workspace_id, slug_title, title, content, &body_text),
         )?;
 
         let memo_id = conn.last_insert_rowid() as i32;
+
+        conn.execute(
+            "INSERT INTO memo_fts (title, description, body_text, memo_id, workspace_id, slug_title)
+            VALUES (?, ?, ?, ?, ?, ?)",
+            (title, Option::<String>::None, &body_text, memo_id, workspace_id, slug_title),
+        )?;
 
         let mut stmt = conn.prepare(
             "SELECT id, slug_title, title, json(content) AS content, description, thumbnail_image, workspace_id, created_at, updated_at, modified_at
@@ -143,6 +151,7 @@ impl MemoRepository {
     pub fn save(
         conn: &mut Connection,
         memo_id: i32,
+        workspace_id: i32,
         workspace_slug: &str,
         target_slug_title: &str,
         target_title: &str,
@@ -153,12 +162,28 @@ impl MemoRepository {
         thumbnail_image: &str,
     ) -> Result<(), MemoError> {
         let tx = conn.transaction()?;
+        let body_text = extract_plain_text_from_json_str(content);
 
         tx.execute(
             "UPDATE memo
-            SET slug_title = ?, title = ?, content = ?, description = ?, thumbnail_image = ?, modified_at = CURRENT_TIMESTAMP
+            SET slug_title = ?, title = ?, content = ?, description = ?, thumbnail_image = ?, body_text = ?, modified_at = CURRENT_TIMESTAMP
             WHERE id = ?",
-            (slug_title, title, content, description, thumbnail_image, memo_id),
+            (
+                slug_title,
+                title,
+                content,
+                description,
+                thumbnail_image,
+                &body_text,
+                memo_id,
+            ),
+        )?;
+
+        tx.execute("DELETE FROM memo_fts WHERE memo_id = ?", [memo_id])?;
+        tx.execute(
+            "INSERT INTO memo_fts (title, description, body_text, memo_id, workspace_id, slug_title)
+            VALUES (?, ?, ?, ?, ?, ?)",
+            (title, description, &body_text, memo_id, workspace_id, slug_title),
         )?;
 
         {
@@ -200,6 +225,7 @@ impl MemoRepository {
     pub fn delete(conn: &mut Connection, memo_id: i32) -> Result<()> {
         let tx = conn.transaction()?;
 
+        tx.execute("DELETE FROM memo_fts WHERE memo_id = ?", (memo_id,))?;
         tx.execute(
             "DELETE FROM link
             WHERE from_memo_id = ? OR to_memo_id = ?
@@ -210,6 +236,98 @@ impl MemoRepository {
         tx.execute("DELETE FROM memo WHERE id = ?", (memo_id,))?;
 
         tx.commit()?;
+        Ok(())
+    }
+
+    pub fn search(
+        conn: &Connection,
+        workspace_id: i32,
+        query: &str,
+        limit: i32,
+        offset: i32,
+    ) -> Result<Vec<MemoSearchItem>, String> {
+        if query.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT memo.id, memo.slug_title, memo.title, memo.description, memo.modified_at,
+                snippet(memo_fts, 2, '', '', '…', 20) AS snippet
+                FROM memo_fts
+                JOIN memo ON memo_fts.memo_id = memo.id
+                WHERE memo_fts MATCH ?
+                  AND memo.workspace_id = ?
+                ORDER BY bm25(memo_fts) ASC, memo.modified_at DESC
+                LIMIT ? OFFSET ?",
+            )
+            .map_err(|e| e.to_string())?;
+
+        let memos = stmt
+            .query_map((query, workspace_id, limit, offset), |row| {
+                Ok(MemoSearchItem {
+                    id: row.get(0)?,
+                    slug_title: row.get(1)?,
+                    title: row.get(2)?,
+                    description: row.get(3)?,
+                    modified_at: row.get(4)?,
+                    snippet: row.get(5)?,
+                })
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
+
+        Ok(memos)
+    }
+
+    pub fn rebuild_search_index(conn: &mut Connection) -> Result<(), String> {
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
+        tx.execute("DELETE FROM memo_fts", [])
+            .map_err(|e| e.to_string())?;
+
+        {
+            let mut stmt = tx
+                .prepare(
+                    "SELECT id, workspace_id, slug_title, title, description, content
+                    FROM memo",
+                )
+                .map_err(|e| e.to_string())?;
+
+            let memo_iter = stmt
+                .query_map([], |row| {
+                    Ok((
+                        row.get::<_, i32>(0)?,
+                        row.get::<_, i32>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, String>(3)?,
+                        row.get::<_, Option<String>>(4)?,
+                        row.get::<_, String>(5)?,
+                    ))
+                })
+                .map_err(|e| e.to_string())?;
+
+            for memo in memo_iter {
+                let (memo_id, workspace_id, slug_title, title, description, content) =
+                    memo.map_err(|e| e.to_string())?;
+                let body_text = extract_plain_text_from_json_str(&content);
+
+                tx.execute(
+                    "UPDATE memo SET body_text = ? WHERE id = ?",
+                    (&body_text, memo_id),
+                )
+                .map_err(|e| e.to_string())?;
+
+                tx.execute(
+                    "INSERT INTO memo_fts (title, description, body_text, memo_id, workspace_id, slug_title)
+                    VALUES (?, ?, ?, ?, ?, ?)",
+                    (title, description, &body_text, memo_id, workspace_id, slug_title),
+                )
+                .map_err(|e| e.to_string())?;
+            }
+        }
+
+        tx.commit().map_err(|e| e.to_string())?;
         Ok(())
     }
 }
@@ -232,6 +350,30 @@ fn update_link_text(
         new_link_text,
     );
     serde_json::to_string(&doc).map_err(MemoError::from)
+}
+
+fn extract_plain_text_from_json_str(json_str: &str) -> String {
+    let Ok(doc) = serde_json::from_str::<Value>(json_str) else {
+        return String::new();
+    };
+
+    let mut texts = Vec::new();
+    collect_text_nodes(&doc, &mut texts);
+    texts.join(" ")
+}
+
+fn collect_text_nodes(node: &Value, out: &mut Vec<String>) {
+    if let Some(text) = node.get("text").and_then(|value| value.as_str()) {
+        if !text.is_empty() {
+            out.push(text.to_string());
+        }
+    }
+
+    if let Some(children) = node.get("content").and_then(|value| value.as_array()) {
+        for child in children {
+            collect_text_nodes(child, out);
+        }
+    }
 }
 
 fn update_nodes(

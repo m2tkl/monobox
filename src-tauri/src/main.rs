@@ -85,6 +85,7 @@ fn main() {
             commands::memo::create_memo,
             commands::memo::save_memo,
             commands::memo::delete_memo,
+            commands::memo::search_memos,
             // Link
             commands::link::get_links,
             commands::link::create_link,

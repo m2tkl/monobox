@@ -1,6 +1,7 @@
 use crate::config::load_config;
 use crate::errors::AppError;
 use crate::migrations;
+use crate::repositories::MemoRepository;
 use rusqlite::Connection;
 
 pub fn get_conn() -> Result<Connection, AppError> {
@@ -19,7 +20,7 @@ pub fn get_conn() -> Result<Connection, AppError> {
 }
 
 pub fn initialize_database() -> Result<(), String> {
-    let conn = get_conn().map_err(|e| e.to_string())?;
+    let mut conn = get_conn().map_err(|e| e.to_string())?;
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -31,6 +32,17 @@ pub fn initialize_database() -> Result<(), String> {
     .map_err(|e| e.to_string())?;
 
     migrations::apply_migrations(&conn)?;
+
+    let memo_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM memo", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+    let fts_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM memo_fts", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+
+    if memo_count > 0 && fts_count == 0 {
+        MemoRepository::rebuild_search_index(&mut conn)?;
+    }
 
     Ok(())
 }
