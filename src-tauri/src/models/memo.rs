@@ -25,3 +25,13 @@ pub struct MemoIndexItem {
     pub updated_at: String,
     pub modified_at: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct MemoSearchItem {
+    pub id: i32,
+    pub slug_title: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub modified_at: String,
+    pub snippet: Option<String>,
+}

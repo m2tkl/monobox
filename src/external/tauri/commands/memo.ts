@@ -1,6 +1,6 @@
 import { invokeCommand } from '../core/invoker';
 
-import type { MemoDetail, MemoIndexItem } from '~/models/memo';
+import type { MemoDetail, MemoIndexItem, MemoSearchItem } from '~/models/memo';
 
 import { encodeForSlug } from '~/utils/slug';
 
@@ -45,6 +45,20 @@ export const memoCommand = {
       new_content: newMemo.content,
       new_description: newMemo.description,
       new_thumbnail_image: newMemo.thumbnailImage || '',
+    });
+  },
+
+  search: async (params: {
+    workspaceSlugName: string;
+    query: string;
+    limit: number;
+    offset: number;
+  }) => {
+    return await invokeCommand<MemoSearchItem[]>('search_memos', {
+      workspace_slug_name: params.workspaceSlugName,
+      query: params.query,
+      limit: params.limit,
+      offset: params.offset,
     });
   },
 

@@ -1,5 +1,5 @@
 use crate::database::get_conn;
-use crate::models::memo::MemoDetail;
+use crate::models::memo::{MemoDetail, MemoSearchItem};
 use crate::models::MemoIndexItem;
 use crate::repositories::{MemoRepository, WorkspaceRepository};
 use serde::Deserialize;
@@ -104,6 +104,7 @@ pub fn save_memo(args: SaveMemoArgs) -> Result<(), String> {
     MemoRepository::save(
         &mut conn,
         memo.id,
+        workspace.id,
         &args.workspace_slug_name,
         &memo.slug_title,
         &memo.title,
@@ -142,4 +143,24 @@ pub fn delete_memo(args: DeleteMemoArgs) -> Result<(), String> {
     MemoRepository::delete(&mut conn, memo.id).map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct SearchMemosArgs {
+    pub workspace_slug_name: String,
+    pub query: String,
+    pub limit: i32,
+    pub offset: i32,
+}
+
+#[command]
+pub fn search_memos(args: SearchMemosArgs) -> Result<Vec<MemoSearchItem>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+
+    let workspace = WorkspaceRepository::find_by_slug(&conn, &args.workspace_slug_name)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
+
+    MemoRepository::search(&conn, workspace.id, &args.query, args.limit, args.offset)
+        .map_err(|e| e.to_string())
 }

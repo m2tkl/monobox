@@ -11,7 +11,12 @@ import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';
 
-type Command = CommandPaletteItem & { tag: string; label: string };
+type Command = CommandPaletteItem & {
+  tag: string;
+  label: string;
+  title?: string;
+  slug?: string;
+};
 
 type Commands = {
   id: string;
@@ -50,7 +55,12 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     const linkPaletteCommands: Commands[] = [{
       id: 'existing-memos',
       label: 'Existing memos',
-      items: existingMemos.map(memo => ({ label: memo.title, tag: 'existing' })),
+      items: existingMemos.map(memo => ({
+        label: memo.title,
+        title: memo.title,
+        slug: memo.slug_title,
+        tag: 'existing',
+      })),
     }];
 
     const query = searchTerm.value;
@@ -58,7 +68,7 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
       linkPaletteCommands.unshift({
         id: 'new',
         label: 'Or new memo',
-        items: [{ label: query, tag: 'new' }],
+        items: [{ label: query, title: query, tag: 'new' }],
       });
     }
 
@@ -83,7 +93,7 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
       return;
     }
 
-    let linkMemoSlug = encodeForSlug(option.label);
+    let linkMemoSlug = option.slug || encodeForSlug(option.label);
     let linkMemoTitle = option.label;
 
     if (option.tag === 'new') {
