@@ -105,8 +105,7 @@ export default defineNuxtConfig({
         'carbon:zoom-out',
         'carbon:zoom-reset',
         'carbon:close',
-
-        // Nuxt
+        'carbon:arrange-vertical',
       ],
       scan: true,
     },

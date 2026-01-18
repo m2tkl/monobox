@@ -1,6 +1,9 @@
 pub mod asset;
 pub mod bookmark;
+pub mod kanban_assignment;
+pub mod kanban_status;
 pub mod config;
 pub mod link;
 pub mod memo;
+pub mod kanban;
 pub mod workspace;

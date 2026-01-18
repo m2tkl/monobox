@@ -95,6 +95,81 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
             tokenize = 'trigram'
         );",
     ),
+    (
+        "20250601_create_kanban_table",
+        "CREATE TABLE IF NOT EXISTS kanban (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            name VARCHAR(128) NOT NULL,
+            order_index INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (workspace_id, name),
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_kanban_workspace_id ON kanban(workspace_id);
+
+        CREATE TRIGGER if not exists trigger_kanban_updated_at AFTER UPDATE ON kanban
+        BEGIN
+            UPDATE kanban SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+        ",
+    ),
+    (
+        "20250602_create_kanban_status_table",
+        "CREATE TABLE IF NOT EXISTS kanban_status (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            kanban_id INTEGER NOT NULL,
+            name VARCHAR(128) NOT NULL,
+            color VARCHAR(32),
+            order_index INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (kanban_id, name),
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE,
+            FOREIGN KEY (kanban_id) REFERENCES kanban(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_kanban_status_workspace_id ON kanban_status(workspace_id);
+        CREATE INDEX IF NOT EXISTS idx_kanban_status_kanban_id ON kanban_status(kanban_id);
+
+        CREATE TRIGGER if not exists trigger_kanban_status_updated_at AFTER UPDATE ON kanban_status
+        BEGIN
+            UPDATE kanban_status SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+        ",
+    ),
+    (
+        "20250603_create_kanban_assignment_table",
+        "CREATE TABLE IF NOT EXISTS kanban_assignment (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            kanban_id INTEGER NOT NULL,
+            kanban_status_id INTEGER,
+            position INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (memo_id, kanban_id),
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE,
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE,
+            FOREIGN KEY (kanban_id) REFERENCES kanban(id) ON DELETE CASCADE,
+            FOREIGN KEY (kanban_status_id) REFERENCES kanban_status(id) ON DELETE SET NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_kanban_assignment_workspace_id ON kanban_assignment(workspace_id);
+        CREATE INDEX IF NOT EXISTS idx_kanban_assignment_kanban_id ON kanban_assignment(kanban_id);
+        CREATE INDEX IF NOT EXISTS idx_kanban_assignment_status_id ON kanban_assignment(kanban_status_id);
+        CREATE INDEX IF NOT EXISTS idx_kanban_assignment_position ON kanban_assignment(position);
+
+        CREATE TRIGGER if not exists trigger_kanban_assignment_updated_at AFTER UPDATE ON kanban_assignment
+        BEGIN
+            UPDATE kanban_assignment SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

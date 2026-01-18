@@ -86,6 +86,21 @@ fn main() {
             commands::memo::save_memo,
             commands::memo::delete_memo,
             commands::memo::search_memos,
+            // Memo Status
+            commands::kanban_status::list_kanban_statuses,
+            commands::kanban_status::create_kanban_status,
+            commands::kanban_status::update_kanban_status,
+            commands::kanban_status::update_kanban_status_orders,
+            commands::kanban_status::delete_kanban_status,
+            // Kanban
+            commands::kanban::list_kanbans,
+            commands::kanban::create_kanban,
+            commands::kanban::delete_kanban,
+            // Memo Kanban
+            commands::kanban_assignment::list_kanban_assignment_items,
+            commands::kanban_assignment::list_kanban_assignment_entries,
+            commands::kanban_assignment::upsert_kanban_assignment_status,
+            commands::kanban_assignment::remove_kanban_assignment,
             // Link
             commands::link::get_links,
             commands::link::create_link,

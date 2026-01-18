@@ -13,7 +13,8 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "decorations": false
+        "decorations": false,
+        "dragDropEnabled": false
       }
     ],
     "security": {

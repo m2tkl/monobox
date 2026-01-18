@@ -39,6 +39,12 @@
 
             <template #context-menu>
               <IconButton
+                :icon="iconKey.kanban"
+                :disabled="isKanbanLoading || !memoVM.data.memo"
+                aria-label="Kanban"
+                @click="openKanbanModal"
+              />
+              <IconButton
                 :icon="iconKey.shuffle"
                 @click="showRandomMemo"
               />
@@ -107,6 +113,58 @@
               />
             </template>
           </MemoEditor>
+
+          <UModal v-model:open="isKanbanModalOpen">
+            <template #content>
+              <UCard>
+                <div class="kanban-assign-modal">
+                  <div class="kanban-assign-title">
+                    Kanban assignments
+                  </div>
+                  <div
+                    v-if="kanbans.length === 0"
+                    class="kanban-assign-empty"
+                  >
+                    No Kanban boards available.
+                  </div>
+                  <div
+                    v-else
+                    class="kanban-assign-list"
+                  >
+                    <div
+                      v-for="kanban in kanbans"
+                      :key="kanban.id"
+                      class="kanban-assign-row"
+                    >
+                      <div class="kanban-assign-info">
+                        <div class="kanban-assign-name">
+                          {{ kanban.name }}
+                        </div>
+                        <div
+                          v-if="kanbanEntryMap.get(kanban.id)"
+                          class="kanban-assign-meta"
+                        >
+                          {{ kanbanEntryMap.get(kanban.id)?.kanban_status_name || 'No status' }}
+                        </div>
+                      </div>
+                      <div class="kanban-assign-actions">
+                        <USelect
+                          v-model="kanbanSelections[kanban.id]"
+                          :items="getStatusOptions(kanban.id)"
+                          size="xs"
+                          variant="outline"
+                          label-key="label"
+                          value-key="value"
+                          :disabled="isKanbanUpdating(kanban.id)"
+                          @update:model-value="(value) => applyKanbanStatus(kanban.id, typeof value === 'string' ? Number(value) : value)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </UCard>
+            </template>
+          </UModal>
 
           <!-- Related links -->
           <MemoLinkCardView
@@ -183,6 +241,7 @@ import { useMemoSave } from '~/app/features/memo/editor/useMemoSave';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
+import { useMemoKanbanAssignments } from '~/app/features/memo/kanban/useMemoKanbanAssignments';
 import MemoLinkCardView from '~/app/features/memo/links/MemoLinkCardView/Index.vue';
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
@@ -190,9 +249,11 @@ import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
 import { command } from '~/external/tauri/command';
 import { emitEvent } from '~/resource-state/infra/eventBus';
+import { loadKanbans } from '~/resource-state/resources/kanbanCollection';
 import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
+import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
 import { useConsoleLogger } from '~/utils/logger';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
@@ -207,28 +268,52 @@ const route = useRoute();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 
-await usePageLoader(async () => {
-  await loadMemo(workspaceSlug.value, memoSlug.value);
-});
-
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
 });
 
 const router = useRouter();
+const toast = useToast();
 const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
+const kanbanVM = useKanbanCollectionViewModel();
 const recentStore = useRecentMemoStore();
 const { executeMemoSave } = useMemoSave();
 const logger = useConsoleLogger('pages/memo');
 
-const memo = requireMemoValue();
-
-const memoTitle = ref(memo.value.title);
 type MemoSnapshot = {
   title: string;
   content: string;
 };
+
+const kanbans = computed(() => kanbanVM.value.data.items);
+const {
+  kanbanEntryMap,
+  kanbanSelections,
+  isKanbanLoading,
+  isKanbanModalOpen,
+  isKanbanUpdating,
+  openKanbanModal,
+  loadKanbanEntries,
+  getStatusOptions,
+  applyKanbanStatus,
+} = useMemoKanbanAssignments({
+  workspaceSlug,
+  memoSlug,
+  kanbans,
+  toast,
+});
+
+await usePageLoader(async () => {
+  await Promise.all([
+    loadMemo(workspaceSlug.value, memoSlug.value),
+    loadKanbans(workspaceSlug.value),
+  ]);
+  await loadKanbanEntries();
+});
+
+const memo = requireMemoValue();
+const memoTitle = ref(memo.value.title);
 
 const lastSavedSnapshot = ref<MemoSnapshot>({
   title: memo.value.title,
@@ -718,5 +803,60 @@ a.external-link {
   text-underline-offset: 0.2em;
   text-decoration-style: dashed;
   text-decoration-skip-ink: none;
+}
+
+.kanban-assign-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kanban-assign-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.kanban-assign-empty {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.kanban-assign-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kanban-assign-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+}
+
+.kanban-assign-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kanban-assign-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.kanban-assign-meta {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.kanban-assign-actions {
+  min-width: 180px;
 }
 </style>

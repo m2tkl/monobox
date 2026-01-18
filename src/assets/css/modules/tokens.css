@@ -17,6 +17,7 @@
   --color-surface-active: #e0e7ff;            /* Active state surface - more distinct blue tint */
   --color-surface-muted: #f8fafc;             /* Muted background */
   --color-card-bg: #ffffff;                   /* Card background */
+  --color-kanban-column-bg: #f3f6fa;          /* Kanban column background */
 
   /* Text Colors */
   --color-text-primary: #1e293b;              /* Main text */
@@ -122,6 +123,7 @@
   --color-surface-active: #64748b;
   --color-surface-muted: #1e293b;
   --color-card-bg: #334155;
+  --color-kanban-column-bg: #243141;
 
   /* Text Colors */
   --color-text-primary: #f1f5f9;
