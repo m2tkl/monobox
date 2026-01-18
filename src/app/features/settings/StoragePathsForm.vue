@@ -29,7 +29,10 @@
             >
               You already have paths set. Most users keep these settings.
             </p>
-            <div class="text-xs" style="color: var(--color-text-muted)">
+            <div
+              class="text-xs"
+              style="color: var(--color-text-muted)"
+            >
               <div class="flex gap-2">
                 <span class="font-semibold">DB</span>
                 <span>{{ formState.databasePath }}</span>
@@ -42,23 +45,20 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <UButton
+            <AppButton
               type="button"
               :loading="isSaving"
-              :style="{ backgroundColor: 'var(--color-primary)', color: 'white' }"
               @click="continueWithCurrent"
             >
               Use these settings
-            </UButton>
-            <UButton
+            </AppButton>
+            <AppButton
               type="button"
-              variant="ghost"
-              color="neutral"
               :disabled="isSaving"
               @click="showCustom"
             >
               Change paths
-            </UButton>
+            </AppButton>
           </div>
         </div>
 
@@ -82,22 +82,18 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <UButton
+            <AppButton
               type="button"
-              variant="solid"
-              :style="{ backgroundColor: 'var(--color-primary)', color: 'white' }"
               @click="showDefault"
             >
               Use default (App Data)
-            </UButton>
-            <UButton
+            </AppButton>
+            <AppButton
               type="button"
-              variant="ghost"
-              color="neutral"
               @click="showCustom"
             >
               Choose custom paths
-            </UButton>
+            </AppButton>
           </div>
         </div>
 
@@ -186,23 +182,20 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <UButton
+            <AppButton
               type="button"
               :loading="isSaving"
-              color="primary"
               @click="continueWithCurrent"
             >
               Continue with default
-            </UButton>
-            <UButton
+            </AppButton>
+            <AppButton
               type="button"
-              variant="ghost"
-              color="neutral"
               :disabled="isSaving"
               @click="showCustom"
             >
               Choose custom paths
-            </UButton>
+            </AppButton>
           </div>
         </div>
 
@@ -221,14 +214,12 @@
                 class="flex-1"
                 placeholder="/path/to/data.db"
               />
-              <UButton
+              <AppButton
                 type="button"
-                variant="subtle"
-                color="neutral"
                 @click="selectDatabasePath"
               >
                 Browse
-              </UButton>
+              </AppButton>
             </div>
           </UFormField>
 
@@ -243,14 +234,12 @@
                 class="flex-1"
                 placeholder="/path/to/_assets"
               />
-              <UButton
+              <AppButton
                 type="button"
-                variant="subtle"
-                color="neutral"
                 @click="selectAssetDir"
               >
                 Browse
-              </UButton>
+              </AppButton>
             </div>
           </UFormField>
 
@@ -258,15 +247,13 @@
             v-if="mode === 'setup' && recommendedPaths"
             class="flex flex-wrap gap-2"
           >
-            <UButton
+            <AppButton
               type="button"
               size="xs"
-              variant="outline"
-              color="neutral"
               @click="applyRecommended"
             >
               Use default paths
-            </UButton>
+            </AppButton>
           </div>
         </div>
 
@@ -274,35 +261,31 @@
           v-if="mode === 'settings' || setupView === 'custom'"
           class="flex items-center gap-2"
         >
-          <UButton
+          <AppButton
             type="submit"
             :loading="isSaving"
-            :style="{ backgroundColor: 'var(--color-primary)', color: 'white' }"
           >
             {{ mode === 'setup' ? 'Save and Continue' : 'Save' }}
-          </UButton>
-          <UButton
+          </AppButton>
+          <AppButton
             type="button"
-            variant="ghost"
-            color="neutral"
             :disabled="isSaving"
             @click="resetForm"
           >
             Reset
-          </UButton>
+          </AppButton>
         </div>
 
         <div
           v-if="savedOnce"
           class="flex items-center gap-2"
         >
-          <UButton
+          <AppButton
             type="button"
-            :style="{ backgroundColor: 'var(--color-primary)', color: 'white' }"
             @click="restartApp"
           >
             Restart now
-          </UButton>
+          </AppButton>
           <span
             class="text-xs"
             style="color: var(--color-text-muted)"
@@ -336,20 +319,17 @@
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton
-            variant="ghost"
-            color="neutral"
+          <AppButton
             @click="showMissingDialog = false"
           >
             Cancel
-          </UButton>
-          <UButton
+          </AppButton>
+          <AppButton
             :loading="isSaving"
-            :style="{ backgroundColor: 'var(--color-primary)', color: 'white' }"
             @click="saveWithCreate"
           >
             Create and Save
-          </UButton>
+          </AppButton>
         </div>
       </template>
     </UModal>
@@ -360,6 +340,7 @@
 import { open } from '@tauri-apps/plugin-dialog';
 import { relaunch } from '@tauri-apps/plugin-process';
 
+import AppButton from '~/app/ui/AppButton.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { command } from '~/external/tauri/command';
 import { handleError } from '~/utils/error';

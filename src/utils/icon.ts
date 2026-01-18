@@ -50,6 +50,8 @@ export const iconKey = {
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',
 
+  kanban: 'carbon:arrange-vertical',
+
   sun: 'carbon:sun',
   moon: 'carbon:moon',
 };

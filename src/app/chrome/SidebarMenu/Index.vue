@@ -53,7 +53,7 @@
             </h2>
             <USelect
               v-model="sortTypeSelected"
-              :options="recentMenuItems"
+              :items="recentMenuItems"
               variant="none"
               class="text-gray-500"
             />

@@ -156,7 +156,7 @@ const workspaceMenuItems: ComputedRef<DropdownMenuItem[][]> = computed(() => [
     {
       label: 'Workspace setting',
       icon: iconKey.setting,
-      to: `/${workspaceSlug.value}/_setting`,
+      to: `/_setting?workspace=${workspaceSlug.value}`,
     },
   ],
 ]);

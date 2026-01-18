@@ -1,4 +1,6 @@
 import { loadBookmarkCollection } from './resources/bookmarkCollection';
+import { loadKanbans } from './resources/kanbanCollection';
+import { loadKanbanStatuses } from './resources/kanbanStatusCollection';
 import { loadMemo } from './resources/memo';
 import { loadWorkspaceMemos } from './resources/memoCollection';
 import { loadMemoLinkCollection } from './resources/memoLinkCollection';
@@ -18,6 +20,7 @@ const rules: AnyRule<AppEvent>[] = [
         loadWorkspace(workspaceSlug),
         loadWorkspaceMemos(workspaceSlug),
         loadBookmarkCollection(workspaceSlug),
+        loadKanbans(workspaceSlug),
       ]);
     },
   },
@@ -51,6 +54,21 @@ const rules: AnyRule<AppEvent>[] = [
   {
     on: 'bookmark/updated',
     run: p => loadBookmarkCollection(p.workspaceSlug),
+  },
+  {
+    on: 'kanban-status/updated',
+    run: async (p) => {
+      await Promise.all([
+        loadKanbanStatuses(p.workspaceSlug, p.kanbanId),
+        loadWorkspaceMemos(p.workspaceSlug),
+      ]);
+    },
+  },
+  {
+    on: 'kanban/updated',
+    run: async (p) => {
+      await loadKanbans(p.workspaceSlug);
+    },
   },
 ];
 
