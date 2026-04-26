@@ -130,6 +130,7 @@ export const applyTargetBlankToExternalLinks = (editor: _Editor) => {
   });
 
   if (modified) {
+    tr.setMeta('addToHistory', false);
     view.dispatch(tr);
   }
 };
@@ -158,6 +159,7 @@ export const assignUniqueHeadingIds = (editor: _Editor) => {
   });
 
   if (modified) {
+    tr.setMeta('addToHistory', false);
     view.dispatch(tr);
   }
 };

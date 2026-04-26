@@ -100,9 +100,6 @@ export const markdownPasteExtension = Extension.create({
 
             if (clipboardData.files.length > 0) return false;
 
-            const html = clipboardData.getData('text/html');
-            if (html) return false;
-
             const text = clipboardData.getData('text/plain');
             if (!looksLikeMarkdown(text)) return false;
 
