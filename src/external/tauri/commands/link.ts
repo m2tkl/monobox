@@ -1,6 +1,20 @@
 import { invokeCommand } from '../core/invoker';
 
 import type { Link, MemoLinkCount } from '~/models/link';
+import { encodeForSlug } from '~/utils/slug';
+
+export const normalizeSlugSegment = (segment: string): string => {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(segment);
+    }
+    catch {
+      return segment;
+    }
+  })();
+
+  return encodeForSlug(decoded);
+};
 
 export const linkCommand = {
   list: async (
@@ -26,7 +40,7 @@ export const linkCommand = {
     await invokeCommand('create_link', {
       workspace_slug_name: memo.workspaceSlug,
       memo_slug_title: memo.memoSlug,
-      to_memo_slug_title: toLinkMemoSlug,
+      to_memo_slug_title: normalizeSlugSegment(toLinkMemoSlug),
     });
   },
 
@@ -38,8 +52,8 @@ export const linkCommand = {
     await invokeCommand('delete_link', {
       workspace_slug_name: memo.workspaceSlug,
       memo_slug_title: memo.memoSlug,
-      linked_workspace_slug_name: linkedWorkspaceSlug,
-      linked_memo_slug_title: linkedMemoSlug,
+      linked_workspace_slug_name: normalizeSlugSegment(linkedWorkspaceSlug),
+      linked_memo_slug_title: normalizeSlugSegment(linkedMemoSlug),
     });
   },
 };
