@@ -23,10 +23,7 @@ const props = defineProps<{
   activeHeadingId?: string;
   activeAncestorHeadings: Heading[];
 
-  // Info for recent history and URL building
-  memoTitle: string;
-  memoSlug: string;
-  workspaceSlug: string;
+  // Info for URL building
   routePath: string;
 
   // Handlers provided by page
@@ -35,12 +32,9 @@ const props = defineProps<{
   copyLinkToHeading: (fullUrl: string, titleWithHeading: string) => void;
 }>();
 
-const recentStore = useRecentMemoStore();
-
-const onClickHeading = (id: string, title: string) => {
+const onClickHeading = (id: string) => {
   props.focusHeading(id);
   props.navigateToHeading(id);
-  recentStore.addMemo(`${props.memoTitle} › ${title}`, props.memoSlug, props.workspaceSlug, `#${id}`);
 };
 
 const onCopyLink = (id: string, text: string) => {

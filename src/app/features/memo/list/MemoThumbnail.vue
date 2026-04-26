@@ -8,9 +8,16 @@
     }"
   >
     <template #header>
-      <h3 class="truncate-multiline text-sm font-semibold memo-link-title">
-        {{ title }}
-      </h3>
+      <div class="flex items-start gap-2">
+        <h3 class="min-w-0 flex-1 truncate-multiline text-sm font-semibold memo-link-title">
+          {{ title }}
+        </h3>
+        <UIcon
+          v-if="isBookmarked"
+          :name="iconKey.bookmarkFilled"
+          class="bookmark-icon shrink-0"
+        />
+      </div>
       <p
         v-if="context"
         class="truncate-multiline text-xs memo-link-description"
@@ -34,15 +41,23 @@
 </template>
 
 <script setup lang="ts">
+import { iconKey } from '~/utils/icon';
+
 defineProps<{
   title: string;
   context?: string;
   description: string | undefined | null;
   thumbnailImage: string | undefined | null;
+  isBookmarked?: boolean;
 }>();
 </script>
 
 <style scoped>
+.bookmark-icon {
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
 /* Completely hide any dividers in the card */
 :deep(.divide-y > *) {
   border-top: none !important;

@@ -11,6 +11,7 @@
           :context="extractsTitleParts(memo.title).context"
           :description="memo.description"
           :thumbnail-image="memo.thumbnail_image"
+          :is-bookmarked="bookmarkedMemoIdSet.has(memo.id)"
         />
       </NuxtLink>
     </li>
@@ -22,13 +23,15 @@ import MemoThumbnail from '~/app/features/memo/list/MemoThumbnail.vue';
 
 import type { MemoIndexItem } from '~/models/memo';
 
-defineProps<{
+const props = defineProps<{
   memos: MemoIndexItem[];
+  bookmarkedMemoIds?: number[];
 }>();
 
 const TITLE_TRUNCATE = 32;
 
 const route = useRoute();
+const bookmarkedMemoIdSet = computed(() => new Set(props.bookmarkedMemoIds ?? []));
 
 function extractsTitleParts(title: string): { memoTitle: string; context: string } {
   const parts = title.split('/');

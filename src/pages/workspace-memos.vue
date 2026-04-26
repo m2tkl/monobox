@@ -6,35 +6,14 @@
           <!-- Memo List -->
           <LoadingSpinner v-if="memosVM.flags.isLoading" />
           <div
-            v-else-if="memos.length === 0"
+            v-else-if="recentMemos.length === 0"
             class="flex items-center justify-center h-full text-center"
             style="color: var(--color-text-secondary)"
           >
-            No memos
+            No recent memos
           </div>
 
           <template v-else>
-            <section v-if="bookmarks.length > 0">
-              <div
-                class="sticky top-0 z-10"
-                style="background-color: var(--color-background)"
-              >
-                <div class="flex h-12 items-center">
-                  <UIcon
-                    :name="iconKey.bookmark"
-                    class="mr-2"
-                  />
-                  <h2 class="font-bold sidebar-heading">
-                    Bookmarks
-                  </h2>
-                </div>
-              </div>
-
-              <MemoCards
-                :memos="bookmarks"
-              />
-            </section>
-
             <div
               class="sticky top-0 z-10"
               style="background-color: var(--color-background)"
@@ -50,7 +29,10 @@
               </div>
             </div>
 
-            <MemoCards :memos="limitedRecentMemos" />
+            <MemoCards
+              :memos="limitedRecentMemos"
+              :bookmarked-memo-ids="bookmarkedMemoIds"
+            />
 
             <div
               v-if="hasMoreRecentMemos"
@@ -119,12 +101,12 @@ const memosVM = useWorkspaceMemosViewModel();
 const bookmarkVM = useBookmarkListViewModel();
 
 const memos = computed(() => memosVM.value.data.items);
+const bookmarkedMemoIds = computed(() => bookmarkVM.value.data.items.map(memo => memo.id));
 
 const recentMemosDisplayCount = ref(PAGE_LOAD_BASE_NUM);
 
 const recentMemos = computed(() => {
-  const bookmarkedIds = new Set(bookmarkVM.value.data.items.map(m => m.id));
-  return memos.value.filter(memo => !bookmarkedIds.has(memo.id));
+  return memos.value;
 });
 const limitedRecentMemos = computed(() => {
   return recentMemos.value.slice(0, recentMemosDisplayCount.value);
@@ -132,8 +114,6 @@ const limitedRecentMemos = computed(() => {
 const hasMoreRecentMemos = computed(() => {
   return recentMemos.value.length > recentMemosDisplayCount.value;
 });
-
-const bookmarks = computed(() => bookmarkVM.value.data.items);
 
 const loadMore = () => {
   recentMemosDisplayCount.value += PAGE_LOAD_BASE_NUM;

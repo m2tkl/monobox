@@ -1,11 +1,8 @@
 import type { Editor } from '@tiptap/vue-3';
 
-import { getHeadingTextById } from '~/app/features/editor/core/query';
 import { command } from '~/external/tauri/command';
 
 export function useMemoSave() {
-  const recentStore = useRecentMemoStore();
-
   const { runTask: executeMemoSave } = useAsyncTask(saveMemo);
 
   async function saveMemo(
@@ -20,13 +17,6 @@ export function useMemoSave() {
       editor,
       newTitle,
       thumbnailImage,
-    );
-
-    addMemoHistory(
-      newTitle,
-      editor,
-      routeHash,
-      target.workspaceSlug,
     );
   };
 
@@ -55,36 +45,7 @@ export function useMemoSave() {
     });
   };
 
-  const addMemoHistory = (
-    newTitle: string,
-    editor: Editor,
-    routeHash: string,
-    workspaceSlug: string,
-  ): void => {
-    const titleForHistory = getMemoTitleWithHeading(newTitle, editor, routeHash);
-    const historyItem = [
-      titleForHistory,
-      encodeForSlug(newTitle),
-      workspaceSlug,
-      routeHash || undefined,
-      true,
-    ] as const;
-    recentStore.addMemo(...historyItem);
-  };
-
   return {
     executeMemoSave,
   };
 }
-
-/**
- * Returns the memo title, possibly including the heading in view.
- */
-export const getMemoTitleWithHeading = (baseTitle: string, editor: Editor, routeHash: string): string => {
-  if (!routeHash) return baseTitle;
-
-  const headingId = routeHash.replace(/^#/, '');
-  const headingTitle = getHeadingTextById(editor.getJSON(), headingId);
-
-  return headingTitle ? `${baseTitle} › ${headingTitle}` : baseTitle;
-};

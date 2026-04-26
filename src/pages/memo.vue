@@ -8,9 +8,6 @@
           :outline="outline"
           :active-heading-id="activeHeadingId"
           :active-ancestor-headings="activeAncestorHeadings"
-          :memo-title="memoVM.data.memo?.title || memoTitle"
-          :memo-slug="memoSlug"
-          :workspace-slug="workspaceSlug"
           :route-path="route.path"
           :focus-heading="(id: string) => focusHeading(editor, id)"
           :navigate-to-heading="navigateToHeading"
@@ -277,7 +274,6 @@ const toast = useToast();
 const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
 const kanbanVM = useKanbanCollectionViewModel();
-const recentStore = useRecentMemoStore();
 const { executeMemoSave } = useMemoSave();
 const logger = useConsoleLogger('pages/memo');
 
@@ -520,20 +516,6 @@ watch(() => route.hash, () => {
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
   document.getElementById('main')?.addEventListener('scroll', handleScroll, { passive: true });
-
-  if (memoVM.value.data.memo) {
-    const slug = memoSlug.value;
-    const workspace = workspaceSlug.value;
-    const hash = route.hash || undefined;
-
-    const exists = recentStore.history.some(
-      m => m.slug === slug && m.workspace === workspace && m.hash === hash,
-    );
-
-    if (!exists) {
-      recentStore.addMemo(memoVM.value.data.memo.title, slug, workspace, hash);
-    }
-  }
 });
 
 const { openPreview } = useImagePreview();
