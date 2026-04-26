@@ -8,6 +8,11 @@ export type Link = {
   link_type: string;
 };
 
+export type MemoLinkCount = {
+  memo_id: number;
+  link_count: number;
+};
+
 export type BaseLink = {
   id: number | string;
   slug_title: string;

@@ -6,6 +6,7 @@ import { loadWorkspaceMemos } from './resources/memoCollection';
 import { loadMemoLinkCollection } from './resources/memoLinkCollection';
 import { loadWorkspace } from './resources/workspace';
 import { loadWorkspaceCollection } from './resources/workspaceCollection';
+import { loadWorkspaceMemoLinkCounts } from './resources/workspaceMemoLinkCountCollection';
 
 import type { AppEvent } from './app-event';
 
@@ -20,6 +21,7 @@ const rules: AnyRule<AppEvent>[] = [
         loadWorkspace(workspaceSlug),
         loadWorkspaceMemos(workspaceSlug),
         loadBookmarkCollection(workspaceSlug),
+        loadWorkspaceMemoLinkCounts(workspaceSlug),
         loadKanbans(workspaceSlug),
       ]);
     },
@@ -34,13 +36,19 @@ const rules: AnyRule<AppEvent>[] = [
   } },
   {
     on: 'memo/created',
-    run: p => loadWorkspaceMemos(p.workspaceSlug),
+    run: async (p) => {
+      await Promise.all([
+        loadWorkspaceMemos(p.workspaceSlug),
+        loadWorkspaceMemoLinkCounts(p.workspaceSlug),
+      ]);
+    },
   },
   {
     on: 'memo/updated',
     run: async (p) => {
       await Promise.all([
         loadWorkspaceMemos(p.workspaceSlug),
+        loadWorkspaceMemoLinkCounts(p.workspaceSlug),
         loadMemoLinkCollection(p.workspaceSlug, p.memoSlug),
       ]);
     },
@@ -48,7 +56,12 @@ const rules: AnyRule<AppEvent>[] = [
   },
   {
     on: 'memo/deleted',
-    run: ({ workspaceSlug }) => loadWorkspaceMemos(workspaceSlug),
+    run: async ({ workspaceSlug }) => {
+      await Promise.all([
+        loadWorkspaceMemos(workspaceSlug),
+        loadWorkspaceMemoLinkCounts(workspaceSlug),
+      ]);
+    },
     debounceMs: 150,
   },
   {

@@ -1,6 +1,6 @@
 import { invokeCommand } from '../core/invoker';
 
-import type { Link } from '~/models/link';
+import type { Link, MemoLinkCount } from '~/models/link';
 
 export const linkCommand = {
   list: async (
@@ -9,6 +9,12 @@ export const linkCommand = {
     return await invokeCommand<Array<Link>>('get_links', {
       workspace_slug_name: memo.workspaceSlug,
       memo_slug_title: memo.memoSlug,
+    });
+  },
+
+  listCounts: async (workspaceSlug: string) => {
+    return await invokeCommand<Array<MemoLinkCount>>('list_workspace_link_counts', {
+      workspace_slug_name: workspaceSlug,
     });
   },
 

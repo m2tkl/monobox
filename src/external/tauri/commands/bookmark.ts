@@ -22,4 +22,18 @@ export const bookmarkCommand = {
       memo_slug_title: memoSlug,
     });
   },
+
+  reorder: async (
+    workspaceSlug: string,
+    memoSlug: string,
+    targetMemoSlug: string,
+    position: 'before' | 'after',
+  ) => {
+    await invokeCommand('reorder_bookmark', {
+      workspace_slug_name: workspaceSlug,
+      memo_slug_title: memoSlug,
+      target_memo_slug_title: targetMemoSlug,
+      position,
+    });
+  },
 };

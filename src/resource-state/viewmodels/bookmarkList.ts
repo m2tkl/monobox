@@ -3,12 +3,19 @@ import { computed } from 'vue';
 import { deriveViewModelFlags } from '../infra/types';
 import { readBookmarkCollectionSnapshot } from '../resources/bookmarkCollection';
 import { readMemoCollectionSnapshot } from '../resources/memoCollection';
+import { readWorkspaceMemoLinkCountCollectionSnapshot } from '../resources/workspaceMemoLinkCountCollection';
 
 import type { MemoIndexItem } from '~/models/memo';
 
+export type BookmarkListItem = MemoIndexItem & {
+  bookmarkId: number;
+  linkCount: number;
+  orderIndex: number;
+};
+
 export type BookmarkListViewModel = {
   data: {
-    items: MemoIndexItem[];
+    items: BookmarkListItem[];
   };
   flags: {
     isLoading: boolean;
@@ -25,22 +32,47 @@ export type BookmarkListViewModel = {
 export function useBookmarkListViewModel() {
   const bookmarksSnap = readBookmarkCollectionSnapshot();
   const memosSnap = readMemoCollectionSnapshot();
+  const memoLinkCountsSnap = readWorkspaceMemoLinkCountCollectionSnapshot();
 
-  const items = computed<MemoIndexItem[]>(() => {
-    const bs = bookmarksSnap.value.current ?? [];
-    const ms = memosSnap.value.current ?? [];
-    if (bs.length === 0 || ms.length === 0) return [];
-    const bookmarkedIds = new Set<number>(bs.map(b => b.memo_id));
-    return ms.filter(m => bookmarkedIds.has(m.id));
+  const items = computed<BookmarkListItem[]>(() => {
+    const bookmarks = bookmarksSnap.value.current ?? [];
+    const memos = memosSnap.value.current ?? [];
+    if (bookmarks.length === 0 || memos.length === 0) return [];
+
+    const counts = new Map(
+      (memoLinkCountsSnap.value.current ?? []).map(item => [item.memo_id, item.link_count]),
+    );
+    const memosById = new Map(memos.map(memo => [memo.id, memo]));
+
+    return bookmarks
+      .map((bookmark) => {
+        const memo = memosById.get(bookmark.memo_id);
+        if (!memo) return null;
+
+        return {
+          ...memo,
+          bookmarkId: bookmark.id,
+          linkCount: counts.get(memo.id) ?? 0,
+          orderIndex: bookmark.order_index,
+        };
+      })
+      .filter((memo): memo is BookmarkListItem => memo !== null)
+      .map(memo => ({
+        ...memo,
+        bookmarkId: memo.bookmarkId,
+        linkCount: memo.linkCount,
+        orderIndex: memo.orderIndex,
+      }));
   });
 
   const flags = computed(() => {
-    const bFlags = deriveViewModelFlags(bookmarksSnap.value);
-    const mFlags = deriveViewModelFlags(memosSnap.value);
+    const bookmarkFlags = deriveViewModelFlags(bookmarksSnap.value);
+    const memoFlags = deriveViewModelFlags(memosSnap.value);
+    const memoLinkCountFlags = deriveViewModelFlags(memoLinkCountsSnap.value);
     return {
-      isLoading: bFlags.isLoading || mFlags.isLoading,
-      isStale: bFlags.isStale || mFlags.isStale,
-      hasError: bFlags.hasError || mFlags.hasError,
+      isLoading: bookmarkFlags.isLoading || memoFlags.isLoading || memoLinkCountFlags.isLoading,
+      isStale: bookmarkFlags.isStale || memoFlags.isStale || memoLinkCountFlags.isStale,
+      hasError: bookmarkFlags.hasError || memoFlags.hasError || memoLinkCountFlags.hasError,
     };
   });
 

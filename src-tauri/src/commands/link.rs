@@ -1,5 +1,5 @@
 use crate::database::get_conn;
-use crate::models::{Link, LinkId};
+use crate::models::{Link, LinkId, MemoLinkCount};
 use crate::repositories::{LinkRepository, MemoRepository, WorkspaceRepository};
 use serde::Deserialize;
 use tauri::command;
@@ -25,6 +25,24 @@ pub fn get_links(args: GetLinksArgs) -> Result<Vec<Link>, String> {
     let links = LinkRepository::list(&conn, memo.id);
 
     links
+}
+
+#[derive(Deserialize)]
+pub struct ListWorkspaceLinkCountsArgs {
+    pub workspace_slug_name: String,
+}
+
+#[command]
+pub fn list_workspace_link_counts(
+    args: ListWorkspaceLinkCountsArgs,
+) -> Result<Vec<MemoLinkCount>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+
+    let workspace = WorkspaceRepository::find_by_slug(&conn, &args.workspace_slug_name)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
+
+    LinkRepository::list_counts_by_workspace(&conn, workspace.id)
 }
 
 #[derive(Deserialize)]

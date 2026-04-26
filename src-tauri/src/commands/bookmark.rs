@@ -61,3 +61,37 @@ pub fn delete_bookmark(args: DeleteBookmarkArgs) -> Result<(), String> {
 
     BookmarkRepository::delete(&conn, workspace.id, memo.id).map_err(|e| e.to_string())
 }
+
+#[derive(Deserialize)]
+pub struct ReorderBookmarkArgs {
+    pub workspace_slug_name: String,
+    pub memo_slug_title: String,
+    pub target_memo_slug_title: String,
+    pub position: String,
+}
+
+#[command]
+pub fn reorder_bookmark(args: ReorderBookmarkArgs) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+
+    let workspace = WorkspaceRepository::find_by_slug(&conn, &args.workspace_slug_name)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
+
+    let memo = MemoRepository::find_by_slug(&conn, workspace.id, &args.memo_slug_title)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
+    let target_memo =
+        MemoRepository::find_by_slug(&conn, workspace.id, &args.target_memo_slug_title)
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| format!("Memo not found for slug: {}", args.target_memo_slug_title))?;
+
+    BookmarkRepository::reorder_by_memo_id(
+        &conn,
+        workspace.id,
+        memo.id,
+        target_memo.id,
+        &args.position,
+    )
+    .map_err(|e| e.to_string())
+}

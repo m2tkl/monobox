@@ -170,6 +170,15 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         END;
         ",
     ),
+    (
+        "20260426_add_order_index_to_bookmark",
+        "
+        ALTER TABLE bookmark ADD COLUMN order_index INTEGER;
+        UPDATE bookmark
+        SET order_index = id
+        WHERE order_index IS NULL;
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {
