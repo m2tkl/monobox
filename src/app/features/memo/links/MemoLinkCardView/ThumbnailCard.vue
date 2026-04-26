@@ -23,9 +23,9 @@
       :src="transformImageSrc(thumbnailImage)"
     >
     <p
-      v-for="p in truncateString(description ? description : '', 128)?.split('\n')"
+      v-for="(p, index) in truncateString(description ? description : '', 128)?.split('\n')"
       v-else
-      :key="p"
+      :key="`${index}:${p}`"
       class="truncate-multiline text-sm memo-link-description"
     >
       {{ p }}
