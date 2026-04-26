@@ -58,6 +58,7 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
     }),
     CustomExtension.imageExtention(),
     CustomExtension.headingExtension(),
+    CustomExtension.markdownPasteExtension,
     CustomExtension.codeBlockExtension(CodeBlockComponent),
     CustomExtension.codeBlockNavExtension(),
 
