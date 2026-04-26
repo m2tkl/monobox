@@ -253,6 +253,7 @@ import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
 import { useConsoleLogger } from '~/utils/logger';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
+import { AppError } from '~/utils/error';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -417,10 +418,29 @@ const deleteMemo = async (_previousState: MemoState) => {
 const machine = useMemoMachine('clean', {
   saveMemo: saveMemoContent,
   syncLinks: async (added, deleted) => {
-    await Promise.all([
+    const isIgnorableLinkSyncError = (error: unknown) => {
+      if (!(error instanceof AppError)) {
+        return false;
+      }
+
+      return error.message.includes('Memo to link not found for slug:')
+        || error.message.includes('Memo not found for slug:');
+    };
+
+    const results = await Promise.allSettled([
       ...added.map(href => command.link.create({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
       ...deleted.map(href => command.link.delete({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
     ]);
+
+    const fatalErrors = results
+      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      .map(result => result.reason)
+      .filter(error => !isIgnorableLinkSyncError(error));
+
+    if (fatalErrors.length > 0) {
+      throw fatalErrors[0];
+    }
+
     await loadMemoLinkCollection(workspaceSlug.value, memoSlug.value);
   },
   notifyUpdated: (memoSlug) => {

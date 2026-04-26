@@ -69,7 +69,12 @@ export function useMemoMachine(
         return;
       }
       case 'effect/sync-links': {
-        await handlers.syncLinks(effect.added, effect.deleted);
+        try {
+          await handlers.syncLinks(effect.added, effect.deleted);
+        }
+        catch {
+          return;
+        }
         dispatch({ type: 'memo/save-requested', payload: { mode: 'auto' } });
         return;
       }

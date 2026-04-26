@@ -99,6 +99,30 @@ const codeBlockName = computed({
   },
 });
 
+function hasAttributeChanges(attributes: Record<string, unknown>) {
+  return Object.entries(attributes).some(([key, value]) => props.node.attrs[key] !== value);
+}
+
+function updateAttributesSilently(attributes: Record<string, unknown>) {
+  if (!hasAttributeChanges(attributes)) {
+    return;
+  }
+
+  props.editor?.commands.command(({ tr }) => {
+    const pos = props.getPos?.();
+    if (typeof pos !== 'number') {
+      return false;
+    }
+
+    tr.setMeta('addToHistory', false);
+    tr.setNodeMarkup(pos, undefined, {
+      ...props.node.attrs,
+      ...attributes,
+    });
+    return true;
+  });
+}
+
 const copyToClipboard = async () => {
   try {
     const codeElement = codeBlockRef.value!.querySelector('pre code');
@@ -152,7 +176,7 @@ async function ensureLanguageLoaded(lang?: string) {
 
   const fail = () => {
     languageUnknown.value = false;
-    props.updateAttributes({ language: '' });
+    updateAttributesSilently({ language: '' });
   };
 
   // No hint → nothing to do
@@ -170,7 +194,7 @@ async function ensureLanguageLoaded(lang?: string) {
   // If already registered (raw or normalized), set attribute and exit
   const available = lowlight.listLanguages();
   if (available.includes(raw) || available.includes(normalized)) {
-    props.updateAttributes({ language: raw });
+    updateAttributesSilently({ language: raw });
     languageUnknown.value = false;
     return;
   }
@@ -218,7 +242,7 @@ async function ensureLanguageLoaded(lang?: string) {
     if (normalized !== raw) safeRegister(raw);
 
     const refresh = (props.node.attrs.refresh || 0) + 1;
-    props.updateAttributes({ language: raw, refresh });
+    updateAttributesSilently({ language: raw, refresh });
     languageUnknown.value = false;
   }
   catch {
@@ -316,7 +340,7 @@ onMounted(async () => {
     // Fallback: if input without dot is unknown, treat as plaintext
     const name = (codeBlockName.value || '').trim().toLowerCase();
     if (name && !name.includes('.') && !knownExtensions.has(name)) {
-      props.updateAttributes({ language: 'plaintext' });
+      updateAttributesSilently({ language: 'plaintext' });
       languageUnknown.value = false;
     }
   }
@@ -325,7 +349,7 @@ onMounted(async () => {
   // set the title to the extension only (e.g., "ts").
   const langAttr = (props.node.attrs.language || '').trim();
   if ((!codeBlockName.value || codeBlockName.value.trim() === '') && langAttr) {
-    props.updateAttributes({ name: langAttr.toLowerCase() });
+    updateAttributesSilently({ name: langAttr.toLowerCase() });
   }
 });
 
@@ -344,7 +368,7 @@ watch(fileExtension, (ext) => {
   const name = (codeBlockName.value || '').trim().toLowerCase();
   const hasExistingLang = !!(props.node.attrs.language && String(props.node.attrs.language).trim());
   if (!hasExistingLang && name && !name.includes('.') && !knownExtensions.has(name)) {
-    props.updateAttributes({ language: 'plaintext' });
+    updateAttributesSilently({ language: 'plaintext' });
     languageUnknown.value = false;
   }
   // else leave current language as-is

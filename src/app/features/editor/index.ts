@@ -3,7 +3,9 @@ import Focus from '@tiptap/extension-focus';
 import Link from '@tiptap/extension-link';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
+import { Plugin } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
+import { find } from 'linkifyjs';
 
 import * as CustomExtension from './extensions';
 
@@ -48,6 +50,42 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
       HTMLAttributes: { target: null },
     }).extend({
       inclusive: false,
+      addProseMirrorPlugins() {
+        const parentPlugins = this.parent?.() ?? [];
+
+        return [
+          ...parentPlugins,
+          new Plugin({
+            props: {
+              handlePaste: (view, event) => {
+                const clipboardData = event.clipboardData;
+                if (!clipboardData || clipboardData.files.length > 0) {
+                  return false;
+                }
+
+                const html = clipboardData.getData('text/html');
+                if (html) {
+                  return false;
+                }
+
+                const text = clipboardData.getData('text/plain');
+                const link = find(text, { defaultProtocol: this.options.defaultProtocol })
+                  .find(item => item.isLink && item.value === text);
+
+                if (!link) {
+                  return false;
+                }
+
+                const target = isInternalLink(link.href) ? null : '_blank';
+                const mark = this.type.create({ href: link.href, target });
+                const tr = view.state.tr.replaceSelectionWith(view.state.schema.text(text, [mark]), false);
+                view.dispatch(tr.scrollIntoView());
+                return true;
+              },
+            },
+          }),
+        ];
+      },
       renderHTML({ HTMLAttributes }) {
         const href = HTMLAttributes.href;
         if (!isInternalLink(href)) {
@@ -58,6 +96,7 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
     }),
     CustomExtension.imageExtention(),
     CustomExtension.headingExtension(),
+    CustomExtension.markdownPasteExtension,
     CustomExtension.codeBlockExtension(CodeBlockComponent),
     CustomExtension.codeBlockNavExtension(),
 
