@@ -1,6 +1,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
-import type { CommandPaletteItem } from '@nuxt/ui';
+import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/vue-3';
 import type { MemoIndexItem } from '~/models/memo';
 
@@ -18,9 +18,7 @@ type Command = CommandPaletteItem & {
   slug?: string;
 };
 
-type Commands = {
-  id: string;
-  label: string;
+type Commands = CommandPaletteGroup<Command> & {
   items: Command[];
 };
 
@@ -65,9 +63,10 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
 
     const query = searchTerm.value;
     if (query && !existingMemos.map(memo => memo.title).includes(query)) {
-      linkPaletteCommands.unshift({
+      linkPaletteCommands.push({
         id: 'new',
         label: 'Or new memo',
+        ignoreFilter: true,
         items: [{ label: query, title: query, tag: 'new' }],
       });
     }
