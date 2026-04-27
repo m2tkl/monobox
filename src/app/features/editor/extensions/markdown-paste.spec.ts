@@ -1,7 +1,7 @@
 import { Editor } from '@tiptap/core';
 import { describe, expect, it } from 'vitest';
 
-import { looksLikeMarkdown, parseMarkdownToSlice } from './markdown-paste';
+import { looksLikeMarkdown, parseMarkdownToSlice, shouldHandleMarkdownPaste } from './markdown-paste';
 
 import { buildExtensions } from '~/app/features/editor';
 
@@ -131,33 +131,21 @@ describe('editor/extensions/markdown-paste', () => {
     editor.destroy();
   });
 
-  it('prefers markdown plain text over html clipboard content', () => {
-    const editor = createEditor();
-    const markdown = '# Title\n\n- item';
-    const event = {
-      clipboardData: {
-        files: { length: 0 },
-        getData: (type: string) => {
-          if (type === 'text/plain') return markdown;
-          if (type === 'text/html') return '<h1>Title</h1><ul><li>item</li></ul>';
-          return '';
-        },
-      },
-    } as unknown as ClipboardEvent;
+  it('does not intercept html clipboard content', () => {
+    expect(shouldHandleMarkdownPaste({
+      hasFiles: false,
+      hasHtml: true,
+      isInCodeBlock: false,
+      text: '# Title\n\n- item',
+    })).toBe(false);
+  });
 
-    let handled = false;
-    editor.view.someProp('handlePaste', (handlePaste) => {
-      handled = handlePaste(editor.view, event);
-      return handled;
-    });
-
-    expect(handled).toBe(true);
-    expect(editor.getJSON().content?.[0]).toMatchObject({
-      type: 'heading',
-      attrs: { level: 1 },
-    });
-    editor.commands.undo();
-    expect(editor.getHTML()).toBe('<p></p>');
-    editor.destroy();
+  it('does not intercept markdown paste inside a code block', () => {
+    expect(shouldHandleMarkdownPaste({
+      hasFiles: false,
+      hasHtml: false,
+      isInCodeBlock: true,
+      text: '# Title\n\n- item',
+    })).toBe(false);
   });
 });

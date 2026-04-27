@@ -85,6 +85,19 @@ export function parseMarkdownToSlice(schema: Schema, text: string): Slice {
   return new Slice(Fragment.from(doc.content), 0, 0);
 }
 
+export function shouldHandleMarkdownPaste(params: {
+  hasFiles: boolean;
+  hasHtml: boolean;
+  isInCodeBlock: boolean;
+  text: string;
+}): boolean {
+  if (params.hasFiles) return false;
+  if (params.isInCodeBlock) return false;
+  if (params.hasHtml) return false;
+
+  return looksLikeMarkdown(params.text);
+}
+
 export const markdownPasteExtension = Extension.create({
   name: 'markdownPaste',
 
@@ -98,10 +111,14 @@ export const markdownPasteExtension = Extension.create({
             const clipboardData = event.clipboardData;
             if (!clipboardData) return false;
 
-            if (clipboardData.files.length > 0) return false;
-
             const text = clipboardData.getData('text/plain');
-            if (!looksLikeMarkdown(text)) return false;
+            const shouldHandle = shouldHandleMarkdownPaste({
+              hasFiles: clipboardData.files.length > 0,
+              hasHtml: clipboardData.getData('text/html').trim().length > 0,
+              isInCodeBlock: view.state.selection.$from.parent.type.name === 'codeBlock',
+              text,
+            });
+            if (!shouldHandle) return false;
 
             try {
               const slice = parseMarkdownToSlice(schema, text);
