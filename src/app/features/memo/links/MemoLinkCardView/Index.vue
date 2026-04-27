@@ -27,7 +27,10 @@
           :key="memo.id"
           class="aspect-[1/1] overflow-hidden rounded-lg"
         >
-          <NuxtLink :to="buildMemoPath(memo.slug_title)">
+          <NuxtLink
+            :to="buildMemoPath(memo.slug_title)"
+            v-bind="memoCardLinkAttrs"
+          >
             <ThumbnailCard
               :title="truncateString(extractsTitleParts(memo.title).memoTitle, TITLE_TRUNCATE)"
               :context="extractsTitleParts(memo.title).context !== memoTitle ? extractsTitleParts(memo.title).context : undefined"
@@ -52,7 +55,8 @@
               <li class="aspect-[1/1] overflow-hidden rounded-lg ">
                 <NuxtLink
                   :to="buildMemoPath(link.slug_title)"
-                  class="flex flex-col"
+                  class="flex h-full flex-col"
+                  draggable="false"
                 >
                   <TitleCard
                     :title="truncateString(extractsTitleParts(link.title).memoTitle, TITLE_TRUNCATE)"
@@ -70,7 +74,10 @@
                 :key="thl.link_id"
                 class="aspect-[1/1] overflow-hidden rounded-lg"
               >
-                <NuxtLink :to="buildMemoPath(thl.slug_title)">
+                <NuxtLink
+                  :to="buildMemoPath(thl.slug_title)"
+                  v-bind="memoCardLinkAttrs"
+                >
                   <ThumbnailCard
                     :title="truncateString(extractsTitleParts(thl.title).memoTitle, TITLE_TRUNCATE)"
                     :context="extractsTitleParts(thl.title).context !== link.title ? extractsTitleParts(thl.title).context : undefined"
@@ -90,6 +97,7 @@
 <script setup lang="ts">
 import ThumbnailCard from './ThumbnailCard.vue';
 import TitleCard from './TitleCard.vue';
+import { memoCardLinkAttrs } from '../../list/memoCardLinkProps';
 
 import type { Link } from '~/models/link';
 

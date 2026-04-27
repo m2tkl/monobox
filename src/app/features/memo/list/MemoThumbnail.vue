@@ -28,6 +28,7 @@
     <img
       v-if="thumbnailImage"
       :src="transformImageSrc(thumbnailImage)"
+      v-bind="thumbnailImageAttrs"
     >
     <p
       v-for="(p, index) in truncateString(description ? description : '', 128)?.split('\n')"
@@ -41,6 +42,8 @@
 </template>
 
 <script setup lang="ts">
+import { thumbnailImageAttrs } from './thumbnailImageProps';
+
 import { iconKey } from '~/utils/icon';
 
 defineProps<{

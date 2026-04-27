@@ -5,7 +5,10 @@
       :key="memo.id"
       class="aspect-[1/1] overflow-hidden rounded-lg"
     >
-      <NuxtLink :to="`/${route.params.workspace}/${memo.slug_title}`">
+      <NuxtLink
+        :to="`/${route.params.workspace}/${memo.slug_title}`"
+        v-bind="memoCardLinkAttrs"
+      >
         <MemoThumbnail
           :title="truncateString(extractsTitleParts(memo.title).memoTitle, TITLE_TRUNCATE)"
           :context="extractsTitleParts(memo.title).context"
@@ -19,9 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import MemoThumbnail from '~/app/features/memo/list/MemoThumbnail.vue';
+import { memoCardLinkAttrs } from './memoCardLinkProps';
 
 import type { MemoIndexItem } from '~/models/memo';
+
+import MemoThumbnail from '~/app/features/memo/list/MemoThumbnail.vue';
 
 const props = defineProps<{
   memos: MemoIndexItem[];
