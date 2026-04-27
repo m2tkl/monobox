@@ -1,7 +1,10 @@
 <template>
   <node-view-wrapper class="code-block">
     <!-- Header Section -->
-    <div class="code-block-header pb-2">
+    <div
+      class="code-block-header pb-2"
+      contenteditable="false"
+    >
       <!-- Editing: unified input; Display: split title and extension -->
       <template v-if="isEditing">
         <UInput
@@ -22,20 +25,19 @@
       <template v-else>
         <div
           class="flex items-center gap-2 flex-1 pr-2"
-          @mousedown.prevent.stop="startEditing"
-          @keydown.enter.prevent="startEditing"
-          @keydown.space.prevent="startEditing"
+          contenteditable="false"
         >
-          <div
+          <button
             ref="titleDisplayRef"
-            class="min-h-[24px] cursor-text font-semibold text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500/60 rounded flex items-center ml-2 py-1 code-block-title"
+            type="button"
+            class="min-h-[24px] cursor-text font-semibold text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-slate-500/60 rounded flex items-center ml-2 py-1 code-block-title select-none"
             :class="!baseName ? 'text-slate-500' : ''"
-            tabindex="0"
-            role="textbox"
             aria-label="Code block title"
+            contenteditable="false"
+            @click.stop="startEditing"
           >
             {{ baseName || 'Untitled' }}
-          </div>
+          </button>
           <span
             v-if="fileExtension"
             :class="[
@@ -54,6 +56,7 @@
       <IconButton
         :icon="iconKey.copy"
         class="text-slate-300"
+        contenteditable="false"
         @click="copyToClipboard"
       />
     </div>
@@ -73,8 +76,6 @@ import { languageAlias, loaders, normalizeLanguage } from './langs';
 
 import type { NodeViewProps } from '@tiptap/vue-3';
 import type { LanguageFn } from 'lowlight';
-
-import { UInput } from '#components';
 </script>
 
 <script lang="ts" setup>
@@ -89,11 +90,15 @@ const toast = useToast();
 
 const codeBlockRef = ref<HTMLElement | null>(null);
 const isEditing = ref(false);
-const unifiedInputRef = ref<typeof UInput | null>(null);
+const unifiedInputRef = ref<{ $el?: HTMLElement } | null>(null);
 const titleDisplayRef = ref<HTMLElement | null>(null);
 
+function normalizeAttrString(value: unknown) {
+  return typeof value === 'string' ? value : String(value ?? '');
+}
+
 const codeBlockName = computed({
-  get: () => props.node.attrs.name || '',
+  get: () => normalizeAttrString(props.node.attrs.name),
   set: (name: string) => {
     props.updateAttributes({ name });
   },
@@ -280,8 +285,8 @@ const knownExtensions = new Set<string>([
  * The returned extension is lowercased and may be empty if no hint is available.
  */
 const fileExtension = computed(() => {
-  const name = (codeBlockName.value || '').trim();
-  const langAttr = (props.node.attrs.language || '').trim();
+  const name = normalizeAttrString(codeBlockName.value).trim();
+  const langAttr = normalizeAttrString(props.node.attrs.language).trim();
 
   if (name) {
     // 1) Title with explicit extension (e.g. "sample.ts")
@@ -318,7 +323,7 @@ const fileExtension = computed(() => {
  * The returned string may be empty if no meaningful base name is available.
  */
 const baseName = computed(() => {
-  const name = (codeBlockName.value || '').trim();
+  const name = normalizeAttrString(codeBlockName.value).trim();
   if (!name) return '';
 
   const idx = name.lastIndexOf('.');
@@ -331,14 +336,14 @@ const baseName = computed(() => {
 });
 
 onMounted(async () => {
-  const ext = fileExtension.value || props.node.attrs.language;
+  const ext = fileExtension.value || normalizeAttrString(props.node.attrs.language);
   await nextTick();
   if (ext) {
     ensureLanguageLoaded(ext);
   }
   else {
     // Fallback: if input without dot is unknown, treat as plaintext
-    const name = (codeBlockName.value || '').trim().toLowerCase();
+    const name = normalizeAttrString(codeBlockName.value).trim().toLowerCase();
     if (name && !name.includes('.') && !knownExtensions.has(name)) {
       updateAttributesSilently({ language: 'plaintext' });
       languageUnknown.value = false;
@@ -347,8 +352,8 @@ onMounted(async () => {
 
   // If language is set via fence (e.g., ```ts) and title is empty,
   // set the title to the extension only (e.g., "ts").
-  const langAttr = (props.node.attrs.language || '').trim();
-  if ((!codeBlockName.value || codeBlockName.value.trim() === '') && langAttr) {
+  const langAttr = normalizeAttrString(props.node.attrs.language).trim();
+  if ((!codeBlockName.value || normalizeAttrString(codeBlockName.value).trim() === '') && langAttr) {
     updateAttributesSilently({ name: langAttr.toLowerCase() });
   }
 });
@@ -365,8 +370,8 @@ watch(fileExtension, (ext) => {
   // - Do NOT clear an existing language (e.g., set via ```ts)
   // - If user typed a bare token that looks like an unknown ext and there is no
   //   existing language, treat as plaintext for clarity.
-  const name = (codeBlockName.value || '').trim().toLowerCase();
-  const hasExistingLang = !!(props.node.attrs.language && String(props.node.attrs.language).trim());
+  const name = normalizeAttrString(codeBlockName.value).trim().toLowerCase();
+  const hasExistingLang = normalizeAttrString(props.node.attrs.language).trim().length > 0;
   if (!hasExistingLang && name && !name.includes('.') && !knownExtensions.has(name)) {
     updateAttributesSilently({ language: 'plaintext' });
     languageUnknown.value = false;
@@ -392,7 +397,7 @@ watch(fileExtension, (ext) => {
 function startEditing() {
   // If only extension is known (e.g., set via ```py) and title has no dot,
   // prefill unified input with "<title or Untitled>.<ext>" for easier editing.
-  const currentName = (codeBlockName.value || '').trim();
+  const currentName = normalizeAttrString(codeBlockName.value).trim();
   const ext = (fileExtension.value || '').trim();
   if (ext) {
     if (currentName && !currentName.includes('.') && currentName.toLowerCase() !== ext.toLowerCase()) {
