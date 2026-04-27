@@ -8,6 +8,12 @@ import { createLowlight } from 'lowlight';
 const lowlight = createLowlight();
 
 export const codeBlockExtension = (node: Component<NodeViewProps>) => CodeBlockLowlight.extend({
+  addOptions() {
+    return {
+      ...this.parent?.(),
+      defaultLanguage: '',
+    };
+  },
   addNodeView() {
     return VueNodeViewRenderer(node);
   },
