@@ -66,23 +66,31 @@ export function useMemoEditor(
     content: JSON.parse(memoContent),
     extensions: options.extensions,
     editorProps: {
-    /**
-     * Register shortcuts for the Editor.
-     *
-     * NOTE:
-     *   Shortcuts registered here are only active when the Editor is focused.
-     *   For shortcuts that should be usable even when the Editor is not focused, use `window.addEventListener` to register them.
-     */
+      // Disable browser/OS text substitutions so literal input such as `--`
+      // stays unchanged inside the editor.
+      attributes: {
+        autocapitalize: 'off',
+        autocomplete: 'off',
+        autocorrect: 'off',
+        spellcheck: 'false',
+      },
+      /**
+       * Register shortcuts for the Editor.
+       *
+       * NOTE:
+       *   Shortcuts registered here are only active when the Editor is focused.
+       *   For shortcuts that should be usable even when the Editor is not focused, use `window.addEventListener` to register them.
+       */
       handleKeyDown(_view: EditorView, _event: KeyboardEvent) {
-      // Command register sample
-      // if (event.metaKey && event.key === "i") {
-      //   event.preventDefault();
-      //
-      //   // Do something
-      //
-      //   return true;
-      // }
-      // return false;
+        // Command register sample
+        // if (event.metaKey && event.key === "i") {
+        //   event.preventDefault();
+        //
+        //   // Do something
+        //
+        //   return true;
+        // }
+        // return false;
       },
     },
     onCreate({ editor }) {
