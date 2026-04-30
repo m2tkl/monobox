@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath, getEncodedParamsFromRoute } from './route';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath, getEncodedParamsFromRoute, isNewMemoRoute } from './route';
 
 import type { RouteLocationNormalizedLoaded } from 'vue-router';
 
@@ -62,5 +62,10 @@ describe('getEncodedParamsFromRoute', () => {
     const route = makeRoute('/my-ws/こんにちは_世界', '/:workspace/:memo', { workspace: 'my-ws', memo: 'こんにちは 世界' });
     expect(getEncodedWorkspaceSlugFromPath(route)).toBe('my-ws');
     expect(getEncodedMemoSlugFromPath(route)).toBe('こんにちは_世界');
+  });
+
+  it('detects the new memo route', () => {
+    const route = makeRoute('/my-ws/__new__', '/:workspace/:memo', { workspace: 'my-ws', memo: '__new__' });
+    expect(isNewMemoRoute(route)).toBe(true);
   });
 });

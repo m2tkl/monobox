@@ -55,4 +55,23 @@ const onInput = () => {
     title.value = el.innerText.trim();
   }
 };
+
+function focusAndSelectAll() {
+  const el = titleFieldRef.value;
+  if (!el) return;
+
+  el.focus();
+
+  const selection = window.getSelection();
+  if (!selection) return;
+
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+defineExpose({
+  focusAndSelectAll,
+});
 </script>

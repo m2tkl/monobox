@@ -218,6 +218,34 @@ impl MemoRepository {
             }
         }
 
+        {
+            let mut stmt = tx.prepare(
+                "SELECT id, content
+                FROM memo_template
+                WHERE workspace_id = ?",
+            )?;
+            let template_iter = stmt.query_map([workspace_id], |row| {
+                Ok((row.get::<_, i32>(0)?, row.get::<_, String>(1)?))
+            })?;
+
+            for template in template_iter {
+                let (template_id, content) = template?;
+                let updated_content = update_link_text(
+                    &content,
+                    workspace_slug,
+                    target_slug_title,
+                    target_title,
+                    slug_title,
+                    title,
+                )?;
+
+                tx.execute(
+                    "UPDATE memo_template SET content = ? WHERE id = ?",
+                    (&updated_content, template_id),
+                )?;
+            }
+        }
+
         tx.commit()?;
         Ok(())
     }
@@ -480,6 +508,8 @@ fn update_nodes(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::migrations::apply_migrations;
+    use rusqlite::Connection;
     use serde_json::Value;
 
     #[test]
@@ -817,5 +847,76 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn save_updates_matching_links_inside_templates() {
+        let mut conn = Connection::open_in_memory().expect("in-memory DB should open");
+        conn.execute("CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)", [])
+            .expect("schema_migrations should be creatable");
+        apply_migrations(&conn).expect("migrations should apply");
+
+        conn.execute(
+            "INSERT INTO workspace (id, slug_name, name) VALUES (1, 'sample-workspace', 'Sample')",
+            [],
+        )
+        .expect("workspace insert should succeed");
+
+        conn.execute(
+            "INSERT INTO memo (id, workspace_id, slug_title, title, content, body_text, modified_at)
+            VALUES (1, 1, 'test', 'test', '\"\"', '', CURRENT_TIMESTAMP)",
+            [],
+        )
+        .expect("target memo insert should succeed");
+
+        conn.execute(
+            "INSERT INTO memo_template (id, workspace_id, slug_name, name, content)
+            VALUES (
+              1,
+              1,
+              'template',
+              'Template',
+              '{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"link\",\"attrs\":{\"href\":\"/sample-workspace/test\",\"target\":null,\"rel\":\"noopener noreferrer nofollow\",\"class\":null}}],\"text\":\"test\"}]}]}'
+            )",
+            [],
+        )
+        .expect("template insert should succeed");
+
+        MemoRepository::save(
+            &mut conn,
+            1,
+            1,
+            "sample-workspace",
+            "test",
+            "test",
+            "test-renamed",
+            "Test Renamed",
+            "\"\"",
+            "",
+            "",
+        )
+        .expect("memo save should succeed");
+
+        let updated_content: String = conn
+            .query_row(
+                "SELECT json(content) AS content FROM memo_template WHERE id = 1",
+                [],
+                |row| row.get(0),
+            )
+            .expect("updated template should be readable");
+
+        let updated_json: Value =
+            serde_json::from_str(&updated_content).expect("template JSON should remain valid");
+        let node = updated_json["content"][0]["content"][0]
+            .as_object()
+            .expect("linked text node should exist");
+
+        let href = node["marks"][0]["attrs"]["href"]
+            .as_str()
+            .expect("href should exist");
+        let text = node["text"].as_str().expect("text should exist");
+
+        assert_eq!(href, "/sample-workspace/test-renamed");
+        assert_eq!(text, "Test Renamed");
     }
 }

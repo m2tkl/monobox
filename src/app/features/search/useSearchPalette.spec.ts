@@ -6,6 +6,23 @@ import { useSearchPalette } from './useSearchPalette';
 
 import type { MemoIndexItem } from '~/models/memo';
 
+const { createMemo, emitEvent } = vi.hoisted(() => ({
+  createMemo: vi.fn(),
+  emitEvent: vi.fn(),
+}));
+
+vi.mock('~/external/tauri/command', () => ({
+  command: {
+    memo: {
+      create: createMemo,
+    },
+  },
+}));
+
+vi.mock('~/resource-state/infra/eventBus', () => ({
+  emitEvent,
+}));
+
 type PaletteState = ReturnType<typeof useSearchPalette>;
 
 const makeMemo = (overrides: Partial<MemoIndexItem> = {}): MemoIndexItem => ({
@@ -26,6 +43,16 @@ describe('useSearchPalette', () => {
     vi.clearAllMocks();
     vi.stubGlobal('useRouter', () => ({ push: routerPush }));
     vi.stubGlobal('defineShortcuts', vi.fn());
+    createMemo.mockResolvedValue({
+      id: 10,
+      slug_title: 'gamma',
+      title: 'Gamma',
+      content: '""',
+      workspace_id: 1,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+      modified_at: '2024-01-01T00:00:00Z',
+    });
   });
 
   afterEach(() => {
@@ -78,6 +105,28 @@ describe('useSearchPalette', () => {
     ], 'Alpha');
 
     expect(palette.commandPaletteItems.value.map(group => group.id)).toEqual(['existing-memos']);
+
+    wrapper.unmount();
+  });
+
+  it('routes with the created flag after creating a memo from the search palette', async () => {
+    const { wrapper, palette } = mountPalette([], 'Gamma');
+
+    await palette.onSearchPaletteSelect({
+      label: 'Gamma',
+      title: 'Gamma',
+      tag: 'new',
+    });
+
+    expect(createMemo).toHaveBeenCalledWith({
+      workspaceSlugName: 'workspace',
+      title: 'Gamma',
+    });
+    expect(routerPush).toHaveBeenCalledWith({
+      path: '/workspace/gamma',
+      query: { created: 'named' },
+    });
+    expect(emitEvent).toHaveBeenCalledWith('memo/created', { workspaceSlug: 'workspace' });
 
     wrapper.unmount();
   });

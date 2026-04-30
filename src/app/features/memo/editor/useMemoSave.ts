@@ -10,7 +10,8 @@ export function useMemoSave() {
     editor: Editor,
     newTitle: string,
     thumbnailImage: string,
-    routeHash: string,
+    // Kept for call-site compatibility; route hash is no longer used during save.
+    _routeHash: string,
   ): Promise<void> {
     await updateMemoContent(
       target,
@@ -26,9 +27,10 @@ export function useMemoSave() {
     newTitle: string,
     thumbnailImage: string,
   ): Promise<void> => {
-    const newSlugTitle = encodeForSlug(newTitle);
+    const normalizedTitle = newTitle.trim();
+    const newSlugTitle = encodeForSlug(normalizedTitle);
     const newContent = {
-      title: newTitle,
+      title: normalizedTitle,
       content: JSON.stringify(editor.getJSON()),
       description: truncateString(editor.getText(), 256),
       thumbnailImage,

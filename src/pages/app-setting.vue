@@ -2,7 +2,7 @@
   <div>
     <UContainer style="padding-bottom: max(var(--spacing-xl), env(safe-area-inset-bottom));">
       <div class="space-y-6">
-        <div class="flex items-center justify-between space-x-3 pt-2">
+        <div class="pt-2">
           <h2
             class="pl-1 text-2xl font-bold"
             style="color: var(--color-text-primary)"
@@ -90,6 +90,11 @@
             <LoadingSpinner v-if="isWorkspaceLoading" />
 
             <template v-else>
+              <MemoTemplateManager
+                v-if="currentWorkspace"
+                :workspace-slug="currentWorkspace.slug_name"
+              />
+
               <UCard
                 v-if="currentWorkspace"
                 class="card-themed"
@@ -137,6 +142,7 @@
 <script setup lang="ts">
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
+import MemoTemplateManager from '~/app/features/settings/MemoTemplateManager.vue';
 import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
 import ThemeSelector from '~/app/features/settings/ThemeSelector.vue';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
@@ -173,13 +179,9 @@ const isWorkspaceLoading = computed(() => {
 });
 
 const activeTab = ref<'app' | 'workspace'>(hasWorkspaceContext.value ? 'workspace' : 'app');
+
 watch(hasWorkspaceContext, (next) => {
-  if (!next) {
-    activeTab.value = 'app';
-  }
-  else if (activeTab.value === 'app') {
-    activeTab.value = 'workspace';
-  }
+  activeTab.value = next ? 'workspace' : 'app';
 });
 
 const isOpen = ref(false);
@@ -288,4 +290,5 @@ watch(workspaceContextSlug, async (slug) => {
   background-color: var(--color-surface-elevated);
   border-color: var(--color-border-light);
 }
+
 </style>

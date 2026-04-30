@@ -256,18 +256,6 @@
     </template>
 
     <template #actions>
-      <div class="fixed bottom-10 right-10 z-50">
-        <NuxtLink :to="`/${workspaceSlug}/new`">
-          <UButton
-            :icon="iconKey.add"
-            square
-            variant="solid"
-            size="xl"
-            style="background-color: var(--color-primary)"
-          />
-        </NuxtLink>
-      </div>
-
       <div v-if="memos.length > 0">
         <SearchPalette
           :workspace-slug="workspaceSlug"

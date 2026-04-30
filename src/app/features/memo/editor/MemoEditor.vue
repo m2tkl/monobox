@@ -6,7 +6,7 @@
       style="border-color: var(--color-border-light); background-color: var(--color-surface)"
     >
       <div
-        class="h-8 flex items-center gap-0.5 overflow-auto px-2"
+        :class="['h-8 flex items-center gap-0.5 overflow-auto px-2', toolbarContainerClass]"
       >
         <slot
           name="toolbar"
@@ -22,10 +22,13 @@
 
     <!-- Editor area -->
     <div
-      class="max-w-[820px] p-6"
+      :class="['p-6', contentContainerClass]"
       style="background-color: var(--color-surface-elevated)"
     >
-      <TitleFieldStableInput v-model="memoTitle" />
+      <TitleFieldStableInput
+        ref="titleFieldRef"
+        v-model="memoTitle"
+      />
 
       <div class="relative">
         <USeparator
@@ -80,11 +83,20 @@ import type { Editor } from '@tiptap/vue-3';
 import EditorLoadingSkelton from '~/app/features/memo/editor/EditorLoadingSkelton.vue';
 import TitleFieldStableInput from '~/app/features/memo/editor/TitleFieldStableInput.vue';
 
-defineProps<{
+withDefaults(defineProps<{
   editor: Editor;
-}>();
+  // TODO: These layout hooks were added for the template editor dialog.
+  // Prefer moving width/alignment control to the parent once MemoEditor's
+  // internal structure is simplified enough to style from the outside.
+  toolbarContainerClass?: string;
+  contentContainerClass?: string;
+}>(), {
+  toolbarContainerClass: '',
+  contentContainerClass: 'max-w-[820px]',
+});
 
 const memoTitle = defineModel<string>('memoTitle', { required: true });
+const titleFieldRef = ref<InstanceType<typeof TitleFieldStableInput> | null>(null);
 
 const editorReady = ref(false);
 
@@ -92,6 +104,17 @@ onMounted(async () => {
   setTimeout(() => {
     editorReady.value = true;
   }, 500);
+});
+
+function focusTitleField(selectAll = false) {
+  if (selectAll) {
+    titleFieldRef.value?.focusAndSelectAll();
+    return;
+  }
+}
+
+defineExpose({
+  focusTitleField,
 });
 </script>
 

@@ -5,6 +5,7 @@ import type { Editor } from '@tiptap/vue-3';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { EditorAction, EditorQuery } from '~/app/features/editor';
+import { CREATED_QUERY_SOURCE_NAMED } from '~/app/features/memo/creation';
 import { command } from '~/external/tauri/command';
 import { emitEvent } from '~/resource-state/infra/eventBus';
 import { isCmdKey } from '~/utils/event';
@@ -119,7 +120,10 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     logger.log('onSearchPaletteSelect() end.');
 
     if (options.type.value === 'search') {
-      router.push(`/${options.workspaceSlug.value}/${linkMemoSlug}`);
+      router.push({
+        path: `/${options.workspaceSlug.value}/${linkMemoSlug}`,
+        query: option.tag === 'new' ? { created: CREATED_QUERY_SOURCE_NAMED } : undefined,
+      });
     }
   }
 

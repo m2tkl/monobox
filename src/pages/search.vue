@@ -78,7 +78,6 @@ import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
   path: '/:workspace/_search',
-  layout: 'search',
   validate(route) {
     return route.params.workspace !== '_setting';
   },

@@ -63,6 +63,7 @@ export default defineNuxtConfig({
         'carbon:table-of-contents',
         'carbon:add-large',
         'carbon:search',
+        'carbon:search-locate',
         'carbon:link',
         'carbon:unlink',
         'carbon:trash-can',

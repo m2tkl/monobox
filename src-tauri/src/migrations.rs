@@ -179,6 +179,37 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         WHERE order_index IS NULL;
         ",
     ),
+    (
+        "20260427_create_memo_template_table",
+        "CREATE TABLE IF NOT EXISTS memo_template (
+            id INTEGER PRIMARY KEY,
+            slug_name VARCHAR(1024) NOT NULL,
+            name VARCHAR(256) NOT NULL,
+            content JSON NOT NULL,
+            workspace_id INTEGER NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (workspace_id, slug_name),
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_memo_template_workspace_id ON memo_template(workspace_id);
+
+        CREATE TRIGGER IF NOT EXISTS trigger_memo_template_updated_at AFTER UPDATE ON memo_template
+        BEGIN
+            UPDATE memo_template SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+        ",
+    ),
+    (
+        "20260427_add_is_default_to_memo_template",
+        "
+        ALTER TABLE memo_template ADD COLUMN is_default INTEGER NOT NULL DEFAULT 0;
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_memo_template_default_per_workspace
+        ON memo_template(workspace_id)
+        WHERE is_default = 1;
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

@@ -1,5 +1,5 @@
 import { emitEvent } from '~/resource-state/infra/eventBus';
-import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath, isNewMemoRoute } from '~/utils/route';
 
 export function startRouteWatcher() {
   const route = useRoute();
@@ -22,6 +22,7 @@ export function startRouteWatcher() {
       const workspaceSlug = getEncodedWorkspaceSlugFromPath(route) || '';
       const memoSlug = getEncodedMemoSlugFromPath(route);
 
+      if (isNewMemoRoute(route)) return;
       if (!workspaceSlug || !memoSlug) return;
 
       emitEvent('memo/switched', { workspaceSlug, memoSlug });

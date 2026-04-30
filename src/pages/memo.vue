@@ -21,6 +21,7 @@
         >
           <MemoEditor
             v-if="editor"
+            ref="memoEditorRef"
             v-model:memo-title="memoTitle"
             :editor="editor"
           >
@@ -110,6 +111,37 @@
               />
             </template>
           </MemoEditor>
+
+          <div
+            v-if="shouldShowInlineTemplateSuggestions"
+            class="template-suggestion-shell"
+          >
+            <div class="template-suggestion-inline">
+              <div
+                class="mb-2 text-xs font-medium"
+                style="color: var(--color-text-secondary)"
+              >
+                Use template?
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="template-suggestion-scroll">
+                  <div class="flex w-max items-center gap-2">
+                    <UButton
+                      v-for="template in availableTemplates"
+                      :key="template.id"
+                      variant="soft"
+                      color="neutral"
+                      :loading="isApplyingTemplate && selectedTemplateId === template.id"
+                      :disabled="isApplyingTemplate"
+                      @click="applyTemplate(template.slug_name)"
+                    >
+                      {{ template.name }}
+                    </UButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <UModal v-model:open="isKanbanModalOpen">
             <template #content>
@@ -223,9 +255,14 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
 import type { MemoEvent, MemoState } from '~/app/features/memo/memoMachine';
+import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
+import {
+  CREATED_QUERY_SOURCE_BLANK,
+  CREATED_QUERY_SOURCE_NAMED,
+} from '~/app/features/memo/creation';
 import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
 import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
@@ -241,6 +278,11 @@ import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
 import { useMemoKanbanAssignments } from '~/app/features/memo/kanban/useMemoKanbanAssignments';
 import MemoLinkCardView from '~/app/features/memo/links/MemoLinkCardView/Index.vue';
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
+import {
+  getDefaultMemoTemplate,
+  parseTemplateContent,
+  sortMemoTemplates,
+} from '~/app/features/memo/template';
 import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
@@ -251,9 +293,9 @@ import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
 import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
+import { AppError } from '~/utils/error';
 import { useConsoleLogger } from '~/utils/logger';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
-import { AppError } from '~/utils/error';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -277,6 +319,11 @@ const memoVM = useCurrentMemoViewModel();
 const kanbanVM = useKanbanCollectionViewModel();
 const { executeMemoSave } = useMemoSave();
 const logger = useConsoleLogger('pages/memo');
+const isApplyingTemplate = ref(false);
+const selectedTemplateId = ref<number>();
+const isTemplatePickerDismissed = ref(false);
+const availableTemplates = ref<MemoTemplateIndexItem[]>([]);
+const hasAttemptedDefaultTemplate = ref(false);
 
 type MemoSnapshot = {
   title: string;
@@ -302,10 +349,12 @@ const {
 });
 
 await usePageLoader(async () => {
-  await Promise.all([
+  const [templates] = await Promise.all([
+    command.memoTemplate.list({ slugName: workspaceSlug.value }),
     loadMemo(workspaceSlug.value, memoSlug.value),
     loadKanbans(workspaceSlug.value),
   ]);
+  availableTemplates.value = sortMemoTemplates(templates);
   await loadKanbanEntries();
 });
 
@@ -318,6 +367,38 @@ const lastSavedSnapshot = ref<MemoSnapshot>({
 });
 
 const pendingDeleteAfterSave = ref(false);
+const createdQueryValue = computed(() =>
+  typeof route.query.created === 'string'
+    ? route.query.created
+    : undefined,
+);
+const isNewMemoCreationFlow = computed(() =>
+  createdQueryValue.value === CREATED_QUERY_SOURCE_BLANK
+  || createdQueryValue.value === CREATED_QUERY_SOURCE_NAMED,
+);
+const requestedTemplateSlug = computed(() =>
+  typeof route.query.template === 'string'
+    ? route.query.template
+    : undefined,
+);
+const shouldSkipDefaultTemplate = computed(() => route.query.skipDefaultTemplate === 'true');
+const hasRequestedTemplate = computed(() => requestedTemplateSlug.value != null);
+const hasDefaultMemoTemplate = computed(() => getDefaultMemoTemplate(availableTemplates.value) != null);
+const canOfferManualTemplateSelection = computed(() =>
+  !isTemplatePickerDismissed.value
+  && !shouldSkipDefaultTemplate.value
+  && !hasRequestedTemplate.value
+  && !hasDefaultMemoTemplate.value,
+);
+const shouldShowTemplatePicker = computed(() =>
+  isNewMemoCreationFlow.value
+  && canOfferManualTemplateSelection.value
+  && availableTemplates.value.length > 0,
+);
+const isEditorBodyEmpty = computed(() => Boolean(editor.value?.isEmpty));
+const shouldShowInlineTemplateSuggestions = computed(() =>
+  shouldShowTemplatePicker.value && isEditorBodyEmpty.value,
+);
 
 const getCurrentSnapshot = (): MemoSnapshot => {
   const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : memo.value.content;
@@ -335,6 +416,40 @@ const computeDirty = () => {
 
 const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();
 let dispatch: (event: MemoEvent) => void = () => {};
+
+async function clearCreatedQueryFlag() {
+  if (
+    createdQueryValue.value == null
+    && requestedTemplateSlug.value == null
+    && !shouldSkipDefaultTemplate.value
+  ) {
+    return;
+  }
+
+  const {
+    created: _created,
+    template: _template,
+    skipDefaultTemplate: _skipDefaultTemplate,
+    ...nextQuery
+  } = route.query;
+  await router.replace({
+    path: route.path,
+    query: nextQuery,
+    hash: route.hash,
+  });
+}
+
+function focusTitleFieldIfNeeded() {
+  if (createdQueryValue.value !== CREATED_QUERY_SOURCE_BLANK) {
+    return;
+  }
+
+  nextTick(() => {
+    window.setTimeout(() => {
+      memoEditorRef.value?.focusTitleField(true);
+    }, 50);
+  });
+}
 
 async function saveMemoContent(mode: 'explicit' | 'auto') {
   if (!editor.value) {
@@ -374,6 +489,62 @@ async function saveMemoContent(mode: 'explicit' | 'auto') {
     memoSlug: currentTitleForSlug,
     error: result.ok ? undefined : result.error,
   };
+}
+
+async function applyTemplate(templateSlug: string, options?: { toastTitle?: string }) {
+  if (!editor.value || !memoVM.value.data.memo) {
+    return false;
+  }
+
+  isApplyingTemplate.value = true;
+
+  try {
+    const templateMemo = await command.memoTemplate.get({
+      workspaceSlugName: workspaceSlug.value,
+      templateSlugName: templateSlug,
+    });
+
+    selectedTemplateId.value = templateMemo.id;
+    editor.value.commands.setContent(parseTemplateContent(templateMemo));
+    await nextTick();
+
+    const result = await saveMemoContent('auto');
+    if (!result.ok || !result.memoSlug) {
+      dispatch({ type: 'memo/save-failed', payload: { error: result.error } });
+      toast.add({
+        title: 'Failed to apply template',
+        description: 'Please try again',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+      return false;
+    }
+
+    dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.memoSlug } });
+    isTemplatePickerDismissed.value = true;
+    await clearCreatedQueryFlag();
+    toast.add({
+      title: options?.toastTitle ?? 'Template applied',
+      icon: iconKey.success,
+      duration: 1000,
+    });
+    return true;
+  }
+  catch (error) {
+    logger.error(error);
+    dispatch({ type: 'memo/save-failed', payload: { error } });
+    toast.add({
+      title: 'Failed to apply template',
+      description: 'Please try again',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+    return false;
+  }
+  finally {
+    isApplyingTemplate.value = false;
+    selectedTemplateId.value = undefined;
+  }
 }
 
 const confirmDelete = async (previousState: MemoState) => {
@@ -469,6 +640,7 @@ dispatch = machine.dispatch;
 
 // Reference to control the link palette component
 const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
+const memoEditorRef = ref<InstanceType<typeof MemoEditor> | null>(null);
 
 const {
   editor,
@@ -489,6 +661,76 @@ const {
 watch(memoTitle, () => {
   dispatch({ type: 'memo/title-changed', payload: { dirty: computeDirty() } });
 });
+
+watch(isEditorBodyEmpty, async (isEmpty) => {
+  if (
+    isEmpty
+    || isTemplatePickerDismissed.value
+    || !isNewMemoCreationFlow.value
+    || isApplyingTemplate.value
+  ) {
+    return;
+  }
+
+  isTemplatePickerDismissed.value = true;
+  await clearCreatedQueryFlag();
+});
+
+onMounted(() => {
+  if (createdQueryValue.value === CREATED_QUERY_SOURCE_BLANK) {
+    focusTitleFieldIfNeeded();
+  }
+});
+
+watch(
+  [isNewMemoCreationFlow, requestedTemplateSlug, shouldSkipDefaultTemplate, availableTemplates, editor],
+  async ([, templateSlug, skipDefaultTemplate]) => {
+    if (hasAttemptedDefaultTemplate.value) {
+      return;
+    }
+
+    if (!isNewMemoCreationFlow.value) {
+      return;
+    }
+
+    if (!editor.value) {
+      return;
+    }
+
+    if (templateSlug) {
+      hasAttemptedDefaultTemplate.value = true;
+      const isApplied = await applyTemplate(templateSlug);
+      if (!isApplied) {
+        const { template: _template, ...nextQuery } = route.query;
+        await router.replace({
+          path: route.path,
+          query: nextQuery,
+          hash: route.hash,
+        });
+        isTemplatePickerDismissed.value = false;
+      }
+      return;
+    }
+
+    if (skipDefaultTemplate) {
+      hasAttemptedDefaultTemplate.value = true;
+      isTemplatePickerDismissed.value = true;
+      await clearCreatedQueryFlag();
+      focusTitleFieldIfNeeded();
+      return;
+    }
+
+    const defaultTemplate = getDefaultMemoTemplate(availableTemplates.value);
+    if (!defaultTemplate) {
+      hasAttemptedDefaultTemplate.value = true;
+      return;
+    }
+
+    hasAttemptedDefaultTemplate.value = true;
+    await applyTemplate(defaultTemplate.slug_name, { toastTitle: 'Default template applied' });
+  },
+  { immediate: true },
+);
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (isCmdKey(event) && event.key === 's') {
@@ -860,5 +1102,44 @@ a.external-link {
 
 .kanban-assign-actions {
   min-width: 180px;
+}
+
+.template-suggestion-shell {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  background-color: var(--color-surface-elevated);
+}
+
+.template-suggestion-inline {
+  padding: 0.5rem 0 1.5rem;
+}
+
+.template-suggestion-scroll {
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+
+.template-suggestion-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.template-suggestion-scroll::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+
+.template-suggestion-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--color-scrollbar-thumb);
+  border-radius: var(--radius-sm);
+}
+
+.template-suggestion-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scrollbar-thumb-hover);
 }
 </style>

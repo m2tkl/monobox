@@ -86,6 +86,14 @@ fn main() {
             commands::memo::save_memo,
             commands::memo::delete_memo,
             commands::memo::search_memos,
+            // Memo Template
+            commands::memo_template::get_workspace_memo_templates,
+            commands::memo_template::get_memo_template,
+            commands::memo_template::create_memo_template,
+            commands::memo_template::save_memo_template,
+            commands::memo_template::delete_memo_template,
+            commands::memo_template::set_default_memo_template,
+            commands::memo_template::clear_default_memo_template,
             // Memo Status
             commands::kanban_status::list_kanban_statuses,
             commands::kanban_status::create_kanban_status,

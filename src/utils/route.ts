@@ -76,6 +76,10 @@ export const getEncodedMemoSlugFromPath = (route: RouteLocationNormalizedLoaded)
 export const getEncodedWorkspaceSlugFromPath = (route: RouteLocationNormalizedLoaded) =>
   getEncodedParamsFromRoute(route).workspace;
 
+export function isNewMemoRoute(route: RouteLocationNormalizedLoaded) {
+  return getEncodedMemoSlugFromPath(route) === '__new__';
+}
+
 /**
  * Return encoded slugs derived from `route.params`.
  *

@@ -53,19 +53,6 @@
     </template>
 
     <template #actions>
-      <!-- New memo action button -->
-      <div class="fixed bottom-10 right-10 z-50">
-        <NuxtLink :to="`/${workspaceSlug}/new`">
-          <UButton
-            :icon="iconKey.add"
-            square
-            variant="solid"
-            size="xl"
-            style="background-color: var(--color-primary)"
-          />
-        </NuxtLink>
-      </div>
-
       <div v-if="memos">
         <SearchPalette
           :workspace-slug="workspaceSlug"
@@ -79,9 +66,9 @@
 </template>
 
 <script lang="ts" setup>
-import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import MemoCards from '~/app/features/memo/list/MemoCards.vue';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
+import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { useBookmarkListViewModel } from '~/resource-state/viewmodels/bookmarkList';
 import { useWorkspaceMemosViewModel } from '~/resource-state/viewmodels/workspaceMemos';
 
