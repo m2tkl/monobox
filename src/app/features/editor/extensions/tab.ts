@@ -1,4 +1,5 @@
 import { Extension } from '@tiptap/core';
+import { goToNextCell } from 'prosemirror-tables';
 import { wrapInList } from 'prosemirror-schema-list';
 
 import type { EditorState } from '@tiptap/pm/state';
@@ -40,6 +41,10 @@ export const CustomTab = Extension.create({
     return {
       'Tab': ({ editor }) => {
         const { state, dispatch } = editor.view;
+
+        if (editor.isActive('table')) {
+          return goToNextCell(1)(state, dispatch);
+        }
 
         if (editor.isActive('codeBlock')) {
           const { selection } = state;
@@ -84,6 +89,10 @@ export const CustomTab = Extension.create({
       },
       'Shift-Tab': ({ editor }) => {
         const { state, dispatch } = editor.view;
+
+        if (editor.isActive('table')) {
+          return goToNextCell(-1)(state, dispatch);
+        }
 
         if (editor.isActive('codeBlock')) {
           const { selection } = state;

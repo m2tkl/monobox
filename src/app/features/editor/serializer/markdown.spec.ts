@@ -2,6 +2,7 @@ import { Editor, type JSONContent } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { describe, it, expect } from 'vitest';
 
+import { buildExtensions } from '~/app/features/editor';
 import { convertToMarkdown } from '~/app/features/editor/serializer/markdown';
 
 describe('serializer/markdown - convertToMarkdown', () => {
@@ -40,6 +41,41 @@ describe('serializer/markdown - convertToMarkdown', () => {
     expect(md).toContain('```ts');
     expect(md).toContain('const a = 1;');
     expect(md).toContain('```');
+    editor.destroy();
+  });
+
+  it('serializes tables as markdown tables', () => {
+    const editor = new Editor({ extensions: buildExtensions({ CodeBlockComponent: {} as never }) });
+    const content: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Name' }] }] },
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Role' }] }] },
+              ],
+            },
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Ada' }] }] },
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Admin' }] }] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    editor.commands.setContent(content);
+
+    const md = convertToMarkdown(editor.state.doc);
+    expect(md).toContain('| Name | Role |');
+    expect(md).toContain('| --- | --- |');
+    expect(md).toContain('| Ada | Admin |');
     editor.destroy();
   });
 });

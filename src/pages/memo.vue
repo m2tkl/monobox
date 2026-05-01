@@ -27,7 +27,7 @@
           >
             <template #toolbar="{ editor: _editor }">
               <EditorToolbarButton
-                v-for="(item) in editorToolbarActionItems"
+                v-for="(item) in getEditorToolbarActionItems(_editor)"
                 :key="item.msg.type"
                 :label="item.label"
                 :icon="item.icon"
@@ -95,6 +95,24 @@
                   </div>
                 </div>
               </template>
+            </template>
+
+            <template #table-bubble-menu="{ editor: _editor, tableSelectionAxis }">
+              <div
+                v-for="item in getTableBubbleMenuActionItems(_editor, tableSelectionAxis)"
+                :key="item.msg.type"
+                :class="item.dividerBefore ? 'mt-1 border-t pt-1' : ''"
+                style="border-color: var(--color-border-light)"
+              >
+                <EditorToolbarButton
+                  :label="item.label"
+                  :icon="item.icon"
+                  :disabled="item.disabled"
+                  tabindex="-1"
+                  full-width
+                  @exec="dispatchEditorMsg(_editor, item.msg)"
+                />
+              </div>
             </template>
 
             <template #dialogs="{ editor: _editor }">
@@ -251,6 +269,8 @@
 </template>
 
 <script lang="ts" setup>
+import { CellSelection, TableMap } from 'prosemirror-tables';
+
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
@@ -781,10 +801,15 @@ onMounted(() => {
 });
 
 const { openPreview } = useImagePreview();
+// ProseMirror selection/transaction changes are not Vue-reactive by themselves.
+// Bump this counter to force toolbar/table-menu getters to re-run against current editor state.
+const toolbarContextVersion = ref(0);
+let detachToolbarContextListeners: (() => void) | null = null;
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown);
   document.getElementById('main')?.removeEventListener('scroll', handleScroll);
+  detachToolbarContextListeners?.();
 
   // Destroy editor
   editor.value?.destroy();
@@ -814,7 +839,7 @@ function openSelectedImagePreview() {
 /**
  * Editor toolbar action items
  */
-const editorToolbarActionItems: {
+const baseEditorToolbarActionItems: {
   label?: string;
   icon?: string;
   msg: EditorMsgType;
@@ -829,8 +854,119 @@ const editorToolbarActionItems: {
   { icon: iconKey.listNumbered, msg: { type: 'toggleOrderedList' } },
   { icon: iconKey.quotes, msg: { type: 'toggleBlockQuote' } },
   { icon: iconKey.inlineCode, msg: { type: 'toggleCode' } },
+  { icon: iconKey.table, msg: { type: 'insertTable' } },
   { icon: iconKey.clearFormat, msg: { type: 'clearFormat' } },
 ];
+
+const tableRowBubbleMenuActionItems: {
+  label?: string;
+  icon?: string;
+  disabled?: boolean;
+  dividerBefore?: boolean;
+  msg: EditorMsgType;
+}[] = [
+  { label: 'Add row before', icon: iconKey.arrowUp, msg: { type: 'insertTableRowBefore' } },
+  { label: 'Add row after', icon: iconKey.arrowDown, msg: { type: 'insertTableRowAfter' } },
+  { label: 'Del Row', icon: iconKey.trash, msg: { type: 'deleteTableRow' } },
+  { label: 'Del Tbl', icon: iconKey.trash, dividerBefore: true, msg: { type: 'deleteTable' } },
+];
+
+const tableColumnBubbleMenuActionItems: {
+  label?: string;
+  icon?: string;
+  disabled?: boolean;
+  dividerBefore?: boolean;
+  msg: EditorMsgType;
+}[] = [
+  { label: 'Add col before', icon: iconKey.arrowLeft, msg: { type: 'insertTableColumnBefore' } },
+  { label: 'Add col after', icon: iconKey.arrowRight, msg: { type: 'insertTableColumnAfter' } },
+  { label: 'Del Col', icon: iconKey.trash, msg: { type: 'deleteTableColumn' } },
+  { label: 'Del Tbl', icon: iconKey.trash, dividerBefore: true, msg: { type: 'deleteTable' } },
+];
+
+function getEditorToolbarActionItems(currentEditor?: typeof editor.value) {
+  // Keep toolbar item derivation behind a getter so toolbar state can depend on editor.state
+  // without leaking ProseMirror-specific reactivity details into the template.
+  void toolbarContextVersion.value;
+
+  if (!currentEditor) {
+    return baseEditorToolbarActionItems;
+  }
+
+  return baseEditorToolbarActionItems;
+}
+
+function getTableBubbleMenuActionItems(
+  currentEditor?: typeof editor.value,
+  tableSelectionAxis?: 'row' | 'column' | null,
+) {
+  // Recompute disabled states and row/column menu choice on every toolbar context bump.
+  void toolbarContextVersion.value;
+
+  if (!currentEditor) {
+    return [];
+  }
+
+  const selection = currentEditor.state.selection;
+  if (selection instanceof CellSelection) {
+    const table = selection.$anchorCell.node(-1);
+    const tableMap = TableMap.get(table);
+    const canDeleteRow = tableMap.height > 1;
+    const canDeleteColumn = tableMap.width > 1;
+    const rowItems = tableRowBubbleMenuActionItems.map(item =>
+      item.msg.type === 'deleteTableRow'
+        ? { ...item, disabled: !canDeleteRow }
+        : item);
+    const columnItems = tableColumnBubbleMenuActionItems.map(item =>
+      item.msg.type === 'deleteTableColumn'
+        ? { ...item, disabled: !canDeleteColumn }
+        : item);
+
+    if (tableSelectionAxis === 'column' && selection.isColSelection()) {
+      return columnItems;
+    }
+
+    if (tableSelectionAxis === 'row' && selection.isRowSelection()) {
+      return rowItems;
+    }
+
+    if (selection.isRowSelection()) {
+      return rowItems;
+    }
+
+    if (selection.isColSelection()) {
+      return columnItems;
+    }
+  }
+
+  return [];
+}
+
+watch(editor, (currentEditor, previousEditor) => {
+  detachToolbarContextListeners?.();
+  detachToolbarContextListeners = null;
+
+  if (!currentEditor) {
+    return;
+  }
+
+  const refreshToolbarContext = () => {
+    toolbarContextVersion.value += 1;
+  };
+
+  currentEditor.on('selectionUpdate', refreshToolbarContext);
+  currentEditor.on('transaction', refreshToolbarContext);
+  refreshToolbarContext();
+
+  detachToolbarContextListeners = () => {
+    currentEditor.off('selectionUpdate', refreshToolbarContext);
+    currentEditor.off('transaction', refreshToolbarContext);
+  };
+
+  if (previousEditor && previousEditor !== currentEditor) {
+    toolbarContextVersion.value += 1;
+  }
+}, { immediate: true });
 
 const toggleBookmark = async () => {
   if (!memoVM.value.data.memo) {

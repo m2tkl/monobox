@@ -1,6 +1,7 @@
 import Link from '@tiptap/extension-link';
 import StarterKit from '@tiptap/starter-kit';
 import { Editor as VueEditor } from '@tiptap/vue-3';
+import { CellSelection } from 'prosemirror-tables';
 import { describe, it, expect } from 'vitest';
 
 import * as Action from './action';
@@ -96,6 +97,144 @@ describe('editor/core/action', () => {
     editor.commands.insertContent('X');
     const after = editor.getHTML();
     expect(after).toMatch(/Foo<\/a>.*X/);
+    editor.destroy();
+  });
+
+  it('insertTable inserts a table with a header row', () => {
+    const editor = new VueEditor({
+      extensions: buildExtensions({ CodeBlockComponent: {} as never }),
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+    });
+
+    const inserted = Action.insertTable(editor, { rows: 2, cols: 2, withHeaderRow: true });
+
+    expect(inserted).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'table',
+      content: [
+        {
+          type: 'tableRow',
+          content: [
+            { type: 'tableHeader' },
+            { type: 'tableHeader' },
+          ],
+        },
+        {
+          type: 'tableRow',
+          content: [
+            { type: 'tableCell' },
+            { type: 'tableCell' },
+          ],
+        },
+      ],
+    });
+
+    editor.destroy();
+  });
+
+  it('insertTable defaults to a table without a header row', () => {
+    const editor = new VueEditor({
+      extensions: buildExtensions({ CodeBlockComponent: {} as never }),
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+    });
+
+    const inserted = Action.insertTable(editor);
+
+    expect(inserted).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: 'table',
+      content: [
+        {
+          type: 'tableRow',
+          content: [
+            { type: 'tableCell' },
+            { type: 'tableCell' },
+            { type: 'tableCell' },
+          ],
+        },
+        {
+          type: 'tableRow',
+          content: [
+            { type: 'tableCell' },
+            { type: 'tableCell' },
+            { type: 'tableCell' },
+          ],
+        },
+        {
+          type: 'tableRow',
+          content: [
+            { type: 'tableCell' },
+            { type: 'tableCell' },
+            { type: 'tableCell' },
+          ],
+        },
+      ],
+    });
+
+    editor.destroy();
+  });
+
+  it('adds and removes table rows and columns', () => {
+    const editor = new VueEditor({
+      extensions: buildExtensions({ CodeBlockComponent: {} as never }),
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+    });
+
+    Action.insertTable(editor, { rows: 2, cols: 2, withHeaderRow: true });
+    editor.commands.focus('start');
+
+    expect(Action.insertTableRowBefore(editor)).toBe(true);
+    expect(Action.insertTableRowAfter(editor)).toBe(true);
+    expect(Action.insertTableColumnBefore(editor)).toBe(true);
+    expect(Action.insertTableColumnAfter(editor)).toBe(true);
+
+    let table = editor.getJSON().content?.[0];
+    expect(table?.content).toHaveLength(4);
+    expect(table?.content?.every(row => row.content?.length === 4)).toBe(true);
+
+    expect(Action.deleteTableRow(editor)).toBe(true);
+    expect(Action.deleteTableColumn(editor)).toBe(true);
+
+    table = editor.getJSON().content?.[0];
+    expect(table?.content).toHaveLength(3);
+    expect(table?.content?.every(row => row.content?.length === 3)).toBe(true);
+
+    editor.destroy();
+  });
+
+  it('deletes the current table', () => {
+    const editor = new VueEditor({
+      extensions: buildExtensions({ CodeBlockComponent: {} as never }),
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+    });
+
+    Action.insertTable(editor, { rows: 2, cols: 2, withHeaderRow: true });
+    editor.commands.focus('start');
+
+    expect(Action.deleteEditorTable(editor)).toBe(true);
+    expect(editor.getJSON().content?.some(node => node.type === 'table')).toBe(false);
+
+    editor.destroy();
+  });
+
+  it('selects the current table row and column', () => {
+    const editor = new VueEditor({
+      extensions: buildExtensions({ CodeBlockComponent: {} as never }),
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+    });
+
+    Action.insertTable(editor, { rows: 2, cols: 2, withHeaderRow: true });
+    editor.commands.focus('start');
+
+    expect(Action.selectTableRow(editor)).toBe(true);
+    expect(editor.state.selection).toBeInstanceOf(CellSelection);
+    expect((editor.state.selection as CellSelection).isRowSelection()).toBe(true);
+
+    editor.commands.focus('start');
+    expect(Action.selectTableColumn(editor)).toBe(true);
+    expect(editor.state.selection).toBeInstanceOf(CellSelection);
+    expect((editor.state.selection as CellSelection).isColSelection()).toBe(true);
+
     editor.destroy();
   });
 

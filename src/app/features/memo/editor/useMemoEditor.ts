@@ -1,7 +1,8 @@
-import { useEditor, type Editor as _Editor } from '@tiptap/vue-3';
+import { TextSelection, type Transaction } from '@tiptap/pm/state';
+import { useEditor } from '@tiptap/vue-3';
 
 import type { Extensions, Editor } from '@tiptap/core';
-import type { Transaction } from '@tiptap/pm/state';
+import type { Node as PMNode } from '@tiptap/pm/model';
 import type { EditorView } from '@tiptap/pm/view';
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
@@ -49,10 +50,18 @@ type Heading = {
   text: string;
 };
 
+type TableImeGuardState = {
+  cellPos: number | null;
+  startedWithEmptyCell: boolean;
+  awaitingTrailingEnter: boolean;
+};
+
 export function useMemoEditor(
   memoContent: string,
   options: MemoEditorOptions,
 ) {
+  const enableTableImeDiagnosis = false;
+
   // Stores the first image found in the document, used as a thumbnail reference
   const headImageRef = ref<string>();
 
@@ -61,6 +70,112 @@ export function useMemoEditor(
 
   // Tracks whether the caret has moved out of the visible editor area, used to adjust heading focus behavior
   const wasCaretOut = ref(false);
+  const createTableImeGuardState = (): TableImeGuardState => ({
+    cellPos: null,
+    startedWithEmptyCell: false,
+    awaitingTrailingEnter: false,
+  });
+  const tableImeGuard = ref<TableImeGuardState>(createTableImeGuardState());
+
+  const logTableIme = (
+    stage: string,
+    payload: Record<string, unknown> = {},
+  ) => {
+    if (!enableTableImeDiagnosis) {
+      return;
+    }
+
+    const currentEditor = editor.value;
+    if (!currentEditor) {
+      return;
+    }
+
+    const { selection } = currentEditor.state;
+    const tableDepth = selection.$from.depth >= 1
+      ? selection.$from.path.findIndex((value, index) =>
+          index % 3 === 0 && value?.type?.name === 'table')
+      : -1;
+
+    if (!currentEditor.isActive('table') && tableDepth === -1) {
+      return;
+    }
+
+    const parent = selection.$from.parent.type.name;
+    const rowOrHeader = selection.$from.node(Math.max(selection.$from.depth - 1, 0)).type.name;
+    const tableNode = findAncestorNode(selection.$from, 'table');
+
+    console.log('[table-ime]', JSON.stringify({
+      stage,
+      from: selection.from,
+      to: selection.to,
+      empty: selection.empty,
+      parent,
+      rowOrHeader,
+      selectionType: selection.constructor.name,
+      composing: currentEditor.view.composing,
+      textBefore: selection.$from.parent.textContent,
+      tableShape: tableNode ? summarizeTable(tableNode) : null,
+      ...payload,
+    }));
+  };
+
+  const findAncestorNode = (
+    $pos: Editor['state']['selection']['$from'],
+    typeName: string,
+  ): PMNode | null => {
+    for (let depth = $pos.depth; depth >= 0; depth -= 1) {
+      const node = $pos.node(depth);
+      if (node.type.name === typeName) {
+        return node;
+      }
+    }
+
+    return null;
+  };
+
+  const summarizeTable = (tableNode: PMNode) => {
+    return Array.from({ length: tableNode.childCount }, (_, rowIndex) => {
+      const row = tableNode.child(rowIndex);
+      return Array.from({ length: row.childCount }, (_, cellIndex) => {
+        const cell = row.child(cellIndex);
+        return {
+          type: cell.type.name,
+          text: cell.textContent,
+        };
+      });
+    });
+  };
+
+  const findAncestorNodeInfoByNames = (
+    $pos: Editor['state']['selection']['$from'],
+    typeNames: string[],
+  ): { node: PMNode; depth: number } | null => {
+    for (let depth = $pos.depth; depth >= 0; depth -= 1) {
+      const node = $pos.node(depth);
+      if (typeNames.includes(node.type.name)) {
+        return { node, depth };
+      }
+    }
+
+    return null;
+  };
+
+  const getCurrentTableCellInfo = (view: EditorView) => {
+    return findAncestorNodeInfoByNames(
+      view.state.selection.$from,
+      ['tableCell', 'tableHeader'],
+    );
+  };
+
+  const resetTableImeGuard = () => {
+    tableImeGuard.value = createTableImeGuardState();
+  };
+
+  const shouldPreventTrailingTableImeEnter = (event: KeyboardEvent) => {
+    return event.key === 'Enter'
+      && event.keyCode === 229
+      && tableImeGuard.value.awaitingTrailingEnter;
+  };
 
   const editor = useEditor({
     content: JSON.parse(memoContent),
@@ -82,6 +197,18 @@ export function useMemoEditor(
        *   For shortcuts that should be usable even when the Editor is not focused, use `window.addEventListener` to register them.
        */
       handleKeyDown(_view: EditorView, _event: KeyboardEvent) {
+        // See src/app/features/editor/docs/table-ime.md for the root cause.
+        // macOS IME confirms inside table cells emit an Enter(keyCode=229)
+        // after composition; letting it through leaves an extra empty paragraph
+        // in the cell even when the composition text was already committed.
+        if (
+          shouldPreventTrailingTableImeEnter(_event)
+        ) {
+          _event.preventDefault();
+          resetTableImeGuard();
+          return true;
+        }
+
         // Command register sample
         // if (event.metaKey && event.key === "i") {
         //   event.preventDefault();
@@ -90,7 +217,137 @@ export function useMemoEditor(
         //
         //   return true;
         // }
-        // return false;
+        return false;
+      },
+      handleDOMEvents: {
+        compositionstart: (view, event) => {
+          const target = event.target as HTMLElement | null;
+          const cellInfo = getCurrentTableCellInfo(view);
+          tableImeGuard.value = {
+            cellPos: cellInfo ? view.state.selection.$from.before(cellInfo.depth) : null,
+            startedWithEmptyCell: (cellInfo?.node.textContent ?? '') === '',
+            awaitingTrailingEnter: false,
+          };
+          logTableIme('compositionstart', {
+            target: target?.tagName,
+            data: (event as CompositionEvent).data ?? null,
+          });
+          return false;
+        },
+        compositionupdate: (view, event) => {
+          const target = event.target as HTMLElement | null;
+          logTableIme('compositionupdate', {
+            target: target?.tagName,
+            data: (event as CompositionEvent).data ?? null,
+          });
+          return false;
+        },
+        compositionend: (view, event) => {
+          const target = event.target as HTMLElement | null;
+          logTableIme('compositionend', {
+            target: target?.tagName,
+            data: (event as CompositionEvent).data ?? null,
+          });
+          return false;
+        },
+        beforeinput: (view, event) => {
+          const inputEvent = event as InputEvent;
+          const target = event.target as HTMLElement | null;
+
+          const cellInfo = getCurrentTableCellInfo(view);
+          const compositionResult = inputEvent.data ?? '';
+          if (
+            inputEvent.inputType === 'insertFromComposition'
+            && cellInfo
+            && tableImeGuard.value.startedWithEmptyCell
+            && tableImeGuard.value.cellPos === view.state.selection.$from.before(cellInfo.depth)
+            && compositionResult.length > 0
+            && cellInfo.node.textContent === compositionResult
+          ) {
+            event.preventDefault();
+            // See src/app/features/editor/docs/table-ime.md.
+            // In empty table cells, Safari/WebKit-style IME flows can apply
+            // `insertCompositionText` and then replay the same content via
+            // `insertFromComposition`. When that happens, ProseMirror leaves
+            // an extra empty paragraph in the cell, which looks like a newline.
+            // Normalize the cell back to a single paragraph and place the caret
+            // at the end of the confirmed text.
+            const paragraphType = view.state.schema.nodes.paragraph;
+            if (!paragraphType) {
+              return false;
+            }
+            const cellPos = view.state.selection.$from.before(cellInfo.depth);
+            const paragraphNode = paragraphType.create(
+              null,
+              compositionResult.length > 0 ? view.state.schema.text(compositionResult) : undefined,
+            );
+            const normalizedCell = cellInfo.node.type.create(
+              cellInfo.node.attrs,
+              [paragraphNode],
+              cellInfo.node.marks,
+            );
+            const tr = view.state.tr.replaceWith(
+              cellPos,
+              cellPos + cellInfo.node.nodeSize,
+              normalizedCell,
+            );
+            const selectionPos = cellPos + normalizedCell.nodeSize - 2;
+            view.dispatch(
+              tr.setSelection(TextSelection.create(tr.doc, selectionPos)),
+            );
+            tableImeGuard.value.awaitingTrailingEnter = true;
+            logTableIme('beforeinput-prevented', {
+              target: target?.tagName,
+              inputType: inputEvent.inputType ?? null,
+              data: inputEvent.data ?? null,
+              isComposing: inputEvent.isComposing,
+              reason: 'duplicate-insertFromComposition',
+            });
+            return true;
+          }
+
+          logTableIme('beforeinput', {
+            target: target?.tagName,
+            inputType: inputEvent.inputType ?? null,
+            data: inputEvent.data ?? null,
+            isComposing: inputEvent.isComposing,
+          });
+          return false;
+        },
+        input: (view, event) => {
+          const inputEvent = event as InputEvent;
+          const target = event.target as HTMLElement | null;
+          logTableIme('input', {
+            target: target?.tagName,
+            inputType: inputEvent.inputType ?? null,
+            data: inputEvent.data ?? null,
+            isComposing: inputEvent.isComposing,
+          });
+          return false;
+        },
+        keydown: (view, event) => {
+          const keyboardEvent = event as KeyboardEvent;
+          if (shouldPreventTrailingTableImeEnter(keyboardEvent)) {
+            keyboardEvent.preventDefault();
+            resetTableImeGuard();
+            logTableIme('dom-keydown-prevented', {
+              key: keyboardEvent.key,
+              keyCode: keyboardEvent.keyCode,
+              isComposing: keyboardEvent.isComposing,
+              defaultPrevented: keyboardEvent.defaultPrevented,
+              reason: 'table-ime-enter',
+            });
+            return true;
+          }
+
+          logTableIme('dom-keydown', {
+            key: keyboardEvent.key,
+            keyCode: keyboardEvent.keyCode,
+            isComposing: keyboardEvent.isComposing,
+            defaultPrevented: keyboardEvent.defaultPrevented,
+          });
+          return false;
+        },
       },
     },
     onCreate({ editor }) {
@@ -136,6 +393,10 @@ export function useMemoEditor(
       };
     },
     onTransaction: async ({ editor: _editor, transaction }) => {
+      logTableIme('transaction', {
+        docChanged: transaction.docChanged,
+        steps: transaction.steps.map(step => step.constructor.name),
+      });
       if (!transaction.docChanged) return;
 
       options.onChanged?.('content');
@@ -148,6 +409,7 @@ export function useMemoEditor(
       EditorAction.assignUniqueHeadingIds(_editor);
     },
     onSelectionUpdate: ({ editor }) => {
+      logTableIme('selectionUpdate');
       const editorContainer = document.getElementById('main');
       if (!editorContainer) return;
 

@@ -1,6 +1,6 @@
 import { Extension } from '@tiptap/core';
 import { MarkdownParser } from '@tiptap/pm/markdown';
-import { Fragment, Slice, type Schema } from '@tiptap/pm/model';
+import { DOMParser as ProseMirrorDOMParser, Fragment, Slice, type Schema } from '@tiptap/pm/model';
 import { Plugin } from '@tiptap/pm/state';
 import MarkdownIt from 'markdown-it';
 
@@ -15,8 +15,11 @@ function listIsTight(tokens: readonly Token[], i: number) {
   return false;
 }
 
-function createMarkdownParser(schema: Schema) {
-  const tokenizer = MarkdownIt('commonmark', { html: false, linkify: true });
+function createMarkdownTokenizer() {
+  return MarkdownIt({ html: false, linkify: true });
+}
+
+function createMarkdownParser(schema: Schema, tokenizer: MarkdownIt) {
   const tokens: Record<string, ParseSpec> = {
     blockquote: { block: 'blockquote' },
     paragraph: { block: 'paragraph' },
@@ -29,6 +32,12 @@ function createMarkdownParser(schema: Schema) {
         tight: listIsTight(tokenStream, i),
       }),
     },
+    table: { block: 'table' },
+    thead: { ignore: true },
+    tbody: { ignore: true },
+    tr: { block: 'tableRow' },
+    th: { block: 'tableHeader' },
+    td: { block: 'tableCell' },
     heading: { block: 'heading', getAttrs: token => ({ level: Number(token.tag.slice(1)) || 1, id: null }) },
     code_block: { block: 'codeBlock', noCloseToken: true },
     fence: { block: 'codeBlock', noCloseToken: true, getAttrs: token => ({ language: token.info.trim(), name: '', refresh: 0 }) },
@@ -64,6 +73,7 @@ const markdownPatterns = [
   /^~~~[\w+-]*\n[\s\S]*\n~~~/m,
   /^\s*[-*+]\s+\S/m,
   /^\s*\d+\.\s+\S/m,
+  /^\|(?:[^|\n]+\|)+\s*\n\|(?:\s*:?-+:?\s*\|)+/m,
   /!\[[^\]]*]\([^)]+\)/,
   /\[[^\]]+]\([^)]+\)/,
   /(^|[^\w])(\*\*|__)[^\n]+(\*\*|__)(?=$|[^\w])/,
@@ -80,7 +90,18 @@ export function looksLikeMarkdown(text: string): boolean {
 }
 
 export function parseMarkdownToSlice(schema: Schema, text: string): Slice {
-  const parser = createMarkdownParser(schema);
+  const tokenizer = createMarkdownTokenizer();
+  const parsedTokens = tokenizer.parse(text, {});
+
+  if (parsedTokens.some(token => token.type === 'table_open')) {
+    const html = tokenizer.render(text);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const doc = ProseMirrorDOMParser.fromSchema(schema).parse(wrapper);
+    return new Slice(Fragment.from(doc.content), 0, 0);
+  }
+
+  const parser = createMarkdownParser(schema, tokenizer);
   const doc = parser.parse(text);
   return new Slice(Fragment.from(doc.content), 0, 0);
 }

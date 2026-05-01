@@ -22,11 +22,14 @@ export const iconKey = {
   listNumbered: 'carbon:list-numbered',
   quotes: 'carbon:quotes',
   inlineCode: 'carbon:string-text',
+  table: 'carbon:table',
   memoLink: 'carbon:ibm-cloud-direct-link-1-connect',
 
   // Titlebar
   arrowLeft: 'carbon:arrow-left',
   arrowRight: 'carbon:arrow-right',
+  arrowUp: 'carbon:arrow-up',
+  arrowDown: 'carbon:arrow-down',
   menu: 'carbon:menu',
 
   bookmark: 'carbon:bookmark',

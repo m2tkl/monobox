@@ -13,6 +13,16 @@ vi.mock('./action', () => ({
   toggleOrderedList: vi.fn(),
   toggleBlockQuote: vi.fn(),
   toggleCode: vi.fn(),
+  insertTable: vi.fn(),
+  insertTableRowBefore: vi.fn(),
+  insertTableRowAfter: vi.fn(),
+  insertTableColumnBefore: vi.fn(),
+  insertTableColumnAfter: vi.fn(),
+  selectTableRow: vi.fn(),
+  selectTableColumn: vi.fn(),
+  deleteTableRow: vi.fn(),
+  deleteTableColumn: vi.fn(),
+  deleteEditorTable: vi.fn(),
   unsetLink: vi.fn(),
   resetStyle: vi.fn(),
 }));
@@ -40,9 +50,29 @@ describe('editor/core/command', () => {
     const editor = {} as unknown as Parameters<typeof dispatchEditorMsg>[0];
 
     dispatchEditorMsg(editor, { type: 'toggleBulletList' });
+    dispatchEditorMsg(editor, { type: 'insertTable' });
+    dispatchEditorMsg(editor, { type: 'insertTableRowBefore' });
+    dispatchEditorMsg(editor, { type: 'insertTableRowAfter' });
+    dispatchEditorMsg(editor, { type: 'insertTableColumnBefore' });
+    dispatchEditorMsg(editor, { type: 'insertTableColumnAfter' });
+    dispatchEditorMsg(editor, { type: 'selectTableRow' });
+    dispatchEditorMsg(editor, { type: 'selectTableColumn' });
+    dispatchEditorMsg(editor, { type: 'deleteTableRow' });
+    dispatchEditorMsg(editor, { type: 'deleteTableColumn' });
+    dispatchEditorMsg(editor, { type: 'deleteTable' });
     dispatchEditorMsg(editor, { type: 'setLink', href: '/foo' });
 
     expect(Action.toggleBulletList).toHaveBeenCalledWith(editor);
+    expect(Action.insertTable).toHaveBeenCalledWith(editor);
+    expect(Action.insertTableRowBefore).toHaveBeenCalledWith(editor);
+    expect(Action.insertTableRowAfter).toHaveBeenCalledWith(editor);
+    expect(Action.insertTableColumnBefore).toHaveBeenCalledWith(editor);
+    expect(Action.insertTableColumnAfter).toHaveBeenCalledWith(editor);
+    expect(Action.selectTableRow).toHaveBeenCalledWith(editor);
+    expect(Action.selectTableColumn).toHaveBeenCalledWith(editor);
+    expect(Action.deleteTableRow).toHaveBeenCalledWith(editor);
+    expect(Action.deleteTableColumn).toHaveBeenCalledWith(editor);
+    expect(Action.deleteEditorTable).toHaveBeenCalledWith(editor);
     expect(Action.setLink).toHaveBeenCalledWith(editor, '/foo');
   });
 });

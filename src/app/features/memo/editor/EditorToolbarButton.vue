@@ -1,11 +1,17 @@
 <template>
   <UButton
+    type="button"
     variant="ghost"
     color="neutral"
     size="xs"
-    square
+    :square="!label && !fullWidth"
     :icon="icon"
-    @click="$emit('exec')"
+    :disabled="disabled"
+    :class="[
+      fullWidth ? 'w-full justify-start px-2' : '',
+    ]"
+    @mousedown.prevent
+    @click="!disabled && $emit('exec')"
   >
     {{ label }}
   </UButton>
@@ -15,6 +21,8 @@
 defineProps<{
   icon?: string;
   label?: string;
+  disabled?: boolean;
+  fullWidth?: boolean;
 }>();
 
 defineEmits<{ exec: () => void }>();

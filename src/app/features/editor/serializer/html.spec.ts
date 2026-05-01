@@ -60,4 +60,36 @@ describe('serializer/html - convertEditorJsonToHtml', () => {
     const html = convertEditorJsonToHtml(json);
     expect(html).toContain('<img src="http://example.com/x.png" alt="x">');
   });
+
+  it('renders tables with header and body sections', () => {
+    const json: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Name' }] }] },
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Role' }] }] },
+              ],
+            },
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Ada' }] }] },
+                { type: 'tableCell', attrs: { colspan: 2 }, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Admin' }] }] },
+              ],
+            },
+          ],
+        },
+      ],
+    } as const;
+
+    const html = convertEditorJsonToHtml(json);
+    expect(html).toContain('<table>');
+    expect(html).toContain('<thead><tr><th><p>Name</p></th><th><p>Role</p></th></tr></thead>');
+    expect(html).toContain('<tbody><tr><td><p>Ada</p></td><td colspan="2"><p>Admin</p></td></tr></tbody>');
+  });
 });

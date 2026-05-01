@@ -1,8 +1,19 @@
 import type { Editor as _Editor } from '@tiptap/core';
 import type { Level } from '@tiptap/extension-heading';
 import type { Editor } from '@tiptap/vue-3';
+import { addColumnAfter, addColumnBefore, addRowAfter, addRowBefore, CellSelection, cellAround, deleteColumn, deleteRow, deleteTable } from 'prosemirror-tables';
 
 import { isInternalLink } from '~/utils/link';
+
+const enableTableCommandDiagnosis = false;
+
+function logTableCommand(name: string, extra: Record<string, unknown> = {}) {
+  if (!enableTableCommandDiagnosis) {
+    return;
+  }
+
+  console.log('[table-cmd]', JSON.stringify({ name, ...extra }));
+}
 
 export const setLink = (editor: Editor, link: string) => {
   const target = isInternalLink(link) ? null : '_blank';
@@ -59,6 +70,100 @@ export const toggleCode = (
   editor: Editor,
 ) => {
   editor.chain().focus().toggleMark('code').run();
+};
+
+export const insertTable = (
+  editor: Editor,
+  options: {
+    rows?: number;
+    cols?: number;
+    withHeaderRow?: boolean;
+  } = {},
+) => {
+  const rows = Math.max(1, options.rows ?? 3);
+  const cols = Math.max(1, options.cols ?? 3);
+  // Default to body-only rows. Header cells (`th`) triggered a distinct IME
+  // failure mode on first composition confirm in Safari/WebKit-style flows.
+  // Details: src/app/features/editor/docs/table-ime.md
+  const withHeaderRow = options.withHeaderRow ?? false;
+
+  logTableCommand('insertTable', { rows, cols, withHeaderRow });
+  return editor.chain().focus().insertTable({ rows, cols, withHeaderRow }).run();
+};
+
+export const insertTableRowAfter = (
+  editor: Editor,
+) => {
+  logTableCommand('insertTableRowAfter');
+  return addRowAfter(editor.state, editor.view.dispatch);
+};
+
+export const insertTableRowBefore = (
+  editor: Editor,
+) => {
+  logTableCommand('insertTableRowBefore');
+  return addRowBefore(editor.state, editor.view.dispatch);
+};
+
+export const insertTableColumnAfter = (
+  editor: Editor,
+) => {
+  logTableCommand('insertTableColumnAfter');
+  return addColumnAfter(editor.state, editor.view.dispatch);
+};
+
+export const insertTableColumnBefore = (
+  editor: Editor,
+) => {
+  logTableCommand('insertTableColumnBefore');
+  return addColumnBefore(editor.state, editor.view.dispatch);
+};
+
+export const selectTableRow = (
+  editor: Editor,
+) => {
+  logTableCommand('selectTableRow');
+  const cell = cellAround(editor.state.selection.$from);
+  if (!cell) {
+    return false;
+  }
+
+  editor.view.dispatch(editor.state.tr.setSelection(CellSelection.rowSelection(cell)));
+  return true;
+};
+
+export const selectTableColumn = (
+  editor: Editor,
+) => {
+  logTableCommand('selectTableColumn');
+  const cell = cellAround(editor.state.selection.$from);
+  if (!cell) {
+    return false;
+  }
+
+  editor.view.dispatch(editor.state.tr.setSelection(CellSelection.colSelection(cell)));
+  return true;
+};
+
+export const deleteTableRow = (
+  editor: Editor,
+) => {
+  logTableCommand('deleteTableRow');
+  return deleteRow(editor.state, editor.view.dispatch);
+};
+
+export const deleteTableColumn = (
+  editor: Editor,
+) => {
+  logTableCommand('deleteTableColumn');
+  return deleteColumn(editor.state, editor.view.dispatch);
+};
+
+export const deleteEditorTable = (
+  editor: Editor,
+) => {
+  logTableCommand('deleteTable');
+  return deleteTable(editor.state, editor.view.dispatch);
 };
 
 export const resetStyle = (

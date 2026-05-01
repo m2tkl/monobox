@@ -6,6 +6,16 @@ import {
   toggleOrderedList,
   toggleBlockQuote,
   toggleCode,
+  insertTable,
+  insertTableRowBefore,
+  insertTableRowAfter,
+  insertTableColumnBefore,
+  insertTableColumnAfter,
+  selectTableRow,
+  selectTableColumn,
+  deleteTableRow,
+  deleteTableColumn,
+  deleteEditorTable,
   unsetLink,
   resetStyle,
 } from './action';
@@ -19,6 +29,16 @@ export type EditorMsg =
   | { type: 'toggleOrderedList' }
   | { type: 'toggleBlockQuote' }
   | { type: 'toggleCode' }
+  | { type: 'insertTable' }
+  | { type: 'insertTableRowBefore' }
+  | { type: 'insertTableRowAfter' }
+  | { type: 'insertTableColumnBefore' }
+  | { type: 'insertTableColumnAfter' }
+  | { type: 'selectTableRow' }
+  | { type: 'selectTableColumn' }
+  | { type: 'deleteTableRow' }
+  | { type: 'deleteTableColumn' }
+  | { type: 'deleteTable' }
   | { type: 'clearFormat' }
   | { type: 'unsetLink' }
   | { type: 'setLink'; href: string }
@@ -40,6 +60,16 @@ const defaultHandlers: EditorCommandHandlerMap = {
   toggleOrderedList: editor => toggleOrderedList(editor),
   toggleBlockQuote: editor => toggleBlockQuote(editor),
   toggleCode: editor => toggleCode(editor),
+  insertTable: editor => { insertTable(editor); },
+  insertTableRowBefore: editor => { insertTableRowBefore(editor); },
+  insertTableRowAfter: editor => { insertTableRowAfter(editor); },
+  insertTableColumnBefore: editor => { insertTableColumnBefore(editor); },
+  insertTableColumnAfter: editor => { insertTableColumnAfter(editor); },
+  selectTableRow: editor => { selectTableRow(editor); },
+  selectTableColumn: editor => { selectTableColumn(editor); },
+  deleteTableRow: editor => { deleteTableRow(editor); },
+  deleteTableColumn: editor => { deleteTableColumn(editor); },
+  deleteTable: editor => { deleteEditorTable(editor); },
   clearFormat: editor => resetStyle(editor),
   unsetLink: editor => unsetLink(editor),
   setLink: (editor, msg) => setLink(editor, msg.href),

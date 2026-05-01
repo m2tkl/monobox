@@ -2,6 +2,12 @@ import { MarkdownSerializer, defaultMarkdownSerializer } from '@tiptap/pm/markdo
 
 import type { Node } from '@tiptap/pm/model';
 
+function escapeTableCellText(text: string): string {
+  return text
+    .replaceAll('|', '\\|')
+    .replaceAll('\n', '<br>');
+}
+
 export const customMarkdownSerializer = new MarkdownSerializer(
   {
     ...defaultMarkdownSerializer.nodes,
@@ -34,6 +40,36 @@ export const customMarkdownSerializer = new MarkdownSerializer(
     },
     orderedList(state, node) {
       state.renderList(node, '  ', index => `${index + 1}. `);
+    },
+    table(state, node) {
+      const rows = node.content.content;
+      const headerRow = rows.find(row => row.type.name === 'tableRow'
+        && row.childCount > 0
+        && Array.from({ length: row.childCount }).every((_, index) => row.child(index).type.name === 'tableHeader'));
+
+      const columnCount = rows.reduce((max, row) => Math.max(max, row.childCount), 0);
+      const fallbackHeader = Array.from({ length: columnCount }, () => ' ');
+      const header = headerRow
+        ? Array.from({ length: columnCount }, (_, index) => escapeTableCellText(headerRow.maybeChild(index)?.textContent ?? ' '))
+        : fallbackHeader;
+
+      state.write(`| ${header.join(' | ')} |\n`);
+      state.write(`| ${Array.from({ length: columnCount }, () => '---').join(' | ')} |\n`);
+
+      rows.forEach((row) => {
+        if (row === headerRow) {
+          return;
+        }
+
+        const cells = Array.from({ length: columnCount }, (_, index) => {
+          const cell = row.maybeChild(index);
+          return escapeTableCellText(cell?.textContent ?? '');
+        });
+
+        state.write(`| ${cells.join(' | ')} |\n`);
+      });
+
+      state.closeBlock(node);
     },
     listItem(state, node) {
       state.renderInline(node);

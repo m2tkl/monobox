@@ -99,6 +99,10 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
     CustomExtension.markdownPasteExtension,
     CustomExtension.codeBlockExtension(CodeBlockComponent),
     CustomExtension.codeBlockNavExtension(),
+    CustomExtension.tableExtension(),
+    CustomExtension.tableRowExtension(),
+    CustomExtension.tableHeaderExtension(),
+    CustomExtension.tableCellExtension(),
 
     Focus.configure({ className: 'has-focus', mode: 'deepest' }),
     TaskList,

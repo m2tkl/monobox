@@ -16,6 +16,15 @@ function extractText(node: JSONContent): string {
   return (node.content ?? []).map(extractText).join('');
 }
 
+function renderCell(node: JSONContent): string {
+  const attrs = [
+    typeof node.attrs?.colspan === 'number' && node.attrs.colspan > 1 ? ` colspan="${node.attrs.colspan}"` : '',
+    typeof node.attrs?.rowspan === 'number' && node.attrs.rowspan > 1 ? ` rowspan="${node.attrs.rowspan}"` : '',
+  ].join('');
+  const tag = node.type === 'tableHeader' ? 'th' : 'td';
+  return `<${tag}${attrs}>${renderChildren(node)}</${tag}>`;
+}
+
 function mapLanguage(lang: string): string {
   const l = lang.toLowerCase();
   const aliases: Record<string, string> = {
@@ -61,6 +70,39 @@ function renderNode(node: JSONContent): string {
 
     case 'orderedList':
       return `<ol>${renderChildren(node)}</ol>`;
+
+    case 'table': {
+      const rows = node.content ?? [];
+      const headerRows: JSONContent[] = [];
+      const bodyRows: JSONContent[] = [];
+      let inHeader = true;
+
+      rows.forEach((row) => {
+        const cells = row.content ?? [];
+        const isHeaderRow = cells.length > 0 && cells.every(cell => cell.type === 'tableHeader');
+
+        if (inHeader && isHeaderRow) {
+          headerRows.push(row);
+          return;
+        }
+
+        inHeader = false;
+        bodyRows.push(row);
+      });
+
+      const thead = headerRows.length > 0 ? `<thead>${headerRows.map(renderNode).join('')}</thead>` : '';
+      const tbodyRows = bodyRows.length > 0 ? bodyRows : (headerRows.length > 0 ? [] : rows);
+      const tbody = tbodyRows.length > 0 ? `<tbody>${tbodyRows.map(renderNode).join('')}</tbody>` : '';
+
+      return `<table>${thead}${tbody}</table>`;
+    }
+
+    case 'tableRow':
+      return `<tr>${(node.content ?? []).map(renderCell).join('')}</tr>`;
+
+    case 'tableCell':
+    case 'tableHeader':
+      return renderCell(node);
 
     case 'listItem':
       return `<li>${renderChildren(node)}</li>`;

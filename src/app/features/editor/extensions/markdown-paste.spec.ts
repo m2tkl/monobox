@@ -14,6 +14,7 @@ describe('editor/extensions/markdown-paste', () => {
   it('detects markdown-like pasted text', () => {
     expect(looksLikeMarkdown('# Title\n\n- item')).toBe(true);
     expect(looksLikeMarkdown('**bold** text')).toBe(true);
+    expect(looksLikeMarkdown('| Name | Role |\n| --- | --- |\n| Ada | Admin |')).toBe(true);
     expect(looksLikeMarkdown('just a normal sentence')).toBe(false);
   });
 
@@ -147,5 +148,54 @@ describe('editor/extensions/markdown-paste', () => {
       isInCodeBlock: true,
       text: '# Title\n\n- item',
     })).toBe(false);
+  });
+
+  it('parses markdown tables into table nodes', () => {
+    const editor = createEditor();
+
+    const slice = parseMarkdownToSlice(
+      editor.schema,
+      '| Name | Role |\n| --- | --- |\n| Ada | Admin |',
+    );
+
+    expect(slice.content.toJSON()).toEqual([
+      {
+        type: 'table',
+        content: [
+          {
+            type: 'tableRow',
+            content: [
+              {
+                type: 'tableHeader',
+                attrs: { colspan: 1, rowspan: 1, colwidth: null },
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Name' }] }],
+              },
+              {
+                type: 'tableHeader',
+                attrs: { colspan: 1, rowspan: 1, colwidth: null },
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Role' }] }],
+              },
+            ],
+          },
+          {
+            type: 'tableRow',
+            content: [
+              {
+                type: 'tableCell',
+                attrs: { colspan: 1, rowspan: 1, colwidth: null },
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Ada' }] }],
+              },
+              {
+                type: 'tableCell',
+                attrs: { colspan: 1, rowspan: 1, colwidth: null },
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Admin' }] }],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    editor.destroy();
   });
 });
