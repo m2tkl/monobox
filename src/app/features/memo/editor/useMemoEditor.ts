@@ -1,5 +1,6 @@
 import { TextSelection, type Transaction } from '@tiptap/pm/state';
 import { useEditor } from '@tiptap/vue-3';
+import { CellSelection } from 'prosemirror-tables';
 
 import type { Extensions, Editor } from '@tiptap/core';
 import type { Node as PMNode } from '@tiptap/pm/model';
@@ -52,7 +53,9 @@ type Heading = {
 
 type TableImeGuardState = {
   cellPos: number | null;
-  startedWithEmptyCell: boolean;
+  initialCellText: string;
+  selectionFromOffset: number | null;
+  selectionToOffset: number | null;
   awaitingTrailingEnter: boolean;
 };
 
@@ -72,7 +75,9 @@ export function useMemoEditor(
   const wasCaretOut = ref(false);
   const createTableImeGuardState = (): TableImeGuardState => ({
     cellPos: null,
-    startedWithEmptyCell: false,
+    initialCellText: '',
+    selectionFromOffset: null,
+    selectionToOffset: null,
     awaitingTrailingEnter: false,
   });
   const tableImeGuard = ref<TableImeGuardState>(createTableImeGuardState());
@@ -167,6 +172,19 @@ export function useMemoEditor(
     );
   };
 
+  const getTextOffsetWithinNode = (
+    view: EditorView,
+    depth: number,
+    pos: number,
+  ) => {
+    return view.state.doc.textBetween(
+      view.state.selection.$from.start(depth),
+      pos,
+      '\n',
+      '\0',
+    ).length;
+  };
+
   const resetTableImeGuard = () => {
     tableImeGuard.value = createTableImeGuardState();
   };
@@ -219,13 +237,53 @@ export function useMemoEditor(
         // }
         return false;
       },
+      handleClick(view, _pos, event) {
+        if (!(view.state.selection instanceof CellSelection)) {
+          return false;
+        }
+
+        const target = event.target as HTMLElement | null;
+        if (!target?.closest('td, th')) {
+          return false;
+        }
+
+        const coordinates = view.posAtCoords({
+          left: event.clientX,
+          top: event.clientY,
+        });
+        if (!coordinates) {
+          return false;
+        }
+
+        // Row/column selection uses CellSelection, and clicking the anchor/head
+        // edge cell can leave that structural selection active instead of
+        // returning to a normal text caret. Force the clicked cell back to a
+        // TextSelection so a single click resumes editing consistently.
+        view.dispatch(
+          view.state.tr.setSelection(
+            TextSelection.near(view.state.doc.resolve(coordinates.pos)),
+          ),
+        );
+        view.focus();
+        return true;
+      },
       handleDOMEvents: {
         compositionstart: (view, event) => {
           const target = event.target as HTMLElement | null;
           const cellInfo = getCurrentTableCellInfo(view);
+          const { selection } = view.state;
+          const selectionIsInsideSingleCell = cellInfo
+            && selection.$from.sameParent(selection.$to)
+            && selection.$from.before(cellInfo.depth) === selection.$to.before(cellInfo.depth);
           tableImeGuard.value = {
-            cellPos: cellInfo ? view.state.selection.$from.before(cellInfo.depth) : null,
-            startedWithEmptyCell: (cellInfo?.node.textContent ?? '') === '',
+            cellPos: cellInfo ? selection.$from.before(cellInfo.depth) : null,
+            initialCellText: cellInfo?.node.textContent ?? '',
+            selectionFromOffset: selectionIsInsideSingleCell
+              ? getTextOffsetWithinNode(view, cellInfo.depth, selection.from)
+              : null,
+            selectionToOffset: selectionIsInsideSingleCell
+              ? getTextOffsetWithinNode(view, cellInfo.depth, selection.to)
+              : null,
             awaitingTrailingEnter: false,
           };
           logTableIme('compositionstart', {
@@ -256,13 +314,22 @@ export function useMemoEditor(
 
           const cellInfo = getCurrentTableCellInfo(view);
           const compositionResult = inputEvent.data ?? '';
+          const canResolveExpectedCellText = tableImeGuard.value.selectionFromOffset !== null
+            && tableImeGuard.value.selectionToOffset !== null;
+          const expectedCellTextAfterComposition = canResolveExpectedCellText
+            ? [
+                tableImeGuard.value.initialCellText.slice(0, tableImeGuard.value.selectionFromOffset),
+                compositionResult,
+                tableImeGuard.value.initialCellText.slice(tableImeGuard.value.selectionToOffset),
+              ].join('')
+            : null;
           if (
             inputEvent.inputType === 'insertFromComposition'
             && cellInfo
-            && tableImeGuard.value.startedWithEmptyCell
             && tableImeGuard.value.cellPos === view.state.selection.$from.before(cellInfo.depth)
             && compositionResult.length > 0
-            && cellInfo.node.textContent === compositionResult
+            && expectedCellTextAfterComposition !== null
+            && cellInfo.node.textContent === expectedCellTextAfterComposition
           ) {
             event.preventDefault();
             // See src/app/features/editor/docs/table-ime.md.
@@ -270,8 +337,9 @@ export function useMemoEditor(
             // `insertCompositionText` and then replay the same content via
             // `insertFromComposition`. When that happens, ProseMirror leaves
             // an extra empty paragraph in the cell, which looks like a newline.
-            // Normalize the cell back to a single paragraph and place the caret
-            // at the end of the confirmed text.
+            // The same replay can also happen when replacing a selection inside
+            // a cell. Normalize the cell back to a single paragraph and place
+            // the caret after the confirmed text.
             const paragraphType = view.state.schema.nodes.paragraph;
             if (!paragraphType) {
               return false;
@@ -279,7 +347,9 @@ export function useMemoEditor(
             const cellPos = view.state.selection.$from.before(cellInfo.depth);
             const paragraphNode = paragraphType.create(
               null,
-              compositionResult.length > 0 ? view.state.schema.text(compositionResult) : undefined,
+              expectedCellTextAfterComposition.length > 0
+                ? view.state.schema.text(expectedCellTextAfterComposition)
+                : undefined,
             );
             const normalizedCell = cellInfo.node.type.create(
               cellInfo.node.attrs,
@@ -291,7 +361,9 @@ export function useMemoEditor(
               cellPos + cellInfo.node.nodeSize,
               normalizedCell,
             );
-            const selectionPos = cellPos + normalizedCell.nodeSize - 2;
+            const selectionPos = cellPos + 2
+              + tableImeGuard.value.selectionFromOffset
+              + compositionResult.length;
             view.dispatch(
               tr.setSelection(TextSelection.create(tr.doc, selectionPos)),
             );

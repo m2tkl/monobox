@@ -46,7 +46,10 @@
 
       <div
         ref="editorSurfaceRef"
-        class="relative size-full"
+        :class="[
+          'relative size-full',
+          tableSelectionAxis ? 'table-structure-selection' : '',
+        ]"
       >
         <EditorLoadingSkelton v-if="!editorReady" />
 

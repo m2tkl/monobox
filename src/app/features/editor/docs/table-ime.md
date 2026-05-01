@@ -5,14 +5,15 @@ This note explains the table-specific IME issue handled in
 
 ## Symptom
 
-On macOS/WebKit-style IME flows, confirming the first composition inside an
-empty table cell caused one of these failures:
+On macOS/WebKit-style IME flows, confirming composition inside a table cell
+could cause one of these failures:
 
 - header cells could be reinterpreted into a different table shape
 - body cells could duplicate the confirmed text
 - an extra empty paragraph could remain in the cell, which looked like a newline
 
-The issue only appeared on the first confirm in an empty cell.
+The most reproducible cases were the first confirm in an empty cell and
+confirming after replacing selected text inside a cell.
 
 ## Root Cause
 
@@ -30,7 +31,7 @@ table structure rewrite.
 ## Current Mitigation
 
 Two targeted guards are in place, and both are intentionally limited to a
-composition that started in an empty table cell:
+composition that starts and ends inside the same table cell:
 
 1. If `insertFromComposition` tries to insert the same text that is already the
    full content of the current table cell, the event is prevented.
@@ -39,8 +40,9 @@ composition that started in an empty table cell:
 3. The trailing `Enter(keyCode=229)` is prevented while the selection is inside
    a table.
 
-These guards are scoped to the "started empty" case so that normal follow-up
-input in an already populated cell is not suppressed.
+These guards compare the cell text/selection captured at `compositionstart`
+against the text already present at `insertFromComposition`, so normal follow-up
+input in an unrelated cell state is not suppressed.
 
 Additionally, newly inserted tables default to `withHeaderRow: false` in
 `src/app/features/editor/core/action.ts` to avoid the harsher header-cell
