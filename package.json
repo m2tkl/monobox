@@ -53,7 +53,7 @@
     "vue": "latest",
     "vue-router": "latest"
   },
-  "version": "0.5.2",
+  "version": "0.6.0",
   "devDependencies": {
     "@nuxt/test-utils": "^3.19.2",
     "@types/reveal.js": "^5.2.0",
