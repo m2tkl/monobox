@@ -272,9 +272,11 @@
 import { CellSelection, TableMap } from 'prosemirror-tables';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
+import type { Editor as TiptapEditor } from '@tiptap/core';
+import type { NodeViewProps } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
 import type { MemoEvent, MemoState } from '~/app/features/memo/memoMachine';
+import type { DeleteMemoWorkflowHandle } from '~/app/features/memo/useMemoDeleteAction';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
@@ -291,7 +293,6 @@ import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
 import MemoEditor from '~/app/features/memo/editor/MemoEditor.vue';
 import { useMemoCopy } from '~/app/features/memo/editor/useMemoCopy';
 import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
-import { useMemoSave } from '~/app/features/memo/editor/useMemoSave';
 import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
 import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
@@ -305,8 +306,10 @@ import {
   parseTemplateContent,
   sortMemoTemplates,
 } from '~/app/features/memo/template';
+import { useMemoDeleteAction } from '~/app/features/memo/useMemoDeleteAction';
 import { useMemoLinkSync } from '~/app/features/memo/useMemoLinkSync';
 import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
+import { useMemoSaveAction } from '~/app/features/memo/useMemoSaveAction';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
 import { command } from '~/external/tauri/command';
@@ -337,7 +340,8 @@ const toast = useToast();
 const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
 const kanbanVM = useKanbanCollectionViewModel();
-const { executeMemoSave } = useMemoSave();
+const { saveMemo } = useMemoSaveAction();
+const { deleteMemo: executeDeleteMemo } = useMemoDeleteAction();
 const { syncMemoLinks } = useMemoLinkSync();
 const logger = useConsoleLogger('pages/memo');
 const isApplyingTemplate = ref(false);
@@ -448,7 +452,7 @@ const computeDirty = () => {
     || current.content !== lastSavedSnapshot.value.content;
 };
 
-const deleteMemoWithUserConfirmation = ref<InstanceType<typeof DeleteMemoWorkflow>>();
+const deleteMemoWithUserConfirmation = ref<DeleteMemoWorkflowHandle | null>(null);
 let dispatch: (event: MemoEvent) => void = () => {};
 
 async function clearCreatedQueryFlag() {
@@ -486,55 +490,17 @@ function focusTitleFieldIfNeeded() {
 }
 
 async function saveMemoContent(mode: 'explicit' | 'auto') {
-  if (!editor.value) {
-    if (mode === 'explicit') {
-      throw new Error('Editor instance not set.');
-    }
-    return { ok: false };
-  }
-
-  const currentTitle = memoTitle.value;
-  if (!currentTitle) {
-    if (mode === 'explicit') {
-      window.alert('Please set title.');
-    }
-    return { ok: false };
-  }
-
-  const handler = createEffectHandler((editor: _Editor, title: string) => executeMemoSave(
-    {
+  return saveMemo({
+    target: {
       workspaceSlug: workspaceSlug.value,
       memoSlug: memoSlug.value,
     },
-    editor,
-    title,
-    headImageRef.value ?? '',
-    route.hash,
-  ));
-
-  if (mode === 'explicit') {
-    handler.withToast('Saved', 'Failed to save');
-  }
-
-  const result = await handler.execute(editor.value, currentTitle);
-  if (!result.ok) {
-    return {
-      ok: false as const,
-      error: result.error,
-    };
-  }
-
-  if (!result.data.ok) {
-    return {
-      ok: false as const,
-      error: result.data.error,
-    };
-  }
-
-  return {
-    ok: true as const,
-    memoSlug: result.data.data.memoSlug,
-  };
+    editor: editor.value,
+    title: memoTitle.value,
+    thumbnailImage: headImageRef.value ?? '',
+    routeHash: route.hash,
+    mode,
+  });
 }
 
 async function applyTemplate(templateSlug: string, options?: { toastTitle?: string }) {
@@ -555,7 +521,7 @@ async function applyTemplate(templateSlug: string, options?: { toastTitle?: stri
     await nextTick();
 
     const result = await saveMemoContent('auto');
-    if (!result.ok || !result.memoSlug) {
+    if (!result.ok) {
       dispatch({ type: 'memo/save-failed', payload: { error: result.error } });
       toast.add({
         title: 'Failed to apply template',
@@ -617,19 +583,10 @@ const confirmDelete = async (previousState: MemoState) => {
 };
 
 const deleteMemo = async (_previousState: MemoState) => {
-  if (!deleteMemoWithUserConfirmation.value) {
-    return false;
-  }
-
-  const workflowResult = await deleteMemoWithUserConfirmation.value.run(async () => {
-    const result = await createEffectHandler(() => command.memo.trash({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }))
-      .withToast('Delete memo successfully.', 'Failed to delete.')
-      .execute();
-
-    if (!result.ok) throw new Error('Failed to delete.');
+  return executeDeleteMemo(deleteMemoWithUserConfirmation, {
+    workspaceSlug: workspaceSlug.value,
+    memoSlug: memoSlug.value,
   });
-
-  return workflowResult === 'completed';
 };
 
 const machine = useMemoMachine('clean', {
@@ -890,7 +847,7 @@ const tableColumnBubbleMenuActionItems: {
   { label: 'Del Tbl', icon: iconKey.trash, dividerBefore: true, msg: { type: 'deleteTable' } },
 ];
 
-function getEditorToolbarActionItems(currentEditor?: typeof editor.value) {
+function getEditorToolbarActionItems(currentEditor?: TiptapEditor) {
   // Keep toolbar item derivation behind a getter so toolbar state can depend on editor.state
   // without leaking ProseMirror-specific reactivity details into the template.
   void toolbarContextVersion.value;
@@ -903,7 +860,7 @@ function getEditorToolbarActionItems(currentEditor?: typeof editor.value) {
 }
 
 function getTableBubbleMenuActionItems(
-  currentEditor?: typeof editor.value,
+  currentEditor?: TiptapEditor,
   tableSelectionAxis?: 'row' | 'column' | null,
 ) {
   // Recompute disabled states and row/column menu choice on every toolbar context bump.

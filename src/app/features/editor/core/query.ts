@@ -1,6 +1,6 @@
+import type { Editor, JSONContent } from '@tiptap/core';
 import type { Node } from '@tiptap/pm/model';
 import type { EditorView } from '@tiptap/pm/view';
-import type { Editor, JSONContent } from '@tiptap/vue-3';
 
 /**
  * Return selected text in editor

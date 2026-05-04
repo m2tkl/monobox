@@ -1,7 +1,7 @@
-import type { Editor as _Editor } from '@tiptap/core';
-import type { Level } from '@tiptap/extension-heading';
-import type { Editor } from '@tiptap/vue-3';
 import { addColumnAfter, addColumnBefore, addRowAfter, addRowBefore, CellSelection, cellAround, deleteColumn, deleteRow, deleteTable } from 'prosemirror-tables';
+
+import type { Editor } from '@tiptap/core';
+import type { Level } from '@tiptap/extension-heading';
 
 import { isInternalLink } from '~/utils/link';
 
@@ -204,7 +204,7 @@ export function insertLinkToMemo(
   editor.commands.unsetMark('link');
 }
 
-export const applyTargetBlankToExternalLinks = (editor: _Editor) => {
+export const applyTargetBlankToExternalLinks = (editor: Editor) => {
   const { state, view } = editor;
   const { schema, doc, tr } = state;
   const linkMarkType = schema.marks.link;

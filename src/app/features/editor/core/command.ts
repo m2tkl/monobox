@@ -20,7 +20,7 @@ import {
   resetStyle,
 } from './action';
 
-import type { Editor } from '@tiptap/vue-3';
+import type { Editor } from '@tiptap/core';
 
 export type EditorMsg =
   | { type: 'toggleHeading'; level: 1 | 2 | 3 }
@@ -42,7 +42,7 @@ export type EditorMsg =
   | { type: 'clearFormat' }
   | { type: 'unsetLink' }
   | { type: 'setLink'; href: string }
-;
+  ;
 
 export type EditorCommandHandler<T extends EditorMsg['type']> = (
   editor: Editor,
@@ -60,16 +60,16 @@ const defaultHandlers: EditorCommandHandlerMap = {
   toggleOrderedList: editor => toggleOrderedList(editor),
   toggleBlockQuote: editor => toggleBlockQuote(editor),
   toggleCode: editor => toggleCode(editor),
-  insertTable: editor => { insertTable(editor); },
-  insertTableRowBefore: editor => { insertTableRowBefore(editor); },
-  insertTableRowAfter: editor => { insertTableRowAfter(editor); },
-  insertTableColumnBefore: editor => { insertTableColumnBefore(editor); },
-  insertTableColumnAfter: editor => { insertTableColumnAfter(editor); },
-  selectTableRow: editor => { selectTableRow(editor); },
-  selectTableColumn: editor => { selectTableColumn(editor); },
-  deleteTableRow: editor => { deleteTableRow(editor); },
-  deleteTableColumn: editor => { deleteTableColumn(editor); },
-  deleteTable: editor => { deleteEditorTable(editor); },
+  insertTable: (editor) => { insertTable(editor); },
+  insertTableRowBefore: (editor) => { insertTableRowBefore(editor); },
+  insertTableRowAfter: (editor) => { insertTableRowAfter(editor); },
+  insertTableColumnBefore: (editor) => { insertTableColumnBefore(editor); },
+  insertTableColumnAfter: (editor) => { insertTableColumnAfter(editor); },
+  selectTableRow: (editor) => { selectTableRow(editor); },
+  selectTableColumn: (editor) => { selectTableColumn(editor); },
+  deleteTableRow: (editor) => { deleteTableRow(editor); },
+  deleteTableColumn: (editor) => { deleteTableColumn(editor); },
+  deleteTable: (editor) => { deleteEditorTable(editor); },
   clearFormat: editor => resetStyle(editor),
   unsetLink: editor => unsetLink(editor),
   setLink: (editor, msg) => setLink(editor, msg.href),

@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3';
+import type { Editor } from '@tiptap/core';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { useSearchPalette } from '~/app/features/search/useSearchPalette';

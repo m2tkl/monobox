@@ -1,4 +1,4 @@
-import type { Editor as _Editor } from '@tiptap/vue-3';
+import type { Editor as _Editor } from '@tiptap/core';
 
 import { EditorQuery, convertToMarkdown } from '~/app/features/editor';
 import { convertMemoToHtml, createHtmlLink } from '~/app/features/memo/export/converters';

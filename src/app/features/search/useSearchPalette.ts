@@ -1,7 +1,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
 import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui';
-import type { Editor } from '@tiptap/vue-3';
+import type { Editor } from '@tiptap/core';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { EditorAction, EditorQuery } from '~/app/features/editor';
