@@ -3,8 +3,8 @@ import { computed, ref, watch } from 'vue';
 import type { ComputedRef } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 
-import { workspaceKanbansQuery } from '~/app/features/kanban/queries/workspaceKanbansQuery';
 import { command } from '~/external/tauri/command';
+import { emitEvent } from '~/resource-state/infra/eventBus';
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
 import { iconKey } from '~/utils/icon';
 
@@ -92,16 +92,6 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
     ]);
   }, { immediate: true });
 
-  const reloadKanbans = async () => {
-    if (!options.workspaceSlug.value) return;
-    await workspaceKanbansQuery.fetch({ workspaceSlug: options.workspaceSlug.value });
-  };
-
-  watch(options.workspaceSlug, async (slug) => {
-    if (!slug) return;
-    await workspaceKanbansQuery.fetch({ workspaceSlug: slug });
-  });
-
   const openCreateKanban = () => {
     newKanbanName.value = '';
     isCreateKanbanOpen.value = true;
@@ -118,7 +108,7 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
         name: newKanbanName.value.trim(),
       });
       selectedKanbanId.value = created.id;
-      await reloadKanbans();
+      emitEvent('kanban/updated', { workspaceSlug: options.workspaceSlug.value });
       isCreateKanbanOpen.value = false;
     }
     catch (error) {
@@ -151,7 +141,7 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
         id: deleteTargetId.value,
       });
       deleteTargetId.value = null;
-      await reloadKanbans();
+      emitEvent('kanban/updated', { workspaceSlug: options.workspaceSlug.value });
     }
     catch (error) {
       console.error(error);
@@ -185,6 +175,5 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
     createKanban,
     openDeleteKanban,
     deleteKanban,
-    reloadKanbans,
   };
 }
