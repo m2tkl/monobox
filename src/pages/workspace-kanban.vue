@@ -279,7 +279,7 @@ import { buildKanbanColumnsFromEntries } from '~/app/features/kanban/kanbanUtils
 import KanbanStatusManager from '~/app/features/kanban/status/KanbanStatusManager.vue';
 import { useKanbanOrdering } from '~/app/features/kanban/useKanbanOrdering';
 import { useWorkspaceKanbanBoard } from '~/app/features/kanban/useWorkspaceKanbanBoard';
-import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { useWorkspaceKanbanPageData } from '~/app/features/kanban/useWorkspaceKanbanPageData';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import AppButton from '~/app/ui/AppButton.vue';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
@@ -331,7 +331,6 @@ const {
   createKanban,
   openDeleteKanban,
   deleteKanban,
-  reloadKanbans,
 } = useWorkspaceKanbanBoard({
   workspaceSlug,
   loadStatuses: loadKanbanStatuses,
@@ -355,13 +354,11 @@ const ADD_LIST_LIMIT = 100;
 
 const isStatusManagerOpen = ref(false);
 
-await usePageLoader(async () => {
-  if (!workspaceSlug.value) return;
-  await Promise.all([
-    workspaceMemosQuery.fetch({ workspaceSlug: workspaceSlug.value }),
-    reloadKanbans(),
-  ]);
+const { loadInitialData } = useWorkspaceKanbanPageData({
+  workspaceSlug,
 });
+
+await usePageLoader(loadInitialData);
 
 const buildColumns = () => {
   columns.value = buildKanbanColumnsFromEntries(entries.value, statuses.value);
