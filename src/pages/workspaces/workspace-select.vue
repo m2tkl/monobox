@@ -111,7 +111,7 @@
 import { useCreateWorkspaceAction } from './actions/useCreateWorkspaceAction';
 import { useWorkspaceFormState } from './forms/useWorkspaceFormState';
 
-import { emitEvent } from '~/resource-state/infra/eventBus';
+import { workspaceCollectionQuery } from '~/app/features/workspace/queries/workspaceCollectionQuery';
 import { useWorkspacesViewModel } from '~/resource-state/viewmodels/workspaces';
 
 definePageMeta({
@@ -122,6 +122,10 @@ const toast = useToast();
 const router = useRouter();
 
 const workspacesVM = useWorkspacesViewModel();
+
+await usePageLoader(async () => {
+  await workspaceCollectionQuery.fetch({});
+});
 
 const isOpen = ref(false);
 const openNewWorkspaceModal = () => {
@@ -152,7 +156,6 @@ const onSubmit = async () => {
 
     form.reset();
     isOpen.value = false;
-    emitEvent('workspace/created', {});
   }
   else {
     toast.add({

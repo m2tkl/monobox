@@ -1,14 +1,12 @@
 import { invalidateByEvent } from './query-runtime';
-import { loadWorkspaceCollection } from './resources/workspaceCollection';
 
 import type { AppEvent } from './app-event';
 
 import { startOrchestrator, type AnyRule } from '~/resource-state/infra/orchestrator';
 
 const rules: AnyRule<AppEvent>[] = [
-  { on: 'app/init', run: () => { loadWorkspaceCollection(); } },
-  { on: 'workspace/created', run: () => { loadWorkspaceCollection(); } },
-  { on: 'workspace/deleted', run: () => { loadWorkspaceCollection(); } },
+  { on: 'workspace/created', run: p => invalidateByEvent('workspace/created', p) },
+  { on: 'workspace/deleted', run: p => invalidateByEvent('workspace/deleted', p) },
   {
     on: 'memo/created',
     run: async (p) => {

@@ -146,10 +146,9 @@ import MemoTemplateManager from '~/app/features/settings/MemoTemplateManager.vue
 import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
 import ThemeSelector from '~/app/features/settings/ThemeSelector.vue';
 import { workspaceQuery } from '~/app/features/workspace/queries/workspaceQuery';
+import { useWorkspaceDeleteAction } from '~/app/features/workspace/useWorkspaceDeleteAction';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
-import { command } from '~/external/tauri/command';
-import { emitEvent } from '~/resource-state/infra/eventBus';
 import { useCurrentWorkspaceViewModel } from '~/resource-state/viewmodels/currentWorkspace';
 import { iconKey } from '~/utils/icon';
 
@@ -160,6 +159,7 @@ definePageMeta({
 const { currentTheme } = useTheme();
 const toast = useToast();
 const router = useRouter();
+const { deleteWorkspace: executeDeleteWorkspace } = useWorkspaceDeleteAction();
 
 const route = useRoute();
 const workspaceContextSlug = computed(() => {
@@ -201,7 +201,7 @@ const deleteWorkspace = async () => {
   }
 
   try {
-    await command.workspace.delete({ slugName });
+    await executeDeleteWorkspace(slugName);
 
     toast.add({
       title: 'Delete successfully.',
@@ -209,7 +209,6 @@ const deleteWorkspace = async () => {
       icon: iconKey.success,
     });
 
-    emitEvent('workspace/deleted', {});
     isOpen.value = false;
     router.replace('/');
   }

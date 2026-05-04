@@ -1,9 +1,11 @@
 import { computed } from 'vue';
 
 import { deriveViewModelFlags } from '../infra/types';
-import { readWorkspaceCollectionSnapshot } from '../resources/workspaceCollection';
 
 import type { Workspace } from '~/models/workspace';
+
+import { workspaceCollectionQuery } from '~/app/features/workspace/queries/workspaceCollectionQuery';
+import { useQuery } from '~/resource-state/useQuery';
 
 export type WorkspacesViewModel = {
   data: {
@@ -17,7 +19,7 @@ export type WorkspacesViewModel = {
 };
 
 export function useWorkspacesViewModel() {
-  const workspacesSnap = readWorkspaceCollectionSnapshot();
+  const { snapshot: workspacesSnap } = useQuery(workspaceCollectionQuery, () => ({}));
 
   const items = computed<Workspace[]>(() => workspacesSnap.value.current ?? []);
 
