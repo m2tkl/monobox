@@ -1,11 +1,15 @@
-import { computed } from 'vue';
+import { computed, toValue } from 'vue';
 
 import { deriveViewModelFlags } from '../infra/types';
-import { readKanbanStatusCollectionSnapshot } from '../resources/kanbanStatusCollection';
 
 import type { ResourceSnapshot } from '../infra/types';
-import type { ComputedRef } from 'vue';
+import type { ComputedRef, MaybeRefOrGetter } from 'vue';
 import type { KanbanStatus } from '~/models/kanbanStatus';
+
+import { useRoute } from '#imports';
+import { workspaceKanbanStatusesQuery } from '~/app/features/kanban/queries/workspaceKanbanStatusesQuery';
+import { useQuery } from '~/resource-state/useQuery';
+import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export type KanbanStatusCollectionViewModel = {
   data: {
@@ -25,12 +29,26 @@ const emptySnapshot: ResourceSnapshot<KanbanStatus[]> = {
   loadingSince: null,
 };
 
-export function useKanbanStatusCollectionViewModel(kanbanId: ComputedRef<number | null>) {
+export function useKanbanStatusCollectionViewModel(
+  workspaceSlugArg: MaybeRefOrGetter<string> | undefined,
+  kanbanId: ComputedRef<number | null>,
+) {
+  const route = useRoute();
+  const workspaceSlug = computed(() => workspaceSlugArg != null
+    ? toValue(workspaceSlugArg)
+    : (getEncodedWorkspaceSlugFromPath(route) || ''));
+  const { snapshot: querySnap } = useQuery(workspaceKanbanStatusesQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+    kanbanId: kanbanId.value ?? 0,
+  }), {
+    enabled: computed(() => workspaceSlug.value.length > 0 && kanbanId.value !== null),
+  });
+
   const statusSnap = computed(() => {
     if (kanbanId.value === null) {
       return emptySnapshot;
     }
-    return readKanbanStatusCollectionSnapshot(kanbanId.value).value;
+    return querySnap.value;
   });
 
   const items = computed<KanbanStatus[]>(() => statusSnap.value.current ?? []);

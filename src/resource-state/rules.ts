@@ -1,7 +1,6 @@
 import { invalidateByEvent } from './query-runtime';
 import { loadBookmarkCollection } from './resources/bookmarkCollection';
 import { loadKanbans } from './resources/kanbanCollection';
-import { loadKanbanStatuses } from './resources/kanbanStatusCollection';
 import { loadWorkspace } from './resources/workspace';
 import { loadWorkspaceCollection } from './resources/workspaceCollection';
 import { loadWorkspaceMemoLinkCounts } from './resources/workspaceMemoLinkCountCollection';
@@ -65,7 +64,7 @@ const rules: AnyRule<AppEvent>[] = [
   {
     on: 'kanban-status/updated',
     run: async (p) => {
-      await loadKanbanStatuses(p.workspaceSlug, p.kanbanId);
+      await invalidateByEvent('kanban-status/updated', p);
     },
   },
   {

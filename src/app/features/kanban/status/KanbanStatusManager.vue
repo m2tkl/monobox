@@ -203,7 +203,7 @@ const workspaceSlug = computed(() => props.workspaceSlug || getEncodedWorkspaceS
 const kanbanId = computed(() => props.kanbanId ?? null);
 const hasKanban = computed(() => kanbanId.value !== null);
 
-const vm = useKanbanStatusCollectionViewModel(kanbanId);
+const vm = useKanbanStatusCollectionViewModel(workspaceSlug, kanbanId);
 const statuses = computed(() => vm.value.data.items);
 
 const saving = reactive<Record<number, boolean>>({});

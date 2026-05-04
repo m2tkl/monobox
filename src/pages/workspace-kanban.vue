@@ -337,7 +337,7 @@ const {
   toast,
 });
 
-const statusVM = useKanbanStatusCollectionViewModel(activeKanbanId);
+const statusVM = useKanbanStatusCollectionViewModel(workspaceSlug, activeKanbanId);
 const statuses = computed(() => statusVM.value.data.items);
 const isLoading = computed(() => {
   return memosVM.value.flags.isLoading
