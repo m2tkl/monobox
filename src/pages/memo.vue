@@ -302,6 +302,7 @@ import {
   getDefaultMemoTemplate,
   parseTemplateContent,
 } from '~/app/features/memo/template';
+import { useMemoBookmarkAction } from '~/app/features/memo/useMemoBookmarkAction';
 import { useMemoDeleteAction } from '~/app/features/memo/useMemoDeleteAction';
 import { useMemoLinkSync } from '~/app/features/memo/useMemoLinkSync';
 import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
@@ -337,6 +338,7 @@ const toast = useToast();
 const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
 const kanbanVM = useKanbanCollectionViewModel();
+const { toggleBookmark: executeToggleBookmark } = useMemoBookmarkAction();
 const { saveMemo } = useMemoSaveAction();
 const { deleteMemo: executeDeleteMemo } = useMemoDeleteAction();
 const { syncMemoLinks } = useMemoLinkSync();
@@ -928,14 +930,11 @@ const toggleBookmark = async () => {
     return;
   }
 
-  if (!memoVM.value.data.isBookmarked) {
-    await command.bookmark.add(workspaceSlug.value, memoSlug.value);
-  }
-  else {
-    await command.bookmark.delete(workspaceSlug.value, memoSlug.value);
-  }
-
-  emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
+  await executeToggleBookmark({
+    workspaceSlug: workspaceSlug.value,
+    memoSlug: memoSlug.value,
+    isBookmarked: memoVM.value.data.isBookmarked,
+  });
 };
 
 /* --- Contect menu items --- */
