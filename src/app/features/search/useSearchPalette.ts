@@ -6,8 +6,7 @@ import type { MemoIndexItem } from '~/models/memo';
 
 import { EditorAction, EditorQuery } from '~/app/features/editor';
 import { CREATED_QUERY_SOURCE_NAMED } from '~/app/features/memo/creation';
-import { command } from '~/external/tauri/command';
-import { emitEvent } from '~/resource-state/infra/eventBus';
+import { useMemoCreateAction } from '~/app/features/memo/useMemoCreateAction';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';
@@ -39,6 +38,7 @@ export type UseSearchPaletteOptions = {
 export const useSearchPalette = (options: UseSearchPaletteOptions) => {
   const router = useRouter();
   const logger = useConsoleLogger('components/Search/SearchPalette');
+  const { createMemo } = useMemoCreateAction();
 
   const selected = ref<unknown[]>([]);
   const isSearchPaletteOpen = ref(false);
@@ -97,15 +97,13 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     let linkMemoTitle = option.label;
 
     if (option.tag === 'new') {
-      const newMemo = await command.memo.create({
-        workspaceSlugName: options.workspaceSlug.value,
+      const newMemo = await createMemo({
+        workspaceSlug: options.workspaceSlug.value,
         title: searchTerm.value,
       });
 
       linkMemoSlug = newMemo.slug_title;
       linkMemoTitle = newMemo.title;
-
-      emitEvent('memo/created', { workspaceSlug: options.workspaceSlug.value });
     }
 
     if (options.type.value === 'link') {

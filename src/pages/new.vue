@@ -19,9 +19,9 @@
 <script setup lang="ts">
 import { CREATED_QUERY_SOURCE_BLANK } from '~/app/features/memo/creation';
 import { buildUntitledMemoTitle } from '~/app/features/memo/template';
+import { useMemoCreateAction } from '~/app/features/memo/useMemoCreateAction';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { command } from '~/external/tauri/command';
-import { emitEvent } from '~/resource-state/infra/eventBus';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
@@ -33,6 +33,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const { createMemo } = useMemoCreateAction();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const requestedTemplateSlug = computed(() =>
   typeof route.query.template === 'string'
@@ -44,12 +45,10 @@ const shouldSkipDefaultTemplate = computed(() => route.query.skipDefaultTemplate
 await usePageLoader(async () => {
   const workspaceMemos = await command.memo.list({ slugName: workspaceSlug.value });
   const newMemoTitle = buildUntitledMemoTitle(workspaceMemos.map(memo => memo.title));
-  const newMemo = await command.memo.create({
-    workspaceSlugName: workspaceSlug.value,
+  const newMemo = await createMemo({
+    workspaceSlug: workspaceSlug.value,
     title: newMemoTitle,
   });
-
-  emitEvent('memo/created', { workspaceSlug: workspaceSlug.value });
   await router.replace({
     path: `/${workspaceSlug.value}/${newMemo.slug_title}`,
     query: {
