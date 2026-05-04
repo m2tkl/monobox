@@ -1,11 +1,12 @@
 import { computed, reactive, ref, watch } from 'vue';
 
+import { useMemoKanbanAssignmentAction } from './useMemoKanbanAssignmentAction';
+
 import type { ComputedRef } from 'vue';
 import type { Kanban } from '~/models/kanban';
 import type { KanbanAssignmentEntry } from '~/models/kanbanAssignment';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { command } from '~/external/tauri/command';
 import { iconKey } from '~/utils/icon';
 
 type UseMemoKanbanAssignmentsOptions = {
@@ -16,6 +17,12 @@ type UseMemoKanbanAssignmentsOptions = {
 };
 
 export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOptions) {
+  const {
+    loadEntries: loadMemoKanbanEntries,
+    loadStatuses: loadKanbanStatusOptions,
+    removeStatus: removeMemoKanbanStatus,
+    upsertStatus: upsertMemoKanbanStatus,
+  } = useMemoKanbanAssignmentAction();
   const kanbanEntries = ref<KanbanAssignmentEntry[]>([]);
   const kanbanSelections = reactive<Record<number, number | null>>({});
   const kanbanStatuses = ref<Record<number, KanbanStatus[]>>({});
@@ -43,9 +50,9 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
     if (!options.workspaceSlug.value || !options.memoSlug.value) return;
     isKanbanLoading.value = true;
     try {
-      kanbanEntries.value = await command.kanbanAssignment.listEntries({
-        workspaceSlugName: options.workspaceSlug.value,
-        memoSlugTitle: options.memoSlug.value,
+      kanbanEntries.value = await loadMemoKanbanEntries({
+        workspaceSlug: options.workspaceSlug.value,
+        memoSlug: options.memoSlug.value,
       });
       syncKanbanSelections();
     }
@@ -63,10 +70,7 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
 
     await Promise.all(options.kanbans.value.map(async (kanban) => {
       if (statusMap[kanban.id]) return;
-      const statuses = await command.kanbanStatus.list({
-        slugName: options.workspaceSlug.value,
-        kanbanId: kanban.id,
-      });
+      const statuses = await loadKanbanStatusOptions(options.workspaceSlug.value, kanban.id);
       statusMap[kanban.id] = statuses;
     }));
 
@@ -93,20 +97,19 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
     updatingKanbans[kanbanId] = true;
     try {
       if (nextStatusId === null) {
-        await command.kanbanAssignment.remove({
-          workspaceSlugName: options.workspaceSlug.value,
-          memoSlugTitle: options.memoSlug.value,
+        await removeMemoKanbanStatus({
+          workspaceSlug: options.workspaceSlug.value,
+          memoSlug: options.memoSlug.value,
           kanbanId,
         });
         kanbanEntries.value = kanbanEntries.value.filter(entry => entry.kanban_id !== kanbanId);
       }
       else {
-        await command.kanbanAssignment.upsertStatus({
-          workspaceSlugName: options.workspaceSlug.value,
-          memoSlugTitle: options.memoSlug.value,
+        await upsertMemoKanbanStatus({
+          workspaceSlug: options.workspaceSlug.value,
+          memoSlug: options.memoSlug.value,
           kanbanId,
           kanbanStatusId: nextStatusId,
-          position: null,
         });
         const status = (kanbanStatuses.value[kanbanId] ?? []).find(item => item.id === nextStatusId);
         if (existing) {
