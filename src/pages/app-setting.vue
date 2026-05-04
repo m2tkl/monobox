@@ -145,11 +145,11 @@ import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 import MemoTemplateManager from '~/app/features/settings/MemoTemplateManager.vue';
 import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
 import ThemeSelector from '~/app/features/settings/ThemeSelector.vue';
+import { workspaceQuery } from '~/app/features/workspace/queries/workspaceQuery';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { command } from '~/external/tauri/command';
 import { emitEvent } from '~/resource-state/infra/eventBus';
-import { loadWorkspace } from '~/resource-state/resources/workspace';
 import { useCurrentWorkspaceViewModel } from '~/resource-state/viewmodels/currentWorkspace';
 import { iconKey } from '~/utils/icon';
 
@@ -162,11 +162,11 @@ const toast = useToast();
 const router = useRouter();
 
 const route = useRoute();
-const currentWorkspaceVM = useCurrentWorkspaceViewModel();
 const workspaceContextSlug = computed(() => {
   const raw = route.query.workspace;
   return typeof raw === 'string' ? raw : '';
 });
+const currentWorkspaceVM = useCurrentWorkspaceViewModel(workspaceContextSlug);
 const hasWorkspaceContext = computed(() => workspaceContextSlug.value.length > 0);
 const currentWorkspace = computed(() => {
   if (!hasWorkspaceContext.value) return null;
@@ -239,12 +239,7 @@ const _appConfig = JSON.parse(await readTextFile('config.json', { baseDir: BaseD
 
 await usePageLoader(async () => {
   if (!hasWorkspaceContext.value) return;
-  await loadWorkspace(workspaceContextSlug.value);
-});
-
-watch(workspaceContextSlug, async (slug) => {
-  if (!slug) return;
-  await loadWorkspace(slug);
+  await workspaceQuery.fetch({ workspaceSlug: workspaceContextSlug.value });
 });
 </script>
 

@@ -1,9 +1,5 @@
 import { invalidateByEvent } from './query-runtime';
-import { loadBookmarkCollection } from './resources/bookmarkCollection';
-import { loadKanbans } from './resources/kanbanCollection';
-import { loadWorkspace } from './resources/workspace';
 import { loadWorkspaceCollection } from './resources/workspaceCollection';
-import { loadWorkspaceMemoLinkCounts } from './resources/workspaceMemoLinkCountCollection';
 
 import type { AppEvent } from './app-event';
 
@@ -11,17 +7,6 @@ import { startOrchestrator, type AnyRule } from '~/resource-state/infra/orchestr
 
 const rules: AnyRule<AppEvent>[] = [
   { on: 'app/init', run: () => { loadWorkspaceCollection(); } },
-  {
-    on: 'workspace/switched',
-    run: async ({ workspaceSlug }) => {
-      await Promise.all([
-        loadWorkspace(workspaceSlug),
-        loadBookmarkCollection(workspaceSlug),
-        loadWorkspaceMemoLinkCounts(workspaceSlug),
-        loadKanbans(workspaceSlug),
-      ]);
-    },
-  },
   { on: 'workspace/created', run: () => { loadWorkspaceCollection(); } },
   { on: 'workspace/deleted', run: () => { loadWorkspaceCollection(); } },
   {
@@ -40,26 +25,20 @@ const rules: AnyRule<AppEvent>[] = [
   {
     on: 'memo/updated',
     run: async (p) => {
-      await Promise.all([
-        loadWorkspaceMemoLinkCounts(p.workspaceSlug),
-        invalidateByEvent('memo/updated', p),
-      ]);
+      await invalidateByEvent('memo/updated', p);
     },
     debounceMs: 150,
   },
   {
     on: 'memo/deleted',
     run: async ({ workspaceSlug }) => {
-      await Promise.all([
-        loadWorkspaceMemoLinkCounts(workspaceSlug),
-        invalidateByEvent('memo/deleted', { workspaceSlug }),
-      ]);
+      await invalidateByEvent('memo/deleted', { workspaceSlug });
     },
     debounceMs: 150,
   },
   {
     on: 'bookmark/updated',
-    run: p => loadBookmarkCollection(p.workspaceSlug),
+    run: p => invalidateByEvent('bookmark/updated', p),
   },
   {
     on: 'kanban-status/updated',

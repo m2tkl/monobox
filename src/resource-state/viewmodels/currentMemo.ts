@@ -1,7 +1,6 @@
 import { computed } from 'vue';
 
 import { deriveViewModelFlags } from '../infra/types';
-import { readBookmarkCollectionSnapshot } from '../resources/bookmarkCollection';
 
 import type { Link } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
@@ -10,6 +9,7 @@ import { useRoute } from '#imports';
 import { memoDetailQuery } from '~/app/features/memo/queries/memoDetailQuery';
 import { memoLinksQuery } from '~/app/features/memo/queries/memoLinksQuery';
 import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { workspaceBookmarksQuery } from '~/app/features/workspace/queries/workspaceBookmarksQuery';
 import { useQuery } from '~/resource-state/useQuery';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
@@ -50,7 +50,11 @@ export function useCurrentMemoViewModel() {
   }), {
     enabled: computed(() => workspaceSlug.value.length > 0),
   });
-  const bookmarksSnap = readBookmarkCollectionSnapshot();
+  const { snapshot: bookmarksSnap } = useQuery(workspaceBookmarksQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+  }), {
+    enabled: computed(() => workspaceSlug.value.length > 0),
+  });
 
   const memo = computed(() => memoSnap.value.current ?? null);
   const links = computed<Link[]>(() => linksSnap.value.current ?? []);

@@ -1,13 +1,13 @@
 import { computed } from 'vue';
 
 import { deriveViewModelFlags } from '../infra/types';
-import { readBookmarkCollectionSnapshot } from '../resources/bookmarkCollection';
-import { readWorkspaceMemoLinkCountCollectionSnapshot } from '../resources/workspaceMemoLinkCountCollection';
 
 import type { MemoIndexItem } from '~/models/memo';
 
 import { useRoute } from '#imports';
 import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { workspaceBookmarksQuery } from '~/app/features/workspace/queries/workspaceBookmarksQuery';
+import { workspaceMemoLinkCountsQuery } from '~/app/features/workspace/queries/workspaceMemoLinkCountsQuery';
 import { useQuery } from '~/resource-state/useQuery';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
@@ -41,8 +41,16 @@ export function useBookmarkListViewModel() {
   }), {
     enabled: computed(() => workspaceSlug.value.length > 0),
   });
-  const bookmarksSnap = readBookmarkCollectionSnapshot();
-  const memoLinkCountsSnap = readWorkspaceMemoLinkCountCollectionSnapshot();
+  const { snapshot: bookmarksSnap } = useQuery(workspaceBookmarksQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+  }), {
+    enabled: computed(() => workspaceSlug.value.length > 0),
+  });
+  const { snapshot: memoLinkCountsSnap } = useQuery(workspaceMemoLinkCountsQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+  }), {
+    enabled: computed(() => workspaceSlug.value.length > 0),
+  });
 
   const items = computed<BookmarkListItem[]>(() => {
     const bookmarks = bookmarksSnap.value.current ?? [];
