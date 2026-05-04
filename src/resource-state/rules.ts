@@ -1,9 +1,7 @@
+import { invalidateByEvent } from './query-runtime';
 import { loadBookmarkCollection } from './resources/bookmarkCollection';
 import { loadKanbans } from './resources/kanbanCollection';
 import { loadKanbanStatuses } from './resources/kanbanStatusCollection';
-import { loadMemo } from './resources/memo';
-import { loadWorkspaceMemos } from './resources/memoCollection';
-import { loadMemoLinkCollection } from './resources/memoLinkCollection';
 import { loadWorkspace } from './resources/workspace';
 import { loadWorkspaceCollection } from './resources/workspaceCollection';
 import { loadWorkspaceMemoLinkCounts } from './resources/workspaceMemoLinkCountCollection';
@@ -19,7 +17,6 @@ const rules: AnyRule<AppEvent>[] = [
     run: async ({ workspaceSlug }) => {
       await Promise.all([
         loadWorkspace(workspaceSlug),
-        loadWorkspaceMemos(workspaceSlug),
         loadBookmarkCollection(workspaceSlug),
         loadWorkspaceMemoLinkCounts(workspaceSlug),
         loadKanbans(workspaceSlug),
@@ -28,28 +25,18 @@ const rules: AnyRule<AppEvent>[] = [
   },
   { on: 'workspace/created', run: () => { loadWorkspaceCollection(); } },
   { on: 'workspace/deleted', run: () => { loadWorkspaceCollection(); } },
-  { on: 'memo/switched', run: async (p) => {
-    await Promise.all([
-      loadMemo(p.workspaceSlug, p.memoSlug),
-      loadMemoLinkCollection(p.workspaceSlug, p.memoSlug),
-    ]);
-  } },
   {
     on: 'memo/created',
     run: async (p) => {
-      await Promise.all([
-        loadWorkspaceMemos(p.workspaceSlug),
-        loadWorkspaceMemoLinkCounts(p.workspaceSlug),
-      ]);
+      await invalidateByEvent('memo/created', p);
     },
   },
   {
     on: 'memo/updated',
     run: async (p) => {
       await Promise.all([
-        loadWorkspaceMemos(p.workspaceSlug),
         loadWorkspaceMemoLinkCounts(p.workspaceSlug),
-        loadMemoLinkCollection(p.workspaceSlug, p.memoSlug),
+        invalidateByEvent('memo/updated', p),
       ]);
     },
     debounceMs: 150,
@@ -58,8 +45,8 @@ const rules: AnyRule<AppEvent>[] = [
     on: 'memo/deleted',
     run: async ({ workspaceSlug }) => {
       await Promise.all([
-        loadWorkspaceMemos(workspaceSlug),
         loadWorkspaceMemoLinkCounts(workspaceSlug),
+        invalidateByEvent('memo/deleted', { workspaceSlug }),
       ]);
     },
     debounceMs: 150,
@@ -71,10 +58,7 @@ const rules: AnyRule<AppEvent>[] = [
   {
     on: 'kanban-status/updated',
     run: async (p) => {
-      await Promise.all([
-        loadKanbanStatuses(p.workspaceSlug, p.kanbanId),
-        loadWorkspaceMemos(p.workspaceSlug),
-      ]);
+      await loadKanbanStatuses(p.workspaceSlug, p.kanbanId);
     },
   },
   {

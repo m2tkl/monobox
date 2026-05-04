@@ -2,10 +2,14 @@ import { computed } from 'vue';
 
 import { deriveViewModelFlags } from '../infra/types';
 import { readBookmarkCollectionSnapshot } from '../resources/bookmarkCollection';
-import { readMemoCollectionSnapshot } from '../resources/memoCollection';
 import { readWorkspaceMemoLinkCountCollectionSnapshot } from '../resources/workspaceMemoLinkCountCollection';
 
 import type { MemoIndexItem } from '~/models/memo';
+
+import { useRoute } from '#imports';
+import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { useQuery } from '~/resource-state/useQuery';
+import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export type BookmarkListItem = MemoIndexItem & {
   bookmarkId: number;
@@ -30,8 +34,14 @@ export type BookmarkListViewModel = {
  * - Exposes simple flags for UI
  */
 export function useBookmarkListViewModel() {
+  const route = useRoute();
+  const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+  const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+  }), {
+    enabled: computed(() => workspaceSlug.value.length > 0),
+  });
   const bookmarksSnap = readBookmarkCollectionSnapshot();
-  const memosSnap = readMemoCollectionSnapshot();
   const memoLinkCountsSnap = readWorkspaceMemoLinkCountCollectionSnapshot();
 
   const items = computed<BookmarkListItem[]>(() => {

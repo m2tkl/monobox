@@ -152,7 +152,7 @@ const onSubmit = async () => {
 
     form.reset();
     isOpen.value = false;
-    emitEvent('workspace/created', undefined);
+    emitEvent('workspace/created', {});
   }
   else {
     toast.add({

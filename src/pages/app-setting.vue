@@ -209,7 +209,7 @@ const deleteWorkspace = async () => {
       icon: iconKey.success,
     });
 
-    emitEvent('workspace/deleted', undefined);
+    emitEvent('workspace/deleted', {});
     isOpen.value = false;
     router.replace('/');
   }
@@ -290,5 +290,4 @@ watch(workspaceContextSlug, async (slug) => {
   background-color: var(--color-surface-elevated);
   border-color: var(--color-border-light);
 }
-
 </style>

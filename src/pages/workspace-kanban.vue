@@ -279,12 +279,12 @@ import { buildKanbanColumnsFromEntries } from '~/app/features/kanban/kanbanUtils
 import KanbanStatusManager from '~/app/features/kanban/status/KanbanStatusManager.vue';
 import { useKanbanOrdering } from '~/app/features/kanban/useKanbanOrdering';
 import { useWorkspaceKanbanBoard } from '~/app/features/kanban/useWorkspaceKanbanBoard';
+import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import AppButton from '~/app/ui/AppButton.vue';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { loadKanbanStatuses } from '~/resource-state/resources/kanbanStatusCollection';
-import { loadWorkspaceMemos } from '~/resource-state/resources/memoCollection';
 import { useKanbanStatusCollectionViewModel } from '~/resource-state/viewmodels/kanbanStatusCollection';
 import { useWorkspaceMemosViewModel } from '~/resource-state/viewmodels/workspaceMemos';
 import { iconKey } from '~/utils/icon';
@@ -358,7 +358,7 @@ const isStatusManagerOpen = ref(false);
 await usePageLoader(async () => {
   if (!workspaceSlug.value) return;
   await Promise.all([
-    loadWorkspaceMemos(workspaceSlug.value),
+    workspaceMemosQuery.fetch({ workspaceSlug: workspaceSlug.value }),
     reloadKanbans(),
   ]);
 });

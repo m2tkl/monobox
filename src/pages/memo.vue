@@ -298,6 +298,8 @@ import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
 import { useMemoKanbanAssignments } from '~/app/features/memo/kanban/useMemoKanbanAssignments';
 import MemoLinkCardView from '~/app/features/memo/links/MemoLinkCardView/Index.vue';
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
+import { memoDetailQuery } from '~/app/features/memo/queries/memoDetailQuery';
+import { memoLinksQuery } from '~/app/features/memo/queries/memoLinksQuery';
 import {
   getDefaultMemoTemplate,
   parseTemplateContent,
@@ -309,8 +311,6 @@ import IconButton from '~/app/ui/IconButton.vue';
 import { command } from '~/external/tauri/command';
 import { emitEvent } from '~/resource-state/infra/eventBus';
 import { loadKanbans } from '~/resource-state/resources/kanbanCollection';
-import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
-import { loadMemoLinkCollection } from '~/resource-state/resources/memoLinkCollection';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
 import { AppError } from '~/utils/error';
@@ -371,14 +371,27 @@ const {
 await usePageLoader(async () => {
   const [templates] = await Promise.all([
     command.memoTemplate.list({ slugName: workspaceSlug.value }),
-    loadMemo(workspaceSlug.value, memoSlug.value),
+    memoDetailQuery.fetch({
+      workspaceSlug: workspaceSlug.value,
+      memoSlug: memoSlug.value,
+    }),
+    memoLinksQuery.fetch({
+      workspaceSlug: workspaceSlug.value,
+      memoSlug: memoSlug.value,
+    }),
     loadKanbans(workspaceSlug.value),
   ]);
   availableTemplates.value = sortMemoTemplates(templates);
   await loadKanbanEntries();
 });
 
-const memo = requireMemoValue();
+const memo = computed(() => {
+  const currentMemo = memoVM.value.data.memo;
+  if (!currentMemo) {
+    throw new Error('Memo is not loaded.');
+  }
+  return currentMemo;
+});
 const memoTitle = ref(memo.value.title);
 
 const lastSavedSnapshot = ref<MemoSnapshot>({
@@ -632,7 +645,10 @@ const machine = useMemoMachine('clean', {
       throw fatalErrors[0];
     }
 
-    await loadMemoLinkCollection(workspaceSlug.value, memoSlug.value);
+    await memoLinksQuery.fetch({
+      workspaceSlug: workspaceSlug.value,
+      memoSlug: memoSlug.value,
+    });
   },
   notifyUpdated: (memoSlug) => {
     lastSavedSnapshot.value = getCurrentSnapshot();

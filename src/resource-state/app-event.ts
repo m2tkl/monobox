@@ -1,10 +1,11 @@
+type EmptyPayload = Record<never, never>;
+
 export type AppEvent = {
-  'app/init': undefined;
+  'app/init': EmptyPayload;
   'workspace/switched': { workspaceSlug: string };
-  'workspace/created': undefined;
-  'workspace/deleted': undefined;
+  'workspace/created': EmptyPayload;
+  'workspace/deleted': EmptyPayload;
   'kanban/updated': { workspaceSlug: string };
-  'memo/switched': { workspaceSlug: string; memoSlug: string };
   'memo/created': { workspaceSlug: string };
   'memo/updated': { workspaceSlug: string; memoSlug: string };
   'memo/deleted': { workspaceSlug: string };

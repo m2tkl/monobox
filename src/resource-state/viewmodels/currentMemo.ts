@@ -2,12 +2,16 @@ import { computed } from 'vue';
 
 import { deriveViewModelFlags } from '../infra/types';
 import { readBookmarkCollectionSnapshot } from '../resources/bookmarkCollection';
-import { readMemoSnapshot } from '../resources/memo';
-import { readMemoCollectionSnapshot } from '../resources/memoCollection';
-import { readMemoLinkCollectionSnapshot } from '../resources/memoLinkCollection';
 
 import type { Link } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
+
+import { useRoute } from '#imports';
+import { memoDetailQuery } from '~/app/features/memo/queries/memoDetailQuery';
+import { memoLinksQuery } from '~/app/features/memo/queries/memoLinksQuery';
+import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { useQuery } from '~/resource-state/useQuery';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export type CurrentMemoViewModel = {
   data: {
@@ -24,9 +28,28 @@ export type CurrentMemoViewModel = {
 };
 
 export function useCurrentMemoViewModel() {
-  const memoSnap = readMemoSnapshot();
-  const linksSnap = readMemoLinkCollectionSnapshot();
-  const workspaceMemosSnap = readMemoCollectionSnapshot();
+  const route = useRoute();
+  const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+  const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
+  const canLoadCurrentMemo = computed(() => workspaceSlug.value.length > 0 && memoSlug.value.length > 0);
+
+  const { snapshot: memoSnap } = useQuery(memoDetailQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+    memoSlug: memoSlug.value,
+  }), {
+    enabled: canLoadCurrentMemo,
+  });
+  const { snapshot: linksSnap } = useQuery(memoLinksQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+    memoSlug: memoSlug.value,
+  }), {
+    enabled: canLoadCurrentMemo,
+  });
+  const { snapshot: workspaceMemosSnap } = useQuery(workspaceMemosQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+  }), {
+    enabled: computed(() => workspaceSlug.value.length > 0),
+  });
   const bookmarksSnap = readBookmarkCollectionSnapshot();
 
   const memo = computed(() => memoSnap.value.current ?? null);

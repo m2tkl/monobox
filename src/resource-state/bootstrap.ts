@@ -6,5 +6,5 @@ import { emitEvent } from '~/resource-state/infra/eventBus';
 export function bootstrapResourceState() {
   startRules();
   startRouteWatcher();
-  emitEvent('app/init', undefined);
+  emitEvent('app/init', {});
 }
