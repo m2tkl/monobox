@@ -18,10 +18,10 @@
 
 <script setup lang="ts">
 import { CREATED_QUERY_SOURCE_BLANK } from '~/app/features/memo/creation';
+import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
 import { buildUntitledMemoTitle } from '~/app/features/memo/template';
 import { useMemoCreateAction } from '~/app/features/memo/useMemoCreateAction';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
-import { command } from '~/external/tauri/command';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
@@ -43,7 +43,7 @@ const requestedTemplateSlug = computed(() =>
 const shouldSkipDefaultTemplate = computed(() => route.query.skipDefaultTemplate === 'true');
 
 await usePageLoader(async () => {
-  const workspaceMemos = await command.memo.list({ slugName: workspaceSlug.value });
+  const workspaceMemos = await workspaceMemosQuery.fetch({ workspaceSlug: workspaceSlug.value });
   const newMemoTitle = buildUntitledMemoTitle(workspaceMemos.map(memo => memo.title));
   const newMemo = await createMemo({
     workspaceSlug: workspaceSlug.value,

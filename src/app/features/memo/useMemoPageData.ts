@@ -3,12 +3,12 @@ import { ref } from 'vue';
 import { memoDetailQuery } from './queries/memoDetailQuery';
 import { memoLinksQuery } from './queries/memoLinksQuery';
 import { sortMemoTemplates } from './template';
+import { workspaceKanbansQuery } from '../kanban/queries/workspaceKanbansQuery';
 
 import type { Ref } from 'vue';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { command } from '~/external/tauri/command';
-import { loadKanbans } from '~/resource-state/resources/kanbanCollection';
 
 type UseMemoPageDataOptions = {
   workspaceSlug: Ref<string>;
@@ -30,7 +30,7 @@ export function useMemoPageData(options: UseMemoPageDataOptions) {
         workspaceSlug: options.workspaceSlug.value,
         memoSlug: options.memoSlug.value,
       }),
-      loadKanbans(options.workspaceSlug.value),
+      workspaceKanbansQuery.fetch({ workspaceSlug: options.workspaceSlug.value }),
     ]);
 
     availableTemplates.value = sortMemoTemplates(templates);

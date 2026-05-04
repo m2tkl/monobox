@@ -276,6 +276,7 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { buildKanbanColumnsFromEntries } from '~/app/features/kanban/kanbanUtils';
+import { workspaceKanbanStatusesQuery } from '~/app/features/kanban/queries/workspaceKanbanStatusesQuery';
 import KanbanStatusManager from '~/app/features/kanban/status/KanbanStatusManager.vue';
 import { useKanbanOrdering } from '~/app/features/kanban/useKanbanOrdering';
 import { useWorkspaceKanbanBoard } from '~/app/features/kanban/useWorkspaceKanbanBoard';
@@ -284,7 +285,6 @@ import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import AppButton from '~/app/ui/AppButton.vue';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
-import { loadKanbanStatuses } from '~/resource-state/resources/kanbanStatusCollection';
 import { useKanbanStatusCollectionViewModel } from '~/resource-state/viewmodels/kanbanStatusCollection';
 import { useWorkspaceMemosViewModel } from '~/resource-state/viewmodels/workspaceMemos';
 import { iconKey } from '~/utils/icon';
@@ -333,7 +333,10 @@ const {
   deleteKanban,
 } = useWorkspaceKanbanBoard({
   workspaceSlug,
-  loadStatuses: loadKanbanStatuses,
+  loadStatuses: (slug, kanbanId) => workspaceKanbanStatusesQuery.fetch({
+    workspaceSlug: slug,
+    kanbanId,
+  }),
   toast,
 });
 
