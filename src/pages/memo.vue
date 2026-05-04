@@ -300,7 +300,6 @@ import MemoLinkCardView from '~/app/features/memo/links/MemoLinkCardView/Index.v
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
 import {
   getDefaultMemoTemplate,
-  parseTemplateContent,
 } from '~/app/features/memo/template';
 import { useMemoBookmarkAction } from '~/app/features/memo/useMemoBookmarkAction';
 import { useMemoDeleteAction } from '~/app/features/memo/useMemoDeleteAction';
@@ -309,9 +308,9 @@ import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
 import { useMemoMutationNotifications } from '~/app/features/memo/useMemoMutationNotifications';
 import { useMemoPageData } from '~/app/features/memo/useMemoPageData';
 import { useMemoSaveAction } from '~/app/features/memo/useMemoSaveAction';
+import { useMemoTemplateApplyAction } from '~/app/features/memo/useMemoTemplateApplyAction';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
-import { command } from '~/external/tauri/command';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
 import { useConsoleLogger } from '~/utils/logger';
@@ -339,6 +338,7 @@ const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
 const kanbanVM = useKanbanCollectionViewModel();
 const { toggleBookmark: executeToggleBookmark } = useMemoBookmarkAction();
+const { applyTemplateToEditor } = useMemoTemplateApplyAction();
 const { saveMemo } = useMemoSaveAction();
 const { deleteMemo: executeDeleteMemo } = useMemoDeleteAction();
 const { syncMemoLinks } = useMemoLinkSync();
@@ -516,13 +516,12 @@ async function applyTemplate(templateSlug: string, options?: { toastTitle?: stri
   isApplyingTemplate.value = true;
 
   try {
-    const templateMemo = await command.memoTemplate.get({
-      workspaceSlugName: workspaceSlug.value,
-      templateSlugName: templateSlug,
+    const { templateId } = await applyTemplateToEditor({
+      workspaceSlug: workspaceSlug.value,
+      templateSlug,
+      editor: editor.value,
     });
-
-    selectedTemplateId.value = templateMemo.id;
-    editor.value.commands.setContent(parseTemplateContent(templateMemo));
+    selectedTemplateId.value = templateId;
     await nextTick();
 
     const result = await saveMemoContent('auto');
