@@ -7,6 +7,7 @@ export type AppEvent = {
   'workspace/deleted': EmptyPayload;
   'kanban/updated': { workspaceSlug: string };
   'memo/created': { workspaceSlug: string };
+  'memo/links-updated': { workspaceSlug: string; memoSlug: string };
   'memo/updated': { workspaceSlug: string; memoSlug: string };
   'memo/deleted': { workspaceSlug: string };
   'bookmark/updated': { workspaceSlug: string };

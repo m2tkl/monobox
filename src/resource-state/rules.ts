@@ -32,6 +32,13 @@ const rules: AnyRule<AppEvent>[] = [
     },
   },
   {
+    on: 'memo/links-updated',
+    run: async (p) => {
+      await invalidateByEvent('memo/links-updated', p);
+    },
+    debounceMs: 150,
+  },
+  {
     on: 'memo/updated',
     run: async (p) => {
       await Promise.all([

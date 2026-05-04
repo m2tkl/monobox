@@ -305,6 +305,7 @@ import {
   parseTemplateContent,
   sortMemoTemplates,
 } from '~/app/features/memo/template';
+import { useMemoLinkSync } from '~/app/features/memo/useMemoLinkSync';
 import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
@@ -313,7 +314,6 @@ import { emitEvent } from '~/resource-state/infra/eventBus';
 import { loadKanbans } from '~/resource-state/resources/kanbanCollection';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
-import { AppError } from '~/utils/error';
 import { useConsoleLogger } from '~/utils/logger';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
@@ -338,6 +338,7 @@ const { createEffectHandler } = useEffectHandler();
 const memoVM = useCurrentMemoViewModel();
 const kanbanVM = useKanbanCollectionViewModel();
 const { executeMemoSave } = useMemoSave();
+const { syncMemoLinks } = useMemoLinkSync();
 const logger = useConsoleLogger('pages/memo');
 const isApplyingTemplate = ref(false);
 const selectedTemplateId = ref<number>();
@@ -500,7 +501,6 @@ async function saveMemoContent(mode: 'explicit' | 'auto') {
     return { ok: false };
   }
 
-  const currentTitleForSlug = encodeForSlug(currentTitle);
   const handler = createEffectHandler((editor: _Editor, title: string) => executeMemoSave(
     {
       workspaceSlug: workspaceSlug.value,
@@ -517,10 +517,23 @@ async function saveMemoContent(mode: 'explicit' | 'auto') {
   }
 
   const result = await handler.execute(editor.value, currentTitle);
+  if (!result.ok) {
+    return {
+      ok: false as const,
+      error: result.error,
+    };
+  }
+
+  if (!result.data.ok) {
+    return {
+      ok: false as const,
+      error: result.data.error,
+    };
+  }
+
   return {
-    ok: result.ok,
-    memoSlug: currentTitleForSlug,
-    error: result.ok ? undefined : result.error,
+    ok: true as const,
+    memoSlug: result.data.data.memoSlug,
   };
 }
 
@@ -622,33 +635,10 @@ const deleteMemo = async (_previousState: MemoState) => {
 const machine = useMemoMachine('clean', {
   saveMemo: saveMemoContent,
   syncLinks: async (added, deleted) => {
-    const isIgnorableLinkSyncError = (error: unknown) => {
-      if (!(error instanceof AppError)) {
-        return false;
-      }
-
-      return error.message.includes('Memo to link not found for slug:')
-        || error.message.includes('Memo not found for slug:');
-    };
-
-    const results = await Promise.allSettled([
-      ...added.map(href => command.link.create({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
-      ...deleted.map(href => command.link.delete({ workspaceSlug: workspaceSlug.value, memoSlug: memoSlug.value }, href)),
-    ]);
-
-    const fatalErrors = results
-      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-      .map(result => result.reason)
-      .filter(error => !isIgnorableLinkSyncError(error));
-
-    if (fatalErrors.length > 0) {
-      throw fatalErrors[0];
-    }
-
-    await memoLinksQuery.fetch({
+    await syncMemoLinks({
       workspaceSlug: workspaceSlug.value,
       memoSlug: memoSlug.value,
-    });
+    }, added, deleted);
   },
   notifyUpdated: (memoSlug) => {
     lastSavedSnapshot.value = getCurrentSnapshot();

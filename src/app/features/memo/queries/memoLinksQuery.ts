@@ -13,6 +13,12 @@ export const memoLinksQuery = defineQuery<MemoQueryArgs, Link[]>({
     }),
   dependencies: [
     {
+      event: 'memo/links-updated',
+      match: (payload, args) =>
+        payload.workspaceSlug === args.workspaceSlug
+        && payload.memoSlug === args.memoSlug,
+    },
+    {
       event: 'memo/updated',
       match: (payload, args) =>
         payload.workspaceSlug === args.workspaceSlug

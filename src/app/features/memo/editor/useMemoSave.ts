@@ -2,18 +2,27 @@ import type { Editor } from '@tiptap/vue-3';
 
 import { command } from '~/external/tauri/command';
 
+type SaveMemoTarget = {
+  workspaceSlug: string;
+  memoSlug: string;
+};
+
+type SaveMemoResult = {
+  memoSlug: string;
+};
+
 export function useMemoSave() {
   const { runTask: executeMemoSave } = useAsyncTask(saveMemo);
 
   async function saveMemo(
-    target: { workspaceSlug: string; memoSlug: string },
+    target: SaveMemoTarget,
     editor: Editor,
     newTitle: string,
     thumbnailImage: string,
     // Kept for call-site compatibility; route hash is no longer used during save.
     _routeHash: string,
-  ): Promise<void> {
-    await updateMemoContent(
+  ): Promise<SaveMemoResult> {
+    return updateMemoContent(
       target,
       editor,
       newTitle,
@@ -22,11 +31,11 @@ export function useMemoSave() {
   };
 
   const updateMemoContent = async (
-    target: { workspaceSlug: string; memoSlug: string },
+    target: SaveMemoTarget,
     editor: Editor,
     newTitle: string,
     thumbnailImage: string,
-  ): Promise<void> => {
+  ): Promise<SaveMemoResult> => {
     const normalizedTitle = newTitle.trim();
     const newSlugTitle = encodeForSlug(normalizedTitle);
     const newContent = {
@@ -45,6 +54,10 @@ export function useMemoSave() {
       description: newContent.description,
       thumbnailImage: newContent.thumbnailImage,
     });
+
+    return {
+      memoSlug: newSlugTitle,
+    };
   };
 
   return {
