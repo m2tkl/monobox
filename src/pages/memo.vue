@@ -277,7 +277,6 @@ import type { NodeViewProps } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
 import type { MemoEvent, MemoState } from '~/app/features/memo/memoMachine';
 import type { DeleteMemoWorkflowHandle } from '~/app/features/memo/useMemoDeleteAction';
-import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
@@ -299,22 +298,19 @@ import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
 import { useMemoKanbanAssignments } from '~/app/features/memo/kanban/useMemoKanbanAssignments';
 import MemoLinkCardView from '~/app/features/memo/links/MemoLinkCardView/Index.vue';
 import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
-import { memoDetailQuery } from '~/app/features/memo/queries/memoDetailQuery';
-import { memoLinksQuery } from '~/app/features/memo/queries/memoLinksQuery';
 import {
   getDefaultMemoTemplate,
   parseTemplateContent,
-  sortMemoTemplates,
 } from '~/app/features/memo/template';
 import { useMemoDeleteAction } from '~/app/features/memo/useMemoDeleteAction';
 import { useMemoLinkSync } from '~/app/features/memo/useMemoLinkSync';
 import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
+import { useMemoMutationNotifications } from '~/app/features/memo/useMemoMutationNotifications';
+import { useMemoPageData } from '~/app/features/memo/useMemoPageData';
 import { useMemoSaveAction } from '~/app/features/memo/useMemoSaveAction';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
 import { command } from '~/external/tauri/command';
-import { emitEvent } from '~/resource-state/infra/eventBus';
-import { loadKanbans } from '~/resource-state/resources/kanbanCollection';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
 import { useConsoleLogger } from '~/utils/logger';
@@ -330,6 +326,7 @@ definePageMeta({
 const route = useRoute();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
+const routeHash = computed(() => route.hash);
 
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
@@ -347,7 +344,6 @@ const logger = useConsoleLogger('pages/memo');
 const isApplyingTemplate = ref(false);
 const selectedTemplateId = ref<number>();
 const isTemplatePickerDismissed = ref(false);
-const availableTemplates = ref<MemoTemplateIndexItem[]>([]);
 const hasAttemptedDefaultTemplate = ref(false);
 
 type MemoSnapshot = {
@@ -373,22 +369,16 @@ const {
   toast,
 });
 
-await usePageLoader(async () => {
-  const [templates] = await Promise.all([
-    command.memoTemplate.list({ slugName: workspaceSlug.value }),
-    memoDetailQuery.fetch({
-      workspaceSlug: workspaceSlug.value,
-      memoSlug: memoSlug.value,
-    }),
-    memoLinksQuery.fetch({
-      workspaceSlug: workspaceSlug.value,
-      memoSlug: memoSlug.value,
-    }),
-    loadKanbans(workspaceSlug.value),
-  ]);
-  availableTemplates.value = sortMemoTemplates(templates);
-  await loadKanbanEntries();
+const {
+  availableTemplates,
+  loadInitialData,
+} = useMemoPageData({
+  workspaceSlug,
+  memoSlug,
+  loadKanbanEntries,
 });
+
+await usePageLoader(loadInitialData);
 
 const memo = computed(() => {
   const currentMemo = memoVM.value.data.memo;
@@ -454,6 +444,19 @@ const computeDirty = () => {
 
 const deleteMemoWithUserConfirmation = ref<DeleteMemoWorkflowHandle | null>(null);
 let dispatch: (event: MemoEvent) => void = () => {};
+
+const { notifyUpdated, notifyDeleted } = useMemoMutationNotifications({
+  workspaceSlug,
+  routeHash,
+  router,
+  onAfterUpdated: () => {
+    lastSavedSnapshot.value = getCurrentSnapshot();
+    if (pendingDeleteAfterSave.value) {
+      pendingDeleteAfterSave.value = false;
+      dispatch({ type: 'memo/delete-requested' });
+    }
+  },
+});
 
 async function clearCreatedQueryFlag() {
   if (
@@ -597,19 +600,8 @@ const machine = useMemoMachine('clean', {
       memoSlug: memoSlug.value,
     }, added, deleted);
   },
-  notifyUpdated: (memoSlug) => {
-    lastSavedSnapshot.value = getCurrentSnapshot();
-    emitEvent('memo/updated', { workspaceSlug: workspaceSlug.value, memoSlug });
-    router.replace(`/${workspaceSlug.value}/${memoSlug}${route.hash}`);
-    if (pendingDeleteAfterSave.value) {
-      pendingDeleteAfterSave.value = false;
-      dispatch({ type: 'memo/delete-requested' });
-    }
-  },
-  notifyDeleted: () => {
-    emitEvent('memo/deleted', { workspaceSlug: workspaceSlug.value });
-    router.replace(`/${workspaceSlug.value}`);
-  },
+  notifyUpdated,
+  notifyDeleted,
   confirmDelete,
   deleteMemo,
 }, {

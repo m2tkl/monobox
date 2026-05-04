@@ -1,9 +1,14 @@
-import { computed } from 'vue';
+import { computed, toValue } from 'vue';
 
 import { deriveViewModelFlags } from '../infra/types';
-import { readKanbanCollectionSnapshot } from '../resources/kanbanCollection';
 
+import type { MaybeRefOrGetter } from 'vue';
 import type { Kanban } from '~/models/kanban';
+
+import { useRoute } from '#imports';
+import { workspaceKanbansQuery } from '~/app/features/kanban/queries/workspaceKanbansQuery';
+import { useQuery } from '~/resource-state/useQuery';
+import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export type KanbanCollectionViewModel = {
   data: {
@@ -16,8 +21,16 @@ export type KanbanCollectionViewModel = {
   };
 };
 
-export function useKanbanCollectionViewModel() {
-  const snap = readKanbanCollectionSnapshot();
+export function useKanbanCollectionViewModel(workspaceSlugArg?: MaybeRefOrGetter<string>) {
+  const route = useRoute();
+  const workspaceSlug = computed(() => workspaceSlugArg != null
+    ? toValue(workspaceSlugArg)
+    : (getEncodedWorkspaceSlugFromPath(route) || ''));
+  const { snapshot: snap } = useQuery(workspaceKanbansQuery, () => ({
+    workspaceSlug: workspaceSlug.value,
+  }), {
+    enabled: computed(() => workspaceSlug.value.length > 0),
+  });
 
   const items = computed<Kanban[]>(() => snap.value.current ?? []);
 

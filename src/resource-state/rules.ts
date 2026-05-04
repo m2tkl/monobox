@@ -71,7 +71,7 @@ const rules: AnyRule<AppEvent>[] = [
   {
     on: 'kanban/updated',
     run: async (p) => {
-      await loadKanbans(p.workspaceSlug);
+      await invalidateByEvent('kanban/updated', p);
     },
   },
 ];

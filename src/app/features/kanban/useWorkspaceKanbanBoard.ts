@@ -3,8 +3,8 @@ import { computed, ref, watch } from 'vue';
 import type { ComputedRef } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 
+import { workspaceKanbansQuery } from '~/app/features/kanban/queries/workspaceKanbansQuery';
 import { command } from '~/external/tauri/command';
-import { loadKanbans } from '~/resource-state/resources/kanbanCollection';
 import { useKanbanCollectionViewModel } from '~/resource-state/viewmodels/kanbanCollection';
 import { iconKey } from '~/utils/icon';
 
@@ -15,7 +15,7 @@ type UseWorkspaceKanbanBoardOptions = {
 };
 
 export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions) {
-  const kanbanVM = useKanbanCollectionViewModel();
+  const kanbanVM = useKanbanCollectionViewModel(options.workspaceSlug);
   const kanbans = computed(() => kanbanVM.value.data.items);
   const kanbanOptions = computed(() => kanbans.value.map(kanban => ({
     label: kanban.name,
@@ -94,12 +94,12 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
 
   const reloadKanbans = async () => {
     if (!options.workspaceSlug.value) return;
-    await loadKanbans(options.workspaceSlug.value);
+    await workspaceKanbansQuery.fetch({ workspaceSlug: options.workspaceSlug.value });
   };
 
   watch(options.workspaceSlug, async (slug) => {
     if (!slug) return;
-    await loadKanbans(slug);
+    await workspaceKanbansQuery.fetch({ workspaceSlug: slug });
   });
 
   const openCreateKanban = () => {
