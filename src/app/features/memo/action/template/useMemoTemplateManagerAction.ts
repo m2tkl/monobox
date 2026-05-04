@@ -1,7 +1,6 @@
-import { buildUntitledTemplateName, sortMemoTemplates } from './template';
-
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
+import { buildUntitledTemplateName, sortMemoTemplates } from '~/app/features/memo/ui/template/template';
 import { command } from '~/external/tauri/command';
 
 type CreateMemoTemplateInput = {

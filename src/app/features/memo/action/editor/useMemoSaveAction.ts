@@ -1,4 +1,4 @@
-import { useMemoSave } from './editor/useMemoSave';
+import { useMemoSave } from './useMemoSave';
 
 import type { Editor as TiptapEditor } from '@tiptap/core';
 

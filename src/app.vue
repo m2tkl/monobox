@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import TitleBar from '~/app/chrome/TitleBar.vue';
-import ImagePreviewDialog from '~/app/features/memo/editor/ImagePreviewDialog/Index.vue';
+import ImagePreviewDialog from '~/app/features/memo/ui/editor/ImagePreviewDialog/Index.vue';
 import { command } from '~/external/tauri/command';
 import { handleError } from '~/utils/error';
 

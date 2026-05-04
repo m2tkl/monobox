@@ -2,7 +2,7 @@ import { workspaceKanbansQuery } from './queries/workspaceKanbansQuery';
 
 import type { Ref } from 'vue';
 
-import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { workspaceMemosQuery } from '~/app/features/memo/query/workspaceMemosQuery';
 
 type UseWorkspaceKanbanPageDataOptions = {
   workspaceSlug: Ref<string>;

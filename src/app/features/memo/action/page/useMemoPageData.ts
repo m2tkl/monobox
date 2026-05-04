@@ -1,13 +1,12 @@
 import { ref } from 'vue';
 
-import { memoDetailQuery } from './queries/memoDetailQuery';
-import { memoLinksQuery } from './queries/memoLinksQuery';
-import { sortMemoTemplates } from './template';
-import { workspaceKanbansQuery } from '../kanban/queries/workspaceKanbansQuery';
-
 import type { Ref } from 'vue';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
+import { workspaceKanbansQuery } from '~/app/features/kanban/queries/workspaceKanbansQuery';
+import { memoDetailQuery } from '~/app/features/memo/query/memoDetailQuery';
+import { memoLinksQuery } from '~/app/features/memo/query/memoLinksQuery';
+import { sortMemoTemplates } from '~/app/features/memo/ui/template/template';
 import { command } from '~/external/tauri/command';
 
 type UseMemoPageDataOptions = {

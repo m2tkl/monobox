@@ -1,7 +1,6 @@
-import { parseTemplateContent } from './template';
-
 import type { Editor } from '@tiptap/core';
 
+import { parseTemplateContent } from '~/app/features/memo/ui/template/template';
 import { command } from '~/external/tauri/command';
 
 type ApplyMemoTemplateInput = {

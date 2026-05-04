@@ -5,7 +5,7 @@ import { deriveViewModelFlags } from '../infra/types';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { useRoute } from '#imports';
-import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { workspaceMemosQuery } from '~/app/features/memo/query/workspaceMemosQuery';
 import { workspaceBookmarksQuery } from '~/app/features/workspace/queries/workspaceBookmarksQuery';
 import { workspaceMemoLinkCountsQuery } from '~/app/features/workspace/queries/workspaceMemoLinkCountsQuery';
 import { useQuery } from '~/resource-state/useQuery';

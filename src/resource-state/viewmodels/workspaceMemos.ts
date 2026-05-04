@@ -5,7 +5,7 @@ import { deriveViewModelFlags } from '../infra/types';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { useRoute } from '#imports';
-import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { workspaceMemosQuery } from '~/app/features/memo/query/workspaceMemosQuery';
 import { useQuery } from '~/resource-state/useQuery';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 

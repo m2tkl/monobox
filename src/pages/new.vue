@@ -17,10 +17,10 @@
 </template>
 
 <script setup lang="ts">
-import { CREATED_QUERY_SOURCE_BLANK } from '~/app/features/memo/creation';
-import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
-import { buildUntitledMemoTitle } from '~/app/features/memo/template';
-import { useMemoCreateAction } from '~/app/features/memo/useMemoCreateAction';
+import { CREATED_QUERY_SOURCE_BLANK } from '~/app/features/memo/action/create/creation';
+import { useMemoCreateAction } from '~/app/features/memo/action/create/useMemoCreateAction';
+import { workspaceMemosQuery } from '~/app/features/memo/query/workspaceMemosQuery';
+import { buildUntitledMemoTitle } from '~/app/features/memo/ui/template/template';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 

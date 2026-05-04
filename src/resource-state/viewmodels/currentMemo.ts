@@ -6,9 +6,9 @@ import type { Link } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 
 import { useRoute } from '#imports';
-import { memoDetailQuery } from '~/app/features/memo/queries/memoDetailQuery';
-import { memoLinksQuery } from '~/app/features/memo/queries/memoLinksQuery';
-import { workspaceMemosQuery } from '~/app/features/memo/queries/workspaceMemosQuery';
+import { memoDetailQuery } from '~/app/features/memo/query/memoDetailQuery';
+import { memoLinksQuery } from '~/app/features/memo/query/memoLinksQuery';
+import { workspaceMemosQuery } from '~/app/features/memo/query/workspaceMemosQuery';
 import { workspaceBookmarksQuery } from '~/app/features/workspace/queries/workspaceBookmarksQuery';
 import { useQuery } from '~/resource-state/useQuery';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';

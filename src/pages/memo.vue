@@ -275,40 +275,40 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import type { NodeViewProps } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
-import type { MemoEvent, MemoState } from '~/app/features/memo/memoMachine';
-import type { DeleteMemoWorkflowHandle } from '~/app/features/memo/useMemoDeleteAction';
+import type { DeleteMemoWorkflowHandle } from '~/app/features/memo/action/delete/useMemoDeleteAction';
+import type { MemoEvent, MemoState } from '~/app/features/memo/state/memoMachine';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
+import { useMemoBookmarkAction } from '~/app/features/memo/action/bookmark/useMemoBookmarkAction';
 import {
   CREATED_QUERY_SOURCE_BLANK,
   CREATED_QUERY_SOURCE_NAMED,
-} from '~/app/features/memo/creation';
-import DeleteMemoWorkflow from '~/app/features/memo/delete/DeleteMemoWorkflow.vue';
-import AltEditDialog from '~/app/features/memo/editor/AltEditDialog.vue';
-import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
-import { useImagePreview } from '~/app/features/memo/editor/ImagePreviewDialog/useImagePreview';
-import LinkEditDialog from '~/app/features/memo/editor/LinkEditDialog.vue';
-import MemoEditor from '~/app/features/memo/editor/MemoEditor.vue';
-import { useMemoCopy } from '~/app/features/memo/editor/useMemoCopy';
-import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
-import ExportDialogToCopyResult from '~/app/features/memo/export/ExportDialogToCopyResult.vue';
-import ExportDialogToSelectTargets from '~/app/features/memo/export/ExportDialogToSelectTargets.vue';
-import { useExportLinked } from '~/app/features/memo/export/useExportLinked';
-import { useMemoKanbanAssignments } from '~/app/features/memo/kanban/useMemoKanbanAssignments';
-import MemoLinkCardView from '~/app/features/memo/links/MemoLinkCardView/Index.vue';
-import OutlinePanel from '~/app/features/memo/outline/OutlinePanel.vue';
+} from '~/app/features/memo/action/create/creation';
+import { useMemoDeleteAction } from '~/app/features/memo/action/delete/useMemoDeleteAction';
+import { useMemoCopy } from '~/app/features/memo/action/editor/useMemoCopy';
+import { useMemoSaveAction } from '~/app/features/memo/action/editor/useMemoSaveAction';
+import { useExportLinked } from '~/app/features/memo/action/export/useExportLinked';
+import { useMemoLinkSync } from '~/app/features/memo/action/links/useMemoLinkSync';
+import { useMemoMutationNotifications } from '~/app/features/memo/action/page/useMemoMutationNotifications';
+import { useMemoPageData } from '~/app/features/memo/action/page/useMemoPageData';
+import { useMemoTemplateApplyAction } from '~/app/features/memo/action/template/useMemoTemplateApplyAction';
+import { useMemoMachine } from '~/app/features/memo/state/useMemoMachine';
+import DeleteMemoWorkflow from '~/app/features/memo/ui/delete/DeleteMemoWorkflow.vue';
+import AltEditDialog from '~/app/features/memo/ui/editor/AltEditDialog.vue';
+import EditorToolbarButton from '~/app/features/memo/ui/editor/EditorToolbarButton.vue';
+import { useImagePreview } from '~/app/features/memo/ui/editor/ImagePreviewDialog/useImagePreview';
+import LinkEditDialog from '~/app/features/memo/ui/editor/LinkEditDialog.vue';
+import MemoEditor from '~/app/features/memo/ui/editor/MemoEditor.vue';
+import { useMemoEditor } from '~/app/features/memo/ui/editor/useMemoEditor';
+import ExportDialogToCopyResult from '~/app/features/memo/ui/export/ExportDialogToCopyResult.vue';
+import ExportDialogToSelectTargets from '~/app/features/memo/ui/export/ExportDialogToSelectTargets.vue';
+import { useMemoKanbanAssignments } from '~/app/features/memo/ui/kanban/useMemoKanbanAssignments';
+import MemoLinkCardView from '~/app/features/memo/ui/links/MemoLinkCardView/Index.vue';
+import OutlinePanel from '~/app/features/memo/ui/outline/OutlinePanel.vue';
 import {
   getDefaultMemoTemplate,
-} from '~/app/features/memo/template';
-import { useMemoBookmarkAction } from '~/app/features/memo/useMemoBookmarkAction';
-import { useMemoDeleteAction } from '~/app/features/memo/useMemoDeleteAction';
-import { useMemoLinkSync } from '~/app/features/memo/useMemoLinkSync';
-import { useMemoMachine } from '~/app/features/memo/useMemoMachine';
-import { useMemoMutationNotifications } from '~/app/features/memo/useMemoMutationNotifications';
-import { useMemoPageData } from '~/app/features/memo/useMemoPageData';
-import { useMemoSaveAction } from '~/app/features/memo/useMemoSaveAction';
-import { useMemoTemplateApplyAction } from '~/app/features/memo/useMemoTemplateApplyAction';
+} from '~/app/features/memo/ui/template/template';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import IconButton from '~/app/ui/IconButton.vue';
 import { useCurrentMemoViewModel } from '~/resource-state/viewmodels/currentMemo';
