@@ -10,6 +10,7 @@ export type AppEvent = {
   'memo/links-updated': { workspaceSlug: string; memoSlug: string };
   'memo/updated': { workspaceSlug: string; memoSlug: string };
   'memo/deleted': { workspaceSlug: string };
+  'kanban-assignment/updated': { workspaceSlug: string; memoSlug: string };
   'bookmark/updated': { workspaceSlug: string };
   'kanban-status/updated': { workspaceSlug: string; kanbanId: number };
 };

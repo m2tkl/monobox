@@ -37,6 +37,12 @@ const rules: AnyRule<AppEvent>[] = [
     debounceMs: 150,
   },
   {
+    on: 'kanban-assignment/updated',
+    run: async (p) => {
+      await invalidateByEvent('kanban-assignment/updated', p);
+    },
+  },
+  {
     on: 'bookmark/updated',
     run: p => invalidateByEvent('bookmark/updated', p),
   },

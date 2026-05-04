@@ -3,6 +3,7 @@ import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import { workspaceKanbanStatusesQuery } from '~/app/features/kanban/queries/workspaceKanbanStatusesQuery';
 import { command } from '~/external/tauri/command';
+import { emitEvent } from '~/resource-state/infra/eventBus';
 
 type MemoKanbanTarget = {
   workspaceSlug: string;
@@ -39,6 +40,10 @@ export function useMemoKanbanAssignmentAction() {
       memoSlugTitle: input.memoSlug,
       kanbanId: input.kanbanId,
     });
+    emitEvent('kanban-assignment/updated', {
+      workspaceSlug: input.workspaceSlug,
+      memoSlug: input.memoSlug,
+    });
   };
 
   const upsertStatus = async (input: UpsertMemoKanbanStatusInput) => {
@@ -48,6 +53,10 @@ export function useMemoKanbanAssignmentAction() {
       kanbanId: input.kanbanId,
       kanbanStatusId: input.kanbanStatusId,
       position: null,
+    });
+    emitEvent('kanban-assignment/updated', {
+      workspaceSlug: input.workspaceSlug,
+      memoSlug: input.memoSlug,
     });
   };
 
