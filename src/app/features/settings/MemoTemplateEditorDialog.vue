@@ -152,9 +152,9 @@ import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
 import EditorToolbarButton from '~/app/features/memo/editor/EditorToolbarButton.vue';
 import MemoEditor from '~/app/features/memo/editor/MemoEditor.vue';
 import { useMemoEditor } from '~/app/features/memo/editor/useMemoEditor';
+import { useMemoTemplateEditorAction } from '~/app/features/memo/useMemoTemplateEditorAction';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
-import { command } from '~/external/tauri/command';
 import { isCmdKey } from '~/utils/event';
 import { iconKey } from '~/utils/icon';
 import { useConsoleLogger } from '~/utils/logger';
@@ -177,6 +177,10 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const logger = useConsoleLogger('MemoTemplateEditorDialog');
+const {
+  loadTemplateEditorData,
+  saveTemplate: executeSaveTemplate,
+} = useMemoTemplateEditorAction();
 
 const templateName = ref('');
 const currentTemplateSlug = ref(props.templateSlug);
@@ -328,13 +332,10 @@ async function loadTemplate() {
   currentTemplateSlug.value = props.templateSlug;
 
   try {
-    const [loadedTemplate, loadedMemos] = await Promise.all([
-      command.memoTemplate.get({
-        workspaceSlugName: props.workspaceSlug,
-        templateSlugName: props.templateSlug,
-      }),
-      command.memo.list({ slugName: props.workspaceSlug }),
-    ]);
+    const { template: loadedTemplate, memos: loadedMemos } = await loadTemplateEditorData({
+      workspaceSlug: props.workspaceSlug,
+      templateSlug: props.templateSlug,
+    });
 
     templateName.value = loadedTemplate.name;
     workspaceMemos.value = loadedMemos;
@@ -365,18 +366,15 @@ async function saveTemplate() {
 
   isSaving.value = true;
   try {
-    const nextName = templateName.value.trim();
-    const nextContent = JSON.stringify(editor.value.getJSON());
-
-    await command.memoTemplate.save({
-      workspaceSlugName: props.workspaceSlug,
+    const result = await executeSaveTemplate({
+      workspaceSlug: props.workspaceSlug,
       targetSlugName: currentTemplateSlug.value,
-      name: nextName,
-      content: nextContent,
+      name: templateName.value,
+      content: JSON.stringify(editor.value.getJSON()),
     });
 
-    currentTemplateSlug.value = encodeForSlug(nextName);
-    templateName.value = nextName;
+    currentTemplateSlug.value = result.slug;
+    templateName.value = result.name;
     emit('saved', currentTemplateSlug.value);
 
     toast.add({

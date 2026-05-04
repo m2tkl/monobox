@@ -29,8 +29,9 @@ import type { JSONContent } from '@tiptap/vue-3';
 import '~/assets/css/modules/slide.css';
 
 import { convertMemoToHtml } from '~/app/features/memo/export/converters';
+import { memoDetailQuery } from '~/app/features/memo/queries/memoDetailQuery';
 import Slide from '~/app/features/slide/Slide.vue';
-import { loadMemo, requireMemoValue } from '~/resource-state/resources/memo';
+import { useQuery } from '~/resource-state/useQuery';
 
 definePageMeta({
   path: '/:workspace/:memo/_slide',
@@ -40,12 +41,27 @@ const route = useRoute();
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
-
-await usePageLoader(async () => {
-  await loadMemo(workspaceSlug.value, memoSlug.value);
+const { snapshot: memoSnap } = useQuery(memoDetailQuery, () => ({
+  workspaceSlug: workspaceSlug.value,
+  memoSlug: memoSlug.value,
+}), {
+  enabled: computed(() => workspaceSlug.value.length > 0 && memoSlug.value.length > 0),
 });
 
-const memo = requireMemoValue();
+await usePageLoader(async () => {
+  await memoDetailQuery.fetch({
+    workspaceSlug: workspaceSlug.value,
+    memoSlug: memoSlug.value,
+  });
+});
+
+const memo = computed(() => {
+  if (!memoSnap.value.current) {
+    throw new Error('Memo is not loaded.');
+  }
+
+  return memoSnap.value.current;
+});
 
 const slidesHtml = computed(() =>
   convertMemoToHtml(JSON.parse(memo.value.content) as JSONContent, memo.value.title),
