@@ -111,17 +111,22 @@
 <script setup lang="ts">
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import { buildUntitledTemplateName, sortMemoTemplates } from '~/app/features/memo/template';
+import { useMemoTemplateManagerAction } from '~/app/features/memo/useMemoTemplateManagerAction';
 import MemoTemplateEditorDialog from '~/app/features/settings/MemoTemplateEditorDialog.vue';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
-import { command } from '~/external/tauri/command';
 import { iconKey } from '~/utils/icon';
 
 const props = defineProps<{
   workspaceSlug: string;
 }>();
 const toast = useToast();
+const {
+  loadTemplates: loadMemoTemplates,
+  createTemplate: createMemoTemplate,
+  deleteTemplate: deleteMemoTemplate,
+  toggleDefaultTemplate: toggleMemoTemplateDefault,
+} = useMemoTemplateManagerAction();
 
 const templates = ref<MemoTemplateIndexItem[]>([]);
 const isLoading = ref(false);
@@ -139,8 +144,7 @@ async function loadTemplates() {
 
   isLoading.value = true;
   try {
-    const nextTemplates = await command.memoTemplate.list({ slugName: props.workspaceSlug });
-    templates.value = sortMemoTemplates(nextTemplates);
+    templates.value = await loadMemoTemplates(props.workspaceSlug);
   }
   finally {
     isLoading.value = false;
@@ -150,11 +154,9 @@ async function loadTemplates() {
 async function createTemplate() {
   isCreating.value = true;
   try {
-    const name = buildUntitledTemplateName(templates.value.map(template => template.name));
-    const created = await command.memoTemplate.create({
-      workspaceSlugName: props.workspaceSlug,
-      name,
-      content: JSON.stringify(''),
+    const created = await createMemoTemplate({
+      workspaceSlug: props.workspaceSlug,
+      existingTemplates: templates.value,
     });
 
     await loadTemplates();
@@ -179,9 +181,9 @@ async function createTemplate() {
 async function deleteTemplate(templateSlugName: string) {
   deletingSlug.value = templateSlugName;
   try {
-    await command.memoTemplate.delete({
-      workspaceSlugName: props.workspaceSlug,
-      templateSlugName,
+    await deleteMemoTemplate({
+      workspaceSlug: props.workspaceSlug,
+      templateSlug: templateSlugName,
     });
     await loadTemplates();
     toast.add({
@@ -224,18 +226,10 @@ async function confirmDeleteTemplate() {
 async function toggleDefaultTemplate(template: MemoTemplateIndexItem) {
   defaultingSlug.value = template.slug_name;
   try {
-    if (template.is_default) {
-      await command.memoTemplate.clearDefault({
-        workspaceSlugName: props.workspaceSlug,
-      });
-    }
-    else {
-      await command.memoTemplate.setDefault({
-        workspaceSlugName: props.workspaceSlug,
-        templateSlugName: template.slug_name,
-      });
-    }
-
+    await toggleMemoTemplateDefault({
+      workspaceSlug: props.workspaceSlug,
+      template,
+    });
     await loadTemplates();
     toast.add({
       title: template.is_default ? 'Default template cleared' : 'Default template updated',
