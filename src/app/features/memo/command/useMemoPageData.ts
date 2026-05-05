@@ -6,7 +6,7 @@ import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 import { workspaceKanbansQuery } from '~/app/features/kanban/queries/workspaceKanbansQuery';
 import { memoDetailQuery } from '~/app/features/memo/query/memoDetailQuery';
 import { memoLinksQuery } from '~/app/features/memo/query/memoLinksQuery';
-import { sortMemoTemplates } from '~/app/features/memo/ui/template/template';
+import { sortMemoTemplates } from '~/app/features/memo/view/template/template';
 import { command } from '~/external/tauri/command';
 
 type UseMemoPageDataOptions = {

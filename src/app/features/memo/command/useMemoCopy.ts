@@ -1,7 +1,7 @@
 import type { Editor as _Editor } from '@tiptap/core';
 
 import { EditorQuery, convertToMarkdown } from '~/app/features/editor';
-import { convertMemoToHtml, createHtmlLink } from '~/app/features/memo/ui/export/converters';
+import { convertMemoToHtml, createHtmlLink } from '~/app/features/memo/view/export/converters';
 import { writeHtml, writeText } from '~/external/tauri/clipboard';
 
 /**

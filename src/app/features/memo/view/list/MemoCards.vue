@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import type { MemoIndexItem } from '~/models/memo';
 
-import MemoThumbnail from '~/app/features/memo/ui/list/MemoThumbnail.vue';
+import MemoThumbnail from '~/app/features/memo/view/list/MemoThumbnail.vue';
 
 const props = defineProps<{
   memos: MemoIndexItem[];

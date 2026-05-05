@@ -111,8 +111,8 @@
 <script setup lang="ts">
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import { useMemoTemplateManagerAction } from '~/app/features/memo/action/template/useMemoTemplateManagerAction';
-import MemoTemplateEditorDialog from '~/app/features/memo/ui/template/MemoTemplateEditorDialog.vue';
+import { useMemoTemplateManagerAction } from '~/app/features/memo/command/useMemoTemplateManagerAction';
+import MemoTemplateEditorDialog from '~/app/features/memo/view/template/MemoTemplateEditorDialog.vue';
 import ConfirmModal from '~/app/ui/ConfirmModal.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';

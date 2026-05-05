@@ -5,7 +5,7 @@ import type { Kanban } from '~/models/kanban';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import { workspaceKanbanStatusesQuery } from '~/app/features/kanban/queries/workspaceKanbanStatusesQuery';
-import { useMemoKanbanAssignmentAction } from '~/app/features/memo/action/kanban/useMemoKanbanAssignmentAction';
+import { useMemoKanbanAssignmentAction } from '~/app/features/memo/command/useMemoKanbanAssignmentAction';
 import { memoKanbanEntriesQuery } from '~/app/features/memo/query/memoKanbanEntriesQuery';
 import { useResourceManager } from '~/resource-state/infra/useResourceManager';
 import { useQuery } from '~/resource-state/useQuery';

@@ -29,7 +29,7 @@ import type { JSONContent } from '@tiptap/vue-3';
 import '~/assets/css/modules/slide.css';
 
 import { memoDetailQuery } from '~/app/features/memo/query/memoDetailQuery';
-import { convertMemoToHtml } from '~/app/features/memo/ui/export/converters';
+import { convertMemoToHtml } from '~/app/features/memo/view/export/converters';
 import Slide from '~/app/features/slide/Slide.vue';
 import { useQuery } from '~/resource-state/useQuery';
 

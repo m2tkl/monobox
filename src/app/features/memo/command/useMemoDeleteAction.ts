@@ -7,7 +7,7 @@ type DeleteMemoActionTarget = {
   memoSlug: string;
 };
 
-export type DeleteMemoWorkflowHandle = {
+export type MemoDeleteFlowHandle = {
   run: (operation: () => Promise<void>) => Promise<'completed' | 'cancelled'>;
 };
 
@@ -15,7 +15,7 @@ export function useMemoDeleteAction() {
   const { createEffectHandler } = useEffectHandler();
 
   const deleteMemo = async (
-    workflowRef: Ref<DeleteMemoWorkflowHandle | null>,
+    workflowRef: Ref<MemoDeleteFlowHandle | null>,
     target: DeleteMemoActionTarget,
   ): Promise<boolean> => {
     if (!workflowRef.value) {

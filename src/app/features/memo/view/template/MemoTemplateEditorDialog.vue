@@ -149,10 +149,10 @@ import type { MemoIndexItem } from '~/models/memo';
 
 import { buildExtensions, dispatchEditorMsg } from '~/app/features/editor';
 import CodeBlockComponent from '~/app/features/editor/nodeviews/CodeBlock';
-import { useMemoTemplateEditorAction } from '~/app/features/memo/action/template/useMemoTemplateEditorAction';
-import EditorToolbarButton from '~/app/features/memo/ui/editor/EditorToolbarButton.vue';
-import MemoEditor from '~/app/features/memo/ui/editor/MemoEditor.vue';
-import { useMemoEditor } from '~/app/features/memo/ui/editor/useMemoEditor';
+import { useMemoTemplateEditorAction } from '~/app/features/memo/command/useMemoTemplateEditorAction';
+import EditorToolbarButton from '~/app/features/memo/view/editor/EditorToolbarButton.vue';
+import MemoEditor from '~/app/features/memo/view/editor/MemoEditor.vue';
+import { useMemoEditor } from '~/app/features/memo/view/editor/useMemoEditor';
 import SearchPalette from '~/app/features/search/SearchPalette.vue';
 import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { isCmdKey } from '~/utils/event';
