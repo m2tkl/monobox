@@ -273,17 +273,12 @@ import { KanbanBoard } from 'kanvan';
 import 'kanvan/dist/style.css';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { MemoIndexItem } from '~/models/memo';
 
 import { buildKanbanColumnsFromEntries } from '~/features/kanban/kanbanUtils';
-import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
-import { useKanbanStatusCollectionReadModel } from '~/features/kanban/read-model';
 import KanbanStatusManager from '~/features/kanban/status/KanbanStatusManager.vue';
 import { useKanbanOrdering } from '~/features/kanban/useKanbanOrdering';
-import { useWorkspaceKanbanBoard } from '~/features/kanban/useWorkspaceKanbanBoard';
-import { useWorkspaceKanbanPageData } from '~/features/kanban/useWorkspaceKanbanPageData';
-import { useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
+import { useWorkspaceKanban } from '~/features/workspace-kanban';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
@@ -310,18 +305,13 @@ const router = useRouter();
 const toast = useToast();
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
-
-const memosVM = useWorkspaceMemosReadModel();
-const memos = computed<MemoIndexItem[]>(() => memosVM.value.data.items);
-
 const {
+  memos,
   kanbanOptions,
-  kanbanVM,
   selectedKanbanId,
   activeKanbanId,
   hasKanban,
   entries,
-  isEntriesLoading,
   isCreateKanbanOpen,
   newKanbanName,
   isCreatingKanban,
@@ -331,22 +321,12 @@ const {
   createKanban,
   openDeleteKanban,
   deleteKanban,
-} = useWorkspaceKanbanBoard({
+  statuses,
+  isLoading,
+  loadInitialData,
+} = useWorkspaceKanban({
   workspaceSlug,
-  loadStatuses: (slug, kanbanId) => workspaceKanbanStatusesQuery.fetch({
-    workspaceSlug: slug,
-    kanbanId,
-  }),
   toast,
-});
-
-const statusVM = useKanbanStatusCollectionReadModel(workspaceSlug, activeKanbanId);
-const statuses = computed(() => statusVM.value.data.items);
-const isLoading = computed(() => {
-  return memosVM.value.flags.isLoading
-    || kanbanVM.value.flags.isLoading
-    || statusVM.value.flags.isLoading
-    || isEntriesLoading.value;
 });
 
 const columns = ref<ReturnType<typeof buildKanbanColumnsFromEntries>>([]);
@@ -356,10 +336,6 @@ const addQuery = ref('');
 const ADD_LIST_LIMIT = 100;
 
 const isStatusManagerOpen = ref(false);
-
-const { loadInitialData } = useWorkspaceKanbanPageData({
-  workspaceSlug,
-});
 
 await usePageLoader(loadInitialData);
 
