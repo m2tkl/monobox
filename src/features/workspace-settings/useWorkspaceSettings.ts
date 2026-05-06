@@ -1,7 +1,8 @@
 import { computed, ref, watch } from 'vue';
 
+import { useWorkspaceDeleteAction } from './useWorkspaceDeleteAction';
+
 import { useCurrentWorkspaceReadModel } from '~/features/workspace/read-model';
-import { useWorkspaceDeleteAction } from '~/features/workspace/useWorkspaceDeleteAction';
 import { workspaceQuery } from '~/resources/workspace/queries';
 import { iconKey } from '~/utils/icon';
 
