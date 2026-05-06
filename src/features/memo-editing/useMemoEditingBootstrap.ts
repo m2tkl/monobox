@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 
-import { workspaceKanbansQuery } from '~/features/kanban/queries/workspaceKanbansQuery';
+import { workspaceKanbansQuery } from '~/resources/kanban/queries';
 import { memoDetailQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
 

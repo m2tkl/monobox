@@ -6,9 +6,9 @@ import { useWorkspaceKanbanPageData } from './useWorkspaceKanbanPageData';
 import type { ComputedRef } from 'vue';
 import type { MemoIndexItem } from '~/models/memo';
 
-import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
 import { useKanbanStatusCollectionReadModel } from '~/features/kanban/read-model';
 import { useWorkspaceMemosReadModel } from '~/features/memo-browsing';
+import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
 
 type UseWorkspaceKanbanOptions = {
   workspaceSlug: ComputedRef<string>;

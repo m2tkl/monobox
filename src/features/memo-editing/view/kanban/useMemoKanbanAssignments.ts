@@ -5,11 +5,11 @@ import type { ComputedRef } from 'vue';
 import type { Kanban } from '~/models/kanban';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
 import { useMemoKanbanAssignmentAction } from '~/features/memo-editing/action/useMemoKanbanAssignmentAction';
 import { useResourceManager } from '~/resource-runtime/infra/useResourceManager';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { memoKanbanEntriesQuery } from '~/resources/kanban-assignment/queries';
+import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
 import { iconKey } from '~/utils/icon';
 
 type UseMemoKanbanAssignmentsOptions = {
