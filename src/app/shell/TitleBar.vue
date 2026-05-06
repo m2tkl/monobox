@@ -118,32 +118,31 @@
 import type { DropdownMenuItem } from '@nuxt/ui';
 
 import ThemeToggle from '~/app/shell/ThemeToggle.vue';
+import { useTitleBarWorkspace } from '~/app/shell/useTitleBarWorkspace';
 import WindowControls from '~/app/shell/WindowControls.vue';
-import { useCurrentWorkspaceReadModel } from '~/features/workspace/read-model';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 
 defineProps<{
   workspaceTitle?: string;
 }>();
 
-const route = useRoute();
 const router = useRouter();
-
-const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
-const memoTitleSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
-
-const currentWorkspaceVM = useCurrentWorkspaceReadModel();
+const {
+  route,
+  workspaceSlug,
+  memoTitleSlug,
+  workspaceReadModel,
+  workspaceName,
+} = useTitleBarWorkspace();
 
 const goBack = () => router.go(-1);
 const goNext = () => router.go(1);
 const goHome = () => {
-  const slug = currentWorkspaceVM.value.data.workspace?.slug_name || workspaceSlug.value || '';
+  const slug = workspaceReadModel.value.data.workspace?.slug_name || workspaceSlug.value || '';
   if (slug) router.push(`/${slug}`);
 };
 
 const { ui, toggleSidebar } = useUIState();
-
-const workspaceName = computed(() => currentWorkspaceVM.value.data?.workspace?.name ?? '');
 
 const workspaceMenuItems: ComputedRef<DropdownMenuItem[][]> = computed(() => [
   [

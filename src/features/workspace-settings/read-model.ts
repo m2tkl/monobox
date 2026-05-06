@@ -6,23 +6,12 @@ import type { Workspace } from '~/models/workspace';
 import { useRoute } from '#imports';
 import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
-import { workspaceCollectionQuery, workspaceQuery } from '~/resources/workspace/queries';
+import { workspaceQuery } from '~/resources/workspace/queries';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export type CurrentWorkspaceReadModel = {
   data: {
     workspace: Workspace | null;
-  };
-  flags: {
-    isLoading: boolean;
-    isStale: boolean;
-    hasError: boolean;
-  };
-};
-
-export type WorkspacesReadModel = {
-  data: {
-    items: Workspace[];
   };
   flags: {
     isLoading: boolean;
@@ -45,15 +34,5 @@ export function useCurrentWorkspaceReadModel(workspaceSlugArg?: MaybeRefOrGetter
   return defineReadModel<CurrentWorkspaceReadModel['data']>({
     data: computed(() => ({ workspace: workspace.value })),
     snapshots: [snap],
-  });
-}
-
-export function useWorkspacesReadModel() {
-  const { snapshot: workspacesSnap } = useQuery(workspaceCollectionQuery, () => ({}));
-
-  const items = computed<Workspace[]>(() => workspacesSnap.value.current ?? []);
-  return defineReadModel<WorkspacesReadModel['data']>({
-    data: computed(() => ({ items: items.value })),
-    snapshots: [workspacesSnap],
   });
 }
