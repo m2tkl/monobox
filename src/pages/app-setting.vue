@@ -143,10 +143,10 @@
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
 import { MemoTemplateManager } from '~/features/memo-editing';
-import StoragePathsForm from '~/features/settings/StoragePathsForm.vue';
-import ThemeSelector from '~/features/settings/ThemeSelector.vue';
+import { StoragePathsForm } from '~/features/storage-settings';
 import { useWorkspaceSettings } from '~/features/workspace-settings';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
+import ThemeSelector from '~/shared/components/settings/ThemeSelector.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 
 definePageMeta({
