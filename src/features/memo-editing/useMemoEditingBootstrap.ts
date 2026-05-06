@@ -1,26 +1,20 @@
-import { ref } from 'vue';
-
 import type { Ref } from 'vue';
-import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import { command } from '~/external/tauri/command';
 import { workspaceKanbansQuery } from '~/features/kanban/queries/workspaceKanbansQuery';
-import { sortMemoTemplates } from '~/features/memo-editing/view/template/template';
 import { memoDetailQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
 
-type UseMemoPageDataOptions = {
+type UseMemoEditingBootstrapOptions = {
   workspaceSlug: Ref<string>;
   memoSlug: Ref<string>;
   loadKanbanEntries: () => Promise<void>;
+  loadTemplates: () => Promise<void>;
 };
 
-export function useMemoPageData(options: UseMemoPageDataOptions) {
-  const availableTemplates = ref<MemoTemplateIndexItem[]>([]);
-
+export function useMemoEditingBootstrap(options: UseMemoEditingBootstrapOptions) {
   const loadInitialData = async () => {
-    const [templates] = await Promise.all([
-      command.memoTemplate.list({ slugName: options.workspaceSlug.value }),
+    await Promise.all([
+      options.loadTemplates(),
       memoDetailQuery.fetch({
         workspaceSlug: options.workspaceSlug.value,
         memoSlug: options.memoSlug.value,
@@ -32,12 +26,10 @@ export function useMemoPageData(options: UseMemoPageDataOptions) {
       workspaceKanbansQuery.fetch({ workspaceSlug: options.workspaceSlug.value }),
     ]);
 
-    availableTemplates.value = sortMemoTemplates(templates);
     await options.loadKanbanEntries();
   };
 
   return {
-    availableTemplates,
     loadInitialData,
   };
 }

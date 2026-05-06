@@ -4,7 +4,7 @@
       <div class="size-full">
         <div class="size-full px-4 pb-4 overflow-y-auto">
           <!-- Memo List -->
-          <LoadingSpinner v-if="memosVM.flags.isLoading" />
+          <LoadingSpinner v-if="memosReadModel.flags.isLoading" />
           <div
             v-else-if="recentMemos.length === 0"
             class="flex items-center justify-center h-full text-center"
@@ -66,11 +66,9 @@
 </template>
 
 <script lang="ts" setup>
-import { MemoCards, useBookmarkListReadModel, useWorkspaceMemosReadModel } from '~/features/memo-browsing';
+import { MemoCards, useMemoBrowsing } from '~/features/memo-browsing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
-
-const PAGE_LOAD_BASE_NUM = 64;
 
 definePageMeta({
   path: '/:workspace',
@@ -82,27 +80,15 @@ definePageMeta({
 const route = useRoute();
 const workspaceSlug = getEncodedWorkspaceSlugFromPath(route)!;
 
-const memosVM = useWorkspaceMemosReadModel();
-const bookmarkVM = useBookmarkListReadModel();
-
-const memos = computed(() => memosVM.value.data.items);
-const bookmarkedMemoIds = computed(() => bookmarkVM.value.data.items.map(memo => memo.id));
-
-const recentMemosDisplayCount = ref(PAGE_LOAD_BASE_NUM);
-
-const recentMemos = computed(() => {
-  return memos.value;
-});
-const limitedRecentMemos = computed(() => {
-  return recentMemos.value.slice(0, recentMemosDisplayCount.value);
-});
-const hasMoreRecentMemos = computed(() => {
-  return recentMemos.value.length > recentMemosDisplayCount.value;
-});
-
-const loadMore = () => {
-  recentMemosDisplayCount.value += PAGE_LOAD_BASE_NUM;
-};
+const {
+  memosReadModel,
+  memos,
+  bookmarkedMemoIds,
+  recentMemos,
+  limitedRecentMemos,
+  hasMoreRecentMemos,
+  loadMore,
+} = useMemoBrowsing();
 </script>
 
 <style scoped>

@@ -275,15 +275,12 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import type { NodeViewProps } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/features/editor';
-import type { MemoDeleteFlowHandle, MemoEvent, MemoState } from '~/features/memo-editing';
+import type { MemoDeleteFlowHandle, MemoEvent } from '~/features/memo-editing';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
 import CodeBlockComponent from '~/features/editor/nodeviews/CodeBlock';
-import { useKanbanCollectionReadModel } from '~/features/kanban/read-model';
 import {
   AltEditDialog,
-  CREATED_QUERY_SOURCE_BLANK,
-  CREATED_QUERY_SOURCE_NAMED,
   EditorToolbarButton,
   ExportDialogToCopyResult,
   ExportDialogToSelectTargets,
@@ -293,25 +290,22 @@ import {
   MemoEditor,
   MemoLinkCardView,
   OutlinePanel,
-  useCurrentMemoReadModel,
   useExportLinked,
   useImagePreview,
+  useMemoEditingBootstrap,
+  useMemoEditingContext,
+  useMemoEditingKanban,
+  useMemoEditingMachine,
   useMemoBookmarkAction,
   useMemoCopy,
-  useMemoDeleteAction,
+  useMemoTemplateFlow,
+  useMemoTemplates,
   useMemoEditor,
-  useMemoKanbanAssignments,
-  useMemoLinkSync,
-  useMemoMachine,
-  useMemoMutationNotifications,
-  useMemoPageData,
-  useMemoSaveAction,
   useMemoTemplateApplyAction,
 } from '~/features/memo-editing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { useConsoleLogger } from '~/utils/logger';
-import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
   path: '/:workspace/:memo',
@@ -320,115 +314,98 @@ definePageMeta({
   },
 });
 
-const route = useRoute();
-const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
-const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
-const routeHash = computed(() => route.hash);
-
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
 });
 
+const { createEffectHandler } = useEffectHandler();
 const router = useRouter();
 const toast = useToast();
-const { createEffectHandler } = useEffectHandler();
-const memoVM = useCurrentMemoReadModel();
-const kanbanVM = useKanbanCollectionReadModel();
-const { toggleBookmark: executeToggleBookmark } = useMemoBookmarkAction();
-const { applyTemplateToEditor } = useMemoTemplateApplyAction();
-const { saveMemo } = useMemoSaveAction();
-const { deleteMemo: executeDeleteMemo } = useMemoDeleteAction();
-const { syncMemoLinks } = useMemoLinkSync();
-const logger = useConsoleLogger('pages/memo');
-const isApplyingTemplate = ref(false);
-const selectedTemplateId = ref<number>();
-const isTemplatePickerDismissed = ref(false);
-const hasAttemptedDefaultTemplate = ref(false);
-
-type MemoSnapshot = {
-  title: string;
-  content: string;
-};
-
-const kanbans = computed(() => kanbanVM.value.data.items);
 const {
+  route,
+  workspaceSlug,
+  memoSlug,
+  routeHash,
+  memoReadModel: memoVM,
+  memo,
+  memoTitle,
+} = useMemoEditingContext();
+const {
+  kanbans,
   kanbanEntryMap,
   kanbanSelections,
   isKanbanLoading,
   isKanbanModalOpen,
   isKanbanUpdating,
   openKanbanModal,
-  loadKanbanEntries,
   getStatusOptions,
   applyKanbanStatus,
-} = useMemoKanbanAssignments({
+  loadKanbanEntries,
+} = useMemoEditingKanban({
   workspaceSlug,
   memoSlug,
-  kanbans,
-  toast,
 });
-
 const {
   availableTemplates,
+  loadTemplates,
+} = useMemoTemplates({
+  workspaceSlug,
+});
+const {
   loadInitialData,
-} = useMemoPageData({
+} = useMemoEditingBootstrap({
   workspaceSlug,
   memoSlug,
   loadKanbanEntries,
+  loadTemplates,
 });
+const {
+  isTemplatePickerDismissed,
+  hasAttemptedDefaultTemplate,
+  isNewMemoCreationFlow,
+  requestedTemplateSlug,
+  shouldSkipDefaultTemplate,
+  shouldShowTemplatePicker,
+  clearCreatedQueryFlag,
+  focusTitleFieldIfNeeded,
+} = useMemoTemplateFlow({
+  route,
+  router,
+  availableTemplates,
+});
+const { toggleBookmark: executeToggleBookmark } = useMemoBookmarkAction();
+const { applyTemplateToEditor } = useMemoTemplateApplyAction();
+const logger = useConsoleLogger('pages/memo');
+const isApplyingTemplate = ref(false);
+const selectedTemplateId = ref<number>();
+
+type MemoSnapshot = {
+  title: string;
+  content: string;
+};
 
 await usePageLoader(loadInitialData);
 
-const memo = computed(() => {
-  const currentMemo = memoVM.value.data.memo;
-  if (!currentMemo) {
+const currentMemo = computed(() => {
+  const loadedMemo = memo.value;
+  if (!loadedMemo) {
     throw new Error('Memo is not loaded.');
   }
-  return currentMemo;
+  return loadedMemo;
 });
-const memoTitle = ref(memo.value.title);
 
 const lastSavedSnapshot = ref<MemoSnapshot>({
-  title: memo.value.title,
-  content: memo.value.content,
+  title: currentMemo.value.title,
+  content: currentMemo.value.content,
 });
 
-const pendingDeleteAfterSave = ref(false);
-const createdQueryValue = computed(() =>
-  typeof route.query.created === 'string'
-    ? route.query.created
-    : undefined,
-);
-const isNewMemoCreationFlow = computed(() =>
-  createdQueryValue.value === CREATED_QUERY_SOURCE_BLANK
-  || createdQueryValue.value === CREATED_QUERY_SOURCE_NAMED,
-);
-const requestedTemplateSlug = computed(() =>
-  typeof route.query.template === 'string'
-    ? route.query.template
-    : undefined,
-);
-const shouldSkipDefaultTemplate = computed(() => route.query.skipDefaultTemplate === 'true');
-const hasRequestedTemplate = computed(() => requestedTemplateSlug.value != null);
-const hasDefaultMemoTemplate = computed(() => getDefaultMemoTemplate(availableTemplates.value) != null);
-const canOfferManualTemplateSelection = computed(() =>
-  !isTemplatePickerDismissed.value
-  && !shouldSkipDefaultTemplate.value
-  && !hasRequestedTemplate.value
-  && !hasDefaultMemoTemplate.value,
-);
-const shouldShowTemplatePicker = computed(() =>
-  isNewMemoCreationFlow.value
-  && canOfferManualTemplateSelection.value
-  && availableTemplates.value.length > 0,
-);
 const isEditorBodyEmpty = computed(() => Boolean(editor.value?.isEmpty));
 const shouldShowInlineTemplateSuggestions = computed(() =>
   shouldShowTemplatePicker.value && isEditorBodyEmpty.value,
 );
 
 const getCurrentSnapshot = (): MemoSnapshot => {
-  const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : memo.value.content;
+  const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : currentMemo.value.content;
   return {
     title: memoTitle.value,
     content: currentContent,
@@ -444,65 +421,8 @@ const computeDirty = () => {
 const deleteMemoWithUserConfirmation = ref<MemoDeleteFlowHandle | null>(null);
 let dispatch: (event: MemoEvent) => void = () => {};
 
-const { notifyUpdated, notifyDeleted } = useMemoMutationNotifications({
-  workspaceSlug,
-  routeHash,
-  router,
-  onAfterUpdated: () => {
-    lastSavedSnapshot.value = getCurrentSnapshot();
-    if (pendingDeleteAfterSave.value) {
-      pendingDeleteAfterSave.value = false;
-      dispatch({ type: 'memo/delete-requested' });
-    }
-  },
-});
-
-async function clearCreatedQueryFlag() {
-  if (
-    createdQueryValue.value == null
-    && requestedTemplateSlug.value == null
-    && !shouldSkipDefaultTemplate.value
-  ) {
-    return;
-  }
-
-  const {
-    created: _created,
-    template: _template,
-    skipDefaultTemplate: _skipDefaultTemplate,
-    ...nextQuery
-  } = route.query;
-  await router.replace({
-    path: route.path,
-    query: nextQuery,
-    hash: route.hash,
-  });
-}
-
-function focusTitleFieldIfNeeded() {
-  if (createdQueryValue.value !== CREATED_QUERY_SOURCE_BLANK) {
-    return;
-  }
-
-  nextTick(() => {
-    window.setTimeout(() => {
-      memoEditorRef.value?.focusTitleField(true);
-    }, 50);
-  });
-}
-
 async function saveMemoContent(mode: 'explicit' | 'auto') {
-  return saveMemo({
-    target: {
-      workspaceSlug: workspaceSlug.value,
-      memoSlug: memoSlug.value,
-    },
-    editor: editor.value,
-    title: memoTitle.value,
-    thumbnailImage: headImageRef.value ?? '',
-    routeHash: route.hash,
-    mode,
-  });
+  return saveMemoContentFromMachine(mode);
 }
 
 async function applyTemplate(templateSlug: string, options?: { toastTitle?: string }) {
@@ -560,55 +480,6 @@ async function applyTemplate(templateSlug: string, options?: { toastTitle?: stri
   }
 }
 
-const confirmDelete = async (previousState: MemoState) => {
-  if (!deleteMemoWithUserConfirmation.value) {
-    throw new Error('Workflow ref is not set correctlly.');
-  }
-
-  if (previousState === 'dirty') {
-    const shouldSaveBeforeDelete = window.confirm('You have unsaved changes. Save before deleting?');
-    if (shouldSaveBeforeDelete) {
-      pendingDeleteAfterSave.value = true;
-      dispatch({ type: 'memo/save-requested', payload: { mode: 'explicit' } });
-      return { action: 'cancel' } as const;
-    }
-    else {
-      const confirmDeleteWithoutSave = window.confirm('Delete without saving changes?');
-      if (!confirmDeleteWithoutSave) {
-        return { action: 'cancel' } as const;
-      }
-    }
-  }
-
-  return { action: 'proceed' } as const;
-};
-
-const deleteMemo = async (_previousState: MemoState) => {
-  return executeDeleteMemo(deleteMemoWithUserConfirmation, {
-    workspaceSlug: workspaceSlug.value,
-    memoSlug: memoSlug.value,
-  });
-};
-
-const machine = useMemoMachine('clean', {
-  saveMemo: saveMemoContent,
-  syncLinks: async (added, deleted) => {
-    await syncMemoLinks({
-      workspaceSlug: workspaceSlug.value,
-      memoSlug: memoSlug.value,
-    }, added, deleted);
-  },
-  notifyUpdated,
-  notifyDeleted,
-  confirmDelete,
-  deleteMemo,
-}, {
-  onTransition: ({ previous, event, next, effects }) => {
-    logger.debug('memo-machine', { previous, event: event.type, next, effects: effects.map(e => e.type) });
-  },
-});
-dispatch = machine.dispatch;
-
 /* --- States for editor --- */
 
 // Reference to control the link palette component
@@ -623,13 +494,30 @@ const {
   focusHeading,
   headImageRef,
   updateActiveHeadingOnScroll,
-} = useMemoEditor(memo.value.content, {
+} = useMemoEditor(currentMemo.value.content, {
   extensions: extensions,
   onChanged: (_reason) => { dispatch({ type: 'memo/content-changed', payload: { dirty: computeDirty() } }); },
   onLinksChanged: (added, deleted) => { dispatch({ type: 'memo/links-changed', payload: { added, deleted } }); },
   route,
   router,
 });
+
+const { dispatch: machineDispatch, saveMemoContent: saveMemoContentFromMachine } = useMemoEditingMachine({
+  workspaceSlug,
+  memoSlug,
+  routeHash,
+  router,
+  editor,
+  memoTitle,
+  headImageRef,
+  deleteWorkflowRef: deleteMemoWithUserConfirmation,
+  getCurrentSnapshot,
+  onSnapshotSaved: (snapshot) => {
+    lastSavedSnapshot.value = snapshot;
+  },
+  logger,
+});
+dispatch = machineDispatch;
 
 watch(memoTitle, () => {
   dispatch({ type: 'memo/title-changed', payload: { dirty: computeDirty() } });
@@ -650,9 +538,9 @@ watch(isEditorBodyEmpty, async (isEmpty) => {
 });
 
 onMounted(() => {
-  if (createdQueryValue.value === CREATED_QUERY_SOURCE_BLANK) {
-    focusTitleFieldIfNeeded();
-  }
+  focusTitleFieldIfNeeded((selectAll) => {
+    memoEditorRef.value?.focusTitleField(selectAll);
+  });
 });
 
 watch(

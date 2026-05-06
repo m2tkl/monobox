@@ -11,6 +11,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint ./src --fix",
+    "typecheck:frontend:ts": "node scripts/typecheck-frontend-ts.mjs",
+    "check:frontend:vue": "eslint \"src/**/*.vue\"",
     "test": "vitest run ",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage"

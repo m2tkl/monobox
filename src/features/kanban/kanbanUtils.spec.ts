@@ -48,6 +48,7 @@ describe('toKanbanItemFromEntry', () => {
       statusId: null,
       position: null,
     });
+  });
 });
 
 describe('buildKanbanColumnsFromEntries', () => {
