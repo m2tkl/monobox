@@ -108,9 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { useCreateWorkspaceAction } from '~/features/workspace/actions/useCreateWorkspaceAction';
-import { useWorkspaceFormState } from '~/features/workspace/forms/useWorkspaceFormState';
-import { useWorkspacesReadModel } from '~/features/workspace/read-model';
+import { useWorkspaceSelection } from '~/features/workspace-selection';
 import { workspaceCollectionQuery } from '~/resources/workspace/queries';
 
 definePageMeta({
@@ -119,24 +117,22 @@ definePageMeta({
 
 const toast = useToast();
 const router = useRouter();
-
-const workspacesVM = useWorkspacesReadModel();
+const {
+  workspacesReadModel: workspacesVM,
+  form,
+  isCreateModalOpen: isOpen,
+  createWorkspace,
+  openCreateWorkspaceModal: openNewWorkspaceModal,
+  resetCreateWorkspaceForm,
+} = useWorkspaceSelection();
 
 await usePageLoader(async () => {
   await workspaceCollectionQuery.fetch({});
 });
 
-const isOpen = ref(false);
-const openNewWorkspaceModal = () => {
-  isOpen.value = true;
-};
-
 const goToSettings = async () => {
   await router.push('/_setting');
 };
-
-const form = useWorkspaceFormState();
-const { execute } = useCreateWorkspaceAction();
 
 const onSubmit = async () => {
   const validatedState = form.getValidatedState();
@@ -144,7 +140,7 @@ const onSubmit = async () => {
     return;
   }
 
-  const result = await execute({ name: validatedState.name });
+  const result = await createWorkspace({ name: validatedState.name });
 
   if (result.ok) {
     toast.add({
@@ -153,8 +149,7 @@ const onSubmit = async () => {
       icon: iconKey.success,
     });
 
-    form.reset();
-    isOpen.value = false;
+    resetCreateWorkspaceForm();
   }
   else {
     toast.add({
