@@ -130,7 +130,7 @@ import MemoLinkRow from './MemoLinkRow.vue';
 import NewMemoActions from './NewMemoActions.vue';
 
 import { command } from '~/external/tauri/command';
-import { useBookmarkListViewModel, useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
+import { useBookmarkListReadModel, useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -141,8 +141,8 @@ const route = useRoute();
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
 
-const bookmarkVM = useBookmarkListViewModel();
-const workspaceMemosVM = useWorkspaceMemosViewModel();
+const bookmarkVM = useBookmarkListReadModel();
+const workspaceMemosVM = useWorkspaceMemosReadModel();
 const bookmarks = computed(() => bookmarkVM.value.data.items);
 const workspaceMemos = computed(() => workspaceMemosVM.value.data.items);
 const searchPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);

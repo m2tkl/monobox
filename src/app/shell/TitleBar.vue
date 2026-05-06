@@ -119,7 +119,7 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 
 import ThemeToggle from '~/app/shell/ThemeToggle.vue';
 import WindowControls from '~/app/shell/WindowControls.vue';
-import { useCurrentWorkspaceViewModel } from '~/features/workspace/read-model';
+import { useCurrentWorkspaceReadModel } from '~/features/workspace/read-model';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 
 defineProps<{
@@ -132,7 +132,7 @@ const router = useRouter();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const memoTitleSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 
-const currentWorkspaceVM = useCurrentWorkspaceViewModel();
+const currentWorkspaceVM = useCurrentWorkspaceReadModel();
 
 const goBack = () => router.go(-1);
 const goNext = () => router.go(1);

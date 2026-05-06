@@ -142,10 +142,10 @@
 <script setup lang="ts">
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
-import MemoTemplateManager from '~/features/memo-editing/view/template/MemoTemplateManager.vue';
+import { MemoTemplateManager } from '~/features/memo-editing';
 import StoragePathsForm from '~/features/settings/StoragePathsForm.vue';
 import ThemeSelector from '~/features/settings/ThemeSelector.vue';
-import { useCurrentWorkspaceViewModel } from '~/features/workspace/read-model';
+import { useCurrentWorkspaceReadModel } from '~/features/workspace/read-model';
 import { useWorkspaceDeleteAction } from '~/features/workspace/useWorkspaceDeleteAction';
 import { workspaceQuery } from '~/resources/workspace/queries';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
@@ -166,7 +166,7 @@ const workspaceContextSlug = computed(() => {
   const raw = route.query.workspace;
   return typeof raw === 'string' ? raw : '';
 });
-const currentWorkspaceVM = useCurrentWorkspaceViewModel(workspaceContextSlug);
+const currentWorkspaceVM = useCurrentWorkspaceReadModel(workspaceContextSlug);
 const hasWorkspaceContext = computed(() => workspaceContextSlug.value.length > 0);
 const currentWorkspace = computed(() => {
   if (!hasWorkspaceContext.value) return null;

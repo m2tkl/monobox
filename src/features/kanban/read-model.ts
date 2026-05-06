@@ -12,7 +12,7 @@ import { workspaceKanbansQuery } from '~/resources/kanban/queries';
 import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
-export type KanbanCollectionViewModel = {
+export type KanbanCollectionReadModel = {
   data: {
     items: Kanban[];
   };
@@ -23,7 +23,7 @@ export type KanbanCollectionViewModel = {
   };
 };
 
-export type KanbanStatusCollectionViewModel = {
+export type KanbanStatusCollectionReadModel = {
   data: {
     items: KanbanStatus[];
   };
@@ -41,7 +41,7 @@ const emptySnapshot: ResourceSnapshot<KanbanStatus[]> = {
   loadingSince: null,
 };
 
-export function useKanbanCollectionViewModel(workspaceSlugArg?: MaybeRefOrGetter<string>) {
+export function useKanbanCollectionReadModel(workspaceSlugArg?: MaybeRefOrGetter<string>) {
   const route = useRoute();
   const workspaceSlug = computed(() => workspaceSlugArg != null
     ? toValue(workspaceSlugArg)
@@ -51,13 +51,13 @@ export function useKanbanCollectionViewModel(workspaceSlugArg?: MaybeRefOrGetter
   });
 
   const items = computed<Kanban[]>(() => snap.value.current ?? []);
-  return defineReadModel<KanbanCollectionViewModel['data']>({
+  return defineReadModel<KanbanCollectionReadModel['data']>({
     data: computed(() => ({ items: items.value })),
     snapshots: [snap],
   });
 }
 
-export function useKanbanStatusCollectionViewModel(
+export function useKanbanStatusCollectionReadModel(
   workspaceSlugArg: MaybeRefOrGetter<string> | undefined,
   kanbanId: ComputedRef<number | null>,
 ) {
@@ -78,7 +78,7 @@ export function useKanbanStatusCollectionViewModel(
   });
 
   const items = computed<KanbanStatus[]>(() => statusSnap.value.current ?? []);
-  return defineReadModel<KanbanStatusCollectionViewModel['data']>({
+  return defineReadModel<KanbanStatusCollectionReadModel['data']>({
     data: computed(() => ({ items: items.value })),
     snapshots: [statusSnap],
   });

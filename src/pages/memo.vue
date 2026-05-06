@@ -275,42 +275,39 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import type { NodeViewProps } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/features/editor';
-import type { MemoDeleteFlowHandle } from '~/features/memo-editing/action/useMemoDeleteAction';
-import type { MemoEvent, MemoState } from '~/features/memo-editing/state/memoMachine';
+import type { MemoDeleteFlowHandle, MemoEvent, MemoState } from '~/features/memo-editing';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
 import CodeBlockComponent from '~/features/editor/nodeviews/CodeBlock';
-import { useKanbanCollectionViewModel } from '~/features/kanban/read-model';
-import { useExportLinked } from '~/features/memo-editing/action/useExportLinked';
-import { useMemoBookmarkAction } from '~/features/memo-editing/action/useMemoBookmarkAction';
-import { useMemoCopy } from '~/features/memo-editing/action/useMemoCopy';
-import { useMemoDeleteAction } from '~/features/memo-editing/action/useMemoDeleteAction';
-import { useMemoLinkSync } from '~/features/memo-editing/action/useMemoLinkSync';
-import { useMemoMutationNotifications } from '~/features/memo-editing/action/useMemoMutationNotifications';
-import { useMemoPageData } from '~/features/memo-editing/action/useMemoPageData';
-import { useMemoSaveAction } from '~/features/memo-editing/action/useMemoSaveAction';
-import { useMemoTemplateApplyAction } from '~/features/memo-editing/action/useMemoTemplateApplyAction';
+import { useKanbanCollectionReadModel } from '~/features/kanban/read-model';
 import {
+  AltEditDialog,
   CREATED_QUERY_SOURCE_BLANK,
   CREATED_QUERY_SOURCE_NAMED,
-} from '~/features/memo-editing/createdQuery';
-import { useCurrentMemoViewModel } from '~/features/memo-editing/read-model';
-import { useMemoMachine } from '~/features/memo-editing/state/useMemoMachine';
-import AltEditDialog from '~/features/memo-editing/view/editor/AltEditDialog.vue';
-import EditorToolbarButton from '~/features/memo-editing/view/editor/EditorToolbarButton.vue';
-import { useImagePreview } from '~/features/memo-editing/view/editor/ImagePreviewDialog/useImagePreview';
-import LinkEditDialog from '~/features/memo-editing/view/editor/LinkEditDialog.vue';
-import MemoEditor from '~/features/memo-editing/view/editor/MemoEditor.vue';
-import { useMemoEditor } from '~/features/memo-editing/view/editor/useMemoEditor';
-import ExportDialogToCopyResult from '~/features/memo-editing/view/export/ExportDialogToCopyResult.vue';
-import ExportDialogToSelectTargets from '~/features/memo-editing/view/export/ExportDialogToSelectTargets.vue';
-import { useMemoKanbanAssignments } from '~/features/memo-editing/view/kanban/useMemoKanbanAssignments';
-import MemoLinkCardView from '~/features/memo-editing/view/links/MemoLinkCardView/Index.vue';
-import MemoDeleteFlow from '~/features/memo-editing/view/memo/MemoDeleteFlow.vue';
-import OutlinePanel from '~/features/memo-editing/view/outline/OutlinePanel.vue';
-import {
+  EditorToolbarButton,
+  ExportDialogToCopyResult,
+  ExportDialogToSelectTargets,
   getDefaultMemoTemplate,
-} from '~/features/memo-editing/view/template/template';
+  LinkEditDialog,
+  MemoDeleteFlow,
+  MemoEditor,
+  MemoLinkCardView,
+  OutlinePanel,
+  useCurrentMemoReadModel,
+  useExportLinked,
+  useImagePreview,
+  useMemoBookmarkAction,
+  useMemoCopy,
+  useMemoDeleteAction,
+  useMemoEditor,
+  useMemoKanbanAssignments,
+  useMemoLinkSync,
+  useMemoMachine,
+  useMemoMutationNotifications,
+  useMemoPageData,
+  useMemoSaveAction,
+  useMemoTemplateApplyAction,
+} from '~/features/memo-editing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { useConsoleLogger } from '~/utils/logger';
@@ -335,8 +332,8 @@ const extensions = buildExtensions({
 const router = useRouter();
 const toast = useToast();
 const { createEffectHandler } = useEffectHandler();
-const memoVM = useCurrentMemoViewModel();
-const kanbanVM = useKanbanCollectionViewModel();
+const memoVM = useCurrentMemoReadModel();
+const kanbanVM = useKanbanCollectionReadModel();
 const { toggleBookmark: executeToggleBookmark } = useMemoBookmarkAction();
 const { applyTemplateToEditor } = useMemoTemplateApplyAction();
 const { saveMemo } = useMemoSaveAction();

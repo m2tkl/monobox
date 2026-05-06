@@ -10,7 +10,7 @@ import { workspaceMemosQuery } from '~/resources/memo/queries';
 import { workspaceMemoLinkCountsQuery } from '~/resources/memo-link/queries';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
-export type WorkspaceMemosViewModel = {
+export type WorkspaceMemosReadModel = {
   data: {
     items: MemoIndexItem[];
   };
@@ -27,7 +27,7 @@ export type BookmarkListItem = MemoIndexItem & {
   orderIndex: number;
 };
 
-export type BookmarkListViewModel = {
+export type BookmarkListReadModel = {
   data: {
     items: BookmarkListItem[];
   };
@@ -38,7 +38,7 @@ export type BookmarkListViewModel = {
   };
 };
 
-export function useWorkspaceMemosViewModel() {
+export function useWorkspaceMemosReadModel() {
   const route = useRoute();
   const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
   const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, {
@@ -46,13 +46,13 @@ export function useWorkspaceMemosViewModel() {
   });
 
   const items = computed<MemoIndexItem[]>(() => memosSnap.value.current ?? []);
-  return defineReadModel<WorkspaceMemosViewModel['data']>({
+  return defineReadModel<WorkspaceMemosReadModel['data']>({
     data: computed(() => ({ items: items.value })),
     snapshots: [memosSnap],
   });
 }
 
-export function useBookmarkListViewModel() {
+export function useBookmarkListReadModel() {
   const route = useRoute();
   const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 
@@ -93,7 +93,7 @@ export function useBookmarkListViewModel() {
       .filter((memo): memo is BookmarkListItem => memo !== null);
   });
 
-  return defineReadModel<BookmarkListViewModel['data']>({
+  return defineReadModel<BookmarkListReadModel['data']>({
     data: computed(() => ({
       items: items.value,
     })),

@@ -66,8 +66,7 @@
 </template>
 
 <script lang="ts" setup>
-import MemoCards from '~/features/memo-browsing/MemoCards.vue';
-import { useBookmarkListViewModel, useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
+import { MemoCards, useBookmarkListReadModel, useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 
@@ -83,8 +82,8 @@ definePageMeta({
 const route = useRoute();
 const workspaceSlug = getEncodedWorkspaceSlugFromPath(route)!;
 
-const memosVM = useWorkspaceMemosViewModel();
-const bookmarkVM = useBookmarkListViewModel();
+const memosVM = useWorkspaceMemosReadModel();
+const bookmarkVM = useBookmarkListReadModel();
 
 const memos = computed(() => memosVM.value.data.items);
 const bookmarkedMemoIds = computed(() => bookmarkVM.value.data.items.map(memo => memo.id));

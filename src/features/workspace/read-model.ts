@@ -9,7 +9,7 @@ import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceCollectionQuery, workspaceQuery } from '~/resources/workspace/queries';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
-export type CurrentWorkspaceViewModel = {
+export type CurrentWorkspaceReadModel = {
   data: {
     workspace: Workspace | null;
   };
@@ -20,7 +20,7 @@ export type CurrentWorkspaceViewModel = {
   };
 };
 
-export type WorkspacesViewModel = {
+export type WorkspacesReadModel = {
   data: {
     items: Workspace[];
   };
@@ -31,7 +31,7 @@ export type WorkspacesViewModel = {
   };
 };
 
-export function useCurrentWorkspaceViewModel(workspaceSlugArg?: MaybeRefOrGetter<string>) {
+export function useCurrentWorkspaceReadModel(workspaceSlugArg?: MaybeRefOrGetter<string>) {
   const route = useRoute();
   const workspaceSlug = computed(() =>
     workspaceSlugArg != null
@@ -42,17 +42,17 @@ export function useCurrentWorkspaceViewModel(workspaceSlugArg?: MaybeRefOrGetter
   });
 
   const workspace = computed<Workspace | null>(() => snap.value.current ?? null);
-  return defineReadModel<CurrentWorkspaceViewModel['data']>({
+  return defineReadModel<CurrentWorkspaceReadModel['data']>({
     data: computed(() => ({ workspace: workspace.value })),
     snapshots: [snap],
   });
 }
 
-export function useWorkspacesViewModel() {
+export function useWorkspacesReadModel() {
   const { snapshot: workspacesSnap } = useQuery(workspaceCollectionQuery, () => ({}));
 
   const items = computed<Workspace[]>(() => workspacesSnap.value.current ?? []);
-  return defineReadModel<WorkspacesViewModel['data']>({
+  return defineReadModel<WorkspacesReadModel['data']>({
     data: computed(() => ({ items: items.value })),
     snapshots: [workspacesSnap],
   });

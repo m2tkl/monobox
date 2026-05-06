@@ -11,7 +11,7 @@ import { memoDetailQuery, workspaceMemosQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
-export type CurrentMemoViewModel = {
+export type CurrentMemoReadModel = {
   data: {
     memo: MemoDetail | null;
     links: Link[];
@@ -25,7 +25,7 @@ export type CurrentMemoViewModel = {
   };
 };
 
-export function useCurrentMemoViewModel() {
+export function useCurrentMemoReadModel() {
   const route = useRoute();
   const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
   const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
@@ -59,7 +59,7 @@ export function useCurrentMemoViewModel() {
     return bookmarks.some(bookmark => bookmark.memo_id === currentMemo.id);
   });
 
-  return defineReadModel<CurrentMemoViewModel['data']>({
+  return defineReadModel<CurrentMemoReadModel['data']>({
     data: computed(() => ({
       memo: memo.value,
       links: links.value,

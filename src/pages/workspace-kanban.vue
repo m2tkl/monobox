@@ -277,12 +277,12 @@ import type { MemoIndexItem } from '~/models/memo';
 
 import { buildKanbanColumnsFromEntries } from '~/features/kanban/kanbanUtils';
 import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
-import { useKanbanStatusCollectionViewModel } from '~/features/kanban/read-model';
+import { useKanbanStatusCollectionReadModel } from '~/features/kanban/read-model';
 import KanbanStatusManager from '~/features/kanban/status/KanbanStatusManager.vue';
 import { useKanbanOrdering } from '~/features/kanban/useKanbanOrdering';
 import { useWorkspaceKanbanBoard } from '~/features/kanban/useWorkspaceKanbanBoard';
 import { useWorkspaceKanbanPageData } from '~/features/kanban/useWorkspaceKanbanPageData';
-import { useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
+import { useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
@@ -311,7 +311,7 @@ const toast = useToast();
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 
-const memosVM = useWorkspaceMemosViewModel();
+const memosVM = useWorkspaceMemosReadModel();
 const memos = computed<MemoIndexItem[]>(() => memosVM.value.data.items);
 
 const {
@@ -340,7 +340,7 @@ const {
   toast,
 });
 
-const statusVM = useKanbanStatusCollectionViewModel(workspaceSlug, activeKanbanId);
+const statusVM = useKanbanStatusCollectionReadModel(workspaceSlug, activeKanbanId);
 const statuses = computed(() => statusVM.value.data.items);
 const isLoading = computed(() => {
   return memosVM.value.flags.isLoading

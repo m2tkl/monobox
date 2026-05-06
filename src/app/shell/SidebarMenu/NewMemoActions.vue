@@ -42,7 +42,7 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { command } from '~/external/tauri/command';
-import { sortMemoTemplates } from '~/features/memo-editing/view/template/template';
+import { sortMemoTemplates } from '~/features/memo-editing';
 import { iconKey } from '~/utils/icon';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 

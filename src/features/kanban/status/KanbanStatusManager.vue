@@ -182,7 +182,7 @@ import { computed, reactive, ref } from 'vue';
 
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { useKanbanStatusCollectionViewModel } from '~/features/kanban/read-model';
+import { useKanbanStatusCollectionReadModel } from '~/features/kanban/read-model';
 import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
 import AppButton from '~/shared/components/elements/AppButton.vue';
@@ -203,7 +203,7 @@ const workspaceSlug = computed(() => props.workspaceSlug || getEncodedWorkspaceS
 const kanbanId = computed(() => props.kanbanId ?? null);
 const hasKanban = computed(() => kanbanId.value !== null);
 
-const vm = useKanbanStatusCollectionViewModel(workspaceSlug, kanbanId);
+const vm = useKanbanStatusCollectionReadModel(workspaceSlug, kanbanId);
 const statuses = computed(() => vm.value.data.items);
 
 const saving = reactive<Record<number, boolean>>({});

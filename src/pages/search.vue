@@ -70,7 +70,7 @@
 import type { MemoIndexItem, MemoSearchItem } from '~/models/memo';
 
 import { command } from '~/external/tauri/command';
-import { useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
+import { useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
 import { useConsoleLogger } from '~/utils/logger';
@@ -88,7 +88,7 @@ const logger = useConsoleLogger('pages/search');
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 
-const memosVM = useWorkspaceMemosViewModel();
+const memosVM = useWorkspaceMemosReadModel();
 const recentMemos = computed<MemoIndexItem[]>(() => {
   return memosVM.value.data.items
     .toSorted((a, b) => new Date(b.modified_at).getTime() - new Date(a.modified_at).getTime())

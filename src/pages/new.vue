@@ -17,9 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMemoCreateAction } from '~/features/memo-editing/action/useMemoCreateAction';
-import { CREATED_QUERY_SOURCE_BLANK } from '~/features/memo-editing/createdQuery';
-import { buildUntitledMemoTitle } from '~/features/memo-editing/view/template/template';
+import { buildUntitledMemoTitle, CREATED_QUERY_SOURCE_BLANK, useMemoCreateAction } from '~/features/memo-editing';
 import { workspaceMemosQuery } from '~/resources/memo/queries';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';

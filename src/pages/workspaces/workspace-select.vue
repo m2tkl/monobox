@@ -110,7 +110,7 @@
 <script setup lang="ts">
 import { useCreateWorkspaceAction } from '~/features/workspace/actions/useCreateWorkspaceAction';
 import { useWorkspaceFormState } from '~/features/workspace/forms/useWorkspaceFormState';
-import { useWorkspacesViewModel } from '~/features/workspace/read-model';
+import { useWorkspacesReadModel } from '~/features/workspace/read-model';
 import { workspaceCollectionQuery } from '~/resources/workspace/queries';
 
 definePageMeta({
@@ -120,7 +120,7 @@ definePageMeta({
 const toast = useToast();
 const router = useRouter();
 
-const workspacesVM = useWorkspacesViewModel();
+const workspacesVM = useWorkspacesReadModel();
 
 await usePageLoader(async () => {
   await workspaceCollectionQuery.fetch({});
