@@ -274,6 +274,7 @@ import { CellSelection, TableMap } from 'prosemirror-tables';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import type { NodeViewProps } from '@tiptap/vue-3';
+import type { LocationQueryRaw } from 'vue-router';
 import type { EditorMsgType } from '~/features/editor';
 import type { MemoDeleteFlowHandle, MemoEvent } from '~/features/memo-editing';
 
@@ -543,6 +544,12 @@ onMounted(() => {
   });
 });
 
+const focusTitleFieldForNewMemo = () => {
+  focusTitleFieldIfNeeded((selectAll) => {
+    memoEditorRef.value?.focusTitleField(selectAll);
+  });
+};
+
 watch(
   [isNewMemoCreationFlow, requestedTemplateSlug, shouldSkipDefaultTemplate, availableTemplates, editor],
   async ([, templateSlug, skipDefaultTemplate]) => {
@@ -563,9 +570,13 @@ watch(
       const isApplied = await applyTemplate(templateSlug);
       if (!isApplied) {
         const { template: _template, ...nextQuery } = route.query;
+        const normalizedQuery: LocationQueryRaw = {};
+        for (const [key, value] of Object.entries(nextQuery)) {
+          normalizedQuery[key] = value as string | string[] | null | undefined;
+        }
         await router.replace({
           path: route.path,
-          query: nextQuery,
+          query: normalizedQuery,
           hash: route.hash,
         });
         isTemplatePickerDismissed.value = false;
@@ -577,7 +588,7 @@ watch(
       hasAttemptedDefaultTemplate.value = true;
       isTemplatePickerDismissed.value = true;
       await clearCreatedQueryFlag();
-      focusTitleFieldIfNeeded();
+      focusTitleFieldForNewMemo();
       return;
     }
 
