@@ -1,12 +1,13 @@
 import { computed } from 'vue';
 
+import { useWorkspaceKanbanBoard } from './useWorkspaceKanbanBoard';
+import { useWorkspaceKanbanPageData } from './useWorkspaceKanbanPageData';
+
 import type { ComputedRef } from 'vue';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
 import { useKanbanStatusCollectionReadModel } from '~/features/kanban/read-model';
-import { useWorkspaceKanbanBoard } from '~/features/kanban/useWorkspaceKanbanBoard';
-import { useWorkspaceKanbanPageData } from '~/features/kanban/useWorkspaceKanbanPageData';
 import { useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 
 type UseWorkspaceKanbanOptions = {

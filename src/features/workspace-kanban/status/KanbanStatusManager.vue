@@ -358,15 +358,13 @@ const createStatus = async () => {
       name: newName.value.trim(),
       color: newColor.value,
     });
-    createDialogOpen.value = false;
-    newName.value = '';
-    newColor.value = '';
     notifyUpdated();
     toast.add({
       title: 'Status created.',
       duration: 1000,
       icon: iconKey.success,
     });
+    createDialogOpen.value = false;
   }
   catch (error) {
     console.error(error);
@@ -386,21 +384,16 @@ const moveStatus = async (id: number, direction: 'up' | 'down') => {
   if (!workspaceSlug.value) return;
   const index = statuses.value.findIndex(status => status.id === id);
   if (index === -1) return;
-
   const targetIndex = direction === 'up' ? index - 1 : index + 1;
   if (targetIndex < 0 || targetIndex >= statuses.value.length) return;
 
-  const current = statuses.value[index];
-  const target = statuses.value[targetIndex];
-  if (!current || !target) return;
-
+  saving[id] = true;
   try {
-    await command.kanbanStatus.updateOrders({
+    await command.kanbanStatus.reorder({
       workspaceSlugName: workspaceSlug.value,
-      updates: [
-        { id: current.id, orderIndex: target.order_index },
-        { id: target.id, orderIndex: current.order_index },
-      ],
+      kanbanId: kanbanId.value,
+      id,
+      direction,
     });
     notifyUpdated();
   }
@@ -413,38 +406,20 @@ const moveStatus = async (id: number, direction: 'up' | 'down') => {
       icon: iconKey.failed,
     });
   }
-};
-
-const parseHex = (value: string) => {
-  const trimmed = value.trim();
-  if (!trimmed.startsWith('#')) return null;
-  const hex = trimmed.slice(1);
-  if (hex.length === 3) {
-    const r = parseInt(hex[0] + hex[0], 16);
-    const g = parseInt(hex[1] + hex[1], 16);
-    const b = parseInt(hex[2] + hex[2], 16);
-    return { r, g, b };
+  finally {
+    saving[id] = false;
   }
-  if (hex.length === 6) {
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    return { r, g, b };
-  }
-  return null;
 };
 
 const getLabelStyle = (color: string) => {
-  const fallback = {
-    backgroundColor: 'var(--color-surface-muted)',
-    color: 'var(--color-text-primary)',
-  };
-  const parsed = parseHex(color || '');
-  if (!parsed) return fallback;
-  const luminance = (0.2126 * parsed.r + 0.7152 * parsed.g + 0.0722 * parsed.b) / 255;
+  if (!color) {
+    return {};
+  }
+
   return {
-    backgroundColor: color,
-    color: luminance < 0.6 ? '#ffffff' : '#1f2937',
+    backgroundColor: `${color}1A`,
+    color,
+    borderColor: `${color}40`,
   };
 };
 </script>
@@ -453,73 +428,52 @@ const getLabelStyle = (color: string) => {
 .status-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.status-empty {
-  font-size: 12px;
+  gap: 8px;
 }
 
 .status-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 4px;
-  border-radius: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  background-color: var(--color-card-bg);
 }
 
 .status-row--create {
-  padding-top: 10px;
+  border-style: dashed;
 }
 
-.status-row:hover {
-  background-color: var(--color-surface-muted);
-}
-
-.status-row--create:hover {
-  background-color: transparent;
-}
-
-.status-name {
-  min-width: 160px;
-  flex: 1;
-}
-
-.status-color-picker {
-  width: 220px;
-  height: 220px;
-  aspect-ratio: 1 / 1;
+.status-empty {
+  padding: 12px 0;
 }
 
 .status-label {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  min-height: 28px;
+  padding: 0 10px;
   border-radius: 999px;
+  border: 1px solid transparent;
   font-size: 12px;
   font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
 }
 
 .status-actions {
-  margin-left: auto;
-}
-
-.status-actions {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .status-order {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
   gap: 4px;
 }
 
-@media (max-width: 640px) {
-  .status-row {
-    flex-wrap: wrap;
-  }
+.status-color-picker {
+  width: 100%;
 }
 </style>

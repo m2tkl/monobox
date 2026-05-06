@@ -275,10 +275,9 @@ import 'kanvan/dist/style.css';
 import type { DropdownMenuItem } from '@nuxt/ui';
 
 import { buildKanbanColumnsFromEntries } from '~/features/kanban/kanbanUtils';
-import KanbanStatusManager from '~/features/kanban/status/KanbanStatusManager.vue';
 import { useKanbanOrdering } from '~/features/kanban/useKanbanOrdering';
 import SearchPalette from '~/features/search/SearchPalette.vue';
-import { useWorkspaceKanban } from '~/features/workspace-kanban';
+import { KanbanStatusManager, useWorkspaceKanban } from '~/features/workspace-kanban';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';

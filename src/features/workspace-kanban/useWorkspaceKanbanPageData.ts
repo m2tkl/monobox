@@ -1,7 +1,6 @@
-import { workspaceKanbansQuery } from './queries/workspaceKanbansQuery';
-
 import type { Ref } from 'vue';
 
+import { workspaceKanbansQuery } from '~/resources/kanban/queries';
 import { workspaceMemosQuery } from '~/resources/memo/queries';
 
 type UseWorkspaceKanbanPageDataOptions = {
