@@ -69,9 +69,9 @@
 <script setup lang="ts">
 import type { MemoIndexItem, MemoSearchItem } from '~/models/memo';
 
-import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
 import { command } from '~/external/tauri/command';
-import { useWorkspaceMemosViewModel } from '~/resource-state/viewmodels/workspaceMemos';
+import { useWorkspaceMemosViewModel } from '~/features/memo/view/list/read-model';
+import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
 import { useConsoleLogger } from '~/utils/logger';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';

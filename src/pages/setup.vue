@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
+import StoragePathsForm from '~/features/settings/StoragePathsForm.vue';
 
 definePageMeta({
   path: '/_setup',

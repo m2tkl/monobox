@@ -1,0 +1,177 @@
+import { computed, reactive, ref, watch } from 'vue';
+
+import type { ComputedRef } from 'vue';
+import type { Kanban } from '~/models/kanban';
+import type { KanbanStatus } from '~/models/kanbanStatus';
+
+import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
+import { useMemoKanbanAssignmentAction } from '~/features/memo/command/useMemoKanbanAssignmentAction';
+import { memoKanbanEntriesQuery } from '~/features/memo/query/memoKanbanEntriesQuery';
+import { useResourceManager } from '~/resources/infra/useResourceManager';
+import { useQuery } from '~/resources/useQuery';
+import { iconKey } from '~/utils/icon';
+
+type UseMemoKanbanAssignmentsOptions = {
+  workspaceSlug: ComputedRef<string>;
+  memoSlug: ComputedRef<string>;
+  kanbans: ComputedRef<Kanban[]>;
+  toast: ReturnType<typeof useToast>;
+};
+
+export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOptions) {
+  const {
+    loadStatuses: loadKanbanStatusOptions,
+    removeStatus: removeMemoKanbanStatus,
+    upsertStatus: upsertMemoKanbanStatus,
+  } = useMemoKanbanAssignmentAction();
+  const resourceManager = useResourceManager();
+  const kanbanSelections = reactive<Record<number, number | null>>({});
+  const updatingKanbans = reactive<Record<number, boolean>>({});
+  const isKanbanModalOpen = ref(false);
+  const canLoadKanbanEntries = computed(() => (
+    options.workspaceSlug.value.length > 0 && options.memoSlug.value.length > 0
+  ));
+  const { snapshot: kanbanEntriesSnap, refetch: refetchKanbanEntries } = useQuery(memoKanbanEntriesQuery, () => ({
+    workspaceSlug: options.workspaceSlug.value,
+    memoSlug: options.memoSlug.value,
+  }), {
+    enabled: canLoadKanbanEntries,
+  });
+  const kanbanEntries = computed(() => kanbanEntriesSnap.value.current ?? []);
+  const isKanbanLoading = computed(() => kanbanEntriesSnap.value.status === 'loading');
+
+  const kanbanEntryMap = computed(() => new Map(kanbanEntries.value.map(entry => [entry.kanban_id, entry])));
+  const kanbanEntryCount = computed(() => kanbanEntries.value.length);
+  const kanbanIndicatorColor = computed(() => {
+    const color = kanbanEntries.value[0]?.kanban_status_color?.trim();
+    return color || 'var(--color-surface-muted)';
+  });
+  const kanbanStatusesById = computed<Record<number, KanbanStatus[]>>(() => {
+    const statusMap: Record<number, KanbanStatus[]> = {};
+    for (const kanban of options.kanbans.value) {
+      const snapshot = resourceManager.getSnapshot<KanbanStatus[]>(
+        workspaceKanbanStatusesQuery.key({
+          workspaceSlug: options.workspaceSlug.value,
+          kanbanId: kanban.id,
+        }),
+      );
+      statusMap[kanban.id] = snapshot.current ?? [];
+    }
+    return statusMap;
+  });
+
+  const isKanbanUpdating = (kanbanId: number) => !!updatingKanbans[kanbanId];
+
+  const syncKanbanSelections = () => {
+    for (const kanban of options.kanbans.value) {
+      const entry = kanbanEntryMap.value.get(kanban.id);
+      kanbanSelections[kanban.id] = entry?.kanban_status_id ?? null;
+    }
+  };
+
+  const loadKanbanEntries = async () => {
+    if (!canLoadKanbanEntries.value) return;
+    await refetchKanbanEntries();
+    syncKanbanSelections();
+  };
+
+  const loadKanbanStatuses = async () => {
+    if (!options.workspaceSlug.value) return;
+
+    await Promise.all(options.kanbans.value.map(async (kanban) => {
+      if (kanbanStatusesById.value[kanban.id]?.length) return;
+      await loadKanbanStatusOptions(options.workspaceSlug.value, kanban.id);
+    }));
+  };
+
+  const getStatusOptions = (kanbanId: number) => {
+    const items = kanbanStatusesById.value[kanbanId] ?? [];
+    return [
+      { label: 'Not in Kanban', value: null },
+      ...items.map(status => ({ label: status.name, value: status.id })),
+    ];
+  };
+
+  const applyKanbanStatus = async (kanbanId: number, nextStatusId: number | null) => {
+    if (!options.workspaceSlug.value || !options.memoSlug.value) return;
+    if (isKanbanUpdating(kanbanId)) return;
+    if (typeof nextStatusId === 'number' && Number.isNaN(nextStatusId)) return;
+
+    const existing = kanbanEntryMap.value.get(kanbanId) ?? null;
+    const previousStatusId = existing?.kanban_status_id ?? null;
+    if (nextStatusId === previousStatusId) return;
+
+    updatingKanbans[kanbanId] = true;
+    try {
+      if (nextStatusId === null) {
+        await removeMemoKanbanStatus({
+          workspaceSlug: options.workspaceSlug.value,
+          memoSlug: options.memoSlug.value,
+          kanbanId,
+        });
+      }
+      else {
+        await upsertMemoKanbanStatus({
+          workspaceSlug: options.workspaceSlug.value,
+          memoSlug: options.memoSlug.value,
+          kanbanId,
+          kanbanStatusId: nextStatusId,
+        });
+      }
+      await refetchKanbanEntries();
+      syncKanbanSelections();
+    }
+    catch (error) {
+      console.error(error);
+      kanbanSelections[kanbanId] = previousStatusId;
+      options.toast.add({
+        title: 'Failed to update Kanban.',
+        description: 'Please try again.',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+    }
+    finally {
+      updatingKanbans[kanbanId] = false;
+    }
+  };
+
+  const openKanbanModal = () => {
+    isKanbanModalOpen.value = true;
+  };
+
+  watch(isKanbanModalOpen, async (open) => {
+    if (!open) return;
+    await loadKanbanStatuses();
+    syncKanbanSelections();
+  });
+
+  watch(options.kanbans, () => {
+    syncKanbanSelections();
+    if (isKanbanModalOpen.value) {
+      void loadKanbanStatuses();
+    }
+  });
+
+  watch([options.workspaceSlug, options.memoSlug], async ([slug, memo]) => {
+    if (!slug || !memo) return;
+    await loadKanbanEntries();
+  });
+
+  return {
+    kanbanEntries,
+    kanbanEntryMap,
+    kanbanEntryCount,
+    kanbanIndicatorColor,
+    kanbanSelections,
+    isKanbanLoading,
+    isKanbanModalOpen,
+    isKanbanUpdating,
+    openKanbanModal,
+    syncKanbanSelections,
+    loadKanbanEntries,
+    loadKanbanStatuses,
+    getStatusOptions,
+    applyKanbanStatus,
+  };
+}

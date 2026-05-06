@@ -28,10 +28,10 @@ import type { JSONContent } from '@tiptap/vue-3';
 // Slide styles (Reveal core, theme, highlight theme)
 import '~/assets/css/modules/slide.css';
 
-import { memoDetailQuery } from '~/app/features/memo/query/memoDetailQuery';
-import { convertMemoToHtml } from '~/app/features/memo/view/export/converters';
-import Slide from '~/app/features/slide/Slide.vue';
-import { useQuery } from '~/resource-state/useQuery';
+import { convertMemoToHtml } from '~/features/memo/view/export/converters';
+import Slide from '~/features/slide/Slide.vue';
+import { memoDetailQuery } from '~/resources/memo/queries';
+import { useQuery } from '~/resources/useQuery';
 
 definePageMeta({
   path: '/:workspace/:memo/_slide',

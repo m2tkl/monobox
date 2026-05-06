@@ -108,11 +108,10 @@
 </template>
 
 <script setup lang="ts">
-import { useCreateWorkspaceAction } from './actions/useCreateWorkspaceAction';
-import { useWorkspaceFormState } from './forms/useWorkspaceFormState';
-
-import { workspaceCollectionQuery } from '~/app/features/workspace/queries/workspaceCollectionQuery';
-import { useWorkspacesViewModel } from '~/resource-state/viewmodels/workspaces';
+import { useCreateWorkspaceAction } from '~/features/workspace/actions/useCreateWorkspaceAction';
+import { useWorkspaceFormState } from '~/features/workspace/forms/useWorkspaceFormState';
+import { useWorkspacesViewModel } from '~/features/workspace/read-model';
+import { workspaceCollectionQuery } from '~/resources/workspace/queries';
 
 definePageMeta({
   path: '/',

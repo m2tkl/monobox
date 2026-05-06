@@ -11,13 +11,13 @@
 </template>
 
 <script setup lang="ts">
-import TitleBar from '~/app/chrome/TitleBar.vue';
-import ImagePreviewDialog from '~/app/features/memo/view/editor/ImagePreviewDialog/Index.vue';
+import TitleBar from '~/app/shell/TitleBar.vue';
 import { command } from '~/external/tauri/command';
+import ImagePreviewDialog from '~/features/memo/view/editor/ImagePreviewDialog/Index.vue';
 import { handleError } from '~/utils/error';
 
 const bootstrapResourceState = async () => {
-  const { bootstrapResourceState: boot } = await import('./resource-state/index');
+  const { bootstrapResources: boot } = await import('./resources/index');
   boot();
 };
 

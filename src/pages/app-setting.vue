@@ -142,14 +142,14 @@
 <script setup lang="ts">
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
-import MemoTemplateManager from '~/app/features/memo/view/template/MemoTemplateManager.vue';
-import StoragePathsForm from '~/app/features/settings/StoragePathsForm.vue';
-import ThemeSelector from '~/app/features/settings/ThemeSelector.vue';
-import { workspaceQuery } from '~/app/features/workspace/queries/workspaceQuery';
-import { useWorkspaceDeleteAction } from '~/app/features/workspace/useWorkspaceDeleteAction';
-import ConfirmModal from '~/app/ui/ConfirmModal.vue';
-import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
-import { useCurrentWorkspaceViewModel } from '~/resource-state/viewmodels/currentWorkspace';
+import MemoTemplateManager from '~/features/memo/view/template/MemoTemplateManager.vue';
+import StoragePathsForm from '~/features/settings/StoragePathsForm.vue';
+import ThemeSelector from '~/features/settings/ThemeSelector.vue';
+import { useCurrentWorkspaceViewModel } from '~/features/workspace/read-model';
+import { useWorkspaceDeleteAction } from '~/features/workspace/useWorkspaceDeleteAction';
+import { workspaceQuery } from '~/resources/workspace/queries';
+import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
+import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
 
 definePageMeta({

@@ -66,11 +66,10 @@
 </template>
 
 <script lang="ts" setup>
-import MemoCards from '~/app/features/memo/view/list/MemoCards.vue';
-import SearchPalette from '~/app/features/search/SearchPalette.vue';
-import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
-import { useBookmarkListViewModel } from '~/resource-state/viewmodels/bookmarkList';
-import { useWorkspaceMemosViewModel } from '~/resource-state/viewmodels/workspaceMemos';
+import MemoCards from '~/features/memo/view/list/MemoCards.vue';
+import { useBookmarkListViewModel, useWorkspaceMemosViewModel } from '~/features/memo/view/list/read-model';
+import SearchPalette from '~/features/search/SearchPalette.vue';
+import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 
 const PAGE_LOAD_BASE_NUM = 64;
 

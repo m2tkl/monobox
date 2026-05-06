@@ -17,11 +17,11 @@
 </template>
 
 <script setup lang="ts">
-import { useMemoCreateAction } from '~/app/features/memo/command/useMemoCreateAction';
-import { CREATED_QUERY_SOURCE_BLANK } from '~/app/features/memo/createdQuery';
-import { workspaceMemosQuery } from '~/app/features/memo/query/workspaceMemosQuery';
-import { buildUntitledMemoTitle } from '~/app/features/memo/view/template/template';
-import LoadingSpinner from '~/app/ui/LoadingSpinner.vue';
+import { useMemoCreateAction } from '~/features/memo/command/useMemoCreateAction';
+import { CREATED_QUERY_SOURCE_BLANK } from '~/features/memo/createdQuery';
+import { buildUntitledMemoTitle } from '~/features/memo/view/template/template';
+import { workspaceMemosQuery } from '~/resources/memo/queries';
+import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 definePageMeta({
