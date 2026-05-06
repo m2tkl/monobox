@@ -1,7 +1,7 @@
 import type { Workspace } from '~/models/workspace';
 
+import { defineQuery } from '~/resource-runtime/query';
 import { command } from '~/resources/command';
-import { defineQuery } from '~/resources/query';
 
 export type WorkspaceQueryArgs = {
   workspaceSlug: string;

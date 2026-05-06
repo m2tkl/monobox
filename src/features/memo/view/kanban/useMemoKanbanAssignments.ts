@@ -7,8 +7,8 @@ import type { KanbanStatus } from '~/models/kanbanStatus';
 import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
 import { useMemoKanbanAssignmentAction } from '~/features/memo/command/useMemoKanbanAssignmentAction';
 import { memoKanbanEntriesQuery } from '~/features/memo/query/memoKanbanEntriesQuery';
-import { useResourceManager } from '~/resources/infra/useResourceManager';
-import { useQuery } from '~/resources/useQuery';
+import { useResourceManager } from '~/resource-runtime/infra/useResourceManager';
+import { useQuery } from '~/resource-runtime/useQuery';
 import { iconKey } from '~/utils/icon';
 
 type UseMemoKanbanAssignmentsOptions = {

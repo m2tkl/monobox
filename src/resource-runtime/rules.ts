@@ -1,8 +1,8 @@
 import { invalidateByEvent } from './query-runtime';
 
-import type { AppEvent } from './events';
+import type { AppEvent } from '~/resources/events';
 
-import { startOrchestrator, type AnyRule } from '~/resources/infra/orchestrator';
+import { startOrchestrator, type AnyRule } from '~/resource-runtime/infra/orchestrator';
 
 const rules: AnyRule<AppEvent>[] = [
   { on: 'workspace/created', run: payload => invalidateByEvent('workspace/created', payload) },

@@ -4,11 +4,11 @@ import type { Link } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 
 import { useRoute } from '#imports';
+import { deriveViewModelFlags } from '~/resource-runtime/infra/types';
+import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
-import { deriveViewModelFlags } from '~/resources/infra/types';
 import { memoDetailQuery, workspaceMemosQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
-import { useQuery } from '~/resources/useQuery';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export type CurrentMemoViewModel = {

@@ -183,8 +183,8 @@ import { computed, reactive, ref } from 'vue';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import { useKanbanStatusCollectionViewModel } from '~/features/kanban/read-model';
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
-import { emitEvent } from '~/resources/infra/eventBus';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';

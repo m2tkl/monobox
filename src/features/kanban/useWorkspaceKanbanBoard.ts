@@ -4,8 +4,8 @@ import type { ComputedRef } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 
 import { useKanbanCollectionViewModel } from '~/features/kanban/read-model';
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
-import { emitEvent } from '~/resources/infra/eventBus';
 import { iconKey } from '~/utils/icon';
 
 type UseWorkspaceKanbanBoardOptions = {

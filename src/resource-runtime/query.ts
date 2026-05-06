@@ -1,9 +1,9 @@
 import { loadResource } from './infra/loadResource';
 import { useResourceManager } from './infra/useResourceManager';
 
-import type { AppEvent } from './events';
 import type { ResourceSnapshot } from './infra/types';
 import type { ComputedRef } from 'vue';
+import type { AppEvent } from '~/resources/events';
 
 type EventName = Extract<keyof AppEvent, string>;
 

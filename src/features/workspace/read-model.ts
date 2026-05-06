@@ -4,8 +4,8 @@ import type { MaybeRefOrGetter } from 'vue';
 import type { Workspace } from '~/models/workspace';
 
 import { useRoute } from '#imports';
-import { deriveViewModelFlags } from '~/resources/infra/types';
-import { useQuery } from '~/resources/useQuery';
+import { deriveViewModelFlags } from '~/resource-runtime/infra/types';
+import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceCollectionQuery, workspaceQuery } from '~/resources/workspace/queries';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 

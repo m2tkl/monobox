@@ -19,7 +19,7 @@ vi.mock('~/external/tauri/command', () => ({
   },
 }));
 
-vi.mock('~/resources/infra/eventBus', () => ({
+vi.mock('~/resource-runtime/infra/eventBus', () => ({
   emitEvent,
 }));
 

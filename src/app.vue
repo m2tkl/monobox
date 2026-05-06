@@ -17,7 +17,7 @@ import ImagePreviewDialog from '~/features/memo/view/editor/ImagePreviewDialog/I
 import { handleError } from '~/utils/error';
 
 const bootstrapResourceState = async () => {
-  const { bootstrapResources: boot } = await import('./resources/index');
+  const { bootstrapResources: boot } = await import('./resource-runtime/index');
   boot();
 };
 

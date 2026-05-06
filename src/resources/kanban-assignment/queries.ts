@@ -1,7 +1,7 @@
 import type { KanbanAssignmentEntry } from '~/models/kanbanAssignment';
 
+import { defineQuery } from '~/resource-runtime/query';
 import { command } from '~/resources/command';
-import { defineQuery } from '~/resources/query';
 
 export type MemoKanbanEntriesQueryArgs = {
   workspaceSlug: string;

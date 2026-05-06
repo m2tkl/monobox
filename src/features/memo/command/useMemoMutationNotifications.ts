@@ -1,7 +1,7 @@
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
 
-import { emitEvent } from '~/resources/infra/eventBus';
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 
 type MemoMutationNotificationsOptions = {
   workspaceSlug: Ref<string>;

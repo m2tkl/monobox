@@ -1,7 +1,7 @@
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 
+import { defineQuery } from '~/resource-runtime/query';
 import { command } from '~/resources/command';
-import { defineQuery } from '~/resources/query';
 
 export type MemoQueryArgs = {
   workspaceSlug: string;

@@ -1,6 +1,6 @@
 import { onEvent } from './eventBus';
 
-import type { AppEvent } from '../events';
+import type { AppEvent } from '~/resources/events';
 
 export type Rule<E extends AppEvent, K extends keyof E & string = keyof E & string> = {
   on: K;

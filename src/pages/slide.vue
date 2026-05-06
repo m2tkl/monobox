@@ -30,8 +30,8 @@ import '~/assets/css/modules/slide.css';
 
 import { convertMemoToHtml } from '~/features/memo/view/export/converters';
 import Slide from '~/features/slide/Slide.vue';
+import { useQuery } from '~/resource-runtime/useQuery';
 import { memoDetailQuery } from '~/resources/memo/queries';
-import { useQuery } from '~/resources/useQuery';
 
 definePageMeta({
   path: '/:workspace/:memo/_slide',

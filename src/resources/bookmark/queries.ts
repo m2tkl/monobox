@@ -1,7 +1,7 @@
 import type { Bookmark } from '~/models/bookmark';
 
+import { defineQuery } from '~/resource-runtime/query';
 import { command } from '~/resources/command';
-import { defineQuery } from '~/resources/query';
 
 export type WorkspaceBookmarksQueryArgs = {
   workspaceSlug: string;

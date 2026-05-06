@@ -5,10 +5,10 @@ import type { Kanban } from '~/models/kanban';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import { useRoute } from '#imports';
-import { deriveViewModelFlags, type ResourceSnapshot } from '~/resources/infra/types';
+import { deriveViewModelFlags, type ResourceSnapshot } from '~/resource-runtime/infra/types';
+import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceKanbansQuery } from '~/resources/kanban/queries';
 import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
-import { useQuery } from '~/resources/useQuery';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 export type KanbanCollectionViewModel = {

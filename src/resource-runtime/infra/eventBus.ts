@@ -1,4 +1,4 @@
-import type { AppEvent } from '../events';
+import type { AppEvent } from '~/resources/events';
 
 type EventKey = Extract<keyof AppEvent, string>;
 type Handler<K extends EventKey> = (payload: AppEvent[K]) => void;

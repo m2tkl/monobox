@@ -1,7 +1,7 @@
 import type { Kanban } from '~/models/kanban';
 
 import { command } from '~/resources/command';
-import { defineQuery } from '~/resources/query';
+import { defineQuery } from '~/resource-runtime/query';
 
 export type WorkspaceKanbansQueryArgs = {
   workspaceSlug: string;

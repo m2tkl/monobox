@@ -1,5 +1,5 @@
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
-import { emitEvent } from '~/resources/infra/eventBus';
 
 type CreateMemoInput = {
   workspaceSlug: string;

@@ -2,8 +2,8 @@ import type { KanbanAssignmentEntry } from '~/models/kanbanAssignment';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
-import { emitEvent } from '~/resources/infra/eventBus';
 
 type MemoKanbanTarget = {
   workspaceSlug: string;

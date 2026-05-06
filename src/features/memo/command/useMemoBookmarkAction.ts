@@ -1,5 +1,5 @@
 import { command } from '~/resources/command';
-import { emitEvent } from '~/resources/infra/eventBus';
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 
 type ToggleMemoBookmarkInput = {
   workspaceSlug: string;
