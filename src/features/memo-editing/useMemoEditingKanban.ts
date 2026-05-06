@@ -1,9 +1,10 @@
 import { computed } from 'vue';
 
+import { useMemoEditingKanbanCollectionReadModel } from './read-model-kanban';
+
 import type { ComputedRef } from 'vue';
 
 import { useToast } from '#imports';
-import { useKanbanCollectionReadModel } from '~/features/kanban/read-model';
 import { useMemoKanbanAssignments } from '~/features/memo-editing/view/kanban/useMemoKanbanAssignments';
 
 type UseMemoEditingKanbanOptions = {
@@ -13,7 +14,7 @@ type UseMemoEditingKanbanOptions = {
 
 export function useMemoEditingKanban(options: UseMemoEditingKanbanOptions) {
   const toast = useToast();
-  const kanbanReadModel = useKanbanCollectionReadModel();
+  const kanbanReadModel = useMemoEditingKanbanCollectionReadModel(options.workspaceSlug);
   const kanbans = computed(() => kanbanReadModel.value.data.items);
 
   const {

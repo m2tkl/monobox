@@ -1,9 +1,10 @@
 import { computed, ref, watch } from 'vue';
 
+import { useWorkspaceKanbanCollectionReadModel } from './read-model';
+
 import type { ComputedRef } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 
-import { useKanbanCollectionReadModel } from '~/features/kanban/read-model';
 import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
@@ -15,7 +16,7 @@ type UseWorkspaceKanbanBoardOptions = {
 };
 
 export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions) {
-  const kanbanVM = useKanbanCollectionReadModel(options.workspaceSlug);
+  const kanbanVM = useWorkspaceKanbanCollectionReadModel(options.workspaceSlug);
   const kanbans = computed(() => kanbanVM.value.data.items);
   const kanbanOptions = computed(() => kanbans.value.map(kanban => ({
     label: kanban.name,
