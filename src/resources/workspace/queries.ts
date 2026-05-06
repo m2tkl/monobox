@@ -24,5 +24,6 @@ export const workspaceCollectionQuery = defineQuery<Record<never, never>, Worksp
 
 export const workspaceQuery = defineQuery<WorkspaceQueryArgs, Workspace>({
   key: ({ workspaceSlug }) => ['workspace', workspaceSlug] as const,
+  when: ({ workspaceSlug }) => workspaceSlug.length > 0,
   load: ({ workspaceSlug }) => command.workspace.get({ slugName: workspaceSlug }),
 });

@@ -130,7 +130,7 @@ import MemoLinkRow from './MemoLinkRow.vue';
 import NewMemoActions from './NewMemoActions.vue';
 
 import { command } from '~/external/tauri/command';
-import { useBookmarkListViewModel, useWorkspaceMemosViewModel } from '~/features/memo/view/list/read-model';
+import { useBookmarkListViewModel, useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';

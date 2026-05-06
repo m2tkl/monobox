@@ -282,7 +282,7 @@ import KanbanStatusManager from '~/features/kanban/status/KanbanStatusManager.vu
 import { useKanbanOrdering } from '~/features/kanban/useKanbanOrdering';
 import { useWorkspaceKanbanBoard } from '~/features/kanban/useWorkspaceKanbanBoard';
 import { useWorkspaceKanbanPageData } from '~/features/kanban/useWorkspaceKanbanPageData';
-import { useWorkspaceMemosViewModel } from '~/features/memo/view/list/read-model';
+import { useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';

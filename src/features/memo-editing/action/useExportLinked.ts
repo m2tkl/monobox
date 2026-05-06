@@ -3,7 +3,7 @@ import type { Ref } from 'vue';
 import type { Link as LinkModel } from '~/models/link';
 
 import { command } from '~/external/tauri/command';
-import { convertMemoToHtml } from '~/features/memo/view/export/converters';
+import { convertMemoToHtml } from '~/features/memo-editing/view/export/converters';
 
 /**
  * Logic to prepare HTML export with linked memos.

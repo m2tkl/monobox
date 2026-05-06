@@ -19,6 +19,7 @@ export type AnyQueryDependency<Args> = {
 export type QueryDefinition<Args, Data> = {
   key: (args: Args) => readonly unknown[];
   load: (args: Args) => Promise<Data>;
+  when?: (args: Args) => boolean;
   dependencies?: ReadonlyArray<AnyQueryDependency<Args>>;
 };
 

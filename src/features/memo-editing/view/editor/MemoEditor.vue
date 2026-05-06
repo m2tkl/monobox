@@ -137,8 +137,8 @@ import type { EditorState } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 
 import { dispatchEditorMsg } from '~/features/editor';
-import EditorLoadingSkelton from '~/features/memo/view/editor/EditorLoadingSkelton.vue';
-import TitleFieldStableInput from '~/features/memo/view/editor/TitleFieldStableInput.vue';
+import EditorLoadingSkelton from '~/features/memo-editing/view/editor/EditorLoadingSkelton.vue';
+import TitleFieldStableInput from '~/features/memo-editing/view/editor/TitleFieldStableInput.vue';
 
 const props = withDefaults(defineProps<{
   editor: Editor;

@@ -4,7 +4,7 @@ import type { MaybeRefOrGetter } from 'vue';
 import type { Workspace } from '~/models/workspace';
 
 import { useRoute } from '#imports';
-import { deriveViewModelFlags } from '~/resource-runtime/infra/types';
+import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceCollectionQuery, workspaceQuery } from '~/resources/workspace/queries';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -37,29 +37,23 @@ export function useCurrentWorkspaceViewModel(workspaceSlugArg?: MaybeRefOrGetter
     workspaceSlugArg != null
       ? toValue(workspaceSlugArg)
       : (getEncodedWorkspaceSlugFromPath(route) || ''));
-  const { snapshot: snap } = useQuery(workspaceQuery, () => ({
-    workspaceSlug: workspaceSlug.value,
-  }), {
-    enabled: computed(() => workspaceSlug.value.length > 0),
+  const { snapshot: snap } = useQuery(workspaceQuery, {
+    workspaceSlug,
   });
 
   const workspace = computed<Workspace | null>(() => snap.value.current ?? null);
-  const flags = computed(() => deriveViewModelFlags(snap.value));
-
-  return computed<CurrentWorkspaceViewModel>(() => ({
-    data: { workspace: workspace.value },
-    flags: flags.value,
-  }));
+  return defineReadModel<CurrentWorkspaceViewModel['data']>({
+    data: computed(() => ({ workspace: workspace.value })),
+    snapshots: [snap],
+  });
 }
 
 export function useWorkspacesViewModel() {
   const { snapshot: workspacesSnap } = useQuery(workspaceCollectionQuery, () => ({}));
 
   const items = computed<Workspace[]>(() => workspacesSnap.value.current ?? []);
-  const flags = computed(() => deriveViewModelFlags(workspacesSnap.value));
-
-  return computed<WorkspacesViewModel>(() => ({
-    data: { items: items.value },
-    flags: flags.value,
-  }));
+  return defineReadModel<WorkspacesViewModel['data']>({
+    data: computed(() => ({ items: items.value })),
+    snapshots: [workspacesSnap],
+  });
 }

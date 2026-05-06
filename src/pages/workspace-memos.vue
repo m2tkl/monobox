@@ -66,8 +66,8 @@
 </template>
 
 <script lang="ts" setup>
-import MemoCards from '~/features/memo/view/list/MemoCards.vue';
-import { useBookmarkListViewModel, useWorkspaceMemosViewModel } from '~/features/memo/view/list/read-model';
+import MemoCards from '~/features/memo-browsing/MemoCards.vue';
+import { useBookmarkListViewModel, useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 

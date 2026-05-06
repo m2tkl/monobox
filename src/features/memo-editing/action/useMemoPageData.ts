@@ -5,7 +5,7 @@ import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { command } from '~/external/tauri/command';
 import { workspaceKanbansQuery } from '~/features/kanban/queries/workspaceKanbansQuery';
-import { sortMemoTemplates } from '~/features/memo/view/template/template';
+import { sortMemoTemplates } from '~/features/memo-editing/view/template/template';
 import { memoDetailQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
 

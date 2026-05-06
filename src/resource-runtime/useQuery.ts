@@ -12,17 +12,46 @@ type UseQueryOptions = {
   enabled?: MaybeRefOrGetter<boolean>;
 };
 
+type DeepMaybeRefOrGetter<T> =
+  T extends (...args: never[]) => unknown ? T
+    : T extends readonly (infer U)[] ? ReadonlyArray<DeepMaybeRefOrGetter<U>>
+      : T extends object ? { [K in keyof T]: DeepMaybeRefOrGetter<T[K]> | MaybeRefOrGetter<T[K]> }
+        : MaybeRefOrGetter<T>;
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]';
+}
+
+function resolveQueryArgs<T>(value: DeepMaybeRefOrGetter<T> | MaybeRefOrGetter<T>): T {
+  const resolved = toValue(value as MaybeRefOrGetter<T>);
+
+  if (Array.isArray(resolved)) {
+    return resolved.map(item => resolveQueryArgs(item)) as T;
+  }
+
+  if (isPlainObject(resolved)) {
+    const entries = Object.entries(resolved).map(([key, entryValue]) => [key, resolveQueryArgs(entryValue)]);
+    return Object.fromEntries(entries) as T;
+  }
+
+  return resolved;
+}
+
 export function useQuery<Args, Data>(
   query: DefinedQuery<Args, Data>,
-  args: MaybeRefOrGetter<Args>,
+  args: DeepMaybeRefOrGetter<Args> | MaybeRefOrGetter<Args>,
   options: UseQueryOptions = {},
 ): {
     snapshot: Readonly<ComputedRef<ResourceSnapshot<Data>>>;
     refetch: () => Promise<Data>;
   } {
   const resourceManager = useResourceManager();
-  const isEnabled = computed(() => toValue(options.enabled) ?? true);
-  const resolvedArgs = computed(() => toValue(args));
+  const resolvedArgs = computed(() => resolveQueryArgs(args));
+  const isEnabled = computed(() => {
+    const byQuery = query.when?.(resolvedArgs.value) ?? true;
+    const byOption = toValue(options.enabled) ?? true;
+    return byQuery && byOption;
+  });
   const serializedKey = computed(() => JSON.stringify(query.key(resolvedArgs.value)));
   const snapshot = computed(() => resourceManager.getSnapshot<Data>(query.key(resolvedArgs.value)));
 

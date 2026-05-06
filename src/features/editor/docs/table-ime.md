@@ -1,7 +1,7 @@
 # Table IME Note
 
 This note explains the table-specific IME issue handled in
-`src/features/memo/view/editor/useMemoEditor.ts`.
+`src/features/memo-editing/view/editor/useMemoEditor.ts`.
 
 ## Symptom
 

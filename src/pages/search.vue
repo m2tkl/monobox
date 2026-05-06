@@ -70,7 +70,7 @@
 import type { MemoIndexItem, MemoSearchItem } from '~/models/memo';
 
 import { command } from '~/external/tauri/command';
-import { useWorkspaceMemosViewModel } from '~/features/memo/view/list/read-model';
+import { useWorkspaceMemosViewModel } from '~/features/memo-browsing/read-model';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
 import { useConsoleLogger } from '~/utils/logger';

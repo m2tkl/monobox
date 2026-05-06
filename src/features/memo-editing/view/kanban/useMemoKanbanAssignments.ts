@@ -5,10 +5,10 @@ import type { Kanban } from '~/models/kanban';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import { workspaceKanbanStatusesQuery } from '~/features/kanban/queries/workspaceKanbanStatusesQuery';
-import { useMemoKanbanAssignmentAction } from '~/features/memo/command/useMemoKanbanAssignmentAction';
-import { memoKanbanEntriesQuery } from '~/features/memo/query/memoKanbanEntriesQuery';
+import { useMemoKanbanAssignmentAction } from '~/features/memo-editing/action/useMemoKanbanAssignmentAction';
 import { useResourceManager } from '~/resource-runtime/infra/useResourceManager';
 import { useQuery } from '~/resource-runtime/useQuery';
+import { memoKanbanEntriesQuery } from '~/resources/kanban-assignment/queries';
 import { iconKey } from '~/utils/icon';
 
 type UseMemoKanbanAssignmentsOptions = {
@@ -28,14 +28,9 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
   const kanbanSelections = reactive<Record<number, number | null>>({});
   const updatingKanbans = reactive<Record<number, boolean>>({});
   const isKanbanModalOpen = ref(false);
-  const canLoadKanbanEntries = computed(() => (
-    options.workspaceSlug.value.length > 0 && options.memoSlug.value.length > 0
-  ));
-  const { snapshot: kanbanEntriesSnap, refetch: refetchKanbanEntries } = useQuery(memoKanbanEntriesQuery, () => ({
-    workspaceSlug: options.workspaceSlug.value,
-    memoSlug: options.memoSlug.value,
-  }), {
-    enabled: canLoadKanbanEntries,
+  const { snapshot: kanbanEntriesSnap, refetch: refetchKanbanEntries } = useQuery(memoKanbanEntriesQuery, {
+    workspaceSlug: options.workspaceSlug,
+    memoSlug: options.memoSlug,
   });
   const kanbanEntries = computed(() => kanbanEntriesSnap.value.current ?? []);
   const isKanbanLoading = computed(() => kanbanEntriesSnap.value.status === 'loading');
@@ -70,7 +65,10 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
   };
 
   const loadKanbanEntries = async () => {
-    if (!canLoadKanbanEntries.value) return;
+    if (!memoKanbanEntriesQuery.when?.({
+      workspaceSlug: options.workspaceSlug.value,
+      memoSlug: options.memoSlug.value,
+    })) return;
     await refetchKanbanEntries();
     syncKanbanSelections();
   };

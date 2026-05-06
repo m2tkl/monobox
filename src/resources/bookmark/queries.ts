@@ -9,6 +9,7 @@ export type WorkspaceBookmarksQueryArgs = {
 
 export const workspaceBookmarksQuery = defineQuery<WorkspaceBookmarksQueryArgs, Bookmark[]>({
   key: ({ workspaceSlug }) => ['workspace', workspaceSlug, 'bookmarks'] as const,
+  when: ({ workspaceSlug }) => workspaceSlug.length > 0,
   load: ({ workspaceSlug }) => command.bookmark.list(workspaceSlug),
   dependencies: [
     {

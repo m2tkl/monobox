@@ -10,6 +10,7 @@ export type WorkspaceKanbanStatusesQueryArgs = {
 
 export const workspaceKanbanStatusesQuery = defineQuery<WorkspaceKanbanStatusesQueryArgs, KanbanStatus[]>({
   key: ({ workspaceSlug, kanbanId }) => ['workspace', workspaceSlug, 'kanban', kanbanId, 'statuses'] as const,
+  when: ({ workspaceSlug, kanbanId }) => workspaceSlug.length > 0 && kanbanId > 0,
   load: ({ workspaceSlug, kanbanId }) => command.kanbanStatus.list({ slugName: workspaceSlug, kanbanId }),
   dependencies: [
     {

@@ -14,6 +14,7 @@ export type WorkspaceMemoQueryArgs = {
 
 export const memoDetailQuery = defineQuery<MemoQueryArgs, MemoDetail>({
   key: ({ workspaceSlug, memoSlug }) => ['workspace', workspaceSlug, 'memo', memoSlug] as const,
+  when: ({ workspaceSlug, memoSlug }) => workspaceSlug.length > 0 && memoSlug.length > 0,
   load: ({ workspaceSlug, memoSlug }) => command.memo.get({
     workspaceSlugName: workspaceSlug,
     memoSlugTitle: memoSlug,
@@ -30,6 +31,7 @@ export const memoDetailQuery = defineQuery<MemoQueryArgs, MemoDetail>({
 
 export const workspaceMemosQuery = defineQuery<WorkspaceMemoQueryArgs, MemoIndexItem[]>({
   key: ({ workspaceSlug }) => ['workspace', workspaceSlug, 'memos'] as const,
+  when: ({ workspaceSlug }) => workspaceSlug.length > 0,
   load: ({ workspaceSlug }) => command.memo.list({
     slugName: workspaceSlug,
   }),

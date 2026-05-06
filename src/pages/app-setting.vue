@@ -142,7 +142,7 @@
 <script setup lang="ts">
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
-import MemoTemplateManager from '~/features/memo/view/template/MemoTemplateManager.vue';
+import MemoTemplateManager from '~/features/memo-editing/view/template/MemoTemplateManager.vue';
 import StoragePathsForm from '~/features/settings/StoragePathsForm.vue';
 import ThemeSelector from '~/features/settings/ThemeSelector.vue';
 import { useCurrentWorkspaceViewModel } from '~/features/workspace/read-model';

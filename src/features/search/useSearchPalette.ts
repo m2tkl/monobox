@@ -5,8 +5,8 @@ import type { Editor } from '@tiptap/core';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { EditorAction, EditorQuery } from '~/features/editor';
-import { useMemoCreateAction } from '~/features/memo/command/useMemoCreateAction';
-import { CREATED_QUERY_SOURCE_NAMED } from '~/features/memo/createdQuery';
+import { useMemoCreateAction } from '~/features/memo-editing/action/useMemoCreateAction';
+import { CREATED_QUERY_SOURCE_NAMED } from '~/features/memo-editing/createdQuery';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';

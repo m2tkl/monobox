@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { useRoute } from '#imports';
-import { deriveViewModelFlags } from '~/resource-runtime/infra/types';
+import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
 import { workspaceMemosQuery } from '~/resources/memo/queries';
@@ -41,38 +41,31 @@ export type BookmarkListViewModel = {
 export function useWorkspaceMemosViewModel() {
   const route = useRoute();
   const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
-  const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, () => ({
-    workspaceSlug: workspaceSlug.value,
-  }), {
-    enabled: computed(() => workspaceSlug.value.length > 0),
+  const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, {
+    workspaceSlug,
   });
 
   const items = computed<MemoIndexItem[]>(() => memosSnap.value.current ?? []);
-  const flags = computed(() => deriveViewModelFlags(memosSnap.value));
-
-  return computed<WorkspaceMemosViewModel>(() => ({
-    data: { items: items.value },
-    flags: flags.value,
-  }));
+  return defineReadModel<WorkspaceMemosViewModel['data']>({
+    data: computed(() => ({ items: items.value })),
+    snapshots: [memosSnap],
+  });
 }
 
 export function useBookmarkListViewModel() {
   const route = useRoute();
   const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
-  const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, () => ({
-    workspaceSlug: workspaceSlug.value,
-  }), {
-    enabled: computed(() => workspaceSlug.value.length > 0),
+
+  const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, {
+    workspaceSlug,
   });
-  const { snapshot: bookmarksSnap } = useQuery(workspaceBookmarksQuery, () => ({
-    workspaceSlug: workspaceSlug.value,
-  }), {
-    enabled: computed(() => workspaceSlug.value.length > 0),
+
+  const { snapshot: bookmarksSnap } = useQuery(workspaceBookmarksQuery, {
+    workspaceSlug,
   });
-  const { snapshot: memoLinkCountsSnap } = useQuery(workspaceMemoLinkCountsQuery, () => ({
-    workspaceSlug: workspaceSlug.value,
-  }), {
-    enabled: computed(() => workspaceSlug.value.length > 0),
+
+  const { snapshot: memoLinkCountsSnap } = useQuery(workspaceMemoLinkCountsQuery, {
+    workspaceSlug,
   });
 
   const items = computed<BookmarkListItem[]>(() => {
@@ -100,21 +93,10 @@ export function useBookmarkListViewModel() {
       .filter((memo): memo is BookmarkListItem => memo !== null);
   });
 
-  const flags = computed(() => {
-    const bookmarkFlags = deriveViewModelFlags(bookmarksSnap.value);
-    const memoFlags = deriveViewModelFlags(memosSnap.value);
-    const memoLinkCountFlags = deriveViewModelFlags(memoLinkCountsSnap.value);
-    return {
-      isLoading: bookmarkFlags.isLoading || memoFlags.isLoading || memoLinkCountFlags.isLoading,
-      isStale: bookmarkFlags.isStale || memoFlags.isStale || memoLinkCountFlags.isStale,
-      hasError: bookmarkFlags.hasError || memoFlags.hasError || memoLinkCountFlags.hasError,
-    };
-  });
-
-  return computed<BookmarkListViewModel>(() => ({
-    data: {
+  return defineReadModel<BookmarkListViewModel['data']>({
+    data: computed(() => ({
       items: items.value,
-    },
-    flags,
-  }));
+    })),
+    snapshots: [bookmarksSnap, memosSnap, memoLinkCountsSnap],
+  });
 }

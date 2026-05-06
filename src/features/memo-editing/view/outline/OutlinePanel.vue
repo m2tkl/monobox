@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import OutlineView from '~/features/memo/view/outline/OutlineView.vue';
+import OutlineView from '~/features/memo-editing/view/outline/OutlineView.vue';
 
 type Heading = { id: string; level: number; text: string };
 

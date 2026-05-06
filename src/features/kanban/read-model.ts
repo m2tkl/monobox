@@ -3,9 +3,10 @@ import { computed, toValue } from 'vue';
 import type { ComputedRef, MaybeRefOrGetter } from 'vue';
 import type { Kanban } from '~/models/kanban';
 import type { KanbanStatus } from '~/models/kanbanStatus';
+import type { ResourceSnapshot } from '~/resource-runtime/infra/types';
 
 import { useRoute } from '#imports';
-import { deriveViewModelFlags, type ResourceSnapshot } from '~/resource-runtime/infra/types';
+import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceKanbansQuery } from '~/resources/kanban/queries';
 import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
@@ -45,19 +46,15 @@ export function useKanbanCollectionViewModel(workspaceSlugArg?: MaybeRefOrGetter
   const workspaceSlug = computed(() => workspaceSlugArg != null
     ? toValue(workspaceSlugArg)
     : (getEncodedWorkspaceSlugFromPath(route) || ''));
-  const { snapshot: snap } = useQuery(workspaceKanbansQuery, () => ({
-    workspaceSlug: workspaceSlug.value,
-  }), {
-    enabled: computed(() => workspaceSlug.value.length > 0),
+  const { snapshot: snap } = useQuery(workspaceKanbansQuery, {
+    workspaceSlug,
   });
 
   const items = computed<Kanban[]>(() => snap.value.current ?? []);
-  const flags = computed(() => deriveViewModelFlags(snap.value));
-
-  return computed<KanbanCollectionViewModel>(() => ({
-    data: { items: items.value },
-    flags: flags.value,
-  }));
+  return defineReadModel<KanbanCollectionViewModel['data']>({
+    data: computed(() => ({ items: items.value })),
+    snapshots: [snap],
+  });
 }
 
 export function useKanbanStatusCollectionViewModel(
@@ -68,11 +65,9 @@ export function useKanbanStatusCollectionViewModel(
   const workspaceSlug = computed(() => workspaceSlugArg != null
     ? toValue(workspaceSlugArg)
     : (getEncodedWorkspaceSlugFromPath(route) || ''));
-  const { snapshot: querySnap } = useQuery(workspaceKanbanStatusesQuery, () => ({
-    workspaceSlug: workspaceSlug.value,
-    kanbanId: kanbanId.value ?? 0,
-  }), {
-    enabled: computed(() => workspaceSlug.value.length > 0 && kanbanId.value !== null),
+  const { snapshot: querySnap } = useQuery(workspaceKanbanStatusesQuery, {
+    workspaceSlug,
+    kanbanId: computed(() => kanbanId.value ?? 0),
   });
 
   const statusSnap = computed(() => {
@@ -83,10 +78,8 @@ export function useKanbanStatusCollectionViewModel(
   });
 
   const items = computed<KanbanStatus[]>(() => statusSnap.value.current ?? []);
-  const flags = computed(() => deriveViewModelFlags(statusSnap.value));
-
-  return computed<KanbanStatusCollectionViewModel>(() => ({
-    data: { items: items.value },
-    flags: flags.value,
-  }));
+  return defineReadModel<KanbanStatusCollectionViewModel['data']>({
+    data: computed(() => ({ items: items.value })),
+    snapshots: [statusSnap],
+  });
 }

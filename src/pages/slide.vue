@@ -28,7 +28,7 @@ import type { JSONContent } from '@tiptap/vue-3';
 // Slide styles (Reveal core, theme, highlight theme)
 import '~/assets/css/modules/slide.css';
 
-import { convertMemoToHtml } from '~/features/memo/view/export/converters';
+import { convertMemoToHtml } from '~/features/memo-editing/view/export/converters';
 import Slide from '~/features/slide/Slide.vue';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { memoDetailQuery } from '~/resources/memo/queries';
@@ -41,11 +41,9 @@ const route = useRoute();
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
-const { snapshot: memoSnap } = useQuery(memoDetailQuery, () => ({
-  workspaceSlug: workspaceSlug.value,
-  memoSlug: memoSlug.value,
-}), {
-  enabled: computed(() => workspaceSlug.value.length > 0 && memoSlug.value.length > 0),
+const { snapshot: memoSnap } = useQuery(memoDetailQuery, {
+  workspaceSlug,
+  memoSlug,
 });
 
 await usePageLoader(async () => {
