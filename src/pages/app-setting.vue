@@ -145,12 +145,9 @@ import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 import { MemoTemplateManager } from '~/features/memo-editing';
 import StoragePathsForm from '~/features/settings/StoragePathsForm.vue';
 import ThemeSelector from '~/features/settings/ThemeSelector.vue';
-import { useCurrentWorkspaceReadModel } from '~/features/workspace/read-model';
-import { useWorkspaceDeleteAction } from '~/features/workspace/useWorkspaceDeleteAction';
-import { workspaceQuery } from '~/resources/workspace/queries';
+import { useWorkspaceSettings } from '~/features/workspace-settings';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
-import { iconKey } from '~/utils/icon';
 
 definePageMeta({
   path: '/_setting',
@@ -159,69 +156,21 @@ definePageMeta({
 const { currentTheme } = useTheme();
 const toast = useToast();
 const router = useRouter();
-const { deleteWorkspace: executeDeleteWorkspace } = useWorkspaceDeleteAction();
-
 const route = useRoute();
-const workspaceContextSlug = computed(() => {
-  const raw = route.query.workspace;
-  return typeof raw === 'string' ? raw : '';
+const {
+  hasWorkspaceContext,
+  currentWorkspace,
+  isWorkspaceLoading,
+  activeTab,
+  isDeleteConfirmationOpen: isOpen,
+  openDeleteConfirmation,
+  deleteWorkspace,
+  loadWorkspaceSettings,
+} = useWorkspaceSettings({
+  route,
+  router,
+  toast,
 });
-const currentWorkspaceVM = useCurrentWorkspaceReadModel(workspaceContextSlug);
-const hasWorkspaceContext = computed(() => workspaceContextSlug.value.length > 0);
-const currentWorkspace = computed(() => {
-  if (!hasWorkspaceContext.value) return null;
-  const workspace = currentWorkspaceVM.value.data.workspace;
-  if (!workspace) return null;
-  return workspace.slug_name === workspaceContextSlug.value ? workspace : null;
-});
-const isWorkspaceLoading = computed(() => {
-  return hasWorkspaceContext.value && currentWorkspaceVM.value.flags.isLoading;
-});
-
-const activeTab = ref<'app' | 'workspace'>(hasWorkspaceContext.value ? 'workspace' : 'app');
-
-watch(hasWorkspaceContext, (next) => {
-  activeTab.value = next ? 'workspace' : 'app';
-});
-
-const isOpen = ref(false);
-const openDeleteConfirmation = () => {
-  isOpen.value = true;
-};
-
-const deleteWorkspace = async () => {
-  const slugName = currentWorkspace.value?.slug_name;
-  if (!slugName) {
-    toast.add({
-      title: 'Workspace is not selected.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-    return;
-  }
-
-  try {
-    await executeDeleteWorkspace(slugName);
-
-    toast.add({
-      title: 'Delete successfully.',
-      duration: 1000,
-      icon: iconKey.success,
-    });
-
-    isOpen.value = false;
-    router.replace('/');
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to delete.',
-      description: 'Please delete again.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-};
 
 /**
  * FIXME: Accessing the "_setting" route but triggers an error on Windows
@@ -237,8 +186,7 @@ const deleteWorkspace = async () => {
 const _appConfig = JSON.parse(await readTextFile('config.json', { baseDir: BaseDirectory.AppData }));
 
 await usePageLoader(async () => {
-  if (!hasWorkspaceContext.value) return;
-  await workspaceQuery.fetch({ workspaceSlug: workspaceContextSlug.value });
+  await loadWorkspaceSettings();
 });
 </script>
 
