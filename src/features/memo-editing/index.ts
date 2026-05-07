@@ -13,6 +13,8 @@ export { useMemoEditingMachine } from './useMemoEditingMachine';
 export { useMemoTemplateApplication } from './useMemoTemplateApplication';
 export { useMemoTemplateFlow } from './useMemoTemplateFlow';
 export { useMemoTemplates } from './useMemoTemplates';
+export { default as MemoEditing } from './MemoEditing.vue';
+export { default as NewMemoPage } from './NewMemoPage.vue';
 export { useExportLinked } from './action/useExportLinked';
 export { useMemoBookmarkAction } from './action/useMemoBookmarkAction';
 export { useMemoCopy } from './action/useMemoCopy';
