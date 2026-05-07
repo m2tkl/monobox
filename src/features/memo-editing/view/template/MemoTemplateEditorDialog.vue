@@ -152,8 +152,7 @@ import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/features/editor';
 import type { MemoIndexItem } from '~/models/memo';
 
-import { buildExtensions, dispatchEditorMsg } from '~/features/editor';
-import CodeBlockComponent from '~/features/editor/nodeviews/CodeBlock';
+import { buildExtensions, CodeBlockComponent, dispatchEditorMsg } from '~/features/editor';
 import { SearchPalette } from '~/features/search';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { isCmdKey } from '~/utils/event';

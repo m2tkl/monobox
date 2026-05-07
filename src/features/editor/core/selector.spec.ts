@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { findActiveHeadingId } from './selector';
 import { headingExtension } from '../extensions/heading';
 
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import type { JSONContent } from '@tiptap/vue-3';
 
 function createEditor(content: JSONContent) {
@@ -14,7 +15,7 @@ function createEditor(content: JSONContent) {
   });
 }
 
-function findNodePos(editor: VueEditor, predicate: (node: any) => boolean) {
+function findNodePos(editor: VueEditor, predicate: (node: ProseMirrorNode) => boolean) {
   let foundPos: number | null = null;
   let foundNodeSize = 0;
   editor.state.doc.descendants((node, pos) => {

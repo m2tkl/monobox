@@ -2,8 +2,7 @@ import { Editor, type JSONContent } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { describe, it, expect } from 'vitest';
 
-import { buildExtensions } from '~/features/editor';
-import { convertToMarkdown } from '~/features/editor/serializer/markdown';
+import { buildExtensions, convertToMarkdown } from '~/features/editor';
 
 describe('serializer/markdown - convertToMarkdown', () => {
   it('serializes heading with +1 level and optional title prefix', () => {

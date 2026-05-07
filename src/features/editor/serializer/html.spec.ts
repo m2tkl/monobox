@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import type { JSONContent } from '@tiptap/vue-3';
 
-import { convertEditorJsonToHtml } from '~/features/editor/serializer/html';
+import { convertEditorJsonToHtml } from '~/features/editor';
 
 describe('serializer/html - convertEditorJsonToHtml', () => {
   it('renders heading with +1 level (memo body rules)', () => {

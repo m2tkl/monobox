@@ -9,7 +9,6 @@ function escapeHtml(str: string): string {
     .replaceAll(/'/g, '&#39;');
 }
 
-
 function extractText(node: JSONContent): string {
   if (!node) return '';
   if (typeof node.text === 'string') return node.text;

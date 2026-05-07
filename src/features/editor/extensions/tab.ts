@@ -1,6 +1,6 @@
 import { Extension } from '@tiptap/core';
-import { goToNextCell } from 'prosemirror-tables';
 import { wrapInList } from 'prosemirror-schema-list';
+import { goToNextCell } from 'prosemirror-tables';
 
 import type { EditorState } from '@tiptap/pm/state';
 

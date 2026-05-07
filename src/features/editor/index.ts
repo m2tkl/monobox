@@ -24,6 +24,7 @@ export * as EditorSelector from './core/selector';
 export * as EditorFocus from './core/focus';
 export * as EditorDoc from './core/doc';
 export * as EditorMsg from './core/command';
+export { default as CodeBlockComponent } from './nodeviews/CodeBlock';
 export type { EditorMsg as EditorMsgType } from './core/command';
 export type { EditorCommandHandler, EditorCommandHandlerMap } from './core/command';
 export { createEditorDispatcher, dispatchEditorMsg } from './core/command';

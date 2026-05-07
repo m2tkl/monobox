@@ -298,8 +298,7 @@ import type { MemoEvent } from './state/memoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';
 
-import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
-import CodeBlockComponent from '~/features/editor/nodeviews/CodeBlock';
+import { buildExtensions, CodeBlockComponent, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
 import { SearchPalette } from '~/features/search';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { useConsoleLogger } from '~/utils/logger';
