@@ -10,6 +10,7 @@ export { useMemoEditingBootstrap } from './useMemoEditingBootstrap';
 export { useMemoEditingContext } from './useMemoEditingContext';
 export { useMemoEditingKanban } from './useMemoEditingKanban';
 export { useMemoEditingMachine } from './useMemoEditingMachine';
+export { useMemoTemplateApplication } from './useMemoTemplateApplication';
 export { useMemoTemplateFlow } from './useMemoTemplateFlow';
 export { useMemoTemplates } from './useMemoTemplates';
 export { useExportLinked } from './action/useExportLinked';
@@ -25,7 +26,9 @@ export { default as EditorToolbarButton } from './view/editor/EditorToolbarButto
 export { useImagePreview } from './view/editor/ImagePreviewDialog/useImagePreview';
 export { default as LinkEditDialog } from './view/editor/LinkEditDialog.vue';
 export { default as MemoEditor } from './view/editor/MemoEditor.vue';
+export { useMemoEditorActions } from './view/editor/useMemoEditorActions';
 export { useMemoEditor } from './view/editor/useMemoEditor';
+export { useMemoEditorInteractions } from './view/editor/useMemoEditorInteractions';
 export { default as ExportDialogToCopyResult } from './view/export/ExportDialogToCopyResult.vue';
 export { default as ExportDialogToSelectTargets } from './view/export/ExportDialogToSelectTargets.vue';
 export { default as MemoDeleteFlow } from './view/memo/MemoDeleteFlow.vue';

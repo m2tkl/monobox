@@ -269,13 +269,8 @@
 </template>
 
 <script lang="ts" setup>
-import { CellSelection, TableMap } from 'prosemirror-tables';
-
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { Editor as TiptapEditor } from '@tiptap/core';
 import type { NodeViewProps } from '@tiptap/vue-3';
-import type { LocationQueryRaw } from 'vue-router';
-import type { EditorMsgType } from '~/features/editor';
 import type { MemoDeleteFlowHandle, MemoEvent } from '~/features/memo-editing';
 
 import { buildExtensions, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
@@ -285,7 +280,6 @@ import {
   EditorToolbarButton,
   ExportDialogToCopyResult,
   ExportDialogToSelectTargets,
-  getDefaultMemoTemplate,
   LinkEditDialog,
   MemoDeleteFlow,
   MemoEditor,
@@ -293,16 +287,18 @@ import {
   OutlinePanel,
   useExportLinked,
   useImagePreview,
+  useMemoEditorActions,
+  useMemoEditorInteractions,
   useMemoEditingBootstrap,
   useMemoEditingContext,
   useMemoEditingKanban,
   useMemoEditingMachine,
   useMemoBookmarkAction,
   useMemoCopy,
+  useMemoTemplateApplication,
   useMemoTemplateFlow,
   useMemoTemplates,
   useMemoEditor,
-  useMemoTemplateApplyAction,
 } from '~/features/memo-editing';
 import SearchPalette from '~/features/search/SearchPalette.vue';
 import IconButton from '~/shared/components/elements/IconButton.vue';
@@ -375,10 +371,7 @@ const {
   availableTemplates,
 });
 const { toggleBookmark: executeToggleBookmark } = useMemoBookmarkAction();
-const { applyTemplateToEditor } = useMemoTemplateApplyAction();
 const logger = useConsoleLogger('pages/memo');
-const isApplyingTemplate = ref(false);
-const selectedTemplateId = ref<number>();
 
 type MemoSnapshot = {
   title: string;
@@ -400,11 +393,6 @@ const lastSavedSnapshot = ref<MemoSnapshot>({
   content: currentMemo.value.content,
 });
 
-const isEditorBodyEmpty = computed(() => Boolean(editor.value?.isEmpty));
-const shouldShowInlineTemplateSuggestions = computed(() =>
-  shouldShowTemplatePicker.value && isEditorBodyEmpty.value,
-);
-
 const getCurrentSnapshot = (): MemoSnapshot => {
   const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : currentMemo.value.content;
   return {
@@ -424,61 +412,6 @@ let dispatch: (event: MemoEvent) => void = () => {};
 
 async function saveMemoContent(mode: 'explicit' | 'auto') {
   return saveMemoContentFromMachine(mode);
-}
-
-async function applyTemplate(templateSlug: string, options?: { toastTitle?: string }) {
-  if (!editor.value || !memoVM.value.data.memo) {
-    return false;
-  }
-
-  isApplyingTemplate.value = true;
-
-  try {
-    const { templateId } = await applyTemplateToEditor({
-      workspaceSlug: workspaceSlug.value,
-      templateSlug,
-      editor: editor.value,
-    });
-    selectedTemplateId.value = templateId;
-    await nextTick();
-
-    const result = await saveMemoContent('auto');
-    if (!result.ok) {
-      dispatch({ type: 'memo/save-failed', payload: { error: result.error } });
-      toast.add({
-        title: 'Failed to apply template',
-        description: 'Please try again',
-        color: 'error',
-        icon: iconKey.failed,
-      });
-      return false;
-    }
-
-    dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.memoSlug } });
-    isTemplatePickerDismissed.value = true;
-    await clearCreatedQueryFlag();
-    toast.add({
-      title: options?.toastTitle ?? 'Template applied',
-      icon: iconKey.success,
-      duration: 1000,
-    });
-    return true;
-  }
-  catch (error) {
-    logger.error(error);
-    dispatch({ type: 'memo/save-failed', payload: { error } });
-    toast.add({
-      title: 'Failed to apply template',
-      description: 'Please try again',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-    return false;
-  }
-  finally {
-    isApplyingTemplate.value = false;
-    selectedTemplateId.value = undefined;
-  }
 }
 
 /* --- States for editor --- */
@@ -550,75 +483,31 @@ const focusTitleFieldForNewMemo = () => {
   });
 };
 
-watch(
-  [isNewMemoCreationFlow, requestedTemplateSlug, shouldSkipDefaultTemplate, availableTemplates, editor],
-  async ([, templateSlug, skipDefaultTemplate]) => {
-    if (hasAttemptedDefaultTemplate.value) {
-      return;
-    }
-
-    if (!isNewMemoCreationFlow.value) {
-      return;
-    }
-
-    if (!editor.value) {
-      return;
-    }
-
-    if (templateSlug) {
-      hasAttemptedDefaultTemplate.value = true;
-      const isApplied = await applyTemplate(templateSlug);
-      if (!isApplied) {
-        const { template: _template, ...nextQuery } = route.query;
-        const normalizedQuery: LocationQueryRaw = {};
-        for (const [key, value] of Object.entries(nextQuery)) {
-          normalizedQuery[key] = value as string | string[] | null | undefined;
-        }
-        await router.replace({
-          path: route.path,
-          query: normalizedQuery,
-          hash: route.hash,
-        });
-        isTemplatePickerDismissed.value = false;
-      }
-      return;
-    }
-
-    if (skipDefaultTemplate) {
-      hasAttemptedDefaultTemplate.value = true;
-      isTemplatePickerDismissed.value = true;
-      await clearCreatedQueryFlag();
-      focusTitleFieldForNewMemo();
-      return;
-    }
-
-    const defaultTemplate = getDefaultMemoTemplate(availableTemplates.value);
-    if (!defaultTemplate) {
-      hasAttemptedDefaultTemplate.value = true;
-      return;
-    }
-
-    hasAttemptedDefaultTemplate.value = true;
-    await applyTemplate(defaultTemplate.slug_name, { toastTitle: 'Default template applied' });
-  },
-  { immediate: true },
-);
-
-const handleKeydown = (event: KeyboardEvent) => {
-  if (isCmdKey(event) && event.key === 's') {
-    event.preventDefault();
-    dispatch({ type: 'memo/save-requested', payload: { mode: 'explicit' } });
-    return;
-  }
-};
-
-function handleScroll() {
-  const editorInstance = editor.value;
-  const editorContainer = document.getElementById('main');
-  if (!editorInstance || !editorContainer) return;
-
-  updateActiveHeadingOnScroll(editorInstance, editorContainer);
-}
+const {
+  isApplyingTemplate,
+  selectedTemplateId,
+  shouldShowInlineTemplateSuggestions,
+  applyTemplate,
+} = useMemoTemplateApplication({
+  editor,
+  hasMemo: computed(() => memoVM.value.data.memo != null),
+  workspaceSlug,
+  route,
+  router,
+  availableTemplates,
+  isTemplatePickerDismissed,
+  hasAttemptedDefaultTemplate,
+  isNewMemoCreationFlow,
+  requestedTemplateSlug,
+  shouldSkipDefaultTemplate,
+  shouldShowTemplatePicker,
+  clearCreatedQueryFlag,
+  focusTitleFieldForNewMemo,
+  saveMemoContent,
+  dispatch: event => dispatch(event),
+  toast,
+  logger,
+});
 
 /**
  * Navigate to the specified heading by updating the URL hash.
@@ -627,42 +516,29 @@ function handleScroll() {
  *
  * @param headingId - The ID of the heading to navigate to.
  */
-const navigateToHeading = (id: string) => {
-  router.push(`${route.path}#${id}`);
-};
+const { navigateToHeading } = useMemoEditorInteractions({
+  editor,
+  route,
+  router,
+  dispatch,
+  focusHeading,
+  updateActiveHeadingOnScroll,
+});
 
 /**
  * Watch for changes in the URL hash and focus the corresponding heading in the editor.
  *
  * This ensures that browser back/forward navigation moves the editor focus appropriately.
  */
-watch(() => route.hash, () => {
-  if (!editor.value) {
-    return;
-  }
-
-  if (route.hash) {
-    const id = route.hash.replace(/^#/, '');
-    focusHeading(editor.value, id);
-  }
-});
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
-  document.getElementById('main')?.addEventListener('scroll', handleScroll, { passive: true });
-});
-
 const { openPreview } = useImagePreview();
-// ProseMirror selection/transaction changes are not Vue-reactive by themselves.
-// Bump this counter to force toolbar/table-menu getters to re-run against current editor state.
-const toolbarContextVersion = ref(0);
-let detachToolbarContextListeners: (() => void) | null = null;
+const {
+  getEditorToolbarActionItems,
+  getTableBubbleMenuActionItems,
+} = useMemoEditorActions({
+  editor,
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown);
-  document.getElementById('main')?.removeEventListener('scroll', handleScroll);
-  detachToolbarContextListeners?.();
-
   // Destroy editor
   editor.value?.destroy();
 });
@@ -687,138 +563,6 @@ function openSelectedImagePreview() {
   }
   window.alert('Failed to find preview target.');
 }
-
-/**
- * Editor toolbar action items
- */
-const baseEditorToolbarActionItems: {
-  label?: string;
-  icon?: string;
-  msg: EditorMsgType;
-}[] = [
-  { label: 'H1', msg: { type: 'toggleHeading', level: 1 } },
-  { label: 'H2', msg: { type: 'toggleHeading', level: 2 } },
-  { label: 'H3', msg: { type: 'toggleHeading', level: 3 } },
-  { icon: iconKey.textBold, msg: { type: 'toggleStyle', style: 'bold' } },
-  { icon: iconKey.textItalic, msg: { type: 'toggleStyle', style: 'italic' } },
-  { icon: iconKey.textStrikeThrough, msg: { type: 'toggleStyle', style: 'strike' } },
-  { icon: iconKey.listBulletted, msg: { type: 'toggleBulletList' } },
-  { icon: iconKey.listNumbered, msg: { type: 'toggleOrderedList' } },
-  { icon: iconKey.quotes, msg: { type: 'toggleBlockQuote' } },
-  { icon: iconKey.inlineCode, msg: { type: 'toggleCode' } },
-  { icon: iconKey.table, msg: { type: 'insertTable' } },
-  { icon: iconKey.clearFormat, msg: { type: 'clearFormat' } },
-];
-
-const tableRowBubbleMenuActionItems: {
-  label?: string;
-  icon?: string;
-  disabled?: boolean;
-  dividerBefore?: boolean;
-  msg: EditorMsgType;
-}[] = [
-  { label: 'Add row before', icon: iconKey.arrowUp, msg: { type: 'insertTableRowBefore' } },
-  { label: 'Add row after', icon: iconKey.arrowDown, msg: { type: 'insertTableRowAfter' } },
-  { label: 'Del Row', icon: iconKey.trash, msg: { type: 'deleteTableRow' } },
-  { label: 'Del Tbl', icon: iconKey.trash, dividerBefore: true, msg: { type: 'deleteTable' } },
-];
-
-const tableColumnBubbleMenuActionItems: {
-  label?: string;
-  icon?: string;
-  disabled?: boolean;
-  dividerBefore?: boolean;
-  msg: EditorMsgType;
-}[] = [
-  { label: 'Add col before', icon: iconKey.arrowLeft, msg: { type: 'insertTableColumnBefore' } },
-  { label: 'Add col after', icon: iconKey.arrowRight, msg: { type: 'insertTableColumnAfter' } },
-  { label: 'Del Col', icon: iconKey.trash, msg: { type: 'deleteTableColumn' } },
-  { label: 'Del Tbl', icon: iconKey.trash, dividerBefore: true, msg: { type: 'deleteTable' } },
-];
-
-function getEditorToolbarActionItems(currentEditor?: TiptapEditor) {
-  // Keep toolbar item derivation behind a getter so toolbar state can depend on editor.state
-  // without leaking ProseMirror-specific reactivity details into the template.
-  void toolbarContextVersion.value;
-
-  if (!currentEditor) {
-    return baseEditorToolbarActionItems;
-  }
-
-  return baseEditorToolbarActionItems;
-}
-
-function getTableBubbleMenuActionItems(
-  currentEditor?: TiptapEditor,
-  tableSelectionAxis?: 'row' | 'column' | null,
-) {
-  // Recompute disabled states and row/column menu choice on every toolbar context bump.
-  void toolbarContextVersion.value;
-
-  if (!currentEditor) {
-    return [];
-  }
-
-  const selection = currentEditor.state.selection;
-  if (selection instanceof CellSelection) {
-    const table = selection.$anchorCell.node(-1);
-    const tableMap = TableMap.get(table);
-    const canDeleteRow = tableMap.height > 1;
-    const canDeleteColumn = tableMap.width > 1;
-    const rowItems = tableRowBubbleMenuActionItems.map(item =>
-      item.msg.type === 'deleteTableRow'
-        ? { ...item, disabled: !canDeleteRow }
-        : item);
-    const columnItems = tableColumnBubbleMenuActionItems.map(item =>
-      item.msg.type === 'deleteTableColumn'
-        ? { ...item, disabled: !canDeleteColumn }
-        : item);
-
-    if (tableSelectionAxis === 'column' && selection.isColSelection()) {
-      return columnItems;
-    }
-
-    if (tableSelectionAxis === 'row' && selection.isRowSelection()) {
-      return rowItems;
-    }
-
-    if (selection.isRowSelection()) {
-      return rowItems;
-    }
-
-    if (selection.isColSelection()) {
-      return columnItems;
-    }
-  }
-
-  return [];
-}
-
-watch(editor, (currentEditor, previousEditor) => {
-  detachToolbarContextListeners?.();
-  detachToolbarContextListeners = null;
-
-  if (!currentEditor) {
-    return;
-  }
-
-  const refreshToolbarContext = () => {
-    toolbarContextVersion.value += 1;
-  };
-
-  currentEditor.on('selectionUpdate', refreshToolbarContext);
-  currentEditor.on('transaction', refreshToolbarContext);
-  refreshToolbarContext();
-
-  detachToolbarContextListeners = () => {
-    currentEditor.off('selectionUpdate', refreshToolbarContext);
-    currentEditor.off('transaction', refreshToolbarContext);
-  };
-
-  if (previousEditor && previousEditor !== currentEditor) {
-    toolbarContextVersion.value += 1;
-  }
-}, { immediate: true });
 
 const toggleBookmark = async () => {
   if (!memoVM.value.data.memo) {
