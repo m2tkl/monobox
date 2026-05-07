@@ -248,7 +248,7 @@ export const applyTargetBlankToExternalLinks = (editor: Editor) => {
  *
  * @param editor
  */
-export const assignUniqueHeadingIds = (editor: _Editor) => {
+export const assignUniqueHeadingIds = (editor: Editor) => {
   const { state, view } = editor;
   const tr = state.tr;
   let modified = false;

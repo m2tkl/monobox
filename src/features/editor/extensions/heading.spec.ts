@@ -24,7 +24,7 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
 
     const transform = removeHeadingIdOnPastePlugin.props.transformPasted;
     expect(typeof transform).toBe('function');
-    const out = transform!(slice);
+    const out = transform!.call(removeHeadingIdOnPastePlugin, slice, editor.view);
 
     const outNode = out.content.child(0);
     expect(outNode.type.name).toBe('heading');
@@ -45,7 +45,7 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
     const slice = new Slice(Fragment.fromArray([blockquote]), 0, 0);
 
     const transform = removeHeadingIdOnPastePlugin.props.transformPasted;
-    const out = transform!(slice);
+    const out = transform!.call(removeHeadingIdOnPastePlugin, slice, editor.view);
 
     const outBQ = out.content.child(0);
     const child = outBQ.firstChild;

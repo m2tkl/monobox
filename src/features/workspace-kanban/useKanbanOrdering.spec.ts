@@ -55,7 +55,13 @@ const setupOrdering = (entriesValue: KanbanAssignmentItem[], statusesValue: Kanb
     if (Number.isNaN(memoId)) return null;
     return entries.value.find(entry => entry.memo_id === memoId) ?? null;
   };
-  const toast = { add: vi.fn() };
+  const toast = {
+    toasts: ref([]),
+    add: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+    clear: vi.fn(),
+  };
 
   const ordering = useKanbanOrdering({
     workspaceSlug,

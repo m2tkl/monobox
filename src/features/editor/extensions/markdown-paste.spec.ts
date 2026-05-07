@@ -1,4 +1,5 @@
 import { Editor } from '@tiptap/core';
+import { Fragment, Slice } from '@tiptap/pm/model';
 import { describe, expect, it } from 'vitest';
 
 import { looksLikeMarkdown, parseMarkdownToSlice, shouldHandleMarkdownPaste } from './markdown-paste';
@@ -72,7 +73,7 @@ describe('editor/extensions/markdown-paste', () => {
 
     let handled = false;
     editor.view.someProp('handlePaste', (handlePaste) => {
-      handled = handlePaste(editor.view, event);
+      handled = !!handlePaste(editor.view, event, new Slice(Fragment.empty, 0, 0));
       return handled;
     });
 
@@ -115,7 +116,7 @@ describe('editor/extensions/markdown-paste', () => {
 
     let handled = false;
     editor.view.someProp('handlePaste', (handlePaste) => {
-      handled = handlePaste(editor.view, event);
+      handled = !!handlePaste(editor.view, event, new Slice(Fragment.empty, 0, 0));
       return handled;
     });
 

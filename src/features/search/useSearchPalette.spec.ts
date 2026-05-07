@@ -11,7 +11,7 @@ const { createMemo, emitEvent } = vi.hoisted(() => ({
   emitEvent: vi.fn(),
 }));
 
-vi.mock('~/external/tauri/command', () => ({
+vi.mock('~/resources/command', () => ({
   command: {
     memo: {
       create: createMemo,
@@ -42,7 +42,6 @@ describe('useSearchPalette', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('useRouter', () => ({ push: routerPush }));
-    vi.stubGlobal('defineShortcuts', vi.fn());
     createMemo.mockResolvedValue({
       id: 10,
       slug_title: 'gamma',
@@ -60,7 +59,7 @@ describe('useSearchPalette', () => {
   });
 
   const mountPalette = (memos: MemoIndexItem[], initialTerm: string) => {
-    let palette: PaletteState | null = null;
+    let palette!: PaletteState;
     const shortcutSymbol = ref('k');
 
     const TestComponent = defineComponent({
@@ -79,8 +78,6 @@ describe('useSearchPalette', () => {
 
     const wrapper = mount(TestComponent);
 
-    if (!palette) throw new Error('Failed to initialize palette');
-
     palette.openCommandPalette(initialTerm);
 
     return { wrapper, palette };
@@ -92,7 +89,7 @@ describe('useSearchPalette', () => {
       makeMemo({ id: 2, title: 'Beta', slug_title: 'beta' }),
     ], 'Gamma');
 
-    expect(palette.commandPaletteItems.value.map(group => group.id)).toEqual(['existing-memos', 'new']);
+    expect(palette.commandPaletteItems.value.map((group) => group.id)).toEqual(['existing-memos', 'new']);
     expect(palette.commandPaletteItems.value[1]?.ignoreFilter).toBe(true);
     expect(palette.commandPaletteItems.value[1]?.items[0]?.tag).toBe('new');
 
@@ -104,7 +101,7 @@ describe('useSearchPalette', () => {
       makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
     ], 'Alpha');
 
-    expect(palette.commandPaletteItems.value.map(group => group.id)).toEqual(['existing-memos']);
+    expect(palette.commandPaletteItems.value.map((group) => group.id)).toEqual(['existing-memos']);
 
     wrapper.unmount();
   });

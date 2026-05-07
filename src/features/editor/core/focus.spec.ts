@@ -34,7 +34,7 @@ describe('editor/core/focus', () => {
 
     focusNodeById(editor, 'h1');
 
-    const expectedPos = (pos as number) + nodeSize - 1;
+    const expectedPos = pos! + nodeSize - 1;
     expect(editor.state.selection.from).toBe(expectedPos);
     expect(editor.state.selection.to).toBe(expectedPos);
     editor.destroy();

@@ -96,10 +96,7 @@ export function useMemoEditor(
     }
 
     const { selection } = currentEditor.state;
-    const tableDepth = selection.$from.depth >= 1
-      ? selection.$from.path.findIndex((value, index) =>
-          index % 3 === 0 && value?.type?.name === 'table')
-      : -1;
+    const tableDepth = findAncestorNode(selection.$from, 'table') ? selection.$from.depth : -1;
 
     if (!currentEditor.isActive('table') && tableDepth === -1) {
       return;
@@ -318,9 +315,9 @@ export function useMemoEditor(
             && tableImeGuard.value.selectionToOffset !== null;
           const expectedCellTextAfterComposition = canResolveExpectedCellText
             ? [
-                tableImeGuard.value.initialCellText.slice(0, tableImeGuard.value.selectionFromOffset),
+                tableImeGuard.value.initialCellText.slice(0, tableImeGuard.value.selectionFromOffset!),
                 compositionResult,
-                tableImeGuard.value.initialCellText.slice(tableImeGuard.value.selectionToOffset),
+                tableImeGuard.value.initialCellText.slice(tableImeGuard.value.selectionToOffset!),
               ].join('')
             : null;
           if (
@@ -362,7 +359,7 @@ export function useMemoEditor(
               normalizedCell,
             );
             const selectionPos = cellPos + 2
-              + tableImeGuard.value.selectionFromOffset
+              + tableImeGuard.value.selectionFromOffset!
               + compositionResult.length;
             view.dispatch(
               tr.setSelection(TextSelection.create(tr.doc, selectionPos)),

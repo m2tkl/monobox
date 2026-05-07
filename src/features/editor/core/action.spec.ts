@@ -1,4 +1,5 @@
 import Link from '@tiptap/extension-link';
+import { Fragment, Slice } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import { Editor as VueEditor } from '@tiptap/vue-3';
 import { CellSelection } from 'prosemirror-tables';
@@ -6,11 +7,12 @@ import { describe, it, expect } from 'vitest';
 
 import * as Action from './action';
 import { headingExtension } from '../extensions/heading';
-import { buildExtensions, EditorDoc } from '~/features/editor';
 
 import type { Editor as CoreEditor } from '@tiptap/core';
 import type { Level } from '@tiptap/extension-heading';
 import type { JSONContent } from '@tiptap/vue-3';
+
+import { buildExtensions, EditorDoc } from '~/features/editor';
 
 // Helper to create a basic editor instance
 function createEditor(content?: JSONContent) {
@@ -245,7 +247,7 @@ describe('editor/core/action', () => {
         {
           type: 'paragraph', content: [
             { type: 'text', text: 'site', marks: [{ type: 'link', attrs: { href: 'https://example.com' } }] },
-          ]
+          ],
         },
       ],
     });
@@ -353,7 +355,7 @@ describe('editor/core/action', () => {
 
     let handled = false;
     editor.view.someProp('handlePaste', (handlePaste) => {
-      handled = handlePaste(editor.view, event);
+      handled = !!handlePaste(editor.view, event, new Slice(Fragment.empty, 0, 0));
       return handled;
     });
 

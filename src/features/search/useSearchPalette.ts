@@ -1,6 +1,5 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
-import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui';
 import type { Editor } from '@tiptap/core';
 import type { MemoIndexItem } from '~/models/memo';
 
@@ -10,18 +9,24 @@ import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';
 
-type Command = CommandPaletteItem & {
-  tag: string;
+type Command = {
   label: string;
+  tag: string;
   title?: string;
   slug?: string;
 };
 
-type Commands = CommandPaletteGroup<Command> & {
+type Commands = {
+  id: string;
+  label: string;
+  ignoreFilter?: boolean;
   items: Command[];
 };
 
-function isCommand(item: CommandPaletteItem): item is Command {
+function isCommand(item: unknown): item is Command {
+  if (!item || typeof item !== 'object') {
+    return false;
+  }
   return 'tag' in item;
 }
 
@@ -74,7 +79,7 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     return linkPaletteCommands;
   });
 
-  async function onSearchPaletteSelect(option: CommandPaletteItem) {
+  async function onSearchPaletteSelect(option: unknown) {
     logger.log('onSearchPaletteSelect() start.');
 
     if (!isCommand(option)) {
@@ -169,6 +174,10 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
       openCommandPalette(initialTerm);
       return;
     }
+
+    if (event.key === 'Escape' && isSearchPaletteOpen.value) {
+      closeCommandPalette([isSearchPaletteOpen]);
+    }
   };
 
   onMounted(() => {
@@ -178,20 +187,6 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
   onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeydownShortcut);
   });
-
-  // Provide ESC shortcut while modal is open
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore - defineShortcuts is auto-imported by @nuxt/ui
-  defineShortcuts?.({
-    escape: {
-      usingInput: true,
-      whenever: [isSearchPaletteOpen],
-      handler: () => {
-        closeCommandPalette([isSearchPaletteOpen]);
-      },
-    },
-  });
-
   return {
     // state
     searchTerm,
