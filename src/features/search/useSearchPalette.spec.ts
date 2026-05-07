@@ -89,7 +89,7 @@ describe('useSearchPalette', () => {
       makeMemo({ id: 2, title: 'Beta', slug_title: 'beta' }),
     ], 'Gamma');
 
-    expect(palette.commandPaletteItems.value.map((group) => group.id)).toEqual(['existing-memos', 'new']);
+    expect(palette.commandPaletteItems.value.map(group => group.id)).toEqual(['existing-memos', 'new']);
     expect(palette.commandPaletteItems.value[1]?.ignoreFilter).toBe(true);
     expect(palette.commandPaletteItems.value[1]?.items[0]?.tag).toBe('new');
 
@@ -101,7 +101,7 @@ describe('useSearchPalette', () => {
       makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
     ], 'Alpha');
 
-    expect(palette.commandPaletteItems.value.map((group) => group.id)).toEqual(['existing-memos']);
+    expect(palette.commandPaletteItems.value.map(group => group.id)).toEqual(['existing-memos']);
 
     wrapper.unmount();
   });

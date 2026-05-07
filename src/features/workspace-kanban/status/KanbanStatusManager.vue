@@ -180,9 +180,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 
+import { useWorkspaceKanbanStatusCollectionReadModel } from '../read-model';
+
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { useWorkspaceKanbanStatusCollectionReadModel } from '~/features/workspace-kanban/read-model';
 import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
 import AppButton from '~/shared/components/elements/AppButton.vue';

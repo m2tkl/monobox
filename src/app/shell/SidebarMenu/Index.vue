@@ -131,7 +131,7 @@ import NewMemoActions from './NewMemoActions.vue';
 
 import { command } from '~/external/tauri/command';
 import { useBookmarkListReadModel, useWorkspaceMemosReadModel } from '~/features/memo-browsing';
-import SearchPalette from '~/features/search/SearchPalette.vue';
+import { SearchPalette } from '~/features/search';
 import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 

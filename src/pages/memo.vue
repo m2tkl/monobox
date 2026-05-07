@@ -300,7 +300,7 @@ import {
   useMemoTemplates,
   useMemoEditor,
 } from '~/features/memo-editing';
-import SearchPalette from '~/features/search/SearchPalette.vue';
+import { SearchPalette } from '~/features/search';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { useConsoleLogger } from '~/utils/logger';
 

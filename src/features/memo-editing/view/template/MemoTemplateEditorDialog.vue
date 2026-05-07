@@ -154,7 +154,7 @@ import type { MemoIndexItem } from '~/models/memo';
 
 import { buildExtensions, dispatchEditorMsg } from '~/features/editor';
 import CodeBlockComponent from '~/features/editor/nodeviews/CodeBlock';
-import SearchPalette from '~/features/search/SearchPalette.vue';
+import { SearchPalette } from '~/features/search';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { isCmdKey } from '~/utils/event';
 import { iconKey } from '~/utils/icon';
