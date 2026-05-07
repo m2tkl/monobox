@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import TitleBar from '~/app/shell/TitleBar.vue';
 import { command } from '~/external/tauri/command';
-import ImagePreviewDialog from '~/features/memo-editing/view/editor/ImagePreviewDialog/Index.vue';
+import { ImagePreviewDialog } from '~/features/memo-editing';
 import { handleError } from '~/utils/error';
 
 const bootstrapResourceState = async () => {

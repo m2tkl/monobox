@@ -1,10 +1,11 @@
 import { ref } from 'vue';
 
+import { sortMemoTemplates } from './view/template/template';
+
 import type { Ref } from 'vue';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { command } from '~/external/tauri/command';
-import { sortMemoTemplates } from '~/features/memo-editing/view/template/template';
 
 type UseMemoTemplatesOptions = {
   workspaceSlug: Ref<string>;

@@ -1,8 +1,9 @@
+import { convertMemoToHtml, createHtmlLink } from '../view/export/converters';
+
 import type { Editor as _Editor } from '@tiptap/core';
 
 import { writeHtml, writeText } from '~/external/tauri/clipboard';
 import { EditorQuery, convertToMarkdown } from '~/features/editor';
-import { convertMemoToHtml, createHtmlLink } from '~/features/memo-editing/view/export/converters';
 
 /**
  * Provide copy operations used on the memo page.

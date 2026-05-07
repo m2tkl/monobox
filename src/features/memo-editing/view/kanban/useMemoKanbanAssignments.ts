@@ -1,11 +1,12 @@
 import { computed, reactive, ref, watch } from 'vue';
 
+import { useMemoKanbanAssignmentAction } from '../../action/useMemoKanbanAssignmentAction';
+
 import type { useToast } from '#imports';
 import type { ComputedRef } from 'vue';
 import type { Kanban } from '~/models/kanban';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { useMemoKanbanAssignmentAction } from '~/features/memo-editing/action/useMemoKanbanAssignmentAction';
 import { useResourceManager } from '~/resource-runtime/infra/useResourceManager';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { memoKanbanEntriesQuery } from '~/resources/kanban-assignment/queries';

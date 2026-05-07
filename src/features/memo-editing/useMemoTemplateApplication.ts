@@ -3,10 +3,10 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { useMemoTemplateApplyAction } from './action/useMemoTemplateApplyAction';
 import { getDefaultMemoTemplate } from './view/template/template';
 
+import type { MemoEvent } from './state/memoMachine';
 import type { Editor } from '@tiptap/core';
 import type { Ref, ComputedRef } from 'vue';
 import type { RouteLocationNormalizedLoaded, Router, LocationQueryRaw } from 'vue-router';
-import type { MemoEvent } from '~/features/memo-editing';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 type SaveMemoResult =

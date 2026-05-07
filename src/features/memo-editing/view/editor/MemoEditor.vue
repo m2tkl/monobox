@@ -132,13 +132,14 @@
 import { BubbleMenu, EditorContent } from '@tiptap/vue-3';
 import { CellSelection } from 'prosemirror-tables';
 
+import EditorLoadingSkelton from './EditorLoadingSkelton.vue';
+import TitleFieldStableInput from './TitleFieldStableInput.vue';
+
 import type { Editor } from '@tiptap/core';
 import type { EditorState } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 
 import { dispatchEditorMsg } from '~/features/editor';
-import EditorLoadingSkelton from '~/features/memo-editing/view/editor/EditorLoadingSkelton.vue';
-import TitleFieldStableInput from '~/features/memo-editing/view/editor/TitleFieldStableInput.vue';
 
 const props = withDefaults(defineProps<{
   editor: Editor;

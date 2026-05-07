@@ -26,11 +26,13 @@ export { default as EditorToolbarButton } from './view/editor/EditorToolbarButto
 export { useImagePreview } from './view/editor/ImagePreviewDialog/useImagePreview';
 export { default as LinkEditDialog } from './view/editor/LinkEditDialog.vue';
 export { default as MemoEditor } from './view/editor/MemoEditor.vue';
+export { default as ImagePreviewDialog } from './view/editor/ImagePreviewDialog/Index.vue';
 export { useMemoEditorActions } from './view/editor/useMemoEditorActions';
 export { useMemoEditor } from './view/editor/useMemoEditor';
 export { useMemoEditorInteractions } from './view/editor/useMemoEditorInteractions';
 export { default as ExportDialogToCopyResult } from './view/export/ExportDialogToCopyResult.vue';
 export { default as ExportDialogToSelectTargets } from './view/export/ExportDialogToSelectTargets.vue';
+export { convertMemoToHtml } from './view/export/converters';
 export { default as MemoDeleteFlow } from './view/memo/MemoDeleteFlow.vue';
 export { default as OutlinePanel } from './view/outline/OutlinePanel.vue';
 export { default as MemoLinkCardView } from './view/links/MemoLinkCardView/Index.vue';

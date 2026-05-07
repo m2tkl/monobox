@@ -1,7 +1,7 @@
+import type { MemoEvent } from '../../state/memoMachine';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
-import type { MemoEvent } from '~/features/memo-editing';
 
 import { isCmdKey } from '~/utils/event';
 

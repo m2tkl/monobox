@@ -1,11 +1,11 @@
 import { computed } from 'vue';
 
 import { useMemoEditingKanbanCollectionReadModel } from './read-model-kanban';
+import { useMemoKanbanAssignments } from './view/kanban/useMemoKanbanAssignments';
 
 import type { ComputedRef } from 'vue';
 
 import { useToast } from '#imports';
-import { useMemoKanbanAssignments } from '~/features/memo-editing/view/kanban/useMemoKanbanAssignments';
 
 type UseMemoEditingKanbanOptions = {
   workspaceSlug: ComputedRef<string>;

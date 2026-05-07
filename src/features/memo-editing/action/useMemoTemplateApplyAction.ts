@@ -1,7 +1,8 @@
+import { parseTemplateContent } from '../view/template/template';
+
 import type { Editor } from '@tiptap/core';
 
 import { command } from '~/external/tauri/command';
-import { parseTemplateContent } from '~/features/memo-editing/view/template/template';
 
 type ApplyMemoTemplateInput = {
   workspaceSlug: string;

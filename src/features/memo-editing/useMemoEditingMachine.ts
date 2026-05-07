@@ -6,11 +6,11 @@ import { useMemoMutationNotifications } from './action/useMemoMutationNotificati
 import { useMemoSaveAction } from './action/useMemoSaveAction';
 import { useMemoMachine } from './state/useMemoMachine';
 
+import type { MemoDeleteFlowHandle } from './action/useMemoDeleteAction';
+import type { MemoEvent, MemoState } from './state/memoMachine';
 import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
-import type { MemoDeleteFlowHandle } from '~/features/memo-editing/action/useMemoDeleteAction';
-import type { MemoEvent, MemoState } from '~/features/memo-editing/state/memoMachine';
 
 type MemoSnapshot = {
   title: string;

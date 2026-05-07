@@ -109,10 +109,11 @@
 </template>
 
 <script setup lang="ts">
+import MemoTemplateEditorDialog from './MemoTemplateEditorDialog.vue';
+import { useMemoTemplateManagerAction } from '../../action/useMemoTemplateManagerAction';
+
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import { useMemoTemplateManagerAction } from '~/features/memo-editing/action/useMemoTemplateManagerAction';
-import MemoTemplateEditorDialog from '~/features/memo-editing/view/template/MemoTemplateEditorDialog.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
