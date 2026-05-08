@@ -6,11 +6,11 @@ export {
   CREATED_QUERY_SOURCE_NAMED,
 } from './createdQuery';
 export { useCurrentMemoReadModel } from './read-model';
+export { useMemoEditingKanbanCollectionReadModel } from './read-model/kanban';
 export { default as MemoEditing } from './MemoEditing.vue';
 export { default as NewMemoPage } from './NewMemoPage.vue';
 export { applyTemplateToEditor } from './action/applyMemoTemplate';
 export { createMemo } from './action/createMemo';
-export { createMemoMutationNotifications } from './action/createMemoMutationNotifications';
 export { loadMemoKanbanEntries, loadKanbanStatuses, removeMemoKanbanStatus, upsertMemoKanbanStatus } from './action/memoKanbanAssignment';
 export { loadTemplateEditorData, saveTemplate } from './action/memoTemplateEditor';
 export { createMemoTemplate, deleteMemoTemplate, loadMemoTemplates, toggleDefaultMemoTemplate } from './action/memoTemplateManager';
@@ -27,6 +27,7 @@ export { useMemoTemplateFlow } from './view-model/memoTemplateFlow';
 export { useMemoTemplates } from './view-model/memoTemplates';
 export { useMemoDeleteFlow } from './state/memoDeleteFlow';
 export { useMemoEditingMachine } from './state/memoEditingMachine';
+export { createMemoMutationNotifications } from './state/memoMutationNotifications';
 export { useMemoSaveFlow } from './state/memoSaveFlow';
 export { default as AltEditDialog } from './views/editor/AltEditDialog.vue';
 export { default as EditorToolbarButton } from './views/editor/EditorToolbarButton.vue';

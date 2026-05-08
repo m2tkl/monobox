@@ -1,9 +1,9 @@
 import { ref } from 'vue';
 
 import { useMemoDeleteFlow } from './memoDeleteFlow';
+import { createMemoMutationNotifications } from './memoMutationNotifications';
 import { useMemoSaveFlow } from './memoSaveFlow';
 import { useMemoMachine } from './useMemoMachine';
-import { createMemoMutationNotifications } from '../action/createMemoMutationNotifications';
 import { syncMemoLinks } from '../action/syncMemoLinks';
 
 import type { MemoDeleteFlowHandle } from './memoDeleteFlow';
