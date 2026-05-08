@@ -1,4 +1,4 @@
-import { useMemoSave } from './useMemoSave';
+import { saveMemo as executeMemoSave } from '../action/saveMemo';
 
 import type { Editor as TiptapEditor } from '@tiptap/core';
 
@@ -22,8 +22,7 @@ type SaveMemoActionResult =
   | { ok: true; memoSlug: string }
   | { ok: false; error?: unknown };
 
-export function useMemoSaveAction() {
-  const { executeMemoSave } = useMemoSave();
+export function useMemoSaveFlow() {
   const { createEffectHandler } = useEffectHandler();
 
   const saveMemo = async (input: SaveMemoActionInput): Promise<SaveMemoActionResult> => {
@@ -61,16 +60,9 @@ export function useMemoSaveAction() {
       };
     }
 
-    if (!result.data.ok) {
-      return {
-        ok: false,
-        error: result.data.error,
-      };
-    }
-
     return {
       ok: true,
-      memoSlug: result.data.data.memoSlug,
+      memoSlug: result.data.memoSlug,
     };
   };
 

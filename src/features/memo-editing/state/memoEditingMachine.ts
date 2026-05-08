@@ -1,12 +1,12 @@
 import { ref } from 'vue';
 
+import { useMemoDeleteFlow } from './memoDeleteFlow';
+import { useMemoSaveFlow } from './memoSaveFlow';
+import { useMemoMachine } from './useMemoMachine';
 import { createMemoMutationNotifications } from '../action/createMemoMutationNotifications';
 import { syncMemoLinks } from '../action/syncMemoLinks';
-import { useMemoDeleteAction } from '../action/useMemoDeleteAction';
-import { useMemoSaveAction } from '../action/useMemoSaveAction';
-import { useMemoMachine } from '../state/useMemoMachine';
 
-import type { MemoDeleteFlowHandle } from '../action/useMemoDeleteAction';
+import type { MemoDeleteFlowHandle } from './memoDeleteFlow';
 import type { MemoEvent, MemoState } from '../state/memoMachine';
 import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
@@ -34,8 +34,8 @@ type UseMemoEditingMachineOptions = {
 };
 
 export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
-  const { saveMemo } = useMemoSaveAction();
-  const { deleteMemo: executeDeleteMemo } = useMemoDeleteAction();
+  const { saveMemo } = useMemoSaveFlow();
+  const { deleteMemo: executeDeleteMemo } = useMemoDeleteFlow();
   const pendingDeleteAfterSave = ref(false);
   let dispatch: (event: MemoEvent) => void = () => {};
 

@@ -1,4 +1,4 @@
-export type { MemoDeleteFlowHandle } from './action/useMemoDeleteAction';
+export type { MemoDeleteFlowHandle } from './state/memoDeleteFlow';
 export type { MemoEvent, MemoState } from './state/memoMachine';
 
 export {
@@ -14,19 +14,20 @@ export { createMemoMutationNotifications } from './action/createMemoMutationNoti
 export { loadMemoKanbanEntries, loadKanbanStatuses, removeMemoKanbanStatus, upsertMemoKanbanStatus } from './action/memoKanbanAssignment';
 export { loadTemplateEditorData, saveTemplate } from './action/memoTemplateEditor';
 export { createMemoTemplate, deleteMemoTemplate, loadMemoTemplates, toggleDefaultMemoTemplate } from './action/memoTemplateManager';
+export { saveMemo } from './action/saveMemo';
 export { syncMemoLinks } from './action/syncMemoLinks';
 export { toggleMemoBookmark } from './action/toggleMemoBookmark';
-export { useMemoCopy } from './action/useMemoCopy';
-export { useMemoDeleteAction } from './action/useMemoDeleteAction';
 export { loadMemoEditingData } from './action/loadMemoEditingData';
-export { useMemoSaveAction } from './action/useMemoSaveAction';
+export { useMemoCopy } from './view-model/memoCopy';
 export { useMemoEditingContext } from './view-model/memoEditingContext';
 export { useMemoExportViewModel } from './view-model/memoExport';
 export { useMemoEditingKanban } from './view-model/memoEditingKanban';
 export { useMemoTemplateApplication } from './view-model/memoTemplateApplication';
 export { useMemoTemplateFlow } from './view-model/memoTemplateFlow';
 export { useMemoTemplates } from './view-model/memoTemplates';
+export { useMemoDeleteFlow } from './state/memoDeleteFlow';
 export { useMemoEditingMachine } from './state/memoEditingMachine';
+export { useMemoSaveFlow } from './state/memoSaveFlow';
 export { default as AltEditDialog } from './views/editor/AltEditDialog.vue';
 export { default as EditorToolbarButton } from './views/editor/EditorToolbarButton.vue';
 export { useImagePreview } from './views/editor/ImagePreviewDialog/useImagePreview';

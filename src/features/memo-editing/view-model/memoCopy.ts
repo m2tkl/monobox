@@ -6,7 +6,7 @@ import { writeHtml, writeText } from '~/external/tauri/clipboard';
 import { EditorQuery, convertToMarkdown } from '~/features/editor';
 
 /**
- * Provide copy operations used on the memo page.
+ * View-model for copy operations used on the memo page.
  */
 export function useMemoCopy() {
   const { createEffectHandler } = useEffectHandler();

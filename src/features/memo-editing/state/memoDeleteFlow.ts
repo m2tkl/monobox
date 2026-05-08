@@ -11,7 +11,7 @@ export type MemoDeleteFlowHandle = {
   run: (operation: () => Promise<void>) => Promise<'completed' | 'cancelled'>;
 };
 
-export function useMemoDeleteAction() {
+export function useMemoDeleteFlow() {
   const { createEffectHandler } = useEffectHandler();
 
   const deleteMemo = async (

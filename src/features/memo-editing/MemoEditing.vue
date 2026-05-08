@@ -271,8 +271,8 @@
 <script lang="ts" setup>
 import { loadMemoEditingData } from './action/loadMemoEditingData';
 import { toggleMemoBookmark } from './action/toggleMemoBookmark';
-import { useMemoCopy } from './action/useMemoCopy';
 import { useMemoEditingMachine } from './state/memoEditingMachine';
+import { useMemoCopy } from './view-model/memoCopy';
 import { useMemoEditingContext } from './view-model/memoEditingContext';
 import { useMemoEditingKanban } from './view-model/memoEditingKanban';
 import { useMemoExportViewModel } from './view-model/memoExport';
@@ -293,7 +293,7 @@ import MemoLinkCardView from './views/links/MemoLinkCardView/Index.vue';
 import MemoDeleteFlow from './views/memo/MemoDeleteFlow.vue';
 import OutlinePanel from './views/outline/OutlinePanel.vue';
 
-import type { MemoDeleteFlowHandle } from './action/useMemoDeleteAction';
+import type { MemoDeleteFlowHandle } from './state/memoDeleteFlow';
 import type { MemoEvent } from './state/memoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';
