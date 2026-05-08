@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue';
 
-import { useWorkspaceDeleteAction } from '../action/useWorkspaceDeleteAction';
+import { deleteWorkspace as executeDeleteWorkspace } from '../action/deleteWorkspace';
 import { useCurrentWorkspaceReadModel } from '../read-model';
 
 import { workspaceQuery } from '~/resources/workspace/queries';
@@ -25,8 +25,6 @@ type UseWorkspaceSettingsOptions = {
 };
 
 export function useWorkspaceSettings(options: UseWorkspaceSettingsOptions) {
-  const { deleteWorkspace: executeDeleteWorkspace } = useWorkspaceDeleteAction();
-
   const workspaceContextSlug = computed(() => {
     const raw = options.route.query.workspace;
     return typeof raw === 'string' ? raw : '';

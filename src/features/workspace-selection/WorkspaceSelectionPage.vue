@@ -93,6 +93,7 @@
             <UButton
               form="create-workspace-form"
               type="submit"
+              :loading="isCreatingWorkspace"
               style="background-color: var(--color-primary); color: white;"
             >
               Create
@@ -117,6 +118,7 @@ const {
   form,
   isCreateModalOpen,
   createWorkspace,
+  isCreatingWorkspace,
   openCreateWorkspaceModal: openNewWorkspaceModal,
   resetCreateWorkspaceForm,
 } = useWorkspaceSelection();

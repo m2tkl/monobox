@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 
-import { useCreateWorkspaceAction } from '../action/useCreateWorkspaceAction';
+import { createWorkspace } from '../action/createWorkspace';
 import { useWorkspacesReadModel } from '../read-model';
 import { useWorkspaceFormState } from '../state/useWorkspaceFormState';
 
@@ -8,7 +8,7 @@ export function useWorkspaceSelection() {
   const workspacesReadModel = useWorkspacesReadModel();
   const form = useWorkspaceFormState();
   const isCreateModalOpen = ref(false);
-  const { execute: createWorkspace } = useCreateWorkspaceAction();
+  const { runTask: executeCreateWorkspace, isLoading, error } = useAsyncTask(createWorkspace);
 
   const openCreateWorkspaceModal = () => {
     isCreateModalOpen.value = true;
@@ -27,7 +27,9 @@ export function useWorkspaceSelection() {
     workspacesReadModel,
     form,
     isCreateModalOpen,
-    createWorkspace,
+    createWorkspace: executeCreateWorkspace,
+    isCreatingWorkspace: isLoading,
+    createWorkspaceError: error,
     openCreateWorkspaceModal,
     closeCreateWorkspaceModal,
     resetCreateWorkspaceForm,
