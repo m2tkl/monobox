@@ -1,4 +1,4 @@
-import { convertMemoToHtml, createHtmlLink } from '../view/export/converters';
+import { convertMemoToHtml, createHtmlLink } from '../views/export/converters';
 
 import type { Editor as _Editor } from '@tiptap/core';
 

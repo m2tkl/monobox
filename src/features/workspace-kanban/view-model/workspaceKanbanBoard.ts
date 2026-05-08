@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue';
 
-import { useWorkspaceKanbanCollectionReadModel } from './read-model';
+import { useWorkspaceKanbanCollectionReadModel } from '../read-model';
 
 import type { ComputedRef } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';

@@ -1,7 +1,7 @@
 import { computed } from 'vue';
 
-import { useMemoEditingKanbanCollectionReadModel } from './read-model-kanban';
-import { useMemoKanbanAssignments } from './view/kanban/useMemoKanbanAssignments';
+import { useMemoEditingKanbanCollectionReadModel } from '../read-model-kanban';
+import { useMemoKanbanAssignments } from '../views/kanban/useMemoKanbanAssignments';
 
 import type { ComputedRef } from 'vue';
 

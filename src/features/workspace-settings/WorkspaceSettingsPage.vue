@@ -136,7 +136,7 @@
 <script setup lang="ts">
 import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
-import { useWorkspaceSettings } from './useWorkspaceSettings';
+import { useWorkspaceSettings } from './view-model/workspaceSettings';
 
 import { MemoTemplateManager } from '~/features/memo-editing';
 import { StoragePathsForm } from '~/features/storage-settings';

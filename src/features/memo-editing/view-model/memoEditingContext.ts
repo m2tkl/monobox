@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue';
 
-import { useCurrentMemoReadModel } from './read-model';
+import { useCurrentMemoReadModel } from '../read-model';
 
 import { useRoute } from '#imports';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';

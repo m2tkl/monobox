@@ -1,13 +1,13 @@
 import { ref } from 'vue';
 
-import { useMemoDeleteAction } from './action/useMemoDeleteAction';
-import { useMemoLinkSync } from './action/useMemoLinkSync';
-import { useMemoMutationNotifications } from './action/useMemoMutationNotifications';
-import { useMemoSaveAction } from './action/useMemoSaveAction';
-import { useMemoMachine } from './state/useMemoMachine';
+import { useMemoDeleteAction } from '../action/useMemoDeleteAction';
+import { useMemoLinkSync } from '../action/useMemoLinkSync';
+import { useMemoMutationNotifications } from '../action/useMemoMutationNotifications';
+import { useMemoSaveAction } from '../action/useMemoSaveAction';
+import { useMemoMachine } from '../state/useMemoMachine';
 
-import type { MemoDeleteFlowHandle } from './action/useMemoDeleteAction';
-import type { MemoEvent, MemoState } from './state/memoMachine';
+import type { MemoDeleteFlowHandle } from '../action/useMemoDeleteAction';
+import type { MemoEvent, MemoState } from '../state/memoMachine';
 import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';

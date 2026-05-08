@@ -269,29 +269,29 @@
 </template>
 
 <script lang="ts" setup>
+import { loadMemoEditingData } from './action/loadMemoEditingData';
 import { useExportLinked } from './action/useExportLinked';
 import { useMemoBookmarkAction } from './action/useMemoBookmarkAction';
 import { useMemoCopy } from './action/useMemoCopy';
-import { useMemoEditingBootstrap } from './useMemoEditingBootstrap';
-import { useMemoEditingContext } from './useMemoEditingContext';
-import { useMemoEditingKanban } from './useMemoEditingKanban';
-import { useMemoEditingMachine } from './useMemoEditingMachine';
-import { useMemoTemplateApplication } from './useMemoTemplateApplication';
-import { useMemoTemplateFlow } from './useMemoTemplateFlow';
-import { useMemoTemplates } from './useMemoTemplates';
-import AltEditDialog from './view/editor/AltEditDialog.vue';
-import EditorToolbarButton from './view/editor/EditorToolbarButton.vue';
-import { useImagePreview } from './view/editor/ImagePreviewDialog/useImagePreview';
-import LinkEditDialog from './view/editor/LinkEditDialog.vue';
-import MemoEditor from './view/editor/MemoEditor.vue';
-import { useMemoEditor } from './view/editor/useMemoEditor';
-import { useMemoEditorActions } from './view/editor/useMemoEditorActions';
-import { useMemoEditorInteractions } from './view/editor/useMemoEditorInteractions';
-import ExportDialogToCopyResult from './view/export/ExportDialogToCopyResult.vue';
-import ExportDialogToSelectTargets from './view/export/ExportDialogToSelectTargets.vue';
-import MemoLinkCardView from './view/links/MemoLinkCardView/Index.vue';
-import MemoDeleteFlow from './view/memo/MemoDeleteFlow.vue';
-import OutlinePanel from './view/outline/OutlinePanel.vue';
+import { useMemoEditingMachine } from './state/memoEditingMachine';
+import { useMemoEditingContext } from './view-model/memoEditingContext';
+import { useMemoEditingKanban } from './view-model/memoEditingKanban';
+import { useMemoTemplateApplication } from './view-model/memoTemplateApplication';
+import { useMemoTemplateFlow } from './view-model/memoTemplateFlow';
+import { useMemoTemplates } from './view-model/memoTemplates';
+import AltEditDialog from './views/editor/AltEditDialog.vue';
+import EditorToolbarButton from './views/editor/EditorToolbarButton.vue';
+import { useImagePreview } from './views/editor/ImagePreviewDialog/useImagePreview';
+import LinkEditDialog from './views/editor/LinkEditDialog.vue';
+import MemoEditor from './views/editor/MemoEditor.vue';
+import { useMemoEditor } from './views/editor/useMemoEditor';
+import { useMemoEditorActions } from './views/editor/useMemoEditorActions';
+import { useMemoEditorInteractions } from './views/editor/useMemoEditorInteractions';
+import ExportDialogToCopyResult from './views/export/ExportDialogToCopyResult.vue';
+import ExportDialogToSelectTargets from './views/export/ExportDialogToSelectTargets.vue';
+import MemoLinkCardView from './views/links/MemoLinkCardView/Index.vue';
+import MemoDeleteFlow from './views/memo/MemoDeleteFlow.vue';
+import OutlinePanel from './views/outline/OutlinePanel.vue';
 
 import type { MemoDeleteFlowHandle } from './action/useMemoDeleteAction';
 import type { MemoEvent } from './state/memoMachine';
@@ -340,9 +340,7 @@ const {
 } = useMemoTemplates({
   workspaceSlug,
 });
-const {
-  loadInitialData,
-} = useMemoEditingBootstrap({
+const loadInitialData = () => loadMemoEditingData({
   workspaceSlug,
   memoSlug,
   loadKanbanEntries,
@@ -447,20 +445,6 @@ dispatch = machineDispatch;
 
 watch(memoTitle, () => {
   dispatch({ type: 'memo/title-changed', payload: { dirty: computeDirty() } });
-});
-
-watch(isEditorBodyEmpty, async (isEmpty) => {
-  if (
-    isEmpty
-    || isTemplatePickerDismissed.value
-    || !isNewMemoCreationFlow.value
-    || isApplyingTemplate.value
-  ) {
-    return;
-  }
-
-  isTemplatePickerDismissed.value = true;
-  await clearCreatedQueryFlag();
 });
 
 onMounted(() => {

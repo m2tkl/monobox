@@ -1,8 +1,8 @@
 import { computed } from 'vue';
 
-import { useWorkspaceKanbanStatusCollectionReadModel } from './read-model';
-import { useWorkspaceKanbanBoard } from './useWorkspaceKanbanBoard';
-import { useWorkspaceKanbanPageData } from './useWorkspaceKanbanPageData';
+import { useWorkspaceKanbanBoard } from './workspaceKanbanBoard';
+import { loadWorkspaceKanbanData } from '../action/loadWorkspaceKanbanData';
+import { useWorkspaceKanbanStatusCollectionReadModel } from '../read-model';
 
 import type { ComputedRef } from 'vue';
 import type { MemoIndexItem } from '~/models/memo';
@@ -54,10 +54,6 @@ export function useWorkspaceKanban(options: UseWorkspaceKanbanOptions) {
     || isEntriesLoading.value,
   );
 
-  const { loadInitialData } = useWorkspaceKanbanPageData({
-    workspaceSlug: options.workspaceSlug,
-  });
-
   return {
     memosReadModel,
     memos,
@@ -80,6 +76,8 @@ export function useWorkspaceKanban(options: UseWorkspaceKanbanOptions) {
     statusReadModel,
     statuses,
     isLoading,
-    loadInitialData,
+    loadInitialData: () => loadWorkspaceKanbanData({
+      workspaceSlug: options.workspaceSlug,
+    }),
   };
 }

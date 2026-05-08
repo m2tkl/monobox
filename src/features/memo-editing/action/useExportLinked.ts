@@ -1,4 +1,4 @@
-import { convertMemoToHtml } from '../view/export/converters';
+import { convertMemoToHtml } from '../views/export/converters';
 
 import type { JSONContent, Editor as _Editor } from '@tiptap/vue-3';
 import type { Ref } from 'vue';

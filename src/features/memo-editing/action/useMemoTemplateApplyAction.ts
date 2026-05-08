@@ -1,4 +1,4 @@
-import { parseTemplateContent } from '../view/template/template';
+import { parseTemplateContent } from '../views/template/template';
 
 import type { Editor } from '@tiptap/core';
 

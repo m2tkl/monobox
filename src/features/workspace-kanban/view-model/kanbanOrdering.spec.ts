@@ -1,10 +1,10 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { computed, ref } from 'vue';
 
-import { buildKanbanColumnsFromEntries } from './kanbanUtils';
-import { useKanbanOrdering } from './useKanbanOrdering';
+import { useKanbanOrdering } from './kanbanOrdering';
+import { buildKanbanColumnsFromEntries } from '../kanbanUtils';
 
-import type { KanbanColumn } from './kanbanUtils';
+import type { KanbanColumn } from '../kanbanUtils';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 

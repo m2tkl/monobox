@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 
-import { sortMemoTemplates } from './view/template/template';
+import { sortMemoTemplates } from '../views/template/template';
 
 import type { Ref } from 'vue';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';

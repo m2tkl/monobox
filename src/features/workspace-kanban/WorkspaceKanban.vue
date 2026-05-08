@@ -273,9 +273,9 @@ import { KanbanBoard } from 'kanvan';
 import 'kanvan/dist/style.css';
 
 import { buildKanbanColumnsFromEntries } from './kanbanUtils';
-import KanbanStatusManager from './status/KanbanStatusManager.vue';
-import { useKanbanOrdering } from './useKanbanOrdering';
-import { useWorkspaceKanban } from './useWorkspaceKanban';
+import { useKanbanOrdering } from './view-model/kanbanOrdering';
+import { useWorkspaceKanban } from './view-model/workspaceKanban';
+import KanbanStatusManager from './views/status/KanbanStatusManager.vue';
 
 import type { DropdownMenuItem } from '@nuxt/ui';
 

@@ -1,4 +1,4 @@
-import { buildUntitledTemplateName, sortMemoTemplates } from '../view/template/template';
+import { buildUntitledTemplateName, sortMemoTemplates } from '../views/template/template';
 
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 

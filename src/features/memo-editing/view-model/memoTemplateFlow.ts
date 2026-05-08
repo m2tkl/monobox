@@ -1,7 +1,7 @@
 import { computed, nextTick, ref } from 'vue';
 
-import { CREATED_QUERY_SOURCE_BLANK, CREATED_QUERY_SOURCE_NAMED } from './createdQuery';
-import { getDefaultMemoTemplate } from './view/template/template';
+import { CREATED_QUERY_SOURCE_BLANK, CREATED_QUERY_SOURCE_NAMED } from '../createdQuery';
+import { getDefaultMemoTemplate } from '../views/template/template';
 
 import type { Ref } from 'vue';
 import type { LocationQueryRaw, Router } from 'vue-router';

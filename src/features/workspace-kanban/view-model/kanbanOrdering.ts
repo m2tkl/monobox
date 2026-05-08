@@ -19,7 +19,7 @@ import {
   getNextPositionForStatus,
   toStatusId,
   type KanbanColumn,
-} from './kanbanUtils';
+} from '../kanbanUtils';
 
 import type { ComputedRef, Ref } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
