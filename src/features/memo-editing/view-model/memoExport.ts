@@ -7,10 +7,9 @@ import type { Link as LinkModel } from '~/models/link';
 import { command } from '~/external/tauri/command';
 
 /**
- * Logic to prepare HTML export with linked memos.
- * Manages small state machine and derived candidates list.
+ * View-model for preparing memo export with linked memos.
  */
-export function useExportLinked(params: {
+export function useMemoExportViewModel(params: {
   workspaceSlug: () => string;
   links: Ref<LinkModel[]>;
   editor: Ref<_Editor | undefined>;
@@ -37,9 +36,9 @@ export function useExportLinked(params: {
     return uniqueLinks as LinkModel[];
   });
 
-  async function fetchLinkedMemos(links: Array<LinkModel>): Promise<Array<{ content: string; title: string }>> {
+  async function fetchLinkedMemos(targets: LinkModel[]): Promise<Array<{ content: string; title: string }>> {
     const memos: Array<{ content: string; title: string }> = [];
-    for (const link of links) {
+    for (const link of targets) {
       const memo = await command.memo.get({
         workspaceSlugName: workspaceSlug(),
         memoSlugTitle: link.slug_title,
@@ -49,12 +48,13 @@ export function useExportLinked(params: {
     return memos;
   }
 
-  const exportPagesV2 = async (targets: Array<LinkModel>) => {
+  const exportPagesV2 = async (targets: LinkModel[]) => {
     if (!editor.value) return;
-    await createEffectHandler(async (targets: Array<LinkModel>, editorJson: JSONContent, title: string) => {
+
+    await createEffectHandler(async (nextTargets: LinkModel[], editorJson: JSONContent, title: string) => {
       const currentMemoHtml = convertMemoToHtml(editorJson, title);
-      const linkedMemos = await fetchLinkedMemos(targets);
-      const linkedMemoHtmls = linkedMemos.map(m => convertMemoToHtml(JSON.parse(m.content), m.title));
+      const linkedMemos = await fetchLinkedMemos(nextTargets);
+      const linkedMemoHtmls = linkedMemos.map(memo => convertMemoToHtml(JSON.parse(memo.content), memo.title));
       return [currentMemoHtml, ...linkedMemoHtmls].join('\n');
     })
       .withToast('Export prepared successfully!', 'Failed to prepare export.')

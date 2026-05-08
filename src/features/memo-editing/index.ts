@@ -16,12 +16,12 @@ export { loadTemplateEditorData, saveTemplate } from './action/memoTemplateEdito
 export { createMemoTemplate, deleteMemoTemplate, loadMemoTemplates, toggleDefaultMemoTemplate } from './action/memoTemplateManager';
 export { syncMemoLinks } from './action/syncMemoLinks';
 export { toggleMemoBookmark } from './action/toggleMemoBookmark';
-export { useExportLinked } from './action/useExportLinked';
 export { useMemoCopy } from './action/useMemoCopy';
 export { useMemoDeleteAction } from './action/useMemoDeleteAction';
 export { loadMemoEditingData } from './action/loadMemoEditingData';
 export { useMemoSaveAction } from './action/useMemoSaveAction';
 export { useMemoEditingContext } from './view-model/memoEditingContext';
+export { useMemoExportViewModel } from './view-model/memoExport';
 export { useMemoEditingKanban } from './view-model/memoEditingKanban';
 export { useMemoTemplateApplication } from './view-model/memoTemplateApplication';
 export { useMemoTemplateFlow } from './view-model/memoTemplateFlow';

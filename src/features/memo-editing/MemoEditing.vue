@@ -271,11 +271,11 @@
 <script lang="ts" setup>
 import { loadMemoEditingData } from './action/loadMemoEditingData';
 import { toggleMemoBookmark } from './action/toggleMemoBookmark';
-import { useExportLinked } from './action/useExportLinked';
 import { useMemoCopy } from './action/useMemoCopy';
 import { useMemoEditingMachine } from './state/memoEditingMachine';
 import { useMemoEditingContext } from './view-model/memoEditingContext';
 import { useMemoEditingKanban } from './view-model/memoEditingKanban';
+import { useMemoExportViewModel } from './view-model/memoExport';
 import { useMemoTemplateApplication } from './view-model/memoTemplateApplication';
 import { useMemoTemplateFlow } from './view-model/memoTemplateFlow';
 import { useMemoTemplates } from './view-model/memoTemplates';
@@ -664,7 +664,7 @@ const {
 const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useMemoCopy();
 
 /* --- Export with related pages (Step1: select targets) --- */
-const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useExportLinked({
+const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useMemoExportViewModel({
   workspaceSlug: () => workspaceSlug.value,
   links: computed(() => memoVM.value.data.links),
   editor,
