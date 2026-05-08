@@ -4,7 +4,7 @@ import type { Editor } from '@tiptap/core';
 import type { MemoIndexItem } from '~/models/memo';
 
 import { EditorAction, EditorQuery } from '~/features/editor';
-import { CREATED_QUERY_SOURCE_NAMED, useMemoCreateAction } from '~/features/memo-editing';
+import { createMemo, CREATED_QUERY_SOURCE_NAMED } from '~/features/memo-editing';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';
@@ -42,8 +42,6 @@ export type UseSearchPaletteOptions = {
 export const useSearchPalette = (options: UseSearchPaletteOptions) => {
   const router = useRouter();
   const logger = useConsoleLogger('components/Search/SearchPalette');
-  const { createMemo } = useMemoCreateAction();
-
   const selected = ref<unknown[]>([]);
   const isSearchPaletteOpen = ref(false);
   const searchTerm = ref('');

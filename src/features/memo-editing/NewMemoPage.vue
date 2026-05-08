@@ -19,8 +19,8 @@
 <script setup lang="ts">
 import {
   buildUntitledMemoTitle,
+  createMemo,
   CREATED_QUERY_SOURCE_BLANK,
-  useMemoCreateAction,
 } from './index';
 
 import { workspaceMemosQuery } from '~/resources/memo/queries';
@@ -29,8 +29,6 @@ import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 const route = useRoute();
 const router = useRouter();
-const { createMemo } = useMemoCreateAction();
-
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const requestedTemplateSlug = computed(() =>
   typeof route.query.template === 'string'

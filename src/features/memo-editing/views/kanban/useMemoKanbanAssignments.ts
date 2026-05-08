@@ -1,6 +1,10 @@
 import { computed, reactive, ref, watch } from 'vue';
 
-import { useMemoKanbanAssignmentAction } from '../../action/useMemoKanbanAssignmentAction';
+import {
+  loadKanbanStatuses as fetchKanbanStatuses,
+  removeMemoKanbanStatus,
+  upsertMemoKanbanStatus,
+} from '../../action/memoKanbanAssignment';
 
 import type { useToast } from '#imports';
 import type { ComputedRef } from 'vue';
@@ -21,11 +25,6 @@ type UseMemoKanbanAssignmentsOptions = {
 };
 
 export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOptions) {
-  const {
-    loadStatuses: loadKanbanStatusOptions,
-    removeStatus: removeMemoKanbanStatus,
-    upsertStatus: upsertMemoKanbanStatus,
-  } = useMemoKanbanAssignmentAction();
   const resourceManager = useResourceManager();
   const kanbanSelections = reactive<Record<number, number | null>>({});
   const updatingKanbans = reactive<Record<number, boolean>>({});
@@ -80,7 +79,7 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
 
     await Promise.all(options.kanbans.value.map(async (kanban) => {
       if (kanbanStatusesById.value[kanban.id]?.length) return;
-      await loadKanbanStatusOptions(options.workspaceSlug.value, kanban.id);
+      await fetchKanbanStatuses(options.workspaceSlug.value, kanban.id);
     }));
   };
 

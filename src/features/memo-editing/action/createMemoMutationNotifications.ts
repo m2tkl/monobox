@@ -10,7 +10,7 @@ type MemoMutationNotificationsOptions = {
   onAfterUpdated?: () => void;
 };
 
-export function useMemoMutationNotifications(options: MemoMutationNotificationsOptions) {
+export function createMemoMutationNotifications(options: MemoMutationNotificationsOptions) {
   const {
     workspaceSlug,
     routeHash,

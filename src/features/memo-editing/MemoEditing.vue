@@ -270,8 +270,8 @@
 
 <script lang="ts" setup>
 import { loadMemoEditingData } from './action/loadMemoEditingData';
+import { toggleMemoBookmark } from './action/toggleMemoBookmark';
 import { useExportLinked } from './action/useExportLinked';
-import { useMemoBookmarkAction } from './action/useMemoBookmarkAction';
 import { useMemoCopy } from './action/useMemoCopy';
 import { useMemoEditingMachine } from './state/memoEditingMachine';
 import { useMemoEditingContext } from './view-model/memoEditingContext';
@@ -360,7 +360,6 @@ const {
   router,
   availableTemplates,
 });
-const { toggleBookmark: executeToggleBookmark } = useMemoBookmarkAction();
 const logger = useConsoleLogger('pages/memo');
 
 type MemoSnapshot = {
@@ -545,7 +544,7 @@ const toggleBookmark = async () => {
     return;
   }
 
-  await executeToggleBookmark({
+  await toggleMemoBookmark({
     workspaceSlug: workspaceSlug.value,
     memoSlug: memoSlug.value,
     isBookmarked: memoVM.value.data.isBookmarked,

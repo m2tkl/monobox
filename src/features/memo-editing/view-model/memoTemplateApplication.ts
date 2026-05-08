@@ -1,6 +1,6 @@
 import { computed, nextTick, ref, watch } from 'vue';
 
-import { useMemoTemplateApplyAction } from '../action/useMemoTemplateApplyAction';
+import { applyTemplateToEditor } from '../action/applyMemoTemplate';
 import { getDefaultMemoTemplate } from '../views/template/template';
 
 import type { MemoEvent } from '../state/memoMachine';
@@ -35,7 +35,6 @@ type UseMemoTemplateApplicationOptions = {
 };
 
 export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOptions) {
-  const { applyTemplateToEditor } = useMemoTemplateApplyAction();
   const isApplyingTemplate = ref(false);
   const selectedTemplateId = ref<number>();
   const isEditorBodyEmpty = computed(() => Boolean(options.editor.value?.isEmpty));

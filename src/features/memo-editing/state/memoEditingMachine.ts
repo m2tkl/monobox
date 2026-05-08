@@ -1,8 +1,8 @@
 import { ref } from 'vue';
 
+import { createMemoMutationNotifications } from '../action/createMemoMutationNotifications';
+import { syncMemoLinks } from '../action/syncMemoLinks';
 import { useMemoDeleteAction } from '../action/useMemoDeleteAction';
-import { useMemoLinkSync } from '../action/useMemoLinkSync';
-import { useMemoMutationNotifications } from '../action/useMemoMutationNotifications';
 import { useMemoSaveAction } from '../action/useMemoSaveAction';
 import { useMemoMachine } from '../state/useMemoMachine';
 
@@ -36,11 +36,10 @@ type UseMemoEditingMachineOptions = {
 export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
   const { saveMemo } = useMemoSaveAction();
   const { deleteMemo: executeDeleteMemo } = useMemoDeleteAction();
-  const { syncMemoLinks } = useMemoLinkSync();
   const pendingDeleteAfterSave = ref(false);
   let dispatch: (event: MemoEvent) => void = () => {};
 
-  const { notifyUpdated, notifyDeleted } = useMemoMutationNotifications({
+  const { notifyUpdated, notifyDeleted } = createMemoMutationNotifications({
     workspaceSlug: options.workspaceSlug,
     routeHash: options.routeHash,
     router: options.router,

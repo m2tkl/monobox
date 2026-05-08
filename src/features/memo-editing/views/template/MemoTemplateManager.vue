@@ -110,7 +110,12 @@
 
 <script setup lang="ts">
 import MemoTemplateEditorDialog from './MemoTemplateEditorDialog.vue';
-import { useMemoTemplateManagerAction } from '../../action/useMemoTemplateManagerAction';
+import {
+  createMemoTemplate,
+  deleteMemoTemplate,
+  loadMemoTemplates,
+  toggleDefaultMemoTemplate,
+} from '../../action/memoTemplateManager';
 
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
@@ -122,12 +127,6 @@ const props = defineProps<{
   workspaceSlug: string;
 }>();
 const toast = useToast();
-const {
-  loadTemplates: loadMemoTemplates,
-  createTemplate: createMemoTemplate,
-  deleteTemplate: deleteMemoTemplate,
-  toggleDefaultTemplate: toggleMemoTemplateDefault,
-} = useMemoTemplateManagerAction();
 
 const templates = ref<MemoTemplateIndexItem[]>([]);
 const isLoading = ref(false);
@@ -227,7 +226,7 @@ async function confirmDeleteTemplate() {
 async function toggleDefaultTemplate(template: MemoTemplateIndexItem) {
   defaultingSlug.value = template.slug_name;
   try {
-    await toggleMemoTemplateDefault({
+    await toggleDefaultMemoTemplate({
       workspaceSlug: props.workspaceSlug,
       template,
     });

@@ -143,7 +143,7 @@
 <script setup lang="ts">
 import { CellSelection, TableMap } from 'prosemirror-tables';
 
-import { useMemoTemplateEditorAction } from '../../action/useMemoTemplateEditorAction';
+import { loadTemplateEditorData, saveTemplate as executeSaveTemplate } from '../../action/memoTemplateEditor';
 import EditorToolbarButton from '../editor/EditorToolbarButton.vue';
 import MemoEditor from '../editor/MemoEditor.vue';
 import { useMemoEditor } from '../editor/useMemoEditor';
@@ -177,10 +177,6 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const logger = useConsoleLogger('MemoTemplateEditorDialog');
-const {
-  loadTemplateEditorData,
-  saveTemplate: executeSaveTemplate,
-} = useMemoTemplateEditorAction();
 
 const templateName = ref('');
 const currentTemplateSlug = ref(props.templateSlug);
