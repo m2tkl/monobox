@@ -398,10 +398,6 @@ const computeDirty = () => {
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 let dispatch: (event: MemoEvent) => void = () => {};
 
-async function saveMemoContent(mode: 'explicit' | 'auto') {
-  return saveMemoContentFromMachine(mode);
-}
-
 /* --- States for editor --- */
 
 // Reference to control the link palette component
@@ -424,7 +420,7 @@ const {
   router,
 });
 
-const { dispatch: machineDispatch, saveMemoContent: saveMemoContentFromMachine } = useMemoEditingMachine({
+const { dispatch: machineDispatch } = useMemoEditingMachine({
   workspaceSlug,
   memoSlug,
   routeHash,
@@ -477,8 +473,6 @@ const {
   shouldShowTemplatePicker,
   clearCreatedQueryFlag,
   focusTitleFieldForNewMemo,
-  saveMemoContent,
-  dispatch: event => dispatch(event),
   toast,
   logger,
 });

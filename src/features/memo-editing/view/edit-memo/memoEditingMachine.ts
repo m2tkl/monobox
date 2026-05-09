@@ -1,13 +1,11 @@
-import { ref } from 'vue';
-
+import { useMemoDeletion } from './memoDeletion';
 import { createMemoMutationNotifications } from './memoMutationNotifications';
 import { useMemoSaveFlow } from './memoSaveFlow';
 import { useMemoMachine } from './useMemoMachine';
-import { deleteMemo as executeDeleteMemo } from '../../resource/command/deleteMemo';
 import { syncMemoLinks } from '../../resource/command/syncMemoLinks';
 
 import type { DeleteMemoDialogHandle } from './deleteMemoDialog';
-import type { MemoEvent, MemoState } from './memoMachine';
+import type { MemoEvent } from './memoMachine';
 import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
@@ -35,9 +33,14 @@ type UseMemoEditingMachineOptions = {
 
 export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
   const { saveMemo } = useMemoSaveFlow();
-  const { createEffectHandler } = useEffectHandler();
-  const pendingDeleteAfterSave = ref(false);
   let dispatch: (event: MemoEvent) => void = () => {};
+
+  const memoDeletion = useMemoDeletion({
+    workspaceSlug: options.workspaceSlug,
+    memoSlug: options.memoSlug,
+    deleteDialogRef: options.deleteDialogRef,
+    dispatch: event => dispatch(event),
+  });
 
   const { notifyUpdated, notifyDeleted } = createMemoMutationNotifications({
     workspaceSlug: options.workspaceSlug,
@@ -45,10 +48,7 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
     router: options.router,
     onAfterUpdated: () => {
       options.onSnapshotSaved(options.getCurrentSnapshot());
-      if (pendingDeleteAfterSave.value) {
-        pendingDeleteAfterSave.value = false;
-        dispatch({ type: 'memo/delete-requested' });
-      }
+      memoDeletion.continuePendingDeleteIfNeeded();
     },
   });
 
@@ -66,48 +66,6 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
     });
   }
 
-  const confirmDelete = async (previousState: MemoState) => {
-    if (!options.deleteDialogRef.value) {
-      throw new Error('Delete dialog ref is not set correctly.');
-    }
-
-    if (previousState === 'dirty') {
-      const shouldSaveBeforeDelete = window.confirm('You have unsaved changes. Save before deleting?');
-      if (shouldSaveBeforeDelete) {
-        pendingDeleteAfterSave.value = true;
-        dispatch({ type: 'memo/save-requested', payload: { mode: 'explicit' } });
-        return { action: 'cancel' } as const;
-      }
-
-      const confirmDeleteWithoutSave = window.confirm('Delete without saving changes?');
-      if (!confirmDeleteWithoutSave) {
-        return { action: 'cancel' } as const;
-      }
-    }
-
-    return { action: 'proceed' } as const;
-  };
-
-  const deleteMemo = async (_previousState: MemoState) => {
-    if (!options.deleteDialogRef.value) {
-      throw new Error('Delete dialog ref is not set correctly.');
-    }
-
-    const confirmed = await options.deleteDialogRef.value.confirm();
-    if (!confirmed) {
-      return false;
-    }
-
-    const result = await createEffectHandler(() => executeDeleteMemo({
-      workspaceSlug: options.workspaceSlug.value,
-      memoSlug: options.memoSlug.value,
-    }))
-      .withToast('Delete memo successfully.', 'Failed to delete.')
-      .execute();
-
-    return result.ok;
-  };
-
   const machine = useMemoMachine('clean', {
     saveMemo: saveMemoContent,
     syncLinks: async (added, deleted) => {
@@ -118,8 +76,8 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
     },
     notifyUpdated,
     notifyDeleted,
-    confirmDelete,
-    deleteMemo,
+    confirmDelete: memoDeletion.confirmDelete,
+    deleteMemo: memoDeletion.deleteMemo,
   }, {
     onTransition: ({ previous, event, next, effects }) => {
       options.logger.debug('memo-machine', {
@@ -136,6 +94,5 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
   return {
     state: machine.state,
     dispatch: machine.dispatch,
-    saveMemoContent,
   };
 }

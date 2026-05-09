@@ -2,22 +2,15 @@ import { ref } from 'vue';
 
 import { transition, type MemoEffect, type MemoEvent, type MemoState } from './memoMachine';
 
-type SaveResult = {
-  ok: boolean;
-  memoSlug?: string;
-  error?: unknown;
-};
-
-type DeleteConfirmResult =
-  | { action: 'cancel'; error?: unknown }
-  | { action: 'proceed'; savedSlug?: string };
+import type { MemoDeleteConfirmResult } from './memoDeletion';
+import type { MemoSaveMode, MemoSaveResult } from './memoSaveFlow';
 
 type MemoMachineHandlers = {
-  saveMemo: (mode: 'explicit' | 'auto') => Promise<SaveResult>;
+  saveMemo: (mode: MemoSaveMode) => Promise<MemoSaveResult>;
   syncLinks: (added: string[], deleted: string[]) => Promise<void>;
   notifyUpdated: (memoSlug: string) => void;
   notifyDeleted: () => void;
-  confirmDelete: (previousState: MemoState) => Promise<DeleteConfirmResult>;
+  confirmDelete: (previousState: MemoState) => Promise<MemoDeleteConfirmResult>;
   deleteMemo: (previousState: MemoState) => Promise<boolean>;
 };
 
@@ -51,7 +44,7 @@ export function useMemoMachine(
   const handleEffect = async (effect: MemoEffect) => {
     switch (effect.type) {
       case 'effect/save-memo': {
-        let result: SaveResult;
+        let result: MemoSaveResult;
         try {
           result = await handlers.saveMemo(effect.mode);
         }
@@ -60,7 +53,7 @@ export function useMemoMachine(
           return;
         }
 
-        if (result.ok && result.memoSlug) {
+        if (result.ok) {
           dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.memoSlug } });
         }
         else {
@@ -90,12 +83,7 @@ export function useMemoMachine(
           }
           return;
         }
-
-        if (result.savedSlug) {
-          dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.savedSlug } });
-        }
-        const nextPreviousState: MemoState = result.savedSlug ? 'clean' : effect.previousState;
-        dispatch({ type: 'memo/delete-confirmed', payload: { previousState: nextPreviousState } });
+        dispatch({ type: 'memo/delete-confirmed', payload: { previousState: effect.previousState } });
         return;
       }
       case 'effect/delete-memo': {

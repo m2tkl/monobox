@@ -1,16 +1,11 @@
 import { computed, nextTick, ref, watch } from 'vue';
 
-import type { MemoEvent } from '../edit-memo/memoMachine';
 import type { Editor } from '@tiptap/core';
 import type { Ref, ComputedRef } from 'vue';
 import type { RouteLocationNormalizedLoaded, Router, LocationQueryRaw } from 'vue-router';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { fetchMemoTemplate, getDefaultMemoTemplate, parseTemplateContent } from '~/features/memo-templates';
-
-type SaveMemoResult =
-  | { ok: true; memoSlug: string }
-  | { ok: false; error?: unknown };
 
 type UseMemoTemplateApplicationOptions = {
   editor: Ref<Editor | undefined>;
@@ -27,8 +22,6 @@ type UseMemoTemplateApplicationOptions = {
   shouldShowTemplatePicker: ComputedRef<boolean>;
   clearCreatedQueryFlag: () => Promise<void>;
   focusTitleFieldForNewMemo: () => void;
-  saveMemoContent: (mode: 'explicit' | 'auto') => Promise<SaveMemoResult>;
-  dispatch: (event: MemoEvent) => void;
   toast: ReturnType<typeof useToast>;
   logger: { error: (error: unknown) => void };
 };
@@ -58,19 +51,6 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
       selectedTemplateId.value = templateId;
       await nextTick();
 
-      const result = await options.saveMemoContent('auto');
-      if (!result.ok) {
-        options.dispatch({ type: 'memo/save-failed', payload: { error: result.error } });
-        options.toast.add({
-          title: 'Failed to apply template',
-          description: 'Please try again',
-          color: 'error',
-          icon: iconKey.failed,
-        });
-        return false;
-      }
-
-      options.dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.memoSlug } });
       options.isTemplatePickerDismissed.value = true;
       await options.clearCreatedQueryFlag();
       options.toast.add({
@@ -82,7 +62,6 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
     }
     catch (error) {
       options.logger.error(error);
-      options.dispatch({ type: 'memo/save-failed', payload: { error } });
       options.toast.add({
         title: 'Failed to apply template',
         description: 'Please try again',

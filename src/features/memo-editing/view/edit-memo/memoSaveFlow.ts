@@ -2,7 +2,7 @@ import { saveMemo as executeMemoSave } from '../../resource/command/saveMemo';
 
 import type { Editor as TiptapEditor } from '@tiptap/core';
 
-type SaveMemoMode = 'explicit' | 'auto';
+export type MemoSaveMode = 'explicit' | 'auto';
 
 type SaveMemoActionTarget = {
   workspaceSlug: string;
@@ -15,17 +15,17 @@ type SaveMemoActionInput = {
   title: string;
   thumbnailImage: string;
   routeHash: string;
-  mode: SaveMemoMode;
+  mode: MemoSaveMode;
 };
 
-type SaveMemoActionResult =
+export type MemoSaveResult =
   | { ok: true; memoSlug: string }
   | { ok: false; error?: unknown };
 
 export function useMemoSaveFlow() {
   const { createEffectHandler } = useEffectHandler();
 
-  const saveMemo = async (input: SaveMemoActionInput): Promise<SaveMemoActionResult> => {
+  const saveMemo = async (input: SaveMemoActionInput): Promise<MemoSaveResult> => {
     if (!input.editor) {
       if (input.mode === 'explicit') {
         throw new Error('Editor instance not set.');
