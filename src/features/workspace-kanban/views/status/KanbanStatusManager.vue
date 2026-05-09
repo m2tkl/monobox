@@ -355,7 +355,7 @@ const createStatus = async () => {
   try {
     await command.kanbanStatus.create({
       workspaceSlugName: workspaceSlug.value,
-      kanbanId: kanbanId.value,
+      kanbanId: kanbanId.value ?? undefined,
       name: newName.value.trim(),
       color: newColor.value,
     });
@@ -390,11 +390,19 @@ const moveStatus = async (id: number, direction: 'up' | 'down') => {
 
   saving[id] = true;
   try {
-    await command.kanbanStatus.reorder({
+    const reorderedStatuses = [...statuses.value];
+    const [movedStatus] = reorderedStatuses.splice(index, 1);
+    if (!movedStatus) {
+      return;
+    }
+    reorderedStatuses.splice(targetIndex, 0, movedStatus);
+
+    await command.kanbanStatus.updateOrders({
       workspaceSlugName: workspaceSlug.value,
-      kanbanId: kanbanId.value,
-      id,
-      direction,
+      updates: reorderedStatuses.map((status, orderIndex) => ({
+        id: status.id,
+        orderIndex,
+      })),
     });
     notifyUpdated();
   }

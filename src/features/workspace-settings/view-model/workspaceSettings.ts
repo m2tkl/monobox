@@ -3,6 +3,8 @@ import { computed, ref, watch } from 'vue';
 import { deleteWorkspace as executeDeleteWorkspace } from '../action/deleteWorkspace';
 import { useCurrentWorkspaceReadModel } from '../read-model';
 
+import type { useToast } from '#imports';
+
 import { workspaceQuery } from '~/resources/workspace/queries';
 import { iconKey } from '~/utils/icon';
 
@@ -13,15 +15,7 @@ type UseWorkspaceSettingsOptions = {
   router: {
     replace: (to: string) => Promise<unknown> | unknown;
   };
-  toast: {
-    add: (options: {
-      title: string;
-      description?: string;
-      color?: string;
-      duration?: number;
-      icon?: string;
-    }) => void;
-  };
+  toast: ReturnType<typeof useToast>;
 };
 
 export function useWorkspaceSettings(options: UseWorkspaceSettingsOptions) {

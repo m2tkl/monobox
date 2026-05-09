@@ -14,7 +14,7 @@
                 Kanban
               </div>
               <USelect
-                v-model="selectedKanbanId"
+                v-model="selectedKanbanModel"
                 :items="kanbanOptions"
                 size="xs"
                 variant="outline"
@@ -84,7 +84,7 @@
                     {{ column.title }}
                   </h3>
                   <span class="kanban-column-count">
-                    {{ column.meta?.displayCount ?? column.items.length }}
+                    {{ getColumnDisplayCount(column) }}
                   </span>
                 </div>
               </template>
@@ -99,7 +99,7 @@
                 <div
                   class="kanban-card"
                   :class="{ 'kanban-card--dragging': isDragging }"
-                  @click="openMemo(item.slug)"
+                  @click="openMemo(getItemSlug(item))"
                 >
                   <div class="kanban-card-header">
                     <div class="kanban-card-title">
@@ -395,6 +395,13 @@ const disableAddButton = computed(() => {
   return !hasKanban.value || statuses.value.length === 0 || unassignedTotalCount.value === 0;
 });
 
+const selectedKanbanModel = computed<number | undefined>({
+  get: () => selectedKanbanId.value ?? undefined,
+  set: (value) => {
+    selectedKanbanId.value = value ?? null;
+  },
+});
+
 const filteredUnassignedItems = computed(() => {
   const query = addQuery.value.trim().toLowerCase();
   const items = query.length === 0
@@ -410,6 +417,19 @@ const filteredUnassignedItems = computed(() => {
 const openStatusManager = () => {
   if (!hasKanban.value) return;
   isStatusManagerOpen.value = true;
+};
+
+const getColumnDisplayCount = (column: { id: string; items: unknown[] }) => {
+  return columns.value.find(item => item.id === column.id)?.meta?.displayCount ?? column.items.length;
+};
+
+const getItemSlug = (item: unknown) => {
+  if (!item || typeof item !== 'object') {
+    return '';
+  }
+
+  const slug = (item as { slug?: unknown }).slug;
+  return typeof slug === 'string' ? slug : '';
 };
 
 watch([entries, statuses, workspaceSlug, activeKanbanId], () => {

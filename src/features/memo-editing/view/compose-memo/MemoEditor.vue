@@ -55,7 +55,7 @@
 
         <editor-content
           v-else
-          :editor="editor"
+          :editor="viewEditor"
         />
 
         <template v-if="tableHandleState.visible">
@@ -95,7 +95,7 @@
     <!-- Bubble menu -->
     <BubbleMenu
       plugin-key="bubbleMenuDefault"
-      :editor="editor"
+      :editor="viewEditor"
       :should-show="shouldShowDefaultBubbleMenu"
       class="flex gap-0.5 rounded-lg p-1 outline"
       style="background-color: var(--color-surface); outline-color: var(--color-border-muted)"
@@ -108,7 +108,7 @@
 
     <BubbleMenu
       plugin-key="bubbleMenuTable"
-      :editor="editor"
+      :editor="viewEditor"
       :should-show="shouldShowTableBubbleMenu"
       :tippy-options="tableBubbleMenuTippyOptions"
       class="flex flex-col gap-0.5 rounded-lg p-1 outline"
@@ -135,14 +135,16 @@ import { CellSelection } from 'prosemirror-tables';
 import EditorLoadingSkelton from './EditorLoadingSkelton.vue';
 import TitleFieldStableInput from './TitleFieldStableInput.vue';
 
-import type { Editor } from '@tiptap/core';
+import type { Editor as CoreEditor } from '@tiptap/core';
 import type { EditorState } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
+import type { Editor as VueEditor } from '@tiptap/vue-3';
+import type { Props as TippyProps } from 'tippy.js';
 
 import { dispatchEditorMsg } from '~/features/editor';
 
 const props = withDefaults(defineProps<{
-  editor: Editor;
+  editor: CoreEditor;
   // TODO: These layout hooks were added for the template editor dialog.
   // Prefer moving width/alignment control to the parent once MemoEditor's
   // internal structure is simplified enough to style from the outside.
@@ -179,7 +181,7 @@ onMounted(async () => {
 });
 
 type BubbleMenuShouldShowProps = {
-  editor: Editor;
+  editor: CoreEditor;
   element: HTMLElement;
   view: EditorView;
   state: EditorState;
@@ -293,16 +295,18 @@ function getTableBubbleMenuAnchorRect() {
 
 const tableBubbleMenuTippyOptions = computed(() => ({
   placement: tableSelectionAxis.value === 'column'
-    ? 'bottom'
-    : 'right-start',
+    ? 'bottom' as const
+    : 'right-start' as const,
   offset: tableSelectionAxis.value === 'column'
-    ? [0, 6]
-    : [6, 0],
+    ? [0, 6] as [number, number]
+    : [6, 0] as [number, number],
   getReferenceClientRect: () => {
     const rect = getTableBubbleMenuAnchorRect();
     return rect ?? DOMRect.fromRect({ x: 0, y: 0, width: 0, height: 0 });
   },
-}));
+}) satisfies Partial<TippyProps>);
+
+const viewEditor = computed(() => props.editor as VueEditor);
 
 function selectCurrentTableRow() {
   tableSelectionAxis.value = 'row';

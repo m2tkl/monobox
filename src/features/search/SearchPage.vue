@@ -75,6 +75,7 @@ import { iconKey } from '~/utils/icon';
 const {
   workspaceSlug,
   query,
+  results,
   isLoading,
   hasQuery,
   itemsToShow,

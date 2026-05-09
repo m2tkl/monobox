@@ -11,7 +11,10 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint ./src --fix",
+    "typecheck:frontend": "npm exec -- vue-tsc -p tsconfig.json --noEmit --pretty false",
     "typecheck:frontend:ts": "node scripts/typecheck-frontend-ts.mjs",
+    "typecheck:frontend:vue:file": "node scripts/typecheck-frontend-vue-file.mjs",
+    "check:memo-editing:outline-panel": "node scripts/typecheck-frontend-vue-file.mjs src/features/memo-editing/view/navigate-memo/OutlinePanel.vue",
     "check:frontend:vue": "eslint \"src/**/*.vue\"",
     "test": "vitest run ",
     "test:watch": "vitest",
@@ -63,6 +66,7 @@
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^18.0.1",
     "playwright-core": "^1.55.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "vue-tsc": "^2.2.12"
   }
 }

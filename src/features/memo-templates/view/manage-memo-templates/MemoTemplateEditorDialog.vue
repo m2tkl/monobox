@@ -244,9 +244,10 @@ const tableColumnBubbleMenuActionItems: {
   { label: 'Del Tbl', icon: iconKey.trash, dividerBefore: true, msg: { type: 'deleteTable' } },
 ];
 
-function getEditorToolbarActionItems(currentEditor?: typeof editor.value) {
+function getEditorToolbarActionItems(currentEditor?: unknown) {
   // Keep toolbar item derivation behind a getter so toolbar state can depend on editor.state
   // without leaking ProseMirror-specific reactivity details into the template.
+  void currentEditor;
   void toolbarContextVersion.value;
 
   if (!currentEditor) {
@@ -257,7 +258,7 @@ function getEditorToolbarActionItems(currentEditor?: typeof editor.value) {
 }
 
 function getTableBubbleMenuActionItems(
-  currentEditor?: typeof editor.value,
+  currentEditor?: { state: { selection: unknown } } | null,
   tableSelectionAxis?: 'row' | 'column' | null,
 ) {
   if (!currentEditor) {

@@ -7,7 +7,7 @@
       :outline="outline"
       :active-heading-id="activeHeadingId"
       :active-ancestor-headings="activeAncestorHeadings"
-      @click="(id: string, title: string) => onClickHeading(id, title)"
+      @click="(id: string) => onClickHeading(id)"
       @copy-link="(id: string, text: string) => onCopyLink(id, text)"
     />
   </div>

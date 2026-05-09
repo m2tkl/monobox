@@ -386,7 +386,7 @@ const formState = reactive<FormState>({
   assetDirPath: '',
 });
 
-const validate = (state: FormState): ValidationError[] => {
+const validate = (state: Partial<FormState>): ValidationError[] => {
   const errors: ValidationError[] = [];
   if (!state.databasePath) {
     errors.push({ path: 'databasePath', message: 'Database path is required.' });
