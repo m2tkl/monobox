@@ -7,33 +7,54 @@ import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { fetchMemoTemplate, getDefaultMemoTemplate, parseTemplateContent } from '~/features/memo-templates';
 
-type UseMemoTemplateApplicationOptions = {
+type UseTemplateApplyOptions = {
   editor: Ref<Editor | undefined>;
   hasMemo: ComputedRef<boolean>;
   workspaceSlug: Ref<string>;
   route: RouteLocationNormalizedLoaded;
   router: Router;
   availableTemplates: Ref<MemoTemplateIndexItem[]>;
-  isTemplatePickerDismissed: Ref<boolean>;
-  hasAttemptedDefaultTemplate: Ref<boolean>;
   isNewMemoCreationFlow: ComputedRef<boolean>;
   requestedTemplateSlug: ComputedRef<string | undefined>;
   shouldSkipDefaultTemplate: ComputedRef<boolean>;
-  shouldShowTemplatePicker: ComputedRef<boolean>;
   clearCreatedQueryFlag: () => Promise<void>;
   focusTitleFieldForNewMemo: () => void;
   toast: ReturnType<typeof useToast>;
   logger: { error: (error: unknown) => void };
 };
 
-export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOptions) {
+/**
+ * Drives the start-from-template UI in MemoEditing: it decides when to apply a
+ * requested/default template and exposes the state that the inline template UI
+ * uses while the apply action is running.
+ */
+export function useTemplateApply(options: UseTemplateApplyOptions) {
+  const hasAttemptedDefaultTemplate = ref(false);
+  const isTemplatePickerDismissed = ref(false);
+
+  // Used by the inline template buttons in MemoEditing to disable repeated
+  // clicks and show a loading indicator while a template is being applied.
   const isApplyingTemplate = ref(false);
+
+  // Used by the inline template buttons in MemoEditing to show which template
+  // is currently being applied.
   const selectedTemplateId = ref<number>();
+  const hasDefaultMemoTemplate = computed(() => getDefaultMemoTemplate(options.availableTemplates.value) != null);
+  const shouldShowTemplatePicker = computed(() =>
+    options.isNewMemoCreationFlow.value
+    && !isTemplatePickerDismissed.value
+    && !options.shouldSkipDefaultTemplate.value
+    && options.requestedTemplateSlug.value == null
+    && !hasDefaultMemoTemplate.value
+    && options.availableTemplates.value.length > 0,
+  );
   const isEditorBodyEmpty = computed(() => Boolean(options.editor.value?.isEmpty));
   const shouldShowInlineTemplateSuggestions = computed(() =>
-    options.shouldShowTemplatePicker.value && isEditorBodyEmpty.value,
+    shouldShowTemplatePicker.value && isEditorBodyEmpty.value,
   );
 
+  // Used by MemoEditing's inline template buttons to apply the chosen template
+  // into the editor body.
   const applyTemplate = async (templateSlug: string, applyOptions?: { toastTitle?: string }) => {
     if (!options.editor.value || !options.hasMemo.value) {
       return false;
@@ -51,7 +72,7 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
       selectedTemplateId.value = templateId;
       await nextTick();
 
-      options.isTemplatePickerDismissed.value = true;
+      isTemplatePickerDismissed.value = true;
       await options.clearCreatedQueryFlag();
       options.toast.add({
         title: applyOptions?.toastTitle ?? 'Template applied',
@@ -79,14 +100,14 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
   watch(isEditorBodyEmpty, async (isEmpty) => {
     if (
       isEmpty
-      || options.isTemplatePickerDismissed.value
+      || isTemplatePickerDismissed.value
       || !options.isNewMemoCreationFlow.value
       || isApplyingTemplate.value
     ) {
       return;
     }
 
-    options.isTemplatePickerDismissed.value = true;
+    isTemplatePickerDismissed.value = true;
     await options.clearCreatedQueryFlag();
   });
 
@@ -99,7 +120,7 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
       options.editor,
     ],
     async ([, templateSlug, skipDefaultTemplate]) => {
-      if (options.hasAttemptedDefaultTemplate.value) {
+      if (hasAttemptedDefaultTemplate.value) {
         return;
       }
 
@@ -112,7 +133,7 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
       }
 
       if (templateSlug) {
-        options.hasAttemptedDefaultTemplate.value = true;
+        hasAttemptedDefaultTemplate.value = true;
         const isApplied = await applyTemplate(templateSlug);
         if (!isApplied) {
           const { template: _template, ...nextQuery } = options.route.query;
@@ -125,14 +146,14 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
             query: normalizedQuery,
             hash: options.route.hash,
           });
-          options.isTemplatePickerDismissed.value = false;
+          isTemplatePickerDismissed.value = false;
         }
         return;
       }
 
       if (skipDefaultTemplate) {
-        options.hasAttemptedDefaultTemplate.value = true;
-        options.isTemplatePickerDismissed.value = true;
+        hasAttemptedDefaultTemplate.value = true;
+        isTemplatePickerDismissed.value = true;
         await options.clearCreatedQueryFlag();
         options.focusTitleFieldForNewMemo();
         return;
@@ -140,20 +161,30 @@ export function useMemoTemplateApplication(options: UseMemoTemplateApplicationOp
 
       const defaultTemplate = getDefaultMemoTemplate(options.availableTemplates.value);
       if (!defaultTemplate) {
-        options.hasAttemptedDefaultTemplate.value = true;
+        hasAttemptedDefaultTemplate.value = true;
         return;
       }
 
-      options.hasAttemptedDefaultTemplate.value = true;
+      hasAttemptedDefaultTemplate.value = true;
       await applyTemplate(defaultTemplate.slug_name, { toastTitle: 'Default template applied' });
     },
     { immediate: true },
   );
 
   return {
+    // Consumed by MemoEditing to control the inline template button loading
+    // state.
     isApplyingTemplate,
+
+    // Consumed by MemoEditing to mark the specific template button that is in
+    // progress.
     selectedTemplateId,
+
+    // Consumed by MemoEditing to decide whether to render the inline template
+    // suggestion block under the editor.
     shouldShowInlineTemplateSuggestions,
+
+    // Consumed by MemoEditing when the user clicks a template suggestion.
     applyTemplate,
   };
 }

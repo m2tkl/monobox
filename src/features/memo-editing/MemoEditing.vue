@@ -289,8 +289,10 @@ import ExportDialogToCopyResult from './view/share-memo/ExportDialogToCopyResult
 import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
 import { useMemoCopy } from './view/share-memo/memoCopy';
 import { useMemoExport } from './view/share-memo/memoExport';
-import { useMemoTemplateApplication } from './view/start-memo-from-template/memoTemplateApplication';
-import { useMemoTemplateFlow } from './view/start-memo-from-template/memoTemplateFlow';
+import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
+import { focusNewMemoTitle } from './view/start-memo-from-template/focusNewMemoTitle';
+import { useNewMemoTemplateQuery } from './view/start-memo-from-template/useNewMemoTemplateQuery';
+import { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
 
 import type { DeleteMemoDialogHandle } from './view/edit-memo/deleteMemoDialog';
 import type { MemoEvent } from './view/edit-memo/memoMachine';
@@ -346,18 +348,12 @@ const loadInitialData = () => loadMemoEditingData({
   loadTemplates,
 });
 const {
-  isTemplatePickerDismissed,
-  hasAttemptedDefaultTemplate,
+  createdQueryValue,
   isNewMemoCreationFlow,
   requestedTemplateSlug,
   shouldSkipDefaultTemplate,
-  shouldShowTemplatePicker,
-  clearCreatedQueryFlag,
-  focusTitleFieldIfNeeded,
-} = useMemoTemplateFlow({
+} = useNewMemoTemplateQuery({
   route,
-  router,
-  availableTemplates,
 });
 const logger = useConsoleLogger('pages/memo');
 
@@ -441,15 +437,37 @@ watch(memoTitle, () => {
   dispatch({ type: 'memo/title-changed', payload: { dirty: computeDirty() } });
 });
 
+// Focus the title field if coming from a "create new memo" action with the appropriate query parameter.
 onMounted(() => {
-  focusTitleFieldIfNeeded((selectAll) => {
-    memoEditorRef.value?.focusTitleField(selectAll);
+  focusNewMemoTitle({
+    createdQueryValue: createdQueryValue.value,
+    focusTitleField: (selectAll) => {
+      memoEditorRef.value?.focusTitleField(selectAll);
+    },
   });
 });
 
+const clearCreatedQueryFlag = async () => {
+  if (
+    createdQueryValue.value == null
+    && requestedTemplateSlug.value == null
+    && !shouldSkipDefaultTemplate.value
+  ) {
+    return;
+  }
+
+  await clearNewMemoTemplateQuery({
+    route,
+    router,
+  });
+};
+
 const focusTitleFieldForNewMemo = () => {
-  focusTitleFieldIfNeeded((selectAll) => {
-    memoEditorRef.value?.focusTitleField(selectAll);
+  focusNewMemoTitle({
+    createdQueryValue: createdQueryValue.value,
+    focusTitleField: (selectAll) => {
+      memoEditorRef.value?.focusTitleField(selectAll);
+    },
   });
 };
 
@@ -458,19 +476,16 @@ const {
   selectedTemplateId,
   shouldShowInlineTemplateSuggestions,
   applyTemplate,
-} = useMemoTemplateApplication({
+} = useTemplateApply({
   editor,
   hasMemo: computed(() => memoVM.value.data.memo != null),
   workspaceSlug,
   route,
   router,
   availableTemplates,
-  isTemplatePickerDismissed,
-  hasAttemptedDefaultTemplate,
   isNewMemoCreationFlow,
   requestedTemplateSlug,
   shouldSkipDefaultTemplate,
-  shouldShowTemplatePicker,
   clearCreatedQueryFlag,
   focusTitleFieldForNewMemo,
   toast,
