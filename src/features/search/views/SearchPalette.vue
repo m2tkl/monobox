@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { useSearchPalette } from './useSearchPalette';
+import { useSearchPalette } from '../view-model/searchPalette';
 
 import type { Editor } from '@tiptap/core';
 import type { MemoIndexItem } from '~/models/memo';

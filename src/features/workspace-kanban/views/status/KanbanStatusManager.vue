@@ -180,7 +180,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 
-import { useWorkspaceKanbanStatusCollectionReadModel } from '../read-model';
+import { useWorkspaceKanbanStatusCollectionReadModel } from '../../read-model';
 
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
