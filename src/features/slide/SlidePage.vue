@@ -21,44 +21,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { useSlidePage } from './view-model/slidePage';
+import Slide from './views/Slide.vue';
 
-import Slide from './Slide.vue';
-
-import type { JSONContent } from '@tiptap/vue-3';
-
-import { convertMemoToHtml } from '~/features/memo-editing';
-import { useQuery } from '~/resource-runtime/useQuery';
-import { memoDetailQuery } from '~/resources/memo/queries';
 import { iconKey } from '~/utils/icon';
-import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
-const route = useRoute();
+const { slidesHtml, loadInitialData } = useSlidePage();
 
-const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
-const memoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
-
-const { snapshot: memoSnap } = useQuery(memoDetailQuery, {
-  workspaceSlug,
-  memoSlug,
-});
-
-await usePageLoader(async () => {
-  await memoDetailQuery.fetch({
-    workspaceSlug: workspaceSlug.value,
-    memoSlug: memoSlug.value,
-  });
-});
-
-const memo = computed(() => {
-  if (!memoSnap.value.current) {
-    throw new Error('Memo is not loaded.');
-  }
-
-  return memoSnap.value.current;
-});
-
-const slidesHtml = computed(() =>
-  convertMemoToHtml(JSON.parse(memo.value.content) as JSONContent, memo.value.title),
-);
+await usePageLoader(loadInitialData);
 </script>
