@@ -18,10 +18,10 @@
 
 <script setup lang="ts">
 import {
-  buildUntitledMemoTitle,
   createMemo,
   CREATED_QUERY_SOURCE_BLANK,
 } from './index';
+import { buildUntitledMemoTitle } from './untitledMemoTitle';
 
 import { workspaceMemosQuery } from '~/resources/memo/queries';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';

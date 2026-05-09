@@ -138,7 +138,7 @@ import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
 import { useWorkspaceSettings } from './view-model/workspaceSettings';
 
-import { MemoTemplateManager } from '~/features/memo-editing';
+import { MemoTemplateManager } from '~/features/memo-templates';
 import { StoragePathsForm } from '~/features/storage-settings';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import ThemeSelector from '~/shared/components/settings/ThemeSelector.vue';

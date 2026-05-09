@@ -251,7 +251,7 @@
         />
       </div>
 
-      <MemoDeleteFlow ref="deleteMemoWithUserConfirmation" />
+      <DeleteMemoDialog ref="deleteMemoDialogRef" />
 
       <!-- Export with related pages -->
       <ExportDialogToSelectTargets
@@ -269,36 +269,37 @@
 </template>
 
 <script lang="ts" setup>
-import { loadMemoEditingData } from './action/loadMemoEditingData';
-import { toggleMemoBookmark } from './action/toggleMemoBookmark';
-import { useMemoEditingMachine } from './state/memoEditingMachine';
-import { useMemoCopy } from './view-model/memoCopy';
-import { useMemoEditingContext } from './view-model/memoEditingContext';
-import { useMemoEditingKanban } from './view-model/memoEditingKanban';
-import { useMemoExportViewModel } from './view-model/memoExport';
-import { useMemoTemplateApplication } from './view-model/memoTemplateApplication';
-import { useMemoTemplateFlow } from './view-model/memoTemplateFlow';
-import { useMemoTemplates } from './view-model/memoTemplates';
-import AltEditDialog from './views/editor/AltEditDialog.vue';
-import EditorToolbarButton from './views/editor/EditorToolbarButton.vue';
-import { useImagePreview } from './views/editor/ImagePreviewDialog/useImagePreview';
-import LinkEditDialog from './views/editor/LinkEditDialog.vue';
-import MemoEditor from './views/editor/MemoEditor.vue';
-import { useMemoEditor } from './views/editor/useMemoEditor';
-import { useMemoEditorActions } from './views/editor/useMemoEditorActions';
-import { useMemoEditorInteractions } from './views/editor/useMemoEditorInteractions';
-import ExportDialogToCopyResult from './views/export/ExportDialogToCopyResult.vue';
-import ExportDialogToSelectTargets from './views/export/ExportDialogToSelectTargets.vue';
-import MemoLinkCardView from './views/links/MemoLinkCardView/Index.vue';
-import MemoDeleteFlow from './views/memo/MemoDeleteFlow.vue';
-import OutlinePanel from './views/outline/OutlinePanel.vue';
+import { toggleMemoBookmark } from './resource/command/toggleMemoBookmark';
+import { loadMemoEditingData } from './resource/read/loadMemoEditingData';
+import AltEditDialog from './view/compose-memo/AltEditDialog.vue';
+import EditorToolbarButton from './view/compose-memo/EditorToolbarButton.vue';
+import { useImagePreview } from './view/compose-memo/image-preview/useImagePreview';
+import LinkEditDialog from './view/compose-memo/LinkEditDialog.vue';
+import MemoEditor from './view/compose-memo/MemoEditor.vue';
+import { useMemoEditor } from './view/compose-memo/useMemoEditor';
+import { useMemoEditorActions } from './view/compose-memo/useMemoEditorActions';
+import { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInteractions';
+import DeleteMemoDialog from './view/edit-memo/DeleteMemoDialog.vue';
+import { useMemoEditingContext } from './view/edit-memo/memoEditingContext';
+import { useMemoEditingMachine } from './view/edit-memo/memoEditingMachine';
+import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
+import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
+import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
+import ExportDialogToCopyResult from './view/share-memo/ExportDialogToCopyResult.vue';
+import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
+import { useMemoCopy } from './view/share-memo/memoCopy';
+import { useMemoExport } from './view/share-memo/memoExport';
+import { useMemoTemplateApplication } from './view/start-memo-from-template/memoTemplateApplication';
+import { useMemoTemplateFlow } from './view/start-memo-from-template/memoTemplateFlow';
 
-import type { MemoDeleteFlowHandle } from './state/memoDeleteFlow';
-import type { MemoEvent } from './state/memoMachine';
+import type { DeleteMemoDialogHandle } from './view/edit-memo/deleteMemoDialog';
+import type { MemoEvent } from './view/edit-memo/memoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';
+import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { buildExtensions, CodeBlockComponent, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
+import { loadMemoTemplates } from '~/features/memo-templates';
 import { SearchPalette } from '~/features/search';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { useConsoleLogger } from '~/utils/logger';
@@ -334,12 +335,10 @@ const {
   workspaceSlug,
   memoSlug,
 });
-const {
-  availableTemplates,
-  loadTemplates,
-} = useMemoTemplates({
-  workspaceSlug,
-});
+const availableTemplates = ref<MemoTemplateIndexItem[]>([]);
+const loadTemplates = async () => {
+  availableTemplates.value = await loadMemoTemplates(workspaceSlug.value);
+};
 const loadInitialData = () => loadMemoEditingData({
   workspaceSlug,
   memoSlug,
@@ -396,7 +395,7 @@ const computeDirty = () => {
     || current.content !== lastSavedSnapshot.value.content;
 };
 
-const deleteMemoWithUserConfirmation = ref<MemoDeleteFlowHandle | null>(null);
+const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 let dispatch: (event: MemoEvent) => void = () => {};
 
 async function saveMemoContent(mode: 'explicit' | 'auto') {
@@ -433,7 +432,7 @@ const { dispatch: machineDispatch, saveMemoContent: saveMemoContentFromMachine }
   editor,
   memoTitle,
   headImageRef,
-  deleteWorkflowRef: deleteMemoWithUserConfirmation,
+  deleteDialogRef: deleteMemoDialogRef,
   getCurrentSnapshot,
   onSnapshotSaved: (snapshot) => {
     lastSavedSnapshot.value = snapshot;
@@ -664,7 +663,7 @@ const {
 const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useMemoCopy();
 
 /* --- Export with related pages (Step1: select targets) --- */
-const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useMemoExportViewModel({
+const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useMemoExport({
   workspaceSlug: () => workspaceSlug.value,
   links: computed(() => memoVM.value.data.links),
   editor,
