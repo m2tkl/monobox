@@ -310,7 +310,6 @@ const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
 });
 
-const { createEffectHandler } = useEffectHandler();
 const router = useRouter();
 const toast = useToast();
 const {
@@ -627,7 +626,7 @@ const bubbleMenuItems = [
   [
     {
       icon: iconKey.copy,
-      action: () => { copySelectedTextAsMarkdown(editor.value!); },
+      action: () => { void copySelectedTextAsMarkdown(editor.value!); },
     },
   ],
 ];
@@ -673,14 +672,20 @@ const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandi
 /* --- Export with related pages (Step2: copy result) */
 
 const copyExportedResult = async (textToCopy: string) => {
-  await createEffectHandler((text: string) =>
-    Promise.resolve(navigator.clipboard.writeText(text)),
-  )
-    .withToast('Exported result copied!', 'Failed to copy.')
-    .withCallback(() => {
-      exportMode.value = 'idle';
-    })
-    .execute(textToCopy);
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+    toast.add({ title: 'Exported result copied!', icon: iconKey.success, duration: 1000 });
+    exportMode.value = 'idle';
+  }
+  catch (error) {
+    logger.error(error);
+    toast.add({
+      title: 'Failed to copy.',
+      description: 'Please try again',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
 };
 </script>
 

@@ -10,7 +10,8 @@ type UseMemoDeletionOptions = {
 };
 
 export function useMemoDeletion(options: UseMemoDeletionOptions) {
-  const { createEffectHandler } = useEffectHandler();
+  const toast = useToast();
+  const logger = useConsoleLogger('memo-editing/memoDeletion');
 
   const confirmDelete = async (): Promise<boolean> => {
     if (!options.deleteDialogRef.value) {
@@ -21,14 +22,25 @@ export function useMemoDeletion(options: UseMemoDeletionOptions) {
   };
 
   const deleteMemo = async (): Promise<boolean> => {
-    const result = await createEffectHandler(() => executeDeleteMemo({
-      workspaceSlug: options.workspaceSlug.value,
-      memoSlug: options.memoSlug.value,
-    }))
-      .withToast('Delete memo successfully.', 'Failed to delete.')
-      .execute();
+    try {
+      await executeDeleteMemo({
+        workspaceSlug: options.workspaceSlug.value,
+        memoSlug: options.memoSlug.value,
+      });
 
-    return result.ok;
+      toast.add({ title: 'Delete memo successfully.', icon: iconKey.success, duration: 1000 });
+      return true;
+    }
+    catch (error) {
+      logger.error(error);
+      toast.add({
+        title: 'Failed to delete.',
+        description: 'Please try again',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+      return false;
+    }
   };
 
   return {

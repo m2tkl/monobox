@@ -23,7 +23,8 @@ export type MemoSaveResult =
   | { ok: false; error?: unknown };
 
 export function useMemoSaveFlow() {
-  const { createEffectHandler } = useEffectHandler();
+  const toast = useToast();
+  const logger = useConsoleLogger('memo-editing/memoSaveFlow');
 
   const saveMemo = async (input: SaveMemoActionInput): Promise<MemoSaveResult> => {
     if (!input.editor) {
@@ -40,30 +41,40 @@ export function useMemoSaveFlow() {
       return { ok: false };
     }
 
-    const handler = createEffectHandler((editor: TiptapEditor, title: string) => executeMemoSave(
-      input.target,
-      editor,
-      title,
-      input.thumbnailImage,
-      input.routeHash,
-    ));
+    try {
+      const result = await executeMemoSave(
+        input.target,
+        input.editor,
+        input.title,
+        input.thumbnailImage,
+        input.routeHash,
+      );
 
-    if (input.mode === 'explicit') {
-      handler.withToast('Saved', 'Failed to save');
-    }
+      if (input.mode === 'explicit') {
+        toast.add({ title: 'Saved', icon: iconKey.success, duration: 1000 });
+      }
 
-    const result = await handler.execute(input.editor, input.title);
-    if (!result.ok) {
       return {
-        ok: false,
-        error: result.error,
+        ok: true,
+        memoSlug: result.memoSlug,
       };
     }
+    catch (error) {
+      if (input.mode === 'explicit') {
+        logger.error(error);
+        toast.add({
+          title: 'Failed to save',
+          description: 'Please try again',
+          color: 'error',
+          icon: iconKey.failed,
+        });
+      }
 
-    return {
-      ok: true,
-      memoSlug: result.data.memoSlug,
-    };
+      return {
+        ok: false,
+        error,
+      };
+    }
   };
 
   return {

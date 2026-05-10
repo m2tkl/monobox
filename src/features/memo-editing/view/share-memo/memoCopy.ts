@@ -9,40 +9,85 @@ import { EditorQuery, convertToMarkdown } from '~/features/editor';
  * Frontend actions for copy operations used on the memo page.
  */
 export function useMemoCopy() {
-  const { createEffectHandler } = useEffectHandler();
+  const toast = useToast();
+  const logger = useConsoleLogger('memo-editing/memoCopy');
 
-  const copyPageAsMarkdown = (editor: _Editor, title: string) =>
-    createEffectHandler(async () => {
+  const copyPageAsMarkdown = async (editor: _Editor, title: string) => {
+    try {
       const markdown = convertToMarkdown(editor.state.doc, title);
       await writeText(markdown);
-    })
-      .withToast('Copied as markdown.', 'Failed to copy.')
-      .execute();
+      toast.add({ title: 'Copied as markdown.', icon: iconKey.success, duration: 1000 });
+      return { ok: true as const };
+    }
+    catch (error) {
+      logger.error(error);
+      toast.add({
+        title: 'Failed to copy.',
+        description: 'Please try again',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+      return { ok: false as const, error };
+    }
+  };
 
-  const copyPageAsHtml = (editor: _Editor, title: string) =>
-    createEffectHandler(async () => {
+  const copyPageAsHtml = async (editor: _Editor, title: string) => {
+    try {
       const html = convertMemoToHtml(editor.getJSON(), title);
       await writeHtml(html);
-    })
-      .withToast('Copied as html.', 'Failed to copy.')
-      .execute();
+      toast.add({ title: 'Copied as html.', icon: iconKey.success, duration: 1000 });
+      return { ok: true as const };
+    }
+    catch (error) {
+      logger.error(error);
+      toast.add({
+        title: 'Failed to copy.',
+        description: 'Please try again',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+      return { ok: false as const, error };
+    }
+  };
 
-  const copySelectedTextAsMarkdown = (editor: _Editor) =>
-    createEffectHandler(async () => {
+  const copySelectedTextAsMarkdown = async (editor: _Editor) => {
+    try {
       const selectedContent = EditorQuery.getSelectedNode(editor);
       const markdown = convertToMarkdown(selectedContent);
       await navigator.clipboard.writeText(markdown);
-    })
-      .withToast('Copied as markdown.', 'Failed to copy.')
-      .execute();
+      toast.add({ title: 'Copied as markdown.', icon: iconKey.success, duration: 1000 });
+      return { ok: true as const };
+    }
+    catch (error) {
+      logger.error(error);
+      toast.add({
+        title: 'Failed to copy.',
+        description: 'Please try again',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+      return { ok: false as const, error };
+    }
+  };
 
-  const copyLinkToHeading = (fullUrl: string, titleWithHeading: string) =>
-    createEffectHandler(async () => {
+  const copyLinkToHeading = async (fullUrl: string, titleWithHeading: string) => {
+    try {
       const htmlLink = createHtmlLink(fullUrl, titleWithHeading);
       await writeHtml(htmlLink);
-    })
-      .withToast('Copied link to heading.', 'Failed to copy.')
-      .execute();
+      toast.add({ title: 'Copied link to heading.', icon: iconKey.success, duration: 1000 });
+      return { ok: true as const };
+    }
+    catch (error) {
+      logger.error(error);
+      toast.add({
+        title: 'Failed to copy.',
+        description: 'Please try again',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+      return { ok: false as const, error };
+    }
+  };
 
   return {
     copyPageAsMarkdown,

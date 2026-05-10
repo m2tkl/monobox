@@ -15,7 +15,8 @@ export function useMemoExport(params: {
   memoTitle: Ref<string>;
 }) {
   const { workspaceSlug, links, editor, memoTitle } = params;
-  const { createEffectHandler } = useEffectHandler();
+  const toast = useToast();
+  const logger = useConsoleLogger('memo-editing/memoExport');
 
   const exportMode = ref<'idle' | 'selectingTargets' | 'copyingResult'>('idle');
   const htmlExport = ref<string>('');
@@ -50,18 +51,24 @@ export function useMemoExport(params: {
   const exportPagesV2 = async (targets: LinkModel[]) => {
     if (!editor.value) return;
 
-    await createEffectHandler(async (nextTargets: LinkModel[], editorJson: JSONContent, title: string) => {
-      const currentMemoHtml = convertMemoToHtml(editorJson, title);
-      const linkedMemos = await fetchLinkedMemos(nextTargets);
+    try {
+      const currentMemoHtml = convertMemoToHtml(editor.value.getJSON() as JSONContent, memoTitle.value);
+      const linkedMemos = await fetchLinkedMemos(targets);
       const linkedMemoHtmls = linkedMemos.map(memo => convertMemoToHtml(JSON.parse(memo.content), memo.title));
-      return [currentMemoHtml, ...linkedMemoHtmls].join('\n');
-    })
-      .withToast('Export prepared successfully!', 'Failed to prepare export.')
-      .withCallback((result: string) => {
-        htmlExport.value = result;
-        exportMode.value = 'copyingResult';
+
+      htmlExport.value = [currentMemoHtml, ...linkedMemoHtmls].join('\n');
+      exportMode.value = 'copyingResult';
+      toast.add({ title: 'Export prepared successfully!', icon: iconKey.success, duration: 1000 });
+    }
+    catch (error) {
+      logger.error(error);
+      toast.add({
+        title: 'Failed to prepare export.',
+        description: 'Please try again',
+        color: 'error',
+        icon: iconKey.failed,
       })
-      .execute(targets, editor.value.getJSON(), memoTitle.value);
+    }
   };
 
   return {
