@@ -7,10 +7,13 @@ import type { MemoSaveMode, MemoSaveResult } from './memoSaveFlow';
 type MemoMachineHandlers = {
   saveMemo: (mode: MemoSaveMode) => Promise<MemoSaveResult>;
   syncLinks: (added: string[], deleted: string[]) => Promise<void>;
-  notifyUpdated: (memoSlug: string) => void;
-  notifyDeleted: () => void;
+  snapshotSaved: () => void;
+  emitMemoUpdated: (memoSlug: string) => void;
+  replaceMemoRoute: (memoSlug: string) => void;
   confirmDelete: () => Promise<boolean>;
   deleteMemo: () => Promise<boolean>;
+  emitMemoDeleted: () => void;
+  replaceWorkspaceRoute: () => void;
 };
 
 type MemoMachineOptions = {
@@ -68,8 +71,16 @@ export function useMemoMachine(
         await dispatch({ type: 'memo/save-requested', payload: { mode: 'auto' } });
         return;
       }
-      case 'effect/notify-updated': {
-        handlers.notifyUpdated(effect.memoSlug);
+      case 'effect/snapshot-saved': {
+        handlers.snapshotSaved();
+        return;
+      }
+      case 'effect/emit-memo-updated': {
+        handlers.emitMemoUpdated(effect.memoSlug);
+        return;
+      }
+      case 'effect/replace-memo-route': {
+        handlers.replaceMemoRoute(effect.memoSlug);
         return;
       }
       case 'effect/confirm-delete': {
@@ -87,8 +98,12 @@ export function useMemoMachine(
         }
         return;
       }
-      case 'effect/notify-deleted': {
-        handlers.notifyDeleted();
+      case 'effect/emit-memo-deleted': {
+        handlers.emitMemoDeleted();
+        return;
+      }
+      case 'effect/replace-workspace-route': {
+        handlers.replaceWorkspaceRoute();
         return;
       }
       default:

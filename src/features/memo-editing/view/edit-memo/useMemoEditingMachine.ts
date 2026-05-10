@@ -1,5 +1,4 @@
 import { useMemoDeletion } from './memoDeletion';
-import { createMemoMutationNotifications } from './memoMutationNotifications';
 import { useMemoSaveFlow } from './memoSaveFlow';
 import { useMemoMachine } from './useMemoMachine';
 import { syncMemoLinks } from '../../resource/command/syncMemoLinks';
@@ -9,6 +8,8 @@ import type { MemoEvent } from './memoMachine';
 import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
+
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 
 type MemoSnapshot = {
   title: string;
@@ -40,15 +41,6 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
     deleteDialogRef: options.deleteDialogRef,
   });
 
-  const { notifyUpdated, notifyDeleted } = createMemoMutationNotifications({
-    workspaceSlug: options.workspaceSlug,
-    routeHash: options.routeHash,
-    router: options.router,
-    onAfterUpdated: () => {
-      options.onSnapshotSaved(options.getCurrentSnapshot());
-    },
-  });
-
   async function saveMemoContent(mode: 'explicit' | 'auto') {
     return saveMemo({
       target: {
@@ -71,10 +63,23 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
         memoSlug: options.memoSlug.value,
       }, added, deleted);
     },
-    notifyUpdated,
-    notifyDeleted,
+    snapshotSaved: () => {
+      options.onSnapshotSaved(options.getCurrentSnapshot());
+    },
+    emitMemoUpdated: (memoSlug) => {
+      emitEvent('memo/updated', { workspaceSlug: options.workspaceSlug.value, memoSlug });
+    },
+    replaceMemoRoute: (memoSlug) => {
+      options.router.replace(`/${options.workspaceSlug.value}/${memoSlug}${options.routeHash.value}`);
+    },
     confirmDelete: memoDeletion.confirmDelete,
     deleteMemo: memoDeletion.deleteMemo,
+    emitMemoDeleted: () => {
+      emitEvent('memo/deleted', { workspaceSlug: options.workspaceSlug.value });
+    },
+    replaceWorkspaceRoute: () => {
+      options.router.replace(`/${options.workspaceSlug.value}`);
+    },
   }, {
     onTransition: ({ previous, event, next, effects }) => {
       options.logger.debug('memo-machine', {

@@ -42,4 +42,20 @@ describe('memo editing machine', () => {
       effects: [],
     });
   });
+
+  it('emits explicit save success effects from saving state', () => {
+    const result = apply(
+      { type: 'saving', mode: 'explicit' },
+      { type: 'memo/save-succeeded', payload: { memoSlug: 'saved-slug' } },
+    );
+
+    expect(result).toEqual({
+      state: { type: 'clean' },
+      effects: [
+        { type: 'effect/snapshot-saved' },
+        { type: 'effect/emit-memo-updated', memoSlug: 'saved-slug' },
+        { type: 'effect/replace-memo-route', memoSlug: 'saved-slug' },
+      ],
+    });
+  });
 });

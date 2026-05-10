@@ -28,10 +28,13 @@ export type MemoEvent =
 export type MemoEffect =
   | { type: 'effect/save-memo'; mode: 'explicit' | 'auto' }
   | { type: 'effect/sync-links'; added: string[]; deleted: string[] }
-  | { type: 'effect/notify-updated'; memoSlug: string }
+  | { type: 'effect/snapshot-saved' }
+  | { type: 'effect/emit-memo-updated'; memoSlug: string }
+  | { type: 'effect/replace-memo-route'; memoSlug: string }
   | { type: 'effect/confirm-delete' }
   | { type: 'effect/delete-memo' }
-  | { type: 'effect/notify-deleted' };
+  | { type: 'effect/emit-memo-deleted' }
+  | { type: 'effect/replace-workspace-route' };
 
 export type ApplyResult = {
   state: MemoState;
@@ -139,7 +142,11 @@ const transitions: TransitionMap = {
   saving: {
     'memo/save-succeeded': ({ event }) => ({
       state: cleanState,
-      effects: [{ type: 'effect/notify-updated', memoSlug: event.payload.memoSlug }],
+      effects: [
+        { type: 'effect/snapshot-saved' },
+        { type: 'effect/emit-memo-updated', memoSlug: event.payload.memoSlug },
+        { type: 'effect/replace-memo-route', memoSlug: event.payload.memoSlug },
+      ],
     }),
     'memo/save-failed': () => ({
       state: dirtyState,
@@ -149,7 +156,10 @@ const transitions: TransitionMap = {
   deleting: {
     'memo/delete-succeeded': () => ({
       state: cleanState,
-      effects: [{ type: 'effect/notify-deleted' }],
+      effects: [
+        { type: 'effect/emit-memo-deleted' },
+        { type: 'effect/replace-workspace-route' },
+      ],
     }),
     'memo/delete-failed': ({ state }) => ({
       state: state.returnState,
