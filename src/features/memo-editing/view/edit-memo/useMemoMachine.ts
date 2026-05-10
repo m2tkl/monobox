@@ -1,8 +1,7 @@
 import { ref } from 'vue';
 
-import { transition, type MemoEffect, type MemoEvent, type MemoState } from './memoMachine';
+import { apply, type MemoEffect, type MemoEvent, type MemoState } from './memoMachine';
 
-import type { MemoDeleteConfirmResult } from './memoDeletion';
 import type { MemoSaveMode, MemoSaveResult } from './memoSaveFlow';
 
 type MemoMachineHandlers = {
@@ -10,8 +9,8 @@ type MemoMachineHandlers = {
   syncLinks: (added: string[], deleted: string[]) => Promise<void>;
   notifyUpdated: (memoSlug: string) => void;
   notifyDeleted: () => void;
-  confirmDelete: (previousState: MemoState) => Promise<MemoDeleteConfirmResult>;
-  deleteMemo: (previousState: MemoState) => Promise<boolean>;
+  confirmDelete: () => Promise<boolean>;
+  deleteMemo: () => Promise<boolean>;
 };
 
 type MemoMachineOptions = {
@@ -25,19 +24,17 @@ export function useMemoMachine(
 ) {
   const state = ref<MemoState>(initialState);
 
-  const dispatch = (event: MemoEvent) => {
+  const dispatch = async (event: MemoEvent) => {
     const previous = state.value;
-    const result = transition(previous, event);
-    options.onTransition?.({ previous, event, next: result.next, effects: result.effects });
-    if (result.next !== state.value) {
-      state.value = result.next;
-    }
-    runEffects(result.effects);
+    const result = apply(previous, event);
+    options.onTransition?.({ previous, event, next: result.state, effects: result.effects });
+    state.value = result.state;
+    await runEffects(result.effects);
   };
 
-  const runEffects = (effects: MemoEffect[]) => {
+  const runEffects = async (effects: MemoEffect[]) => {
     for (const effect of effects) {
-      void handleEffect(effect);
+      await handleEffect(effect);
     }
   };
 
@@ -49,15 +46,15 @@ export function useMemoMachine(
           result = await handlers.saveMemo(effect.mode);
         }
         catch (error) {
-          dispatch({ type: 'memo/save-failed', payload: { error } });
+          await dispatch({ type: 'memo/save-failed', payload: { error } });
           return;
         }
 
         if (result.ok) {
-          dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.memoSlug } });
+          await dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.memoSlug } });
         }
         else {
-          dispatch({ type: 'memo/save-failed', payload: { error: result.error } });
+          await dispatch({ type: 'memo/save-failed', payload: { error: result.error } });
         }
         return;
       }
@@ -68,7 +65,7 @@ export function useMemoMachine(
         catch {
           return;
         }
-        dispatch({ type: 'memo/save-requested', payload: { mode: 'auto' } });
+        await dispatch({ type: 'memo/save-requested', payload: { mode: 'auto' } });
         return;
       }
       case 'effect/notify-updated': {
@@ -76,23 +73,17 @@ export function useMemoMachine(
         return;
       }
       case 'effect/confirm-delete': {
-        const result = await handlers.confirmDelete(effect.previousState);
-        if (result.action === 'cancel') {
-          if (result.error) {
-            dispatch({ type: 'memo/delete-failed', payload: { previousState: effect.previousState, error: result.error } });
-          }
-          return;
-        }
-        dispatch({ type: 'memo/delete-confirmed', payload: { previousState: effect.previousState } });
+        const confirmed = await handlers.confirmDelete();
+        await dispatch({ type: 'memo/delete-confirmation-resolved', payload: { confirmed } });
         return;
       }
       case 'effect/delete-memo': {
-        const ok = await handlers.deleteMemo(effect.previousState);
+        const ok = await handlers.deleteMemo();
         if (ok) {
-          dispatch({ type: 'memo/delete-succeeded' });
+          await dispatch({ type: 'memo/delete-succeeded' });
         }
         else {
-          dispatch({ type: 'memo/delete-failed', payload: { previousState: effect.previousState } });
+          await dispatch({ type: 'memo/delete-failed', payload: {} });
         }
         return;
       }

@@ -9,7 +9,7 @@ type UseMemoEditorInteractionsOptions = {
   editor: Ref<TiptapEditor | undefined>;
   route: RouteLocationNormalizedLoaded;
   router: Router;
-  dispatch: (event: MemoEvent) => void;
+  dispatch: (event: MemoEvent) => Promise<void>;
   focusHeading: (editor: TiptapEditor, id: string) => void;
   updateActiveHeadingOnScroll: (editor: TiptapEditor, container: HTMLElement) => void;
 };
@@ -18,7 +18,7 @@ export function useMemoEditorInteractions(options: UseMemoEditorInteractionsOpti
   const handleKeydown = (event: KeyboardEvent) => {
     if (isCmdKey(event) && event.key === 's') {
       event.preventDefault();
-      options.dispatch({ type: 'memo/save-requested', payload: { mode: 'explicit' } });
+      void options.dispatch({ type: 'memo/save-requested', payload: { mode: 'explicit' } });
     }
   };
 

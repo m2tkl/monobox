@@ -391,7 +391,7 @@ const computeDirty = () => {
 };
 
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
-let dispatch: (event: MemoEvent) => void = () => {};
+let dispatch: (event: MemoEvent) => Promise<void> = async () => {};
 
 /* --- States for editor --- */
 
@@ -409,8 +409,8 @@ const {
   updateActiveHeadingOnScroll,
 } = useMemoEditor(currentMemo.value.content, {
   extensions: extensions,
-  onChanged: (_reason) => { dispatch({ type: 'memo/content-changed', payload: { dirty: computeDirty() } }); },
-  onLinksChanged: (added, deleted) => { dispatch({ type: 'memo/links-changed', payload: { added, deleted } }); },
+  onChanged: (_reason) => { void dispatch({ type: 'memo/content-changed', payload: { dirty: computeDirty() } }); },
+  onLinksChanged: (added, deleted) => { void dispatch({ type: 'memo/links-changed', payload: { added, deleted } }); },
   route,
   router,
 });
@@ -433,7 +433,7 @@ const { dispatch: machineDispatch } = useMemoEditingMachine({
 dispatch = machineDispatch;
 
 watch(memoTitle, () => {
-  dispatch({ type: 'memo/title-changed', payload: { dirty: computeDirty() } });
+  void dispatch({ type: 'memo/title-changed', payload: { dirty: computeDirty() } });
 });
 
 // Focus the title field if coming from a "create new memo" action with the appropriate query parameter.
@@ -578,7 +578,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      onSelect: () => { dispatch({ type: 'memo/delete-requested' }); },
+      onSelect: () => { void dispatch({ type: 'memo/delete-requested' }); },
     },
   ],
 ];

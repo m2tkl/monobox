@@ -33,13 +33,11 @@ type UseMemoEditingMachineOptions = {
 
 export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
   const { saveMemo } = useMemoSaveFlow();
-  let dispatch: (event: MemoEvent) => void = () => {};
 
   const memoDeletion = useMemoDeletion({
     workspaceSlug: options.workspaceSlug,
     memoSlug: options.memoSlug,
     deleteDialogRef: options.deleteDialogRef,
-    dispatch: event => dispatch(event),
   });
 
   const { notifyUpdated, notifyDeleted } = createMemoMutationNotifications({
@@ -48,7 +46,6 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
     router: options.router,
     onAfterUpdated: () => {
       options.onSnapshotSaved(options.getCurrentSnapshot());
-      memoDeletion.continuePendingDeleteIfNeeded();
     },
   });
 
@@ -66,7 +63,7 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
     });
   }
 
-  const machine = useMemoMachine('clean', {
+  const machine = useMemoMachine({ type: 'clean' }, {
     saveMemo: saveMemoContent,
     syncLinks: async (added, deleted) => {
       await syncMemoLinks({
@@ -81,15 +78,13 @@ export function useMemoEditingMachine(options: UseMemoEditingMachineOptions) {
   }, {
     onTransition: ({ previous, event, next, effects }) => {
       options.logger.debug('memo-machine', {
-        previous,
+        previous: previous.type,
         event: event.type,
-        next,
+        next: next.type,
         effects: effects.map(effect => effect.type),
       });
     },
   });
-
-  dispatch = machine.dispatch;
 
   return {
     state: machine.state,
