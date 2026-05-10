@@ -1,11 +1,12 @@
 import { computed, nextTick, ref, watch } from 'vue';
 
+import type { TemplateStartIntent } from './useTemplateStartIntent';
 import type { Editor } from '@tiptap/core';
 import type { Ref, ComputedRef } from 'vue';
 import type { RouteLocationNormalizedLoaded, Router, LocationQueryRaw } from 'vue-router';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import { fetchMemoTemplate, getDefaultMemoTemplate, parseTemplateContent } from '~/features/memo-templates';
+import { fetchMemoTemplate, parseTemplateContent } from '~/features/memo-templates';
 
 type UseTemplateApplyOptions = {
   editor: Ref<Editor | undefined>;
@@ -14,10 +15,8 @@ type UseTemplateApplyOptions = {
   route: RouteLocationNormalizedLoaded;
   router: Router;
   availableTemplates: Ref<MemoTemplateIndexItem[]>;
-  isNewMemoCreationFlow: ComputedRef<boolean>;
-  requestedTemplateSlug: ComputedRef<string | undefined>;
-  shouldSkipDefaultTemplate: ComputedRef<boolean>;
-  clearCreatedQueryFlag: () => Promise<void>;
+  startIntent: ComputedRef<TemplateStartIntent>;
+  clearTemplateStartQuery: () => Promise<void>;
   focusTitleFieldForNewMemo: () => void;
   toast: ReturnType<typeof useToast>;
   logger: { error: (error: unknown) => void };
@@ -29,8 +28,8 @@ type UseTemplateApplyOptions = {
  * uses while the apply action is running.
  */
 export function useTemplateApply(options: UseTemplateApplyOptions) {
-  const hasAttemptedDefaultTemplate = ref(false);
   const isTemplatePickerDismissed = ref(false);
+  const handledStartIntentKey = ref<string>();
 
   // Used by the inline template buttons in MemoEditing to disable repeated
   // clicks and show a loading indicator while a template is being applied.
@@ -39,13 +38,9 @@ export function useTemplateApply(options: UseTemplateApplyOptions) {
   // Used by the inline template buttons in MemoEditing to show which template
   // is currently being applied.
   const selectedTemplateId = ref<number>();
-  const hasDefaultMemoTemplate = computed(() => getDefaultMemoTemplate(options.availableTemplates.value) != null);
   const shouldShowTemplatePicker = computed(() =>
-    options.isNewMemoCreationFlow.value
+    options.startIntent.value.type === 'show-template-picker'
     && !isTemplatePickerDismissed.value
-    && !options.shouldSkipDefaultTemplate.value
-    && options.requestedTemplateSlug.value == null
-    && !hasDefaultMemoTemplate.value
     && options.availableTemplates.value.length > 0,
   );
   const isEditorBodyEmpty = computed(() => Boolean(options.editor.value?.isEmpty));
@@ -73,7 +68,7 @@ export function useTemplateApply(options: UseTemplateApplyOptions) {
       await nextTick();
 
       isTemplatePickerDismissed.value = true;
-      await options.clearCreatedQueryFlag();
+      await options.clearTemplateStartQuery();
       options.toast.add({
         title: applyOptions?.toastTitle ?? 'Template applied',
         icon: iconKey.success,
@@ -101,30 +96,34 @@ export function useTemplateApply(options: UseTemplateApplyOptions) {
     if (
       isEmpty
       || isTemplatePickerDismissed.value
-      || !options.isNewMemoCreationFlow.value
+      || options.startIntent.value.type !== 'show-template-picker'
       || isApplyingTemplate.value
     ) {
       return;
     }
 
     isTemplatePickerDismissed.value = true;
-    await options.clearCreatedQueryFlag();
+    await options.clearTemplateStartQuery();
+  });
+
+  const startIntentKey = computed(() => {
+    const intent = options.startIntent.value;
+
+    if (intent.type === 'requested-template' || intent.type === 'default-template') {
+      return `${intent.type}:${intent.templateSlug}`;
+    }
+
+    return intent.type;
   });
 
   watch(
     [
-      options.isNewMemoCreationFlow,
-      options.requestedTemplateSlug,
-      options.shouldSkipDefaultTemplate,
-      options.availableTemplates,
+      options.startIntent,
+      startIntentKey,
       options.editor,
     ],
-    async ([, templateSlug, skipDefaultTemplate]) => {
-      if (hasAttemptedDefaultTemplate.value) {
-        return;
-      }
-
-      if (!options.isNewMemoCreationFlow.value) {
+    async ([intent, intentKey]) => {
+      if (handledStartIntentKey.value === intentKey) {
         return;
       }
 
@@ -132,10 +131,12 @@ export function useTemplateApply(options: UseTemplateApplyOptions) {
         return;
       }
 
-      if (templateSlug) {
-        hasAttemptedDefaultTemplate.value = true;
-        const isApplied = await applyTemplate(templateSlug);
+      if (intent.type === 'requested-template') {
+        handledStartIntentKey.value = intentKey;
+        const isApplied = await applyTemplate(intent.templateSlug);
         if (!isApplied) {
+          handledStartIntentKey.value = undefined;
+          isTemplatePickerDismissed.value = false;
           const { template: _template, ...nextQuery } = options.route.query;
           const normalizedQuery: LocationQueryRaw = {};
           for (const [key, value] of Object.entries(nextQuery)) {
@@ -146,27 +147,35 @@ export function useTemplateApply(options: UseTemplateApplyOptions) {
             query: normalizedQuery,
             hash: options.route.hash,
           });
-          isTemplatePickerDismissed.value = false;
         }
         return;
       }
 
-      if (skipDefaultTemplate) {
-        hasAttemptedDefaultTemplate.value = true;
+      if (intent.type === 'skip-default-template') {
+        handledStartIntentKey.value = intentKey;
         isTemplatePickerDismissed.value = true;
-        await options.clearCreatedQueryFlag();
+        await options.clearTemplateStartQuery();
         options.focusTitleFieldForNewMemo();
         return;
       }
 
-      const defaultTemplate = getDefaultMemoTemplate(options.availableTemplates.value);
-      if (!defaultTemplate) {
-        hasAttemptedDefaultTemplate.value = true;
+      if (intent.type === 'default-template') {
+        handledStartIntentKey.value = intentKey;
+        await applyTemplate(intent.templateSlug, { toastTitle: 'Default template applied' });
         return;
       }
 
-      hasAttemptedDefaultTemplate.value = true;
-      await applyTemplate(defaultTemplate.slug_name, { toastTitle: 'Default template applied' });
+      if (intent.type === 'show-template-picker') {
+        return;
+      }
+
+      if (intent.type === 'idle') {
+        handledStartIntentKey.value = intentKey;
+        return;
+      }
+
+      const _exhaustiveCheck: never = intent;
+      void _exhaustiveCheck;
     },
     { immediate: true },
   );

@@ -290,9 +290,9 @@ import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectT
 import { useMemoCopy } from './view/share-memo/memoCopy';
 import { useMemoExport } from './view/share-memo/memoExport';
 import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
-import { focusNewMemoTitle } from './view/start-memo-from-template/focusNewMemoTitle';
-import { useNewMemoTemplateQuery } from './view/start-memo-from-template/useNewMemoTemplateQuery';
+import { focusMemoTitleField } from './view/start-memo-from-template/focusMemoTitleField';
 import { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
+import { useTemplateStartIntent } from './view/start-memo-from-template/useTemplateStartIntent';
 
 import type { DeleteMemoDialogHandle } from './view/edit-memo/deleteMemoDialog';
 import type { MemoEvent } from './view/edit-memo/memoMachine';
@@ -348,12 +348,11 @@ const loadInitialData = () => loadMemoEditingData({
   loadTemplates,
 });
 const {
-  createdQueryValue,
-  isNewMemoCreationFlow,
-  requestedTemplateSlug,
-  shouldSkipDefaultTemplate,
-} = useNewMemoTemplateQuery({
+  startIntent,
+  shouldFocusNewMemoTitle,
+} = useTemplateStartIntent({
   route,
+  availableTemplates,
 });
 const logger = useConsoleLogger('pages/memo');
 
@@ -439,23 +438,18 @@ watch(memoTitle, () => {
 
 // Focus the title field if coming from a "create new memo" action with the appropriate query parameter.
 onMounted(() => {
-  focusNewMemoTitle({
-    createdQueryValue: createdQueryValue.value,
+  if (!shouldFocusNewMemoTitle.value) {
+    return;
+  }
+
+  focusMemoTitleField({
     focusTitleField: (selectAll) => {
       memoEditorRef.value?.focusTitleField(selectAll);
     },
   });
 });
 
-const clearCreatedQueryFlag = async () => {
-  if (
-    createdQueryValue.value == null
-    && requestedTemplateSlug.value == null
-    && !shouldSkipDefaultTemplate.value
-  ) {
-    return;
-  }
-
+const clearTemplateStartQuery = async () => {
   await clearNewMemoTemplateQuery({
     route,
     router,
@@ -463,8 +457,7 @@ const clearCreatedQueryFlag = async () => {
 };
 
 const focusTitleFieldForNewMemo = () => {
-  focusNewMemoTitle({
-    createdQueryValue: createdQueryValue.value,
+  focusMemoTitleField({
     focusTitleField: (selectAll) => {
       memoEditorRef.value?.focusTitleField(selectAll);
     },
@@ -483,10 +476,8 @@ const {
   route,
   router,
   availableTemplates,
-  isNewMemoCreationFlow,
-  requestedTemplateSlug,
-  shouldSkipDefaultTemplate,
-  clearCreatedQueryFlag,
+  startIntent,
+  clearTemplateStartQuery,
   focusTitleFieldForNewMemo,
   toast,
   logger,

@@ -43,6 +43,6 @@ export { convertMemoToHtml } from './view/share-memo/converters';
 export { useMemoCopy } from './view/share-memo/memoCopy';
 export { useMemoExport } from './view/share-memo/memoExport';
 export { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
-export { focusNewMemoTitle } from './view/start-memo-from-template/focusNewMemoTitle';
-export { useNewMemoTemplateQuery } from './view/start-memo-from-template/useNewMemoTemplateQuery';
+export { focusMemoTitleField } from './view/start-memo-from-template/focusMemoTitleField';
 export { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
+export { useTemplateStartIntent } from './view/start-memo-from-template/useTemplateStartIntent';
