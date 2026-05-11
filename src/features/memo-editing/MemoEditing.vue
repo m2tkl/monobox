@@ -298,6 +298,7 @@ import type { DeleteMemoDialogHandle } from './view/edit-memo/deleteMemoDialog';
 import type { MemoEvent } from './view/edit-memo/memoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';
+import type { LocationQueryRaw } from 'vue-router';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { buildExtensions, CodeBlockComponent, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
@@ -430,6 +431,7 @@ watch(memoTitle, () => {
   void dispatch({ type: 'memo/title-updated', payload: { dirty: computeDirty() } });
 });
 
+// Focus the title after mount/template-start timing settles.
 const focusNewMemoTitle = () => {
   nextTick(() => {
     window.setTimeout(() => {
@@ -454,6 +456,21 @@ const clearTemplateStartQuery = async () => {
   });
 };
 
+// Remove only the requested template slug so a failed apply does not retry forever.
+const clearRequestedTemplateQuery = async () => {
+  const { template: _template, ...nextQuery } = route.query;
+  const normalizedQuery: LocationQueryRaw = {};
+  for (const [key, value] of Object.entries(nextQuery)) {
+    normalizedQuery[key] = value as string | string[] | null | undefined;
+  }
+
+  await router.replace({
+    path: route.path,
+    query: normalizedQuery,
+    hash: route.hash,
+  });
+};
+
 const {
   isApplyingTemplate,
   selectedTemplateId,
@@ -463,11 +480,10 @@ const {
   editor,
   hasMemo: computed(() => memoVM.value.data.memo != null),
   workspaceSlug,
-  route,
-  router,
   availableTemplates,
   startIntent,
   clearTemplateStartQuery,
+  clearRequestedTemplateQuery,
   focusNewMemoTitle,
   toast,
   logger,

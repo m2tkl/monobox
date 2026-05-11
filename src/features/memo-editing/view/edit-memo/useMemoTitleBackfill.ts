@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import type { MemoDetail } from '~/models/memo';
 import type { ComputedRef } from 'vue';
 
+// Fill the editable title only while it is still empty.
 export function useMemoTitleBackfill(memo: ComputedRef<MemoDetail | null>) {
   const memoTitle = ref('');
 

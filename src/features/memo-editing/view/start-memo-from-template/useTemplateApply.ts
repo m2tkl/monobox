@@ -3,7 +3,6 @@ import { computed, nextTick, ref, watch } from 'vue';
 import type { TemplateStartIntent } from './useTemplateStartIntent';
 import type { Editor } from '@tiptap/core';
 import type { Ref, ComputedRef } from 'vue';
-import type { RouteLocationNormalizedLoaded, Router, LocationQueryRaw } from 'vue-router';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { fetchMemoTemplate, parseTemplateContent } from '~/features/memo-templates';
@@ -12,11 +11,10 @@ type UseTemplateApplyOptions = {
   editor: Ref<Editor | undefined>;
   hasMemo: ComputedRef<boolean>;
   workspaceSlug: Ref<string>;
-  route: RouteLocationNormalizedLoaded;
-  router: Router;
   availableTemplates: Ref<MemoTemplateIndexItem[]>;
   startIntent: ComputedRef<TemplateStartIntent>;
   clearTemplateStartQuery: () => Promise<void>;
+  clearRequestedTemplateQuery: () => Promise<void>;
   focusNewMemoTitle: () => void;
   toast: ReturnType<typeof useToast>;
   logger: { error: (error: unknown) => void };
@@ -137,16 +135,7 @@ export function useTemplateApply(options: UseTemplateApplyOptions) {
         if (!isApplied) {
           handledStartIntentKey.value = undefined;
           isTemplatePickerDismissed.value = false;
-          const { template: _template, ...nextQuery } = options.route.query;
-          const normalizedQuery: LocationQueryRaw = {};
-          for (const [key, value] of Object.entries(nextQuery)) {
-            normalizedQuery[key] = value as string | string[] | null | undefined;
-          }
-          await options.router.replace({
-            path: options.route.path,
-            query: normalizedQuery,
-            hash: options.route.hash,
-          });
+          await options.clearRequestedTemplateQuery();
         }
         return;
       }
