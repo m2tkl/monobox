@@ -315,10 +315,10 @@ export function useMemoEditor(
             && tableImeGuard.value.selectionToOffset !== null;
           const expectedCellTextAfterComposition = canResolveExpectedCellText
             ? [
-                tableImeGuard.value.initialCellText.slice(0, tableImeGuard.value.selectionFromOffset!),
-                compositionResult,
-                tableImeGuard.value.initialCellText.slice(tableImeGuard.value.selectionToOffset!),
-              ].join('')
+              tableImeGuard.value.initialCellText.slice(0, tableImeGuard.value.selectionFromOffset!),
+              compositionResult,
+              tableImeGuard.value.initialCellText.slice(tableImeGuard.value.selectionToOffset!),
+            ].join('')
             : null;
           if (
             inputEvent.inputType === 'insertFromComposition'
@@ -440,7 +440,7 @@ export function useMemoEditor(
         }
 
         if (isInternalLink(url) && !isModifierKeyPressed(event)) {
-        // NOTE: Pass the entire URL instead of the path ( `{ path: url }` ) to include the fragment.
+          // NOTE: Pass the entire URL instead of the path ( `{ path: url }` ) to include the fragment.
           options.router.push(url);
           return;
         }
