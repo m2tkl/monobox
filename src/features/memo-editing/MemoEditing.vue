@@ -280,8 +280,9 @@ import { useMemoEditor } from './view/compose-memo/useMemoEditor';
 import { useMemoEditorActions } from './view/compose-memo/useMemoEditorActions';
 import { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInteractions';
 import DeleteMemoDialog from './view/edit-memo/DeleteMemoDialog.vue';
-import { useMemoEditingContext } from './view/edit-memo/memoEditingContext';
 import { useMemoMachine } from './view/edit-memo/useMemoMachine';
+import { useMemoRouteTarget } from './view/edit-memo/useMemoRouteTarget';
+import { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
 import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
 import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
@@ -303,6 +304,7 @@ import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 import { buildExtensions, CodeBlockComponent, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
 import { loadMemoTemplates } from '~/features/memo-templates';
 import { SearchPalette } from '~/features/search';
+import { useCurrentMemoReadModel } from '~/features/memo-editing/resource/read-model';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { useConsoleLogger } from '~/utils/logger';
 
@@ -310,17 +312,12 @@ const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
 });
 
+const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const {
-  route,
-  workspaceSlug,
-  memoSlug,
-  routeHash,
-  memoReadModel: memoVM,
-  memo,
-  memoTitle,
-} = useMemoEditingContext();
+const { workspaceSlug, memoSlug } = useMemoRouteTarget(route);
+const memoVM = useCurrentMemoReadModel();
+const { memoTitle } = useMemoTitleBackfill(computed(() => memoVM.value.data.memo));
 const {
   kanbans,
   kanbanEntryMap,
@@ -340,12 +337,6 @@ const availableTemplates = ref<MemoTemplateIndexItem[]>([]);
 const loadTemplates = async () => {
   availableTemplates.value = await loadMemoTemplates(workspaceSlug.value);
 };
-const loadInitialData = () => loadMemoEditingData({
-  workspaceSlug,
-  memoSlug,
-  loadKanbanEntries,
-  loadTemplates,
-});
 const {
   startIntent,
   shouldFocusNewMemoTitle,
@@ -355,28 +346,34 @@ const {
 });
 const logger = useConsoleLogger('pages/memo');
 
+
+await usePageLoader(() => loadMemoEditingData({
+  workspaceSlug,
+  memoSlug,
+  loadKanbanEntries,
+  loadTemplates,
+}));
+
+const resolvedCurrentMemo = computed(() => {
+  const memo = memoVM.value.data.memo;
+  if (!memo) {
+    throw new Error('Memo is not loaded.');
+  }
+  return memo;
+});
+
 type MemoSnapshot = {
   title: string;
   content: string;
 };
 
-await usePageLoader(loadInitialData);
-
-const currentMemo = computed(() => {
-  const loadedMemo = memo.value;
-  if (!loadedMemo) {
-    throw new Error('Memo is not loaded.');
-  }
-  return loadedMemo;
-});
-
 const lastSavedSnapshot = ref<MemoSnapshot>({
-  title: currentMemo.value.title,
-  content: currentMemo.value.content,
+  title: resolvedCurrentMemo.value.title,
+  content: resolvedCurrentMemo.value.content,
 });
 
 const getCurrentSnapshot = (): MemoSnapshot => {
-  const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : currentMemo.value.content;
+  const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : resolvedCurrentMemo.value.content;
   return {
     title: memoTitle.value,
     content: currentContent,
@@ -406,7 +403,7 @@ const {
   focusHeading,
   headImageRef,
   updateActiveHeadingOnScroll,
-} = useMemoEditor(currentMemo.value.content, {
+} = useMemoEditor(resolvedCurrentMemo.value.content, {
   extensions: extensions,
   onChanged: (_reason) => { void dispatch({ type: 'memo/content-changed', payload: { dirty: computeDirty() } }); },
   onLinksChanged: (added, deleted) => { void dispatch({ type: 'memo/links-changed', payload: { added, deleted } }); },
@@ -418,8 +415,8 @@ const { dispatch: machineDispatch } = useMemoMachine({
   initialState: { type: 'clean' },
   workspaceSlug,
   memoSlug,
-  routeHash,
   router,
+  route,
   editor,
   memoTitle,
   headImageRef,

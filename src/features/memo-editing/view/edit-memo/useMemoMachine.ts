@@ -21,8 +21,8 @@ type UseMemoMachineDeps = {
   initialState: MemoState;
   workspaceSlug: Ref<string>;
   memoSlug: Ref<string>;
-  routeHash: Ref<string>;
   router: Router;
+  route: { hash: string };
   editor: Ref<Editor | undefined>;
   memoTitle: Ref<string>;
   headImageRef: Ref<string | null | undefined>;
@@ -75,7 +75,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
             editor: options.editor.value,
             title: options.memoTitle.value,
             thumbnailImage: options.headImageRef.value ?? '',
-            routeHash: options.routeHash.value,
+            routeHash: options.route.hash,
             mode: effect.mode,
           });
         }
@@ -117,7 +117,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
         return;
       }
       case 'effect/replace-memo-route': {
-        options.router.replace(`/${options.workspaceSlug.value}/${effect.memoSlug}${options.routeHash.value}`);
+        options.router.replace(`/${options.workspaceSlug.value}/${effect.memoSlug}${options.route.hash}`);
         return;
       }
       case 'effect/confirm-delete': {
