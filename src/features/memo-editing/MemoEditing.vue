@@ -281,7 +281,7 @@ import { useMemoEditorActions } from './view/compose-memo/useMemoEditorActions';
 import { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInteractions';
 import DeleteMemoDialog from './view/edit-memo/DeleteMemoDialog.vue';
 import { useMemoEditingContext } from './view/edit-memo/memoEditingContext';
-import { useMemoEditingMachine } from './view/edit-memo/useMemoEditingMachine';
+import { useMemoMachine } from './view/edit-memo/useMemoMachine';
 import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
 import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
@@ -414,7 +414,8 @@ const {
   router,
 });
 
-const { dispatch: machineDispatch } = useMemoEditingMachine({
+const { dispatch: machineDispatch } = useMemoMachine({
+  initialState: { type: 'clean' },
   workspaceSlug,
   memoSlug,
   routeHash,

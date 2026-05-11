@@ -30,7 +30,7 @@ export { useMemoEditor } from './view/compose-memo/useMemoEditor';
 export { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInteractions';
 export { default as DeleteMemoDialog } from './view/edit-memo/DeleteMemoDialog.vue';
 export { useMemoEditingContext } from './view/edit-memo/memoEditingContext';
-export { useMemoEditingMachine } from './view/edit-memo/useMemoEditingMachine';
+export { useMemoMachine } from './view/edit-memo/useMemoMachine';
 export { useMemoSaveFlow } from './view/edit-memo/memoSaveFlow';
 export { default as MemoLinkCardView } from './view/navigate-memo/MemoLinkCardView/Index.vue';
 export { default as OutlinePanel } from './view/navigate-memo/OutlinePanel.vue';
