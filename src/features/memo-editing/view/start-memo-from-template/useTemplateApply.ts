@@ -17,7 +17,7 @@ type UseTemplateApplyOptions = {
   availableTemplates: Ref<MemoTemplateIndexItem[]>;
   startIntent: ComputedRef<TemplateStartIntent>;
   clearTemplateStartQuery: () => Promise<void>;
-  focusTitleFieldForNewMemo: () => void;
+  focusNewMemoTitle: () => void;
   toast: ReturnType<typeof useToast>;
   logger: { error: (error: unknown) => void };
 };
@@ -155,7 +155,7 @@ export function useTemplateApply(options: UseTemplateApplyOptions) {
         handledStartIntentKey.value = intentKey;
         isTemplatePickerDismissed.value = true;
         await options.clearTemplateStartQuery();
-        options.focusTitleFieldForNewMemo();
+        options.focusNewMemoTitle();
         return;
       }
 

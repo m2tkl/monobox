@@ -291,7 +291,6 @@ import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectT
 import { useMemoCopy } from './view/share-memo/memoCopy';
 import { useMemoExport } from './view/share-memo/memoExport';
 import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
-import { focusMemoTitleField } from './view/start-memo-from-template/focusMemoTitleField';
 import { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
 import { useTemplateStartIntent } from './view/start-memo-from-template/useTemplateStartIntent';
 
@@ -389,8 +388,6 @@ const computeDirty = () => {
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 let dispatch: (event: MemoEvent) => Promise<void> = async () => {};
 
-/* --- States for editor --- */
-
 // Reference to control the link palette component
 const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
 const memoEditorRef = ref<InstanceType<typeof MemoEditor> | null>(null);
@@ -405,7 +402,7 @@ const {
   updateActiveHeadingOnScroll,
 } = useMemoEditor(resolvedCurrentMemo.value.content, {
   extensions: extensions,
-  onChanged: (_reason) => { void dispatch({ type: 'memo/content-changed', payload: { dirty: computeDirty() } }); },
+  onChanged: (_reason) => { void dispatch({ type: 'memo/content-updated', payload: { dirty: computeDirty() } }); },
   onLinksChanged: (added, deleted) => { void dispatch({ type: 'memo/links-changed', payload: { added, deleted } }); },
   route,
   router,
@@ -430,8 +427,16 @@ const { dispatch: machineDispatch } = useMemoMachine({
 dispatch = machineDispatch;
 
 watch(memoTitle, () => {
-  void dispatch({ type: 'memo/title-changed', payload: { dirty: computeDirty() } });
+  void dispatch({ type: 'memo/title-updated', payload: { dirty: computeDirty() } });
 });
+
+const focusNewMemoTitle = () => {
+  nextTick(() => {
+    window.setTimeout(() => {
+      memoEditorRef.value?.focusTitleField(true);
+    }, 50);
+  });
+};
 
 // Focus the title field if coming from a "create new memo" action with the appropriate query parameter.
 onMounted(() => {
@@ -439,25 +444,13 @@ onMounted(() => {
     return;
   }
 
-  focusMemoTitleField({
-    focusTitleField: (selectAll) => {
-      memoEditorRef.value?.focusTitleField(selectAll);
-    },
-  });
+  focusNewMemoTitle();
 });
 
 const clearTemplateStartQuery = async () => {
   await clearNewMemoTemplateQuery({
     route,
     router,
-  });
-};
-
-const focusTitleFieldForNewMemo = () => {
-  focusMemoTitleField({
-    focusTitleField: (selectAll) => {
-      memoEditorRef.value?.focusTitleField(selectAll);
-    },
   });
 };
 
@@ -475,7 +468,7 @@ const {
   availableTemplates,
   startIntent,
   clearTemplateStartQuery,
-  focusTitleFieldForNewMemo,
+  focusNewMemoTitle,
   toast,
   logger,
 });

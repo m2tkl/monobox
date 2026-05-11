@@ -14,8 +14,8 @@ export type MemoState =
     };
 
 export type MemoEvent =
-  | { type: 'memo/content-changed'; payload: { dirty: boolean } }
-  | { type: 'memo/title-changed'; payload: { dirty: boolean } }
+  | { type: 'memo/content-updated'; payload: { dirty: boolean } }
+  | { type: 'memo/title-updated'; payload: { dirty: boolean } }
   | { type: 'memo/links-changed'; payload: { added: string[]; deleted: string[] } }
   | { type: 'memo/save-requested'; payload: { mode: 'explicit' | 'auto' } }
   | { type: 'memo/save-succeeded'; payload: { memoSlug: string } }
@@ -52,8 +52,8 @@ type MemoStateByType = {
 };
 
 type MemoEventByType = {
-  'memo/content-changed': Extract<MemoEvent, { type: 'memo/content-changed' }>;
-  'memo/title-changed': Extract<MemoEvent, { type: 'memo/title-changed' }>;
+  'memo/content-updated': Extract<MemoEvent, { type: 'memo/content-updated' }>;
+  'memo/title-updated': Extract<MemoEvent, { type: 'memo/title-updated' }>;
   'memo/links-changed': Extract<MemoEvent, { type: 'memo/links-changed' }>;
   'memo/save-requested': Extract<MemoEvent, { type: 'memo/save-requested' }>;
   'memo/save-succeeded': Extract<MemoEvent, { type: 'memo/save-succeeded' }>;
@@ -80,11 +80,11 @@ type TransitionMap = {
 
 const transitions: TransitionMap = {
   clean: {
-    'memo/content-changed': ({ event }) => ({
+    'memo/content-updated': ({ event }) => ({
       state: event.payload.dirty ? dirtyState : cleanState,
       effects: [],
     }),
-    'memo/title-changed': ({ event }) => ({
+    'memo/title-updated': ({ event }) => ({
       state: event.payload.dirty ? dirtyState : cleanState,
       effects: [],
     }),
@@ -108,11 +108,11 @@ const transitions: TransitionMap = {
     },
   },
   dirty: {
-    'memo/content-changed': ({ event }) => ({
+    'memo/content-updated': ({ event }) => ({
       state: event.payload.dirty ? dirtyState : cleanState,
       effects: [],
     }),
-    'memo/title-changed': ({ event }) => ({
+    'memo/title-updated': ({ event }) => ({
       state: event.payload.dirty ? dirtyState : cleanState,
       effects: [],
     }),
