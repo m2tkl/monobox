@@ -31,7 +31,6 @@ export { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInte
 export { default as DeleteMemoDialog } from './view/edit-memo/DeleteMemoDialog.vue';
 export { useMemoMachine } from './view/edit-memo/useMemoMachine';
 export { useMemoRouteTarget } from './view/edit-memo/useMemoRouteTarget';
-export { useMemoSaveFlow } from './view/edit-memo/memoSaveFlow';
 export { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
 export { default as MemoLinkCardView } from './view/navigate-memo/MemoLinkCardView/Index.vue';
 export { default as OutlinePanel } from './view/navigate-memo/OutlinePanel.vue';
