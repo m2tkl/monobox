@@ -294,7 +294,7 @@ import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clear
 import { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
 import { useTemplateStartIntent } from './view/start-memo-from-template/useTemplateStartIntent';
 
-import type { DeleteMemoDialogHandle } from './view/edit-memo/deleteMemoDialog';
+import type { DeleteMemoDialogHandle } from './view/edit-memo/memoDeletion';
 import type { MemoEvent } from './view/edit-memo/memoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';

@@ -1,7 +1,10 @@
 import { deleteMemo as executeDeleteMemo } from '../../resource/command/deleteMemo';
 
-import type { DeleteMemoDialogHandle } from './deleteMemoDialog';
 import type { Ref } from 'vue';
+
+export type DeleteMemoDialogHandle = {
+  confirm: () => Promise<boolean>;
+};
 
 type UseMemoDeletionOptions = {
   workspaceSlug: Ref<string>;

@@ -5,7 +5,7 @@ import { apply, type MemoEffect, type MemoEvent, type MemoState } from './memoMa
 import { useMemoSaveFlow } from './memoSaveFlow';
 import { syncMemoLinks } from '../../resource/command/syncMemoLinks';
 
-import type { DeleteMemoDialogHandle } from './deleteMemoDialog';
+import type { DeleteMemoDialogHandle } from './memoDeletion';
 import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
