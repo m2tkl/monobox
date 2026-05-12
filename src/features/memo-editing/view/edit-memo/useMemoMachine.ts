@@ -37,6 +37,14 @@ type UseMemoMachineDeps = {
   };
 };
 
+type EffectExecutionResult = {
+  nextEvent?: MemoEvent;
+};
+
+type Result<T = undefined> =
+  | { ok: true; data: T }
+  | { ok: false; error?: unknown };
+
 export function useMemoMachine(options: UseMemoMachineDeps) {
   const state = ref<MemoState>(options.initialState);
   const toast = useToast();
@@ -57,7 +65,10 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
 
   const runEffects = async (effects: MemoEffect[]) => {
     for (const effect of effects) {
-      await handleEffect(effect);
+      const result = await handleEffect(effect);
+      if (result.nextEvent) {
+        await dispatch(result.nextEvent);
+      }
     }
   };
 
@@ -69,32 +80,21 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
     return options.deleteDialogRef.value.confirm();
   };
 
-  const deleteMemo = async (): Promise<boolean> => {
+  const deleteMemo = async (): Promise<Result> => {
     try {
       await executeDeleteMemo({
         workspaceSlug: options.workspaceSlug.value,
         memoSlug: options.memoSlug.value,
       });
-
-      toast.add({ title: 'Delete memo successfully.', icon: iconKey.success, duration: 1000 });
-      return true;
+      return { ok: true, data: undefined };
     }
     catch (error) {
       logger.error(error);
-      toast.add({
-        title: 'Failed to delete.',
-        description: 'Please try again',
-        color: 'error',
-        icon: iconKey.failed,
-      });
-      return false;
+      return { ok: false, error };
     }
   };
 
-  const runSaveMemoEffect = async (mode: 'explicit' | 'auto') => {
-    let result:
-      | { ok: true; memoSlug: string }
-      | { ok: false; error?: unknown };
+  const saveMemo = async (mode: 'explicit' | 'auto'): Promise<Result<{ memoSlug: string }>> => {
     const editor = options.editor.value;
 
     try {
@@ -102,120 +102,127 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
         if (mode === 'explicit') {
           throw new Error('Editor instance not set.');
         }
-        result = { ok: false };
+        return { ok: false };
       }
-      else if (!options.memoTitle.value) {
+
+      if (!options.memoTitle.value) {
         if (mode === 'explicit') {
           window.alert('Please set title.');
         }
-        result = { ok: false };
+        return { ok: false };
       }
-      else {
-        const saved = await executeSaveMemo(
-          {
-            workspaceSlug: options.workspaceSlug.value,
-            memoSlug: options.memoSlug.value,
-          },
-          editor,
-          options.memoTitle.value,
-          options.headImageRef.value ?? '',
-          options.route.hash,
-        );
-        result = { ok: true, memoSlug: saved.memoSlug };
-      }
+
+      const saved = await executeSaveMemo(
+        {
+          workspaceSlug: options.workspaceSlug.value,
+          memoSlug: options.memoSlug.value,
+        },
+        editor,
+        options.memoTitle.value,
+        options.headImageRef.value ?? '',
+        options.route.hash,
+      );
+
+      return { ok: true, data: { memoSlug: saved.memoSlug } };
     }
     catch (error) {
       if (mode === 'explicit') {
         logger.error(error);
+      }
+      return { ok: false, error };
+    }
+  };
+
+  const syncLinks = async (added: string[], deleted: string[]): Promise<Result> => {
+    try {
+      await syncMemoLinks({
+        workspaceSlug: options.workspaceSlug.value,
+        memoSlug: options.memoSlug.value,
+      }, added, deleted);
+      return { ok: true, data: undefined };
+    }
+    catch {
+      return { ok: false };
+    }
+  };
+
+  const handleEffect = async (effect: MemoEffect): Promise<EffectExecutionResult> => {
+    switch (effect.type) {
+      case 'effect/save-memo': {
+        const result = await saveMemo(effect.mode);
+        return result.ok
+          ? { nextEvent: { type: 'memo/save-succeeded', payload: { memoSlug: result.data.memoSlug } } }
+          : { nextEvent: { type: 'memo/save-failed', payload: { error: result.error } } };
+      }
+      case 'effect/sync-links': {
+        const result = await syncLinks(effect.added, effect.deleted);
+        return result.ok
+          ? { nextEvent: { type: 'memo/save-requested', payload: { mode: 'auto' } } }
+          : {};
+      }
+      case 'effect/snapshot-saved': {
+        options.onSnapshotSaved(options.getCurrentSnapshot());
+        return {};
+      }
+      case 'effect/notify-save-succeeded': {
+        toast.add({ title: 'Saved', icon: iconKey.success, duration: 1000 });
+        return {};
+      }
+      case 'effect/notify-save-failed': {
         toast.add({
           title: 'Failed to save',
           description: 'Please try again',
           color: 'error',
           icon: iconKey.failed,
         });
-      }
-      await dispatch({ type: 'memo/save-failed', payload: { error } });
-      return;
-    }
-
-    if (result.ok) {
-      if (mode === 'explicit') {
-        toast.add({ title: 'Saved', icon: iconKey.success, duration: 1000 });
-      }
-      await dispatch({ type: 'memo/save-succeeded', payload: { memoSlug: result.memoSlug } });
-      return;
-    }
-
-    await dispatch({ type: 'memo/save-failed', payload: { error: result.error } });
-  };
-
-  const runSyncLinksEffect = async (added: string[], deleted: string[]) => {
-    try {
-      await syncMemoLinks({
-        workspaceSlug: options.workspaceSlug.value,
-        memoSlug: options.memoSlug.value,
-      }, added, deleted);
-    }
-    catch {
-      return;
-    }
-    await dispatch({ type: 'memo/save-requested', payload: { mode: 'auto' } });
-  };
-
-  const runDeleteMemoEffect = async () => {
-    const ok = await deleteMemo();
-    if (ok) {
-      await dispatch({ type: 'memo/delete-succeeded' });
-      return;
-    }
-
-    await dispatch({ type: 'memo/delete-failed', payload: {} });
-  };
-
-  const handleEffect = async (effect: MemoEffect) => {
-    switch (effect.type) {
-      case 'effect/save-memo': {
-        await runSaveMemoEffect(effect.mode);
-        return;
-      }
-      case 'effect/sync-links': {
-        await runSyncLinksEffect(effect.added, effect.deleted);
-        return;
-      }
-      case 'effect/snapshot-saved': {
-        options.onSnapshotSaved(options.getCurrentSnapshot());
-        return;
+        return {};
       }
       case 'effect/emit-memo-updated': {
         emitEvent('memo/updated', {
           workspaceSlug: options.workspaceSlug.value,
           memoSlug: effect.memoSlug,
         });
-        return;
+        return {};
       }
       case 'effect/replace-memo-route': {
         options.router.replace(`/${options.workspaceSlug.value}/${effect.memoSlug}${options.route.hash}`);
-        return;
+        return {};
       }
       case 'effect/confirm-delete': {
         const confirmed = await confirmDelete();
-        await dispatch({ type: 'memo/delete-confirmation-resolved', payload: { confirmed } });
-        return;
+        return {
+          nextEvent: { type: 'memo/delete-confirmation-resolved', payload: { confirmed } },
+        };
       }
       case 'effect/delete-memo': {
-        await runDeleteMemoEffect();
-        return;
+        const result = await deleteMemo();
+        return result.ok
+          ? { nextEvent: { type: 'memo/delete-succeeded' } }
+          : { nextEvent: { type: 'memo/delete-failed', payload: {} } };
+      }
+      case 'effect/notify-delete-succeeded': {
+        toast.add({ title: 'Delete memo successfully.', icon: iconKey.success, duration: 1000 });
+        return {};
+      }
+      case 'effect/notify-delete-failed': {
+        toast.add({
+          title: 'Failed to delete.',
+          description: 'Please try again',
+          color: 'error',
+          icon: iconKey.failed,
+        });
+        return {};
       }
       case 'effect/emit-memo-deleted': {
         emitEvent('memo/deleted', { workspaceSlug: options.workspaceSlug.value });
-        return;
+        return {};
       }
       case 'effect/replace-workspace-route': {
         options.router.replace(`/${options.workspaceSlug.value}`);
-        return;
+        return {};
       }
       default:
-        return;
+        return {};
     }
   };
 

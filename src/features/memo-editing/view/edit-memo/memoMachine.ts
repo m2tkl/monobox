@@ -4,14 +4,8 @@ export type MemoEditableState =
 
 export type MemoState =
   | MemoEditableState
-  | {
-      type: 'saving';
-      mode: 'explicit' | 'auto';
-    }
-  | {
-      type: 'deleting';
-      returnState: MemoEditableState;
-    };
+  | { type: 'saving'; mode: 'explicit' | 'auto' }
+  | { type: 'deleting'; returnState: MemoEditableState };
 
 export type MemoEvent =
   | { type: 'memo/content-updated'; payload: { dirty: boolean } }
@@ -29,10 +23,14 @@ export type MemoEffect =
   | { type: 'effect/save-memo'; mode: 'explicit' | 'auto' }
   | { type: 'effect/sync-links'; added: string[]; deleted: string[] }
   | { type: 'effect/snapshot-saved' }
+  | { type: 'effect/notify-save-succeeded' }
+  | { type: 'effect/notify-save-failed' }
   | { type: 'effect/emit-memo-updated'; memoSlug: string }
   | { type: 'effect/replace-memo-route'; memoSlug: string }
   | { type: 'effect/confirm-delete' }
   | { type: 'effect/delete-memo' }
+  | { type: 'effect/notify-delete-succeeded' }
+  | { type: 'effect/notify-delete-failed' }
   | { type: 'effect/emit-memo-deleted' }
   | { type: 'effect/replace-workspace-route' };
 
@@ -140,30 +138,32 @@ const transitions: TransitionMap = {
     },
   },
   saving: {
-    'memo/save-succeeded': ({ event }) => ({
+    'memo/save-succeeded': ({ state, event }) => ({
       state: cleanState,
       effects: [
+        ...(state.mode === 'explicit' ? [{ type: 'effect/notify-save-succeeded' as const }] : []),
         { type: 'effect/snapshot-saved' },
         { type: 'effect/emit-memo-updated', memoSlug: event.payload.memoSlug },
         { type: 'effect/replace-memo-route', memoSlug: event.payload.memoSlug },
       ],
     }),
-    'memo/save-failed': () => ({
+    'memo/save-failed': ({ state }) => ({
       state: dirtyState,
-      effects: [],
+      effects: state.mode === 'explicit' ? [{ type: 'effect/notify-save-failed' }] : [],
     }),
   },
   deleting: {
     'memo/delete-succeeded': () => ({
       state: cleanState,
       effects: [
+        { type: 'effect/notify-delete-succeeded' },
         { type: 'effect/emit-memo-deleted' },
         { type: 'effect/replace-workspace-route' },
       ],
     }),
     'memo/delete-failed': ({ state }) => ({
       state: state.returnState,
-      effects: [],
+      effects: [{ type: 'effect/notify-delete-failed' }],
     }),
   },
 };
