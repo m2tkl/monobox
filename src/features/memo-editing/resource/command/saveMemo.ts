@@ -1,5 +1,6 @@
 import type { Editor } from '@tiptap/core';
 
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
 
 type SaveMemoTarget = {
@@ -36,6 +37,11 @@ export async function saveMemo(
     content: newContent.content,
     description: newContent.description,
     thumbnailImage: newContent.thumbnailImage,
+  });
+
+  emitEvent('memo/updated', {
+    workspaceSlug: target.workspaceSlug,
+    memoSlug: newSlugTitle,
   });
 
   return {

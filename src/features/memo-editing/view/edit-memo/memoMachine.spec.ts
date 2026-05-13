@@ -54,7 +54,6 @@ describe('memo editing machine', () => {
       effects: [
         { type: 'effect/notify-save-succeeded' },
         { type: 'effect/snapshot-saved' },
-        { type: 'effect/emit-memo-updated', memoSlug: 'saved-slug' },
         { type: 'effect/replace-memo-route', memoSlug: 'saved-slug' },
       ],
     });

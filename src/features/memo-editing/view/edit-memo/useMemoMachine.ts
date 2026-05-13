@@ -9,8 +9,6 @@ import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
 
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
-
 export type DeleteMemoDialogHandle = {
   confirm: () => Promise<boolean>;
 };
@@ -177,13 +175,6 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
         });
         return {};
       }
-      case 'effect/emit-memo-updated': {
-        emitEvent('memo/updated', {
-          workspaceSlug: options.workspaceSlug.value,
-          memoSlug: effect.memoSlug,
-        });
-        return {};
-      }
       case 'effect/replace-memo-route': {
         options.router.replace(`/${options.workspaceSlug.value}/${effect.memoSlug}${options.route.hash}`);
         return {};
@@ -211,10 +202,6 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
           color: 'error',
           icon: iconKey.failed,
         });
-        return {};
-      }
-      case 'effect/emit-memo-deleted': {
-        emitEvent('memo/deleted', { workspaceSlug: options.workspaceSlug.value });
         return {};
       }
       case 'effect/replace-workspace-route': {

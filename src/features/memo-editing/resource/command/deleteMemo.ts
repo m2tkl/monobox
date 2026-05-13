@@ -1,3 +1,4 @@
+import { emitEvent } from '~/resource-runtime/infra/eventBus';
 import { command } from '~/resources/command';
 
 type DeleteMemoInput = {
@@ -7,4 +8,5 @@ type DeleteMemoInput = {
 
 export async function deleteMemo(input: DeleteMemoInput) {
   await command.memo.trash(input);
+  emitEvent('memo/deleted', { workspaceSlug: input.workspaceSlug });
 }

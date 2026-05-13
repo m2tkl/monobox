@@ -25,13 +25,11 @@ export type MemoEffect =
   | { type: 'effect/snapshot-saved' }
   | { type: 'effect/notify-save-succeeded' }
   | { type: 'effect/notify-save-failed' }
-  | { type: 'effect/emit-memo-updated'; memoSlug: string }
   | { type: 'effect/replace-memo-route'; memoSlug: string }
   | { type: 'effect/confirm-delete' }
   | { type: 'effect/delete-memo' }
   | { type: 'effect/notify-delete-succeeded' }
   | { type: 'effect/notify-delete-failed' }
-  | { type: 'effect/emit-memo-deleted' }
   | { type: 'effect/replace-workspace-route' };
 
 export type ApplyResult = {
@@ -143,7 +141,6 @@ const transitions: TransitionMap = {
       effects: [
         ...(state.mode === 'explicit' ? [{ type: 'effect/notify-save-succeeded' as const }] : []),
         { type: 'effect/snapshot-saved' },
-        { type: 'effect/emit-memo-updated', memoSlug: event.payload.memoSlug },
         { type: 'effect/replace-memo-route', memoSlug: event.payload.memoSlug },
       ],
     }),
@@ -157,7 +154,6 @@ const transitions: TransitionMap = {
       state: cleanState,
       effects: [
         { type: 'effect/notify-delete-succeeded' },
-        { type: 'effect/emit-memo-deleted' },
         { type: 'effect/replace-workspace-route' },
       ],
     }),

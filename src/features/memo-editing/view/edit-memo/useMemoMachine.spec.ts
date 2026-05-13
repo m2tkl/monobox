@@ -11,12 +11,10 @@ const {
   deleteMemo,
   saveMemo,
   syncMemoLinks,
-  emitEvent,
 } = vi.hoisted(() => ({
   deleteMemo: vi.fn(),
   saveMemo: vi.fn(),
   syncMemoLinks: vi.fn(),
-  emitEvent: vi.fn(),
 }));
 
 vi.mock('../../resource/command/deleteMemo', () => ({
@@ -29,10 +27,6 @@ vi.mock('../../resource/command/saveMemo', () => ({
 
 vi.mock('../../resource/command/syncMemoLinks', () => ({
   syncMemoLinks,
-}));
-
-vi.mock('~/resource-runtime/infra/eventBus', () => ({
-  emitEvent,
 }));
 
 describe('useMemoMachine', () => {
@@ -141,10 +135,6 @@ describe('useMemoMachine', () => {
       title: 'Memo title',
       content: JSON.stringify({ type: 'doc' }),
     });
-    expect(emitEvent).toHaveBeenCalledWith('memo/updated', {
-      workspaceSlug: 'workspace',
-      memoSlug: 'saved-memo',
-    });
     expect(routerReplace).toHaveBeenCalledWith('/workspace/saved-memo#section');
 
     wrapper.unmount();
@@ -165,10 +155,6 @@ describe('useMemoMachine', () => {
       icon: 'success',
       duration: 1000,
     });
-    expect(emitEvent).toHaveBeenCalledWith('memo/updated', {
-      workspaceSlug: 'workspace',
-      memoSlug: 'saved-memo',
-    });
 
     wrapper.unmount();
   });
@@ -186,7 +172,6 @@ describe('useMemoMachine', () => {
       memoSlug: 'memo',
     });
     expect(machine.state.value).toEqual({ type: 'clean' });
-    expect(emitEvent).toHaveBeenCalledWith('memo/deleted', { workspaceSlug: 'workspace' });
     expect(routerReplace).toHaveBeenCalledWith('/workspace');
     expect(toastAdd).toHaveBeenCalledWith({
       title: 'Delete memo successfully.',
