@@ -1,13 +1,13 @@
 import { computed, ref, watch } from 'vue';
 
-import { useWorkspaceKanbanCollectionReadModel } from '../read-model';
+import { createKanban } from '../../resource/command/createKanban';
+import { deleteKanban } from '../../resource/command/deleteKanban';
+import { useWorkspaceKanbanCollectionReadModel } from '../../resource/read-model';
 
 import type { ComputedRef } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 
-import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
-import { changeRefs } from '~/resources/changes';
 import { iconKey } from '~/utils/icon';
 
 type UseWorkspaceKanbanBoardOptions = {
@@ -99,20 +99,17 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
     isCreateKanbanOpen.value = true;
   };
 
-  const createKanban = async () => {
+  const createCurrentKanban = async () => {
     if (!options.workspaceSlug.value) return;
     if (newKanbanName.value.trim().length === 0) return;
 
     isCreatingKanban.value = true;
     try {
-      const created = await command.kanban.create({
-        workspaceSlugName: options.workspaceSlug.value,
+      const created = await createKanban({
+        workspaceSlug: options.workspaceSlug.value,
         name: newKanbanName.value.trim(),
       });
       selectedKanbanId.value = created.id;
-      void publishResourceChanges([
-        changeRefs.kanbanCollectionChanged(options.workspaceSlug.value),
-      ]);
       isCreateKanbanOpen.value = false;
     }
     catch (error) {
@@ -134,20 +131,17 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
     deleteTargetId.value = selectedKanbanId.value;
   };
 
-  const deleteKanban = async () => {
+  const deleteCurrentKanban = async () => {
     if (!options.workspaceSlug.value) return;
     if (deleteTargetId.value === null) return;
 
     isDeletingKanban.value = true;
     try {
-      await command.kanban.delete({
-        workspaceSlugName: options.workspaceSlug.value,
+      await deleteKanban({
+        workspaceSlug: options.workspaceSlug.value,
         id: deleteTargetId.value,
       });
       deleteTargetId.value = null;
-      void publishResourceChanges([
-        changeRefs.kanbanCollectionChanged(options.workspaceSlug.value),
-      ]);
     }
     catch (error) {
       console.error(error);
@@ -178,8 +172,8 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
     deleteKanbanOpen,
     isDeletingKanban,
     openCreateKanban,
-    createKanban,
+    createKanban: createCurrentKanban,
     openDeleteKanban,
-    deleteKanban,
+    deleteKanban: deleteCurrentKanban,
   };
 }

@@ -129,11 +129,9 @@ import { ref } from 'vue';
 import MemoLinkRow from './MemoLinkRow.vue';
 import NewMemoActions from './NewMemoActions.vue';
 
-import { command } from '~/external/tauri/command';
 import { useBookmarkListReadModel, useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import { SearchPalette } from '~/features/search';
-import { publishResourceChanges } from '~/resource-runtime/query-runtime';
-import { changeRefs } from '~/resources/changes';
+import { command } from '~/resources/command';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
@@ -215,9 +213,6 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
       targetMemoSlug,
       dropPosition.value,
     );
-    void publishResourceChanges([
-      changeRefs.bookmarkCollectionChanged(workspaceSlug.value),
-    ]);
   }
   finally {
     isReordering.value = false;

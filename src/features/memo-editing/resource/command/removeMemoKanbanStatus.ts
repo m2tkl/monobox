@@ -1,6 +1,4 @@
-import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
-import { changeRefs } from '~/resources/changes';
 
 type RemoveMemoKanbanStatusInput = {
   workspaceSlug: string;
@@ -14,7 +12,4 @@ export async function removeMemoKanbanStatus(input: RemoveMemoKanbanStatusInput)
     memoSlugTitle: input.memoSlug,
     kanbanId: input.kanbanId,
   });
-  void publishResourceChanges([
-    changeRefs.kanbanEntryCollectionChanged(input.workspaceSlug, input.memoSlug),
-  ]);
 }

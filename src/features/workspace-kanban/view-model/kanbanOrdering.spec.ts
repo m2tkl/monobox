@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { computed, ref } from 'vue';
 
-import { useKanbanOrdering } from './kanbanOrdering';
+import { useKanbanOrdering } from '../view/workspace-kanban/useKanbanOrdering';
 import { buildKanbanColumnsFromEntries } from '../kanbanUtils';
 
 import type { KanbanColumn } from '../kanbanUtils';

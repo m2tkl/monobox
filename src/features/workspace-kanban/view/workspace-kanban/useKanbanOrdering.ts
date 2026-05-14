@@ -19,13 +19,13 @@ import {
   getNextPositionForStatus,
   toStatusId,
   type KanbanColumn,
-} from '../kanbanUtils';
+} from '../../kanbanUtils';
+import { upsertKanbanAssignmentStatus } from '../../resource/command/upsertKanbanAssignmentStatus';
 
 import type { ComputedRef, Ref } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
 
 type UseKanbanOrderingOptions = {
@@ -57,9 +57,9 @@ export function useKanbanOrdering(options: UseKanbanOrderingOptions) {
   ) => {
     if (!options.workspaceSlug.value) return;
     if (options.kanbanId.value == null) return;
-    await command.kanbanAssignment.upsertStatus({
-      workspaceSlugName: options.workspaceSlug.value,
-      memoSlugTitle,
+    await upsertKanbanAssignmentStatus({
+      workspaceSlug: options.workspaceSlug.value,
+      memoSlug: memoSlugTitle,
       kanbanId: options.kanbanId.value,
       kanbanStatusId: statusId,
       position,
@@ -184,7 +184,6 @@ export function useKanbanOrdering(options: UseKanbanOrderingOptions) {
     const currentStatusId = memo.kanban_status_id ?? null;
 
     if (currentStatusId === null || nextStatusId === null) {
-      // Unassigned memos are not draggable between columns.
       options.buildColumns();
       return;
     }
@@ -222,59 +221,46 @@ export function useKanbanOrdering(options: UseKanbanOrderingOptions) {
         }
       : null;
 
-    if (target) {
-      target.kanban_status_id = nextStatusId;
-      target.position = nextPosition ?? null;
-    }
+    if (!target) return;
 
-    const uiUpdatedAt = performance.now();
-    logInfo('[Kanban] drop:ui-updated', {
-      elapsedMs: Math.round(uiUpdatedAt - dropStartedAt),
-      from: payload.from.columnId,
-      to: payload.to.columnId,
-      beforeItemId: payload.to.beforeItemId ?? null,
-    });
+    target.kanban_status_id = nextStatusId;
+    target.position = nextPosition;
+    options.buildColumns();
 
     const persistMove = async () => {
-      const dbStartedAt = performance.now();
-      try {
-        await persistStatusUpdate(memo.slug_title, nextStatusId, nextPosition);
-        const dbFinishedAt = performance.now();
-        logInfo('[Kanban] drop:db-updated', {
-          elapsedMs: Math.round(dbFinishedAt - dbStartedAt),
-        });
-        if (needsReindex && nextStatusId !== null) {
-          const reindexStartedAt = performance.now();
-          scheduleReindex(nextStatusId);
-          const reindexFinishedAt = performance.now();
-          logInfo('[Kanban] drop:reindex-scheduled', {
-            elapsedMs: Math.round(reindexFinishedAt - reindexStartedAt),
-          });
-        }
-      }
-      catch (error) {
-        console.error(error);
-        if (target && previousState) {
-          target.kanban_status_id = previousState.kanban_status_id;
-          target.position = previousState.position;
-        }
-        options.buildColumns();
-        options.toast.add({
-          title: 'Failed to update status.',
-          description: 'Please try again.',
-          color: 'error',
-          icon: iconKey.failed,
-        });
+      await persistStatusUpdate(memo.slug_title, nextStatusId, nextPosition);
+      const dropFinishedAt = performance.now();
+      logInfo('[Kanban] drop:db-updated', {
+        memoId: memo.memo_id,
+        elapsedMs: Math.round(dropFinishedAt - dropStartedAt),
+      });
+
+      if (needsReindex) {
+        scheduleReindex(nextStatusId);
       }
     };
 
-    requestAnimationFrame(() => {
-      void persistMove();
-    });
+    try {
+      await persistMove();
+    }
+    catch (error) {
+      console.error(error);
+      if (previousState) {
+        target.kanban_status_id = previousState.kanban_status_id;
+        target.position = previousState.position;
+        options.buildColumns();
+      }
+      options.toast.add({
+        title: 'Failed to move memo.',
+        description: 'Please try again.',
+        color: 'error',
+        icon: iconKey.failed,
+      });
+    }
   };
 
   const assignStatus = async (
-    item: { memoId: number; slug: string; title: string; description?: string; modifiedAt: string },
+    memo: { memoId: number; slug: string; title: string; description?: string; modifiedAt: string },
     statusId: number,
   ) => {
     if (!options.workspaceSlug.value) return;
@@ -283,7 +269,7 @@ export function useKanbanOrdering(options: UseKanbanOrderingOptions) {
 
     isAssigning.value = true;
     const nextPosition = getNextPositionForStatus(options.columns.value, statusId);
-    const existing = options.entries.value.find(entry => entry.memo_id === item.memoId);
+    const existing = options.entries.value.find(entry => entry.memo_id === memo.memoId);
     const previousState = existing
       ? { kanban_status_id: existing.kanban_status_id ?? null, position: existing.position ?? null }
       : null;
@@ -294,17 +280,17 @@ export function useKanbanOrdering(options: UseKanbanOrderingOptions) {
         existing.position = nextPosition;
       }
 
-      await persistStatusUpdate(item.slug, statusId, nextPosition);
+      await persistStatusUpdate(memo.slug, statusId, nextPosition);
 
       if (!existing) {
         options.entries.value.push({
-          memo_id: item.memoId,
-          slug_title: item.slug,
-          title: item.title,
-          description: item.description,
+          memo_id: memo.memoId,
+          slug_title: memo.slug,
+          title: memo.title,
+          description: memo.description ?? '',
           kanban_status_id: statusId,
           position: nextPosition,
-          modified_at: item.modifiedAt,
+          modified_at: memo.modifiedAt,
           kanban_id: options.kanbanId.value,
         });
       }
@@ -318,7 +304,7 @@ export function useKanbanOrdering(options: UseKanbanOrderingOptions) {
       }
       options.buildColumns();
       options.toast.add({
-        title: 'Failed to update status.',
+        title: 'Failed to assign memo.',
         description: 'Please try again.',
         color: 'error',
         icon: iconKey.failed,
@@ -331,7 +317,6 @@ export function useKanbanOrdering(options: UseKanbanOrderingOptions) {
 
   return {
     isAssigning,
-    isSeedingPositions,
     seedPositionsIfNeeded,
     handleDrop,
     assignStatus,

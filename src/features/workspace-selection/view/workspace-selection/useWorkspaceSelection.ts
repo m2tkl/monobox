@@ -1,8 +1,8 @@
 import { ref } from 'vue';
 
-import { createWorkspace } from '../action/createWorkspace';
-import { useWorkspacesReadModel } from '../read-model';
-import { useWorkspaceFormState } from '../state/useWorkspaceFormState';
+import { createWorkspace } from '../../resource/command/createWorkspace';
+import { useWorkspacesReadModel } from '../../resource/read-model';
+import { useWorkspaceFormState } from './useWorkspaceFormState';
 
 export function useWorkspaceSelection() {
   const workspacesReadModel = useWorkspacesReadModel();

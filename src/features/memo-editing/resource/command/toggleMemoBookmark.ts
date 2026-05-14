@@ -1,6 +1,4 @@
-import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
-import { changeRefs } from '~/resources/changes';
 
 type ToggleMemoBookmarkInput = {
   workspaceSlug: string;
@@ -15,8 +13,4 @@ export async function toggleMemoBookmark(input: ToggleMemoBookmarkInput) {
   else {
     await command.bookmark.delete(input.workspaceSlug, input.memoSlug);
   }
-
-  void publishResourceChanges([
-    changeRefs.bookmarkCollectionChanged(input.workspaceSlug),
-  ]);
 }

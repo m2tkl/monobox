@@ -1,5 +1,5 @@
-export { useWorkspacesReadModel } from './read-model';
-export { default as WorkspaceSelectionPage } from './WorkspaceSelectionPage.vue';
-export { createWorkspace } from './action/createWorkspace';
-export { useWorkspaceSelection } from './view-model/workspaceSelection';
-export { useWorkspaceFormState } from './state/useWorkspaceFormState';
+export { useWorkspacesReadModel } from './resource/read-model';
+export { createWorkspace } from './resource/command/createWorkspace';
+export { default as WorkspaceSelectionPage } from './view/workspace-selection/WorkspaceSelectionPage.vue';
+export { useWorkspaceSelection } from './view/workspace-selection/useWorkspaceSelection';
+export { useWorkspaceFormState } from './view/workspace-selection/useWorkspaceFormState';

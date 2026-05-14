@@ -180,13 +180,16 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 
-import { useWorkspaceKanbanStatusCollectionReadModel } from '../../read-model';
+import {
+  createKanbanStatus,
+  deleteKanbanStatus,
+  reorderKanbanStatuses,
+  updateKanbanStatus,
+} from '../../resource/command';
+import { useWorkspaceKanbanStatusCollectionReadModel } from '../../resource/read-model';
 
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { publishResourceChanges } from '~/resource-runtime/query-runtime';
-import { command } from '~/resources/command';
-import { changeRefs } from '~/resources/changes';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
@@ -245,16 +248,6 @@ const openEditDialog = (status: KanbanStatus) => {
   editDialogOpen.value = true;
 };
 
-const notifyUpdated = () => {
-  if (!workspaceSlug.value) {
-    return;
-  }
-  if (kanbanId.value === null) return;
-  void publishResourceChanges([
-    changeRefs.kanbanStatusCollectionChanged(workspaceSlug.value, kanbanId.value),
-  ]);
-};
-
 const applyEdit = async () => {
   if (!workspaceSlug.value) return;
   if (kanbanId.value === null) return;
@@ -271,13 +264,13 @@ const applyEdit = async () => {
   const targetId = editTargetId.value;
   saving[targetId] = true;
   try {
-    await command.kanbanStatus.update({
-      workspaceSlugName: workspaceSlug.value,
+    await updateKanbanStatus({
+      workspaceSlug: workspaceSlug.value,
+      kanbanId: kanbanId.value,
       id: targetId,
       name: editName.value.trim(),
       color: normalizeColor(editColor.value),
     });
-    notifyUpdated();
     toast.add({
       title: 'Status updated.',
       duration: 1000,
@@ -301,14 +294,15 @@ const applyEdit = async () => {
 
 const deleteStatus = async (id: number) => {
   if (!workspaceSlug.value) return;
+  if (kanbanId.value === null) return;
 
   deleting[id] = true;
   try {
-    await command.kanbanStatus.delete({
-      workspaceSlugName: workspaceSlug.value,
+    await deleteKanbanStatus({
+      workspaceSlug: workspaceSlug.value,
+      kanbanId: kanbanId.value,
       id,
     });
-    notifyUpdated();
     toast.add({
       title: 'Status deleted.',
       description: 'Assignments were cleared.',
@@ -352,17 +346,17 @@ const confirmDeleteStatus = async () => {
 
 const createStatus = async () => {
   if (!workspaceSlug.value) return;
+  if (kanbanId.value === null) return;
   if (newName.value.trim().length === 0) return;
 
   isCreating.value = true;
   try {
-    await command.kanbanStatus.create({
-      workspaceSlugName: workspaceSlug.value,
-      kanbanId: kanbanId.value ?? undefined,
+    await createKanbanStatus({
+      workspaceSlug: workspaceSlug.value,
+      kanbanId: kanbanId.value,
       name: newName.value.trim(),
       color: newColor.value,
     });
-    notifyUpdated();
     toast.add({
       title: 'Status created.',
       duration: 1000,
@@ -386,6 +380,7 @@ const createStatus = async () => {
 
 const moveStatus = async (id: number, direction: 'up' | 'down') => {
   if (!workspaceSlug.value) return;
+  if (kanbanId.value === null) return;
   const index = statuses.value.findIndex(status => status.id === id);
   if (index === -1) return;
   const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -400,14 +395,14 @@ const moveStatus = async (id: number, direction: 'up' | 'down') => {
     }
     reorderedStatuses.splice(targetIndex, 0, movedStatus);
 
-    await command.kanbanStatus.updateOrders({
-      workspaceSlugName: workspaceSlug.value,
+    await reorderKanbanStatuses({
+      workspaceSlug: workspaceSlug.value,
+      kanbanId: kanbanId.value,
       updates: reorderedStatuses.map((status, orderIndex) => ({
         id: status.id,
         orderIndex,
       })),
     });
-    notifyUpdated();
   }
   catch (error) {
     console.error(error);
@@ -456,36 +451,5 @@ const getLabelStyle = (color: string) => {
 
 .status-row--create {
   border-style: dashed;
-}
-
-.status-empty {
-  padding: 12px 0;
-}
-
-.status-label {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-order {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.status-color-picker {
-  width: 100%;
 }
 </style>

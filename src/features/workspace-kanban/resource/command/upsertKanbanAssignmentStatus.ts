@@ -1,18 +1,19 @@
 import { command } from '~/resources/command';
 
-type UpsertMemoKanbanStatusInput = {
+type UpsertKanbanAssignmentStatusInput = {
   workspaceSlug: string;
   memoSlug: string;
   kanbanId: number;
-  kanbanStatusId: number;
+  kanbanStatusId?: number | null;
+  position?: number | null;
 };
 
-export async function upsertMemoKanbanStatus(input: UpsertMemoKanbanStatusInput) {
+export async function upsertKanbanAssignmentStatus(input: UpsertKanbanAssignmentStatusInput) {
   await command.kanbanAssignment.upsertStatus({
     workspaceSlugName: input.workspaceSlug,
     memoSlugTitle: input.memoSlug,
     kanbanId: input.kanbanId,
     kanbanStatusId: input.kanbanStatusId,
-    position: null,
+    position: input.position,
   });
 }

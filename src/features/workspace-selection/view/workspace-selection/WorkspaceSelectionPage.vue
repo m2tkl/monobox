@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { useWorkspaceSelection } from './view-model/workspaceSelection';
+import { useWorkspaceSelection } from './useWorkspaceSelection';
 
 import { workspaceCollectionQuery } from '~/resources/workspace/queries';
 import { iconKey } from '~/utils/icon';

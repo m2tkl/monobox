@@ -1,7 +1,7 @@
 import { computed, ref, watch } from 'vue';
 
-import { deleteWorkspace as executeDeleteWorkspace } from '../action/deleteWorkspace';
-import { useCurrentWorkspaceReadModel } from '../read-model';
+import { deleteWorkspace as executeDeleteWorkspace } from '../../resource/command/deleteWorkspace';
+import { useCurrentWorkspaceReadModel } from '../../resource/read-model';
 
 import type { useToast } from '#imports';
 

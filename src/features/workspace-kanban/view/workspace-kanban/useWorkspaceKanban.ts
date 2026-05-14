@@ -1,8 +1,8 @@
 import { computed } from 'vue';
 
-import { useWorkspaceKanbanBoard } from './workspaceKanbanBoard';
-import { loadWorkspaceKanbanData } from '../action/loadWorkspaceKanbanData';
-import { useWorkspaceKanbanStatusCollectionReadModel } from '../read-model';
+import { loadWorkspaceKanbanData } from '../../resource/read/loadWorkspaceKanbanData';
+import { useWorkspaceKanbanStatusCollectionReadModel } from '../../resource/read-model';
+import { useWorkspaceKanbanBoard } from './useWorkspaceKanbanBoard';
 
 import type { ComputedRef } from 'vue';
 import type { MemoIndexItem } from '~/models/memo';
