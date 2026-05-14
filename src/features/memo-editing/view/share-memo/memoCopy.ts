@@ -9,24 +9,16 @@ import { EditorQuery, convertToMarkdown } from '~/features/editor';
  * Frontend actions for copy operations used on the memo page.
  */
 export function useMemoCopy() {
-  const toast = useToast();
   const logger = useConsoleLogger('memo-editing/memoCopy');
 
   const copyPageAsMarkdown = async (editor: _Editor, title: string) => {
     try {
       const markdown = convertToMarkdown(editor.state.doc, title);
       await writeText(markdown);
-      toast.add({ title: 'Copied as markdown.', icon: iconKey.success, duration: 1000 });
-      return { ok: true as const };
+      return { ok: true as const, data: undefined };
     }
     catch (error) {
       logger.error(error);
-      toast.add({
-        title: 'Failed to copy.',
-        description: 'Please try again',
-        color: 'error',
-        icon: iconKey.failed,
-      });
       return { ok: false as const, error };
     }
   };
@@ -35,17 +27,10 @@ export function useMemoCopy() {
     try {
       const html = convertMemoToHtml(editor.getJSON(), title);
       await writeHtml(html);
-      toast.add({ title: 'Copied as html.', icon: iconKey.success, duration: 1000 });
-      return { ok: true as const };
+      return { ok: true as const, data: undefined };
     }
     catch (error) {
       logger.error(error);
-      toast.add({
-        title: 'Failed to copy.',
-        description: 'Please try again',
-        color: 'error',
-        icon: iconKey.failed,
-      });
       return { ok: false as const, error };
     }
   };
@@ -55,17 +40,10 @@ export function useMemoCopy() {
       const selectedContent = EditorQuery.getSelectedNode(editor);
       const markdown = convertToMarkdown(selectedContent);
       await navigator.clipboard.writeText(markdown);
-      toast.add({ title: 'Copied as markdown.', icon: iconKey.success, duration: 1000 });
-      return { ok: true as const };
+      return { ok: true as const, data: undefined };
     }
     catch (error) {
       logger.error(error);
-      toast.add({
-        title: 'Failed to copy.',
-        description: 'Please try again',
-        color: 'error',
-        icon: iconKey.failed,
-      });
       return { ok: false as const, error };
     }
   };
@@ -74,17 +52,10 @@ export function useMemoCopy() {
     try {
       const htmlLink = createHtmlLink(fullUrl, titleWithHeading);
       await writeHtml(htmlLink);
-      toast.add({ title: 'Copied link to heading.', icon: iconKey.success, duration: 1000 });
-      return { ok: true as const };
+      return { ok: true as const, data: undefined };
     }
     catch (error) {
       logger.error(error);
-      toast.add({
-        title: 'Failed to copy.',
-        description: 'Please try again',
-        color: 'error',
-        icon: iconKey.failed,
-      });
       return { ok: false as const, error };
     }
   };

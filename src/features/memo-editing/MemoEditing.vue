@@ -11,7 +11,7 @@
           :route-path="route.path"
           :focus-heading="(id: string) => focusHeading(editor, id)"
           :navigate-to-heading="navigateToHeading"
-          :copy-link-to-heading="copyLinkToHeading"
+          :copy-link-to-heading="copyLinkToHeadingAction"
         />
 
         <div
@@ -40,15 +40,15 @@
                 :icon="iconKey.kanban"
                 :disabled="isKanbanLoading || !memoVM.data.memo"
                 aria-label="Kanban"
-                @click="openKanbanModal"
+                @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
               />
               <IconButton
                 :icon="iconKey.shuffle"
-                @click="showRandomMemo"
+                @click="() => void dispatchAction({ type: 'action/show-random-memo' })"
               />
               <IconButton
                 :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
-                @click="toggleBookmark"
+                @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
               />
 
               <UDropdownMenu
@@ -66,11 +66,11 @@
               <template v-if="_editor.isActive('image')">
                 <EditorToolbarButton
                   :icon="iconKey.annotation"
-                  @exec="startImgAltEditing"
+                  @exec="() => void dispatchAction({ type: 'action/start-image-alt-editing' })"
                 />
                 <EditorToolbarButton
                   :icon="iconKey.zoomIn"
-                  @exec="openSelectedImagePreview"
+                  @exec="() => void dispatchAction({ type: 'action/open-selected-image-preview' })"
                 />
               </template>
 
@@ -269,17 +269,16 @@
 </template>
 
 <script lang="ts" setup>
-import { toggleMemoBookmark } from './resource/command/toggleMemoBookmark';
 import { loadMemoEditingData } from './resource/read/loadMemoEditingData';
 import AltEditDialog from './view/compose-memo/AltEditDialog.vue';
 import EditorToolbarButton from './view/compose-memo/EditorToolbarButton.vue';
-import { useImagePreview } from './view/compose-memo/image-preview/useImagePreview';
 import LinkEditDialog from './view/compose-memo/LinkEditDialog.vue';
 import MemoEditor from './view/compose-memo/MemoEditor.vue';
 import { useMemoEditor } from './view/compose-memo/useMemoEditor';
 import { useMemoEditorActions } from './view/compose-memo/useMemoEditorActions';
 import { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInteractions';
 import DeleteMemoDialog from './view/edit-memo/DeleteMemoDialog.vue';
+import { useMemoEditingActions } from './view/edit-memo/useMemoEditingActions';
 import { useMemoMachine } from './view/edit-memo/useMemoMachine';
 import { useMemoRouteTarget } from './view/edit-memo/useMemoRouteTarget';
 import { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
@@ -288,23 +287,21 @@ import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
 import ExportDialogToCopyResult from './view/share-memo/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
-import { useMemoCopy } from './view/share-memo/memoCopy';
 import { useMemoExport } from './view/share-memo/memoExport';
 import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
 import { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
 import { useTemplateStartIntent } from './view/start-memo-from-template/useTemplateStartIntent';
 
-import type { MemoEvent } from './view/edit-memo/memoMachine';
 import type { DeleteMemoDialogHandle } from './view/edit-memo/useMemoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';
 import type { LocationQueryRaw } from 'vue-router';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import { buildExtensions, CodeBlockComponent, EditorAction, dispatchEditorMsg, EditorQuery } from '~/features/editor';
+import { buildExtensions, CodeBlockComponent, dispatchEditorMsg } from '~/features/editor';
+import { useCurrentMemoReadModel } from '~/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/features/memo-templates';
 import { SearchPalette } from '~/features/search';
-import { useCurrentMemoReadModel } from '~/features/memo-editing/resource/read-model';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { useConsoleLogger } from '~/utils/logger';
 
@@ -346,7 +343,6 @@ const {
 });
 const logger = useConsoleLogger('pages/memo');
 
-
 await usePageLoader(() => loadMemoEditingData({
   workspaceSlug,
   memoSlug,
@@ -387,7 +383,9 @@ const computeDirty = () => {
 };
 
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
-let dispatch: (event: MemoEvent) => Promise<void> = async () => {};
+const hasMemo = computed(() => memoVM.value.data.memo != null);
+const isBookmarked = computed(() => memoVM.value.data.isBookmarked);
+const workspaceMemos = computed(() => memoVM.value.data.workspaceMemos ?? undefined);
 
 // Reference to control the link palette component
 const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
@@ -403,13 +401,13 @@ const {
   updateActiveHeadingOnScroll,
 } = useMemoEditor(resolvedCurrentMemo.value.content, {
   extensions: extensions,
-  onChanged: (_reason) => { void dispatch({ type: 'memo/content-updated', payload: { dirty: computeDirty() } }); },
-  onLinksChanged: (added, deleted) => { void dispatch({ type: 'memo/links-changed', payload: { added, deleted } }); },
+  onChanged: (_reason) => { void dispatchMemoEvent({ type: 'memo/content-updated', payload: { dirty: computeDirty() } }); },
+  onLinksChanged: (added, deleted) => { void dispatchMemoEvent({ type: 'memo/links-changed', payload: { added, deleted } }); },
   route,
   router,
 });
 
-const { dispatch: machineDispatch } = useMemoMachine({
+const { dispatch: dispatchMemoEvent } = useMemoMachine({
   initialState: { type: 'clean' },
   workspaceSlug,
   memoSlug,
@@ -425,10 +423,9 @@ const { dispatch: machineDispatch } = useMemoMachine({
   },
   logger,
 });
-dispatch = machineDispatch;
 
 watch(memoTitle, () => {
-  void dispatch({ type: 'memo/title-updated', payload: { dirty: computeDirty() } });
+  void dispatchMemoEvent({ type: 'memo/title-updated', payload: { dirty: computeDirty() } });
 });
 
 // Focus the title after mount/template-start timing settles.
@@ -478,7 +475,7 @@ const {
   applyTemplate,
 } = useTemplateApply({
   editor,
-  hasMemo: computed(() => memoVM.value.data.memo != null),
+  hasMemo,
   workspaceSlug,
   availableTemplates,
   startIntent,
@@ -500,17 +497,11 @@ const { navigateToHeading } = useMemoEditorInteractions({
   editor,
   route,
   router,
-  dispatch,
+  dispatch: dispatchMemoEvent,
   focusHeading,
   updateActiveHeadingOnScroll,
 });
 
-/**
- * Watch for changes in the URL hash and focus the corresponding heading in the editor.
- *
- * This ensures that browser back/forward navigation moves the editor focus appropriately.
- */
-const { openPreview } = useImagePreview();
 const {
   getEditorToolbarActionItems,
   getTableBubbleMenuActionItems,
@@ -523,68 +514,34 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
-/**
- * Show preview on selected image
- */
-function openSelectedImagePreview() {
-  const ed = editor.value;
-  if (!ed) return;
-
-  const sel = ed.state.selection;
-  const { $from } = sel;
-  const node = ($from?.nodeAfter ?? $from?.nodeBefore);
-  if (node && node.type?.name === 'image') {
-    const src: string | undefined = node.attrs?.src;
-    const alt: string = node.attrs?.alt || '';
-    if (src) {
-      openPreview(src, alt);
-      return;
-    }
-  }
-  window.alert('Failed to find preview target.');
-}
-
-const toggleBookmark = async () => {
-  if (!memoVM.value.data.memo) {
-    return;
-  }
-
-  await toggleMemoBookmark({
-    workspaceSlug: workspaceSlug.value,
-    memoSlug: memoSlug.value,
-    isBookmarked: memoVM.value.data.isBookmarked,
-  });
-};
-
-/* --- Contect menu items --- */
 const contextMenuItems: DropdownMenuItem[][] = [
   [
     {
       label: 'Slide mode',
       icon: iconKey.pageLink,
-      onSelect: () => { router.push(`/${workspaceSlug.value}/${memoSlug.value}/_slide`); },
+      onSelect: () => { void dispatchAction({ type: 'action/open-slide-mode' }); },
     },
     {
       label: 'Copy as markdown',
       icon: iconKey.copy,
-      onSelect: async () => { await copyPageAsMarkdown(editor.value!, memoTitle.value); },
+      onSelect: () => { void dispatchAction({ type: 'action/copy-markdown' }); },
     },
     {
       label: 'Copy as html',
       icon: iconKey.html,
-      onSelect: async () => { await copyPageAsHtml(editor.value!, memoTitle.value); },
+      onSelect: () => { void dispatchAction({ type: 'action/copy-html' }); },
     },
     {
       label: 'Export with linked pages',
       icon: iconKey.pageLink,
-      onSelect: () => { exportMode.value = 'selectingTargets'; },
+      onSelect: () => { void dispatchAction({ type: 'action/export-with-linked-pages' }); },
     },
   ],
   [
     {
       label: 'Delete',
       icon: iconKey.trash,
-      onSelect: () => { void dispatch({ type: 'memo/delete-requested' }); },
+      onSelect: () => { void dispatchMemoEvent({ type: 'memo/delete-requested' }); },
     },
   ],
 ];
@@ -595,63 +552,47 @@ const bubbleMenuItems = [
     {
       icon: iconKey.memoLink,
       action: () => {
-        const selectedText = editor.value ? EditorQuery.getSelectedTextV2(editor.value.view) : '';
-        linkPaletteRef.value?.openCommandPalette(selectedText);
+        void dispatchAction({ type: 'action/open-link-palette' });
       },
     },
     {
       icon: iconKey.link,
-      action: () => { startLinkEditing(); },
+      action: () => { void dispatchAction({ type: 'action/start-link-editing' }); },
     },
     {
       icon: iconKey.unlink,
-      action: () => { EditorAction.unsetLink(editor.value!); },
+      action: () => { void dispatchAction({ type: 'action/unset-link' }); },
     },
   ],
   [
     {
       icon: iconKey.textBold,
-      action: () => { EditorAction.toggleStyle(editor.value!, 'bold'); },
+      action: () => { void dispatchAction({ type: 'action/toggle-editor-style', style: 'bold' }); },
     },
     {
       icon: iconKey.textItalic,
-      action: () => { EditorAction.toggleStyle(editor.value!, 'italic'); },
+      action: () => { void dispatchAction({ type: 'action/toggle-editor-style', style: 'italic' }); },
     },
     {
       icon: iconKey.textStrikeThrough,
-      action: () => { EditorAction.toggleStyle(editor.value!, 'strike'); },
+      action: () => { void dispatchAction({ type: 'action/toggle-editor-style', style: 'strike' }); },
     },
     {
       icon: iconKey.inlineCode,
-      action: () => { EditorAction.toggleCode(editor.value!); },
+      action: () => { void dispatchAction({ type: 'action/toggle-inline-code' }); },
     },
     {
       icon: iconKey.clearFormat,
-      action: () => { EditorAction.resetStyle(editor.value!); },
+      action: () => { void dispatchAction({ type: 'action/reset-editor-style' }); },
     },
   ],
   [
     {
       icon: iconKey.copy,
-      action: () => { void copySelectedTextAsMarkdown(editor.value!); },
+      action: () => { void dispatchAction({ type: 'action/copy-selected-markdown' }); },
     },
   ],
 ];
-
-/**
- * Opens a randomly selected memo from the current workspace.
- */
-const showRandomMemo = async () => {
-  if (!memoVM.value.data.workspaceMemos || memoVM.value.data.workspaceMemos.length === 0) {
-    return;
-  }
-
-  const randomIndex = Math.floor(Math.random() * memoVM.value.data.workspaceMemos.length);
-  const randomMemo = memoVM.value.data.workspaceMemos[randomIndex];
-  if (randomMemo) {
-    router.push(`/${workspaceSlug.value}/${randomMemo.slug_title}`);
-  }
-};
 
 /* --- Editor dialogs --- */
 const {
@@ -666,8 +607,6 @@ const {
   close: finishImgAltEditing,
 } = useDialog();
 
-const { copyPageAsMarkdown, copyPageAsHtml, copySelectedTextAsMarkdown, copyLinkToHeading } = useMemoCopy();
-
 /* --- Export with related pages (Step1: select targets) --- */
 const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useMemoExport({
   workspaceSlug: () => workspaceSlug.value,
@@ -675,6 +614,39 @@ const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandi
   editor,
   memoTitle,
 });
+
+const { dispatchAction } = useMemoEditingActions({
+  clipboard: {
+    editor,
+    memoTitle,
+  },
+  editor: {
+    editor,
+    startImgAltEditing,
+    startLinkEditing,
+    openLinkPalette: (selectedText) => {
+      linkPaletteRef.value?.openCommandPalette(selectedText);
+    },
+  },
+  page: {
+    workspaceSlug,
+    memoSlug,
+    isBookmarked,
+    hasMemo,
+    workspaceMemos,
+    router,
+  },
+  ui: {
+    openKanbanModal,
+    openExportTargetSelection: () => {
+      exportMode.value = 'selectingTargets';
+    },
+  },
+});
+
+const copyLinkToHeadingAction = (fullUrl: string, titleWithHeading: string) => {
+  void dispatchAction({ type: 'action/copy-link-to-heading', fullUrl, titleWithHeading });
+};
 
 /* --- Export with related pages (Step2: copy result) */
 
