@@ -16,11 +16,6 @@ import { command } from '~/external/tauri/command';
 import { ImagePreviewDialog } from '~/features/memo-editing';
 import { handleError } from '~/utils/error';
 
-const bootstrapResourceState = async () => {
-  const { bootstrapResources: boot } = await import('./resource-runtime/index');
-  boot();
-};
-
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
@@ -37,7 +32,6 @@ onMounted(async () => {
       await router.replace('/_setup');
       return;
     }
-    bootstrapResourceState();
   }
   catch (error) {
     const appError = handleError(error);

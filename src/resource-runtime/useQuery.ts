@@ -55,32 +55,26 @@ export function useQuery<Args, Data>(
   const serializedKey = computed(() => JSON.stringify(query.key(resolvedArgs.value)));
   const snapshot = computed(() => resourceManager.getSnapshot<Data>(query.key(resolvedArgs.value)));
 
-  let unsubscribeDeps: Array<() => void> = [];
+  let unsubscribeActiveQuery: (() => void) | null = null;
 
-  const cleanupDeps = () => {
-    unsubscribeDeps.forEach(off => off());
-    unsubscribeDeps = [];
+  const cleanupActiveQuery = () => {
+    unsubscribeActiveQuery?.();
+    unsubscribeActiveQuery = null;
   };
 
   const refetch = () => query.fetch(resolvedArgs.value);
 
   watch([serializedKey, isEnabled], () => {
-    cleanupDeps();
+    cleanupActiveQuery();
     if (!isEnabled.value) {
       return;
     }
 
     const currentArgs = resolvedArgs.value;
-    unsubscribeDeps = (query.dependencies ?? []).map(dep =>
-      registerActiveQuery({
-        event: dep.event,
-        matches: payload => (dep.match as (payload: unknown, args: Args) => boolean)(
-          payload,
-          currentArgs,
-        ),
-        refetch: () => query.fetch(currentArgs),
-      }),
-    );
+    unsubscribeActiveQuery = registerActiveQuery({
+      resources: query.resources(currentArgs),
+      refetch: () => query.fetch(currentArgs),
+    });
   }, { immediate: true });
 
   watch([serializedKey, isEnabled], async ([, enabled], previous) => {
@@ -98,7 +92,7 @@ export function useQuery<Args, Data>(
   }, { immediate: true });
 
   onScopeDispose(() => {
-    cleanupDeps();
+    cleanupActiveQuery();
   });
 
   return {

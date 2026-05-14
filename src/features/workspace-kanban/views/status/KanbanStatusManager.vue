@@ -184,8 +184,9 @@ import { useWorkspaceKanbanStatusCollectionReadModel } from '../../read-model';
 
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
@@ -249,7 +250,9 @@ const notifyUpdated = () => {
     return;
   }
   if (kanbanId.value === null) return;
-  emitEvent('kanban-status/updated', { workspaceSlug: workspaceSlug.value, kanbanId: kanbanId.value });
+  void publishResourceChanges([
+    changeRefs.kanbanStatusCollectionChanged(workspaceSlug.value, kanbanId.value),
+  ]);
 };
 
 const applyEdit = async () => {

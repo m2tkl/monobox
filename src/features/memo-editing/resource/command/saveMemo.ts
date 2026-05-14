@@ -1,7 +1,8 @@
 import type { Editor } from '@tiptap/core';
 
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 
 type SaveMemoTarget = {
   workspaceSlug: string;
@@ -39,10 +40,15 @@ export async function saveMemo(
     thumbnailImage: newContent.thumbnailImage,
   });
 
-  emitEvent('memo/updated', {
-    workspaceSlug: target.workspaceSlug,
-    memoSlug: newSlugTitle,
-  });
+  const changes = [
+    changeRefs.memoChanged(target.workspaceSlug, newSlugTitle),
+  ];
+
+  if (target.memoSlug !== newSlugTitle) {
+    changes.push(changeRefs.memoRenamed(target.workspaceSlug, target.memoSlug, newSlugTitle));
+  }
+
+  void publishResourceChanges(changes);
 
   return {
     memoSlug: newSlugTitle,

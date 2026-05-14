@@ -2,13 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { deleteMemo } from './deleteMemo';
 
-const { emitEvent, trash } = vi.hoisted(() => ({
-  emitEvent: vi.fn(),
+const { publishResourceChanges, trash } = vi.hoisted(() => ({
+  publishResourceChanges: vi.fn(),
   trash: vi.fn(),
 }));
 
-vi.mock('~/resource-runtime/infra/eventBus', () => ({
-  emitEvent,
+vi.mock('~/resource-runtime/query-runtime', () => ({
+  publishResourceChanges,
 }));
 
 vi.mock('~/resources/command', () => ({
@@ -19,8 +19,14 @@ vi.mock('~/resources/command', () => ({
   },
 }));
 
+vi.mock('~/resources/changes', () => ({
+  changeRefs: {
+    memoDeleted: vi.fn((workspaceSlug: string, memoSlug: string) => ({ type: 'memoDeleted', workspaceSlug, memoSlug })),
+  },
+}));
+
 describe('deleteMemo', () => {
-  it('emits memo deleted after trashing', async () => {
+  it('publishes memo deletion after trashing', async () => {
     await deleteMemo({
       workspaceSlug: 'workspace',
       memoSlug: 'memo',
@@ -30,8 +36,8 @@ describe('deleteMemo', () => {
       workspaceSlug: 'workspace',
       memoSlug: 'memo',
     });
-    expect(emitEvent).toHaveBeenCalledWith('memo/deleted', {
-      workspaceSlug: 'workspace',
-    });
+    expect(publishResourceChanges).toHaveBeenCalledWith([
+      { type: 'memoDeleted', workspaceSlug: 'workspace', memoSlug: 'memo' },
+    ]);
   });
 });

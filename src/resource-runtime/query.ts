@@ -3,24 +3,13 @@ import { useResourceManager } from './infra/useResourceManager';
 
 import type { ResourceSnapshot } from './infra/types';
 import type { ComputedRef } from 'vue';
-import type { AppEvent } from '~/resources/events';
-
-type EventName = Extract<keyof AppEvent, string>;
-
-export type QueryDependency<Args, K extends EventName = EventName> = {
-  event: K;
-  match: (payload: AppEvent[K], args: Args) => boolean;
-};
-
-export type AnyQueryDependency<Args> = {
-  [K in EventName]: QueryDependency<Args, K>;
-}[EventName];
+import type { ResourceRef } from '~/resources/refs';
 
 export type QueryDefinition<Args, Data> = {
   key: (args: Args) => readonly unknown[];
+  resources: (args: Args) => ReadonlyArray<ResourceRef>;
   load: (args: Args) => Promise<Data>;
   when?: (args: Args) => boolean;
-  dependencies?: ReadonlyArray<AnyQueryDependency<Args>>;
 };
 
 export type DefinedQuery<Args, Data> = QueryDefinition<Args, Data> & {

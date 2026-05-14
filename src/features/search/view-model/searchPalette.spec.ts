@@ -6,9 +6,9 @@ import { useSearchPalette } from './searchPalette';
 
 import type { MemoIndexItem } from '~/models/memo';
 
-const { createMemo, emitEvent } = vi.hoisted(() => ({
+const { createMemo, publishResourceChanges } = vi.hoisted(() => ({
   createMemo: vi.fn(),
-  emitEvent: vi.fn(),
+  publishResourceChanges: vi.fn(),
 }));
 
 vi.mock('~/resources/command', () => ({
@@ -19,8 +19,14 @@ vi.mock('~/resources/command', () => ({
   },
 }));
 
-vi.mock('~/resource-runtime/infra/eventBus', () => ({
-  emitEvent,
+vi.mock('~/resource-runtime/query-runtime', () => ({
+  publishResourceChanges,
+}));
+
+vi.mock('~/resources/changes', () => ({
+  changeRefs: {
+    memoCreated: vi.fn((workspaceSlug: string, memoSlug: string) => ({ type: 'memoCreated', workspaceSlug, memoSlug })),
+  },
 }));
 
 type PaletteState = ReturnType<typeof useSearchPalette>;
@@ -123,7 +129,9 @@ describe('useSearchPalette', () => {
       path: '/workspace/gamma',
       query: { created: 'named' },
     });
-    expect(emitEvent).toHaveBeenCalledWith('memo/created', { workspaceSlug: 'workspace' });
+    expect(publishResourceChanges).toHaveBeenCalledWith([
+      { type: 'memoCreated', workspaceSlug: 'workspace', memoSlug: 'gamma' },
+    ]);
 
     wrapper.unmount();
   });

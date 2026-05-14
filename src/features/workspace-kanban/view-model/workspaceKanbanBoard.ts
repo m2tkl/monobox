@@ -5,8 +5,9 @@ import { useWorkspaceKanbanCollectionReadModel } from '../read-model';
 import type { ComputedRef } from 'vue';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 import { iconKey } from '~/utils/icon';
 
 type UseWorkspaceKanbanBoardOptions = {
@@ -109,7 +110,9 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
         name: newKanbanName.value.trim(),
       });
       selectedKanbanId.value = created.id;
-      emitEvent('kanban/updated', { workspaceSlug: options.workspaceSlug.value });
+      void publishResourceChanges([
+        changeRefs.kanbanCollectionChanged(options.workspaceSlug.value),
+      ]);
       isCreateKanbanOpen.value = false;
     }
     catch (error) {
@@ -142,7 +145,9 @@ export function useWorkspaceKanbanBoard(options: UseWorkspaceKanbanBoardOptions)
         id: deleteTargetId.value,
       });
       deleteTargetId.value = null;
-      emitEvent('kanban/updated', { workspaceSlug: options.workspaceSlug.value });
+      void publishResourceChanges([
+        changeRefs.kanbanCollectionChanged(options.workspaceSlug.value),
+      ]);
     }
     catch (error) {
       console.error(error);

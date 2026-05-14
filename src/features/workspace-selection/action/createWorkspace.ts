@@ -1,5 +1,6 @@
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 
 type CreateWorkspaceInput = {
   name: string;
@@ -7,6 +8,8 @@ type CreateWorkspaceInput = {
 
 export async function createWorkspace(input: CreateWorkspaceInput) {
   const workspace = await command.workspace.create(input);
-  emitEvent('workspace/created', {});
+  void publishResourceChanges([
+    changeRefs.workspaceCollectionChanged(),
+  ]);
   return workspace;
 }

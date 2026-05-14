@@ -1,56 +1,64 @@
-import type { AppEvent } from '~/resources/events';
-
-type EventName = Extract<keyof AppEvent, string>;
+import { resolveAffectedResources } from '~/resources/affects';
+import type { ChangeRef } from '~/resources/changes';
+import { serializeResourceRef, type ResourceRef } from '~/resources/refs';
 
 type ActiveQuery = {
-  event: EventName;
-  matches: (payload: unknown) => boolean;
+  resource: string;
   refetch: () => Promise<unknown>;
 };
 
-const activeQueries = new Map<EventName, Set<ActiveQuery>>();
+const activeQueries = new Map<string, Set<ActiveQuery>>();
 
-export function registerActiveQuery<K extends EventName>(query: {
-  event: K;
-  matches: (payload: AppEvent[K]) => boolean;
+export function registerActiveQuery(query: {
+  resources: ReadonlyArray<ResourceRef>;
   refetch: () => Promise<unknown>;
 }): () => void {
-  let queries = activeQueries.get(query.event);
-  if (!queries) {
-    queries = new Set<ActiveQuery>();
-    activeQueries.set(query.event, queries);
+  const entries: Array<{ resource: string; query: ActiveQuery }> = [];
+
+  for (const resource of query.resources) {
+    const serializedResource = serializeResourceRef(resource);
+    let queries = activeQueries.get(serializedResource);
+    if (!queries) {
+      queries = new Set<ActiveQuery>();
+      activeQueries.set(serializedResource, queries);
+    }
+
+    const entry: ActiveQuery = {
+      resource: serializedResource,
+      refetch: query.refetch,
+    };
+
+    queries.add(entry);
+    entries.push({ resource: serializedResource, query: entry });
   }
 
-  const entry: ActiveQuery = {
-    event: query.event,
-    matches: payload => query.matches(payload as AppEvent[K]),
-    refetch: query.refetch,
-  };
-
-  queries.add(entry);
-
   return () => {
-    const current = activeQueries.get(query.event);
-    current?.delete(entry);
-    if (current && current.size === 0) {
-      activeQueries.delete(query.event);
+    for (const entry of entries) {
+      const current = activeQueries.get(entry.resource);
+      current?.delete(entry.query);
+      if (current && current.size === 0) {
+        activeQueries.delete(entry.resource);
+      }
     }
   };
 }
 
-export async function invalidateByEvent<K extends EventName>(
-  event: K,
-  payload: AppEvent[K],
-): Promise<void> {
-  const queries = activeQueries.get(event);
-  if (!queries || queries.size === 0) {
-    return;
-  }
-
+export async function publishResourceChanges(changes: ReadonlyArray<ChangeRef>): Promise<void> {
+  const impactedResources = resolveAffectedResources(changes);
   const tasks: Array<Promise<unknown>> = [];
+  const scheduled = new Set<ActiveQuery>();
 
-  for (const query of queries) {
-    if (query.matches(payload)) {
+  for (const resource of impactedResources) {
+    const queries = activeQueries.get(serializeResourceRef(resource));
+    if (!queries || queries.size === 0) {
+      continue;
+    }
+
+    for (const query of queries) {
+      if (scheduled.has(query)) {
+        continue;
+      }
+      scheduled.add(query);
       tasks.push(query.refetch());
     }
   }

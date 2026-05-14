@@ -1,5 +1,6 @@
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 
 type UpsertMemoKanbanStatusInput = {
   workspaceSlug: string;
@@ -16,8 +17,7 @@ export async function upsertMemoKanbanStatus(input: UpsertMemoKanbanStatusInput)
     kanbanStatusId: input.kanbanStatusId,
     position: null,
   });
-  emitEvent('kanban-assignment/updated', {
-    workspaceSlug: input.workspaceSlug,
-    memoSlug: input.memoSlug,
-  });
+  void publishResourceChanges([
+    changeRefs.kanbanEntryCollectionChanged(input.workspaceSlug, input.memoSlug),
+  ]);
 }

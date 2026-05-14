@@ -4,13 +4,13 @@ import { saveMemo } from './saveMemo';
 
 import type { Editor } from '@tiptap/core';
 
-const { emitEvent, save } = vi.hoisted(() => ({
-  emitEvent: vi.fn(),
+const { publishResourceChanges, save } = vi.hoisted(() => ({
+  publishResourceChanges: vi.fn(),
   save: vi.fn(),
 }));
 
-vi.mock('~/resource-runtime/infra/eventBus', () => ({
-  emitEvent,
+vi.mock('~/resource-runtime/query-runtime', () => ({
+  publishResourceChanges,
 }));
 
 vi.mock('~/resources/command', () => ({
@@ -21,12 +21,24 @@ vi.mock('~/resources/command', () => ({
   },
 }));
 
+vi.mock('~/resources/changes', () => ({
+  changeRefs: {
+    memoChanged: vi.fn((workspaceSlug: string, memoSlug: string) => ({ type: 'memoChanged', workspaceSlug, memoSlug })),
+    memoRenamed: vi.fn((workspaceSlug: string, previousMemoSlug: string, memoSlug: string) => ({
+      type: 'memoRenamed',
+      workspaceSlug,
+      previousMemoSlug,
+      memoSlug,
+    })),
+  },
+}));
+
 describe('saveMemo', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('emits memo updated after saving', async () => {
+  it('publishes memo changes after saving', async () => {
     vi.stubGlobal('encodeForSlug', (value: string) => value.toLowerCase().replaceAll(' ', '-'));
     vi.stubGlobal('truncateString', (value: string) => value);
 
@@ -56,9 +68,9 @@ describe('saveMemo', () => {
       description: 'memo text',
       thumbnailImage: '',
     });
-    expect(emitEvent).toHaveBeenCalledWith('memo/updated', {
-      workspaceSlug: 'workspace',
-      memoSlug: 'new-title',
-    });
+    expect(publishResourceChanges).toHaveBeenCalledWith([
+      { type: 'memoChanged', workspaceSlug: 'workspace', memoSlug: 'new-title' },
+      { type: 'memoRenamed', workspaceSlug: 'workspace', previousMemoSlug: 'old-slug', memoSlug: 'new-title' },
+    ]);
   });
 });

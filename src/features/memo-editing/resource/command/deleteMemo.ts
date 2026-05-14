@@ -1,5 +1,6 @@
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 
 type DeleteMemoInput = {
   workspaceSlug: string;
@@ -8,5 +9,7 @@ type DeleteMemoInput = {
 
 export async function deleteMemo(input: DeleteMemoInput) {
   await command.memo.trash(input);
-  emitEvent('memo/deleted', { workspaceSlug: input.workspaceSlug });
+  void publishResourceChanges([
+    changeRefs.memoDeleted(input.workspaceSlug, input.memoSlug),
+  ]);
 }

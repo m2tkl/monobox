@@ -1,5 +1,6 @@
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 
 type CreateMemoInput = {
   workspaceSlug: string;
@@ -12,7 +13,9 @@ export async function createMemo(input: CreateMemoInput) {
     title: input.title,
   });
 
-  emitEvent('memo/created', { workspaceSlug: input.workspaceSlug });
+  void publishResourceChanges([
+    changeRefs.memoCreated(input.workspaceSlug, newMemo.slug_title),
+  ]);
 
   return newMemo;
 }

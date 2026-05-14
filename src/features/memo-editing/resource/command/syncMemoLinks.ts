@@ -1,5 +1,6 @@
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 import { AppError } from '~/utils/error';
 
 type SyncMemoLinksTarget = {
@@ -41,8 +42,7 @@ export async function syncMemoLinks(
     throw fatalErrors[0];
   }
 
-  emitEvent('memo/links-updated', {
-    workspaceSlug: target.workspaceSlug,
-    memoSlug: target.memoSlug,
-  });
+  void publishResourceChanges([
+    changeRefs.memoLinksChanged(target.workspaceSlug, target.memoSlug),
+  ]);
 }

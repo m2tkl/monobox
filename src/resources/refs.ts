@@ -1,0 +1,28 @@
+export type ResourceRef =
+  | { type: 'workspaceCollection' }
+  | { type: 'workspace'; workspaceSlug: string }
+  | { type: 'memoCollection'; workspaceSlug: string }
+  | { type: 'memo'; workspaceSlug: string; memoSlug: string }
+  | { type: 'linkCollection'; workspaceSlug: string; memoSlug: string }
+  | { type: 'memoLinkCountCollection'; workspaceSlug: string }
+  | { type: 'bookmarkCollection'; workspaceSlug: string }
+  | { type: 'kanbanCollection'; workspaceSlug: string }
+  | { type: 'kanbanStatusCollection'; workspaceSlug: string; kanbanId: number }
+  | { type: 'kanbanEntryCollection'; workspaceSlug: string; memoSlug: string };
+
+export const resourceRefs = {
+  workspaceCollection: (): ResourceRef => ({ type: 'workspaceCollection' }),
+  workspace: (workspaceSlug: string): ResourceRef => ({ type: 'workspace', workspaceSlug }),
+  memoCollection: (workspaceSlug: string): ResourceRef => ({ type: 'memoCollection', workspaceSlug }),
+  memo: (workspaceSlug: string, memoSlug: string): ResourceRef => ({ type: 'memo', workspaceSlug, memoSlug }),
+  linkCollection: (workspaceSlug: string, memoSlug: string): ResourceRef => ({ type: 'linkCollection', workspaceSlug, memoSlug }),
+  memoLinkCountCollection: (workspaceSlug: string): ResourceRef => ({ type: 'memoLinkCountCollection', workspaceSlug }),
+  bookmarkCollection: (workspaceSlug: string): ResourceRef => ({ type: 'bookmarkCollection', workspaceSlug }),
+  kanbanCollection: (workspaceSlug: string): ResourceRef => ({ type: 'kanbanCollection', workspaceSlug }),
+  kanbanStatusCollection: (workspaceSlug: string, kanbanId: number): ResourceRef => ({ type: 'kanbanStatusCollection', workspaceSlug, kanbanId }),
+  kanbanEntryCollection: (workspaceSlug: string, memoSlug: string): ResourceRef => ({ type: 'kanbanEntryCollection', workspaceSlug, memoSlug }),
+};
+
+export function serializeResourceRef(ref: ResourceRef) {
+  return JSON.stringify(ref);
+}

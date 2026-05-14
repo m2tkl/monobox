@@ -132,7 +132,8 @@ import NewMemoActions from './NewMemoActions.vue';
 import { command } from '~/external/tauri/command';
 import { useBookmarkListReadModel, useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import { SearchPalette } from '~/features/search';
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
+import { changeRefs } from '~/resources/changes';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
@@ -214,7 +215,9 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
       targetMemoSlug,
       dropPosition.value,
     );
-    emitEvent('bookmark/updated', { workspaceSlug: workspaceSlug.value });
+    void publishResourceChanges([
+      changeRefs.bookmarkCollectionChanged(workspaceSlug.value),
+    ]);
   }
   finally {
     isReordering.value = false;

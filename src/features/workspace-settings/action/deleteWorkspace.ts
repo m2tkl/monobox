@@ -1,7 +1,10 @@
-import { emitEvent } from '~/resource-runtime/infra/eventBus';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
 import { command } from '~/resources/command';
+import { changeRefs } from '~/resources/changes';
 
 export async function deleteWorkspace(slugName: string) {
   await command.workspace.delete({ slugName });
-  emitEvent('workspace/deleted', {});
+  void publishResourceChanges([
+    changeRefs.workspaceCollectionChanged(),
+  ]);
 }
