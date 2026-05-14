@@ -262,7 +262,7 @@
       <ExportDialogToCopyResult
         v-model:open="isCopyingResult"
         :text-to-export="htmlExport"
-        @copy="copyExportedResult"
+        @copy="(textToCopy) => void dispatchAction({ type: 'action/copy-exported-result', textToCopy })"
       />
     </template>
   </NuxtLayout>
@@ -635,36 +635,20 @@ const { dispatchAction } = useMemoEditingActions({
     hasMemo,
     workspaceMemos,
     router,
-  },
-  ui: {
     openKanbanModal,
+  },
+  export: {
     openExportTargetSelection: () => {
       exportMode.value = 'selectingTargets';
+    },
+    finishExportCopying: () => {
+      exportMode.value = 'idle';
     },
   },
 });
 
 const copyLinkToHeadingAction = (fullUrl: string, titleWithHeading: string) => {
   void dispatchAction({ type: 'action/copy-link-to-heading', fullUrl, titleWithHeading });
-};
-
-/* --- Export with related pages (Step2: copy result) */
-
-const copyExportedResult = async (textToCopy: string) => {
-  try {
-    await navigator.clipboard.writeText(textToCopy);
-    toast.add({ title: 'Exported result copied!', icon: iconKey.success, duration: 1000 });
-    exportMode.value = 'idle';
-  }
-  catch (error) {
-    logger.error(error);
-    toast.add({
-      title: 'Failed to copy.',
-      description: 'Please try again',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
 };
 </script>
 

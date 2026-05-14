@@ -7,28 +7,28 @@ import {
   type UseMemoEditingEditorActionsDeps,
 } from './useMemoEditingEditorActions';
 import {
+  useMemoEditingExportActions,
+  type UseMemoEditingExportActionsDeps,
+} from './useMemoEditingExportActions';
+import {
   useMemoEditingPageActions,
   type UseMemoEditingPageActionsDeps,
 } from './useMemoEditingPageActions';
-import {
-  useMemoEditingUiActions,
-  type UseMemoEditingUiActionsDeps,
-} from './useMemoEditingUiActions';
 
 import type { ActionResult, MemoEditingAction } from './memoEditingAction';
 
 type UseMemoEditingActionsDeps = {
   clipboard: UseMemoEditingClipboardActionsDeps;
   editor: UseMemoEditingEditorActionsDeps;
+  export: UseMemoEditingExportActionsDeps;
   page: UseMemoEditingPageActionsDeps;
-  ui: UseMemoEditingUiActionsDeps;
 };
 
 export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
   const clipboardActions = useMemoEditingClipboardActions(options.clipboard);
   const editorActions = useMemoEditingEditorActions(options.editor);
+  const exportActions = useMemoEditingExportActions(options.export);
   const pageActions = useMemoEditingPageActions(options.page);
-  const uiActions = useMemoEditingUiActions(options.ui);
   const toast = useToast();
 
   const notifyActionResult = (action: MemoEditingAction, result: ActionResult) => {
@@ -39,6 +39,7 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
           toast.add({ title: 'Copied as markdown.', icon: iconKey.success, duration: 1000 });
           return;
         case 'action/copy-html':
+        case 'action/copy-exported-result':
           toast.add({ title: 'Copied as html.', icon: iconKey.success, duration: 1000 });
           return;
         case 'action/copy-link-to-heading':
@@ -52,6 +53,7 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
     switch (action.type) {
       case 'action/copy-markdown':
       case 'action/copy-html':
+      case 'action/copy-exported-result':
       case 'action/copy-selected-markdown':
       case 'action/copy-link-to-heading':
       case 'action/toggle-bookmark':
@@ -74,7 +76,7 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
     const result = await (async (): Promise<ActionResult> => {
       switch (action.type) {
         case 'action/open-kanban-modal':
-          return uiActions.openKanbanModal();
+          return pageActions.openKanbanModal();
         case 'action/show-random-memo':
           return pageActions.showRandomMemo();
         case 'action/toggle-bookmark':
@@ -86,7 +88,9 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
         case 'action/copy-html':
           return clipboardActions.copyHtml();
         case 'action/export-with-linked-pages':
-          return uiActions.openExportTargetSelection();
+          return exportActions.openExportTargetSelection();
+        case 'action/copy-exported-result':
+          return exportActions.copyExportedResult(action.textToCopy);
         case 'action/start-image-alt-editing':
           return editorActions.startImageAltEditing();
         case 'action/open-selected-image-preview':

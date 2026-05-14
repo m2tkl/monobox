@@ -12,6 +12,7 @@ export type UseMemoEditingPageActionsDeps = {
   hasMemo: Ref<boolean>;
   workspaceMemos: Ref<MemoIndexItem[] | undefined>;
   router: Router;
+  openKanbanModal: () => void;
 };
 
 export function useMemoEditingPageActions(options: UseMemoEditingPageActionsDeps) {
@@ -56,7 +57,13 @@ export function useMemoEditingPageActions(options: UseMemoEditingPageActionsDeps
     return { ok: true, data: undefined };
   };
 
+  const openKanbanModal = (): ActionResult => {
+    options.openKanbanModal();
+    return { ok: true, data: undefined };
+  };
+
   return {
+    openKanbanModal,
     toggleBookmark,
     showRandomMemo,
     openSlideMode,
