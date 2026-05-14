@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue';
 
-import { useBookmarkListReadModel, useWorkspaceMemosReadModel } from '../read-model';
+import { useBookmarkListReadModel, useWorkspaceMemosReadModel } from '../../resource/read-model';
 
 const PAGE_LOAD_BASE_NUM = 64;
 

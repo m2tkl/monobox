@@ -26,5 +26,5 @@
 </template>
 
 <script setup lang="ts">
-import StoragePathsForm from './views/StoragePathsForm.vue';
+import StoragePathsForm from './StoragePathsForm.vue';
 </script>

@@ -24,9 +24,8 @@
 import Reveal from 'reveal.js';
 import RevealHighlight from 'reveal.js/plugin/highlight/highlight.esm.js';
 
-// Slide styles (Reveal core, theme, highlight theme)
 import '~/assets/css/modules/slide.css';
-import { buildSlidesFromHtml } from '../lib/buildSlidesFromHtml';
+import { buildSlidesFromHtml } from '../../lib/buildSlidesFromHtml';
 
 defineOptions({ name: 'Slide' });
 
@@ -40,7 +39,6 @@ const revealRoot = ref<HTMLDivElement | null>(null);
 onMounted(async () => {
   slidesHtml.value = buildSlidesFromHtml(props.html);
 
-  // Wait DOM update then init Reveal
   await nextTick();
   if (revealRoot.value) {
     const deck = new Reveal(revealRoot.value, {

@@ -337,10 +337,7 @@
 </template>
 
 <script setup lang="ts">
-import { open } from '@tauri-apps/plugin-dialog';
-import { relaunch } from '@tauri-apps/plugin-process';
-
-import { command } from '~/external/tauri/command';
+import { storageConfigCommand } from '../../resource/command/storageConfig';
 import AppButton from '~/shared/components/elements/AppButton.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { handleError } from '~/utils/error';
@@ -400,7 +397,7 @@ const validate = (state: Partial<FormState>): ValidationError[] => {
 const loadConfig = async () => {
   isLoading.value = true;
   try {
-    const config = await command.config.get();
+    const config = await storageConfigCommand.get();
     initialState.value = {
       databasePath: config.database_path,
       assetDirPath: config.asset_dir_path,
@@ -410,8 +407,8 @@ const loadConfig = async () => {
 
     if (props.mode === 'setup') {
       const [candidates, defaults] = await Promise.all([
-        command.config.detect(),
-        command.config.defaults(),
+        storageConfigCommand.detect(),
+        storageConfigCommand.defaults(),
       ]);
       databaseCandidates.value = candidates.database_paths;
       assetCandidates.value = candidates.asset_dir_paths;
@@ -474,7 +471,7 @@ const parseConfigError = (error: unknown) => {
 const saveConfig = async (createMissing: boolean) => {
   isSaving.value = true;
   try {
-    await command.config.save({
+    await storageConfigCommand.save({
       databasePath: formState.databasePath,
       assetDirPath: formState.assetDirPath,
       setupComplete: true,
@@ -517,7 +514,7 @@ const saveConfig = async (createMissing: boolean) => {
 
 const restartApp = async () => {
   try {
-    await relaunch();
+    await storageConfigCommand.restartApp();
   }
   catch (error) {
     const appError = handleError(error);
@@ -538,20 +535,14 @@ const saveWithCreate = async () => {
 };
 
 const selectDatabasePath = async () => {
-  const result = await open({
-    multiple: false,
-    directory: false,
-  });
+  const result = await storageConfigCommand.selectDatabasePath();
   if (typeof result === 'string') {
     formState.databasePath = result;
   }
 };
 
 const selectAssetDir = async () => {
-  const result = await open({
-    multiple: false,
-    directory: true,
-  });
+  const result = await storageConfigCommand.selectAssetDir();
   if (typeof result === 'string') {
     formState.assetDirPath = result;
   }

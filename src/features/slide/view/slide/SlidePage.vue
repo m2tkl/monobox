@@ -21,8 +21,8 @@
 </template>
 
 <script setup lang="ts">
-import { useSlidePage } from './view-model/slidePage';
-import Slide from './views/Slide.vue';
+import Slide from './Slide.vue';
+import { useSlidePage } from './useSlidePage';
 
 import { iconKey } from '~/utils/icon';
 

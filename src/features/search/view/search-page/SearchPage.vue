@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { useSearchPage } from './view-model/searchPage';
+import { useSearchPage } from './useSearchPage';
 
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';

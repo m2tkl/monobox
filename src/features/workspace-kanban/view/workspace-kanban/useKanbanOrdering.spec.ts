@@ -1,21 +1,17 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { computed, ref } from 'vue';
 
-import { useKanbanOrdering } from '../view/workspace-kanban/useKanbanOrdering';
-import { buildKanbanColumnsFromEntries } from '../kanbanUtils';
+import { useKanbanOrdering } from './useKanbanOrdering';
+import { buildKanbanColumnsFromEntries } from '../../kanbanUtils';
 
-import type { KanbanColumn } from '../kanbanUtils';
+import type { KanbanColumn } from '../../kanbanUtils';
 import type { KanbanAssignmentItem } from '~/models/kanbanAssignment';
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
-import { command } from '~/external/tauri/command';
+import { upsertKanbanAssignmentStatus } from '../../resource/command/upsertKanbanAssignmentStatus';
 
-vi.mock('~/external/tauri/command', () => ({
-  command: {
-    kanbanAssignment: {
-      upsertStatus: vi.fn(),
-    },
-  },
+vi.mock('../../resource/command/upsertKanbanAssignmentStatus', () => ({
+  upsertKanbanAssignmentStatus: vi.fn(),
 }));
 
 const makeStatus = (overrides: Partial<KanbanStatus> = {}): KanbanStatus => ({
@@ -87,7 +83,7 @@ const setupOrdering = (entriesValue: KanbanAssignmentItem[], statusesValue: Kanb
 };
 
 describe('useKanbanOrdering', () => {
-  const upsertStatusMock = vi.mocked(command.kanbanAssignment.upsertStatus);
+  const upsertStatusMock = vi.mocked(upsertKanbanAssignmentStatus);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -119,15 +115,15 @@ describe('useKanbanOrdering', () => {
     expect(entries[2].position).toBe(9000);
     expect(upsertStatusMock).toHaveBeenCalledTimes(2);
     expect(upsertStatusMock).toHaveBeenCalledWith({
-      workspaceSlugName: 'ws',
-      memoSlugTitle: 'memo-1',
+      workspaceSlug: 'ws',
+      memoSlug: 'memo-1',
       kanbanId: 1,
       kanbanStatusId: 1,
       position: 2000,
     });
     expect(upsertStatusMock).toHaveBeenCalledWith({
-      workspaceSlugName: 'ws',
-      memoSlugTitle: 'memo-2',
+      workspaceSlug: 'ws',
+      memoSlug: 'memo-2',
       kanbanId: 1,
       kanbanStatusId: 1,
       position: 3000,
@@ -169,8 +165,8 @@ describe('useKanbanOrdering', () => {
     expect(entries[0].kanban_status_id).toBe(2);
     expect(entries[0].position).toBe(2000);
     expect(upsertStatusMock).toHaveBeenCalledWith({
-      workspaceSlugName: 'ws',
-      memoSlugTitle: 'memo-1',
+      workspaceSlug: 'ws',
+      memoSlug: 'memo-1',
       kanbanId: 1,
       kanbanStatusId: 2,
       position: 2000,
@@ -198,15 +194,15 @@ describe('useKanbanOrdering', () => {
     expect(entries[2].position).toBe(2000);
     expect(entries[1].position).toBe(3000);
     expect(upsertStatusMock).toHaveBeenCalledWith({
-      workspaceSlugName: 'ws',
-      memoSlugTitle: 'memo-3',
+      workspaceSlug: 'ws',
+      memoSlug: 'memo-3',
       kanbanId: 1,
       kanbanStatusId: 1,
       position: 2000,
     });
     expect(upsertStatusMock).toHaveBeenCalledWith({
-      workspaceSlugName: 'ws',
-      memoSlugTitle: 'memo-2',
+      workspaceSlug: 'ws',
+      memoSlug: 'memo-2',
       kanbanId: 1,
       kanbanStatusId: 1,
       position: 3000,
@@ -234,8 +230,8 @@ describe('useKanbanOrdering', () => {
       slug_title: 'memo-10',
     });
     expect(upsertStatusMock).toHaveBeenCalledWith({
-      workspaceSlugName: 'ws',
-      memoSlugTitle: 'memo-10',
+      workspaceSlug: 'ws',
+      memoSlug: 'memo-10',
       kanbanId: 1,
       kanbanStatusId: 1,
       position: 1000,

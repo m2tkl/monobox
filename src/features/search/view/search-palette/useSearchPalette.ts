@@ -3,8 +3,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'v
 import type { Editor } from '@tiptap/core';
 import type { MemoIndexItem } from '~/models/memo';
 
-import { EditorAction, EditorQuery } from '~/features/editor';
-import { createMemo, CREATED_QUERY_SOURCE_NAMED } from '~/features/memo-editing';
+import * as EditorAction from '~/features/editor/core/action';
+import * as EditorQuery from '~/features/editor/core/query';
+import { CREATED_QUERY_SOURCE_NAMED } from '~/features/memo-editing/createdQuery';
+import { createMemo } from '~/features/memo-editing/resource/command/createMemo';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';

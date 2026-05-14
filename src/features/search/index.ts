@@ -1,4 +1,4 @@
-export { default as SearchPage } from './SearchPage.vue';
-export { default as SearchPalette } from './views/SearchPalette.vue';
-export { useSearchPage } from './view-model/searchPage';
-export { useSearchPalette } from './view-model/searchPalette';
+export { default as SearchPage } from './view/search-page/SearchPage.vue';
+export { default as SearchPalette } from './view/search-palette/SearchPalette.vue';
+export { useSearchPage } from './view/search-page/useSearchPage';
+export { useSearchPalette } from './view/search-palette/useSearchPalette';

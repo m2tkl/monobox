@@ -1,4 +1,4 @@
-export { useBookmarkListReadModel, useWorkspaceMemosReadModel } from './read-model';
-export { default as MemoBrowsing } from './MemoBrowsing.vue';
-export { useMemoBrowsing } from './view-model/memoBrowsing';
-export { default as MemoCards } from './views/MemoCards.vue';
+export { useBookmarkListReadModel, useWorkspaceMemosReadModel } from './resource/read-model';
+export { default as MemoBrowsing } from './view/memo-browsing/MemoBrowsing.vue';
+export { useMemoBrowsing } from './view/memo-browsing/useMemoBrowsing';
+export { default as MemoCards } from './view/memo-browsing/MemoCards.vue';

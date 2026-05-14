@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent, ref, type Ref } from 'vue';
 
-import { useSearchPalette } from './searchPalette';
+import { useSearchPalette } from './useSearchPalette';
 
 import type { MemoIndexItem } from '~/models/memo';
 

@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import type { MemoIndexItem, MemoSearchItem } from '~/models/memo';
 
-import { command } from '~/external/tauri/command';
+import { searchMemos } from '../../resource/read/searchMemos';
 import { useWorkspaceMemosReadModel } from '~/features/memo-browsing';
 import { useConsoleLogger } from '~/utils/logger';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -67,12 +67,7 @@ export function useSearchPage() {
     isLoading.value = true;
     searchTimerId = window.setTimeout(async () => {
       try {
-        const response = await command.memo.search({
-          workspaceSlugName: slug,
-          query: trimmed,
-          limit: 50,
-          offset: 0,
-        });
+        const response = await searchMemos(slug, trimmed);
 
         if (requestId === searchRequestId) {
           results.value = response.map(result => ({
