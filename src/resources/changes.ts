@@ -5,6 +5,11 @@ export type ChangeRef =
   | { type: 'memoRenamed'; workspaceSlug: string; previousMemoSlug: string; memoSlug: string }
   | { type: 'memoDeleted'; workspaceSlug: string; memoSlug: string }
   | { type: 'memoLinksChanged'; workspaceSlug: string; memoSlug: string }
+  | { type: 'memoTemplateCreated'; workspaceSlug: string; templateSlug: string }
+  | { type: 'memoTemplateChanged'; workspaceSlug: string; templateSlug: string }
+  | { type: 'memoTemplateRenamed'; workspaceSlug: string; previousTemplateSlug: string; templateSlug: string }
+  | { type: 'memoTemplateDeleted'; workspaceSlug: string }
+  | { type: 'memoTemplateDefaultChanged'; workspaceSlug: string }
   | { type: 'bookmarkCollectionChanged'; workspaceSlug: string }
   | { type: 'kanbanCollectionChanged'; workspaceSlug: string }
   | { type: 'kanbanStatusCollectionChanged'; workspaceSlug: string; kanbanId: number }
@@ -22,6 +27,16 @@ export const changeRefs = {
   }),
   memoDeleted: (workspaceSlug: string, memoSlug: string): ChangeRef => ({ type: 'memoDeleted', workspaceSlug, memoSlug }),
   memoLinksChanged: (workspaceSlug: string, memoSlug: string): ChangeRef => ({ type: 'memoLinksChanged', workspaceSlug, memoSlug }),
+  memoTemplateCreated: (workspaceSlug: string, templateSlug: string): ChangeRef => ({ type: 'memoTemplateCreated', workspaceSlug, templateSlug }),
+  memoTemplateChanged: (workspaceSlug: string, templateSlug: string): ChangeRef => ({ type: 'memoTemplateChanged', workspaceSlug, templateSlug }),
+  memoTemplateRenamed: (workspaceSlug: string, previousTemplateSlug: string, templateSlug: string): ChangeRef => ({
+    type: 'memoTemplateRenamed',
+    workspaceSlug,
+    previousTemplateSlug,
+    templateSlug,
+  }),
+  memoTemplateDeleted: (workspaceSlug: string): ChangeRef => ({ type: 'memoTemplateDeleted', workspaceSlug }),
+  memoTemplateDefaultChanged: (workspaceSlug: string): ChangeRef => ({ type: 'memoTemplateDefaultChanged', workspaceSlug }),
   bookmarkCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'bookmarkCollectionChanged', workspaceSlug }),
   kanbanCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'kanbanCollectionChanged', workspaceSlug }),
   kanbanStatusCollectionChanged: (workspaceSlug: string, kanbanId: number): ChangeRef => ({ type: 'kanbanStatusCollectionChanged', workspaceSlug, kanbanId }),

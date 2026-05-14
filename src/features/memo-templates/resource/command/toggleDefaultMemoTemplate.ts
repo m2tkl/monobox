@@ -1,6 +1,8 @@
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import { command } from '~/external/tauri/command';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
+import { changeRefs } from '~/resources/changes';
 
 type ToggleDefaultMemoTemplateInput = {
   workspaceSlug: string;
@@ -12,6 +14,9 @@ export async function toggleDefaultMemoTemplate(input: ToggleDefaultMemoTemplate
     await command.memoTemplate.clearDefault({
       workspaceSlugName: input.workspaceSlug,
     });
+    void publishResourceChanges([
+      changeRefs.memoTemplateDefaultChanged(input.workspaceSlug),
+    ]);
     return;
   }
 
@@ -19,4 +24,7 @@ export async function toggleDefaultMemoTemplate(input: ToggleDefaultMemoTemplate
     workspaceSlugName: input.workspaceSlug,
     templateSlugName: input.template.slug_name,
   });
+  void publishResourceChanges([
+    changeRefs.memoTemplateDefaultChanged(input.workspaceSlug),
+  ]);
 }

@@ -1,8 +1,5 @@
-import { sortMemoTemplates } from '../../template';
-
-import { command } from '~/external/tauri/command';
+import { workspaceMemoTemplatesQuery } from '~/resources/memo-template/queries';
 
 export async function loadMemoTemplates(workspaceSlug: string) {
-  const nextTemplates = await command.memoTemplate.list({ slugName: workspaceSlug });
-  return sortMemoTemplates(nextTemplates);
+  return workspaceMemoTemplatesQuery.fetch({ workspaceSlug });
 }

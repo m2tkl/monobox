@@ -1,6 +1,5 @@
 export { fetchMemoTemplate } from './resource/read/fetchMemoTemplate';
 export { loadMemoTemplates } from './resource/read/loadMemoTemplates';
-export { loadTemplateEditorData } from './resource/read/loadTemplateEditorData';
 export { createMemoTemplate } from './resource/command/createMemoTemplate';
 export { deleteMemoTemplate } from './resource/command/deleteMemoTemplate';
 export { saveTemplate } from './resource/command/saveTemplate';

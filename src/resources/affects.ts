@@ -56,6 +56,29 @@ const affectRules: ReadonlyArray<ChangeRule> = [
     change => resourceRefs.linkCollection(change.workspaceSlug, change.memoSlug),
     change => resourceRefs.memoLinkCountCollection(change.workspaceSlug),
   ]),
+  // memo template created -> memoTemplate, memoTemplateCollection
+  defineAffects<Extract<ChangeRef, { type: 'memoTemplateCreated' }>>('memoTemplateCreated').resources([
+    change => resourceRefs.memoTemplate(change.workspaceSlug, change.templateSlug),
+    change => resourceRefs.memoTemplateCollection(change.workspaceSlug),
+  ]),
+  // memo template changed -> memoTemplate, memoTemplateCollection
+  defineAffects<Extract<ChangeRef, { type: 'memoTemplateChanged' }>>('memoTemplateChanged').resources([
+    change => resourceRefs.memoTemplate(change.workspaceSlug, change.templateSlug),
+    change => resourceRefs.memoTemplateCollection(change.workspaceSlug),
+  ]),
+  // memo template renamed -> old/new memoTemplate, memoTemplateCollection
+  defineAffects<Extract<ChangeRef, { type: 'memoTemplateRenamed' }>>('memoTemplateRenamed').resources([
+    change => resourceRefs.memoTemplate(change.workspaceSlug, change.previousTemplateSlug),
+    change => resourceRefs.memoTemplate(change.workspaceSlug, change.templateSlug),
+    change => resourceRefs.memoTemplateCollection(change.workspaceSlug),
+  ]),
+  // memo template deleted/default changed -> memoTemplateCollection
+  defineAffects<Extract<ChangeRef, { type: 'memoTemplateDeleted' }>>('memoTemplateDeleted').resource(
+    change => resourceRefs.memoTemplateCollection(change.workspaceSlug),
+  ),
+  defineAffects<Extract<ChangeRef, { type: 'memoTemplateDefaultChanged' }>>('memoTemplateDefaultChanged').resource(
+    change => resourceRefs.memoTemplateCollection(change.workspaceSlug),
+  ),
   // bookmark collection changed -> bookmarkCollection
   defineAffects<Extract<ChangeRef, { type: 'bookmarkCollectionChanged' }>>('bookmarkCollectionChanged').resource(
     change => resourceRefs.bookmarkCollection(change.workspaceSlug),

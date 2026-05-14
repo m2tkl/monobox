@@ -144,7 +144,6 @@
 import { CellSelection, TableMap } from 'prosemirror-tables';
 
 import { saveTemplate as executeSaveTemplate } from '../../resource/command/saveTemplate';
-import { loadTemplateEditorData } from '../../resource/read/loadTemplateEditorData';
 
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/features/editor';
@@ -153,6 +152,9 @@ import type { MemoIndexItem } from '~/models/memo';
 import { buildExtensions, CodeBlockComponent, dispatchEditorMsg } from '~/features/editor';
 import { EditorToolbarButton, MemoEditor, useMemoEditor } from '~/features/memo-editing';
 import { SearchPalette } from '~/features/search';
+import { useQuery } from '~/resource-runtime/useQuery';
+import { workspaceMemosQuery } from '~/resources/memo/queries';
+import { memoTemplateDetailQuery } from '~/resources/memo-template/queries';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { isCmdKey } from '~/utils/event';
 import { iconKey } from '~/utils/icon';
@@ -179,10 +181,7 @@ const logger = useConsoleLogger('MemoTemplateEditorDialog');
 
 const templateName = ref('');
 const currentTemplateSlug = ref(props.templateSlug);
-const workspaceMemos = ref<MemoIndexItem[]>([]);
-const isLoading = ref(true);
 const isSaving = ref(false);
-const loadError = ref(false);
 const memoEditorRef = ref<InstanceType<typeof MemoEditor> | null>(null);
 
 const extensions = buildExtensions({
@@ -196,6 +195,20 @@ const {
   route,
   router,
 });
+const { snapshot: templateSnapshot } = useQuery(memoTemplateDetailQuery, {
+  workspaceSlug: computed(() => props.workspaceSlug),
+  templateSlug: currentTemplateSlug,
+});
+const { snapshot: workspaceMemosSnapshot } = useQuery(workspaceMemosQuery, {
+  workspaceSlug: computed(() => props.workspaceSlug),
+});
+const workspaceMemos = computed<MemoIndexItem[]>(() => workspaceMemosSnapshot.value.current ?? []);
+const isLoading = computed(() => {
+  const templateLoading = templateSnapshot.value.status === 'loading' && templateSnapshot.value.current === null;
+  const memosLoading = workspaceMemosSnapshot.value.status === 'loading' && workspaceMemosSnapshot.value.current === null;
+  return templateLoading || memosLoading;
+});
+const loadError = computed(() => templateSnapshot.value.status === 'error' || workspaceMemosSnapshot.value.status === 'error');
 const toolbarContextVersion = ref(0);
 let detachToolbarContextListeners: (() => void) | null = null;
 
@@ -322,37 +335,26 @@ watch(editor, (currentEditor) => {
   };
 }, { immediate: true });
 
-async function loadTemplate() {
-  isLoading.value = true;
-  loadError.value = false;
-  currentTemplateSlug.value = props.templateSlug;
+watch(() => props.templateSlug, (next) => {
+  currentTemplateSlug.value = next;
+}, { immediate: true });
 
-  try {
-    const { template: loadedTemplate, memos: loadedMemos } = await loadTemplateEditorData({
-      workspaceSlug: props.workspaceSlug,
-      templateSlug: props.templateSlug,
+watch(() => templateSnapshot.value.current, (loadedTemplate) => {
+  if (!loadedTemplate) {
+    return;
+  }
+
+  templateName.value = loadedTemplate.name;
+  editor.value?.commands.setContent(JSON.parse(loadedTemplate.content), false);
+
+  if (props.focusTitle) {
+    nextTick(() => {
+      window.setTimeout(() => {
+        memoEditorRef.value?.focusTitleField(true);
+      }, 50);
     });
-
-    templateName.value = loadedTemplate.name;
-    workspaceMemos.value = loadedMemos;
-    editor.value?.commands.setContent(JSON.parse(loadedTemplate.content), false);
-
-    if (props.focusTitle) {
-      nextTick(() => {
-        window.setTimeout(() => {
-          memoEditorRef.value?.focusTitleField(true);
-        }, 50);
-      });
-    }
   }
-  catch (error) {
-    logger.error(error);
-    loadError.value = true;
-  }
-  finally {
-    isLoading.value = false;
-  }
-}
+}, { immediate: true });
 
 async function saveTemplate() {
   if (!editor.value || !templateName.value.trim()) {
@@ -410,7 +412,6 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
-  void loadTemplate();
 });
 
 onBeforeUnmount(() => {

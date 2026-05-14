@@ -1,4 +1,6 @@
 import { command } from '~/external/tauri/command';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
+import { changeRefs } from '~/resources/changes';
 import { encodeForSlug } from '~/utils/slug';
 
 type SaveMemoTemplateInput = {
@@ -23,8 +25,19 @@ export async function saveTemplate(input: SaveMemoTemplateInput): Promise<SaveMe
     content: input.content,
   });
 
+  const nextSlug = encodeForSlug(nextName);
+  const changes = [
+    changeRefs.memoTemplateChanged(input.workspaceSlug, nextSlug),
+  ];
+
+  if (input.targetSlugName !== nextSlug) {
+    changes.push(changeRefs.memoTemplateRenamed(input.workspaceSlug, input.targetSlugName, nextSlug));
+  }
+
+  void publishResourceChanges(changes);
+
   return {
-    slug: encodeForSlug(nextName),
+    slug: nextSlug,
     name: nextName,
   };
 }

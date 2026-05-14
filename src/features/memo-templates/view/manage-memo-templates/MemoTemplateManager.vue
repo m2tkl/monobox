@@ -115,10 +115,11 @@ import {
 } from '../../resource/command/createMemoTemplate';
 import { deleteMemoTemplate } from '../../resource/command/deleteMemoTemplate';
 import { toggleDefaultMemoTemplate } from '../../resource/command/toggleDefaultMemoTemplate';
-import { loadMemoTemplates } from '../../resource/read/loadMemoTemplates';
 
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
+import { useQuery } from '~/resource-runtime/useQuery';
+import { workspaceMemoTemplatesQuery } from '~/resources/memo-template/queries';
 import ConfirmModal from '~/shared/components/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
@@ -128,8 +129,6 @@ const props = defineProps<{
 }>();
 const toast = useToast();
 
-const templates = ref<MemoTemplateIndexItem[]>([]);
-const isLoading = ref(false);
 const isCreating = ref(false);
 const deletingSlug = ref<string>();
 const defaultingSlug = ref<string>();
@@ -139,17 +138,11 @@ const editingTemplateSlug = ref<string>();
 const isTemplateEditorOpen = ref(false);
 const shouldFocusTemplateTitle = ref(false);
 
-async function loadTemplates() {
-  if (!props.workspaceSlug) return;
-
-  isLoading.value = true;
-  try {
-    templates.value = await loadMemoTemplates(props.workspaceSlug);
-  }
-  finally {
-    isLoading.value = false;
-  }
-}
+const { snapshot: templatesSnapshot } = useQuery(workspaceMemoTemplatesQuery, {
+  workspaceSlug: computed(() => props.workspaceSlug),
+});
+const templates = computed<MemoTemplateIndexItem[]>(() => templatesSnapshot.value.current ?? []);
+const isLoading = computed(() => templatesSnapshot.value.status === 'loading' && templatesSnapshot.value.current === null);
 
 async function createTemplate() {
   isCreating.value = true;
@@ -159,7 +152,6 @@ async function createTemplate() {
       existingTemplates: templates.value,
     });
 
-    await loadTemplates();
     editingTemplateSlug.value = created.slug_name;
     shouldFocusTemplateTitle.value = true;
     isTemplateEditorOpen.value = true;
@@ -185,7 +177,6 @@ async function deleteTemplate(templateSlugName: string) {
       workspaceSlug: props.workspaceSlug,
       templateSlug: templateSlugName,
     });
-    await loadTemplates();
     toast.add({
       title: 'Template deleted',
       duration: 1000,
@@ -230,7 +221,6 @@ async function toggleDefaultTemplate(template: MemoTemplateIndexItem) {
       workspaceSlug: props.workspaceSlug,
       template,
     });
-    await loadTemplates();
     toast.add({
       title: template.is_default ? 'Default template cleared' : 'Default template updated',
       duration: 1000,
@@ -260,7 +250,6 @@ function editTemplate(templateSlugName: string) {
 function handleTemplateEditorSaved(savedSlug: string) {
   editingTemplateSlug.value = savedSlug;
   shouldFocusTemplateTitle.value = false;
-  void loadTemplates();
 }
 
 function handleTemplateEditorOpenChange(next: boolean) {
@@ -268,13 +257,8 @@ function handleTemplateEditorOpenChange(next: boolean) {
   if (!next) {
     editingTemplateSlug.value = undefined;
     shouldFocusTemplateTitle.value = false;
-    void loadTemplates();
   }
 }
-
-watch(() => props.workspaceSlug, () => {
-  void loadTemplates();
-}, { immediate: true });
 </script>
 
 <style scoped>

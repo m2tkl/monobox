@@ -1,4 +1,6 @@
 import { command } from '~/external/tauri/command';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
+import { changeRefs } from '~/resources/changes';
 
 type DeleteMemoTemplateInput = {
   workspaceSlug: string;
@@ -10,4 +12,8 @@ export async function deleteMemoTemplate(input: DeleteMemoTemplateInput) {
     workspaceSlugName: input.workspaceSlug,
     templateSlugName: input.templateSlug,
   });
+
+  void publishResourceChanges([
+    changeRefs.memoTemplateDeleted(input.workspaceSlug),
+  ]);
 }

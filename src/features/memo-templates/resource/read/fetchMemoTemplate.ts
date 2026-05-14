@@ -1,6 +1,6 @@
 import type { MemoTemplateDetail } from '~/models/memoTemplate';
 
-import { command } from '~/external/tauri/command';
+import { memoTemplateDetailQuery } from '~/resources/memo-template/queries';
 
 type FetchMemoTemplateInput = {
   workspaceSlug: string;
@@ -10,8 +10,8 @@ type FetchMemoTemplateInput = {
 export async function fetchMemoTemplate(
   input: FetchMemoTemplateInput,
 ): Promise<MemoTemplateDetail> {
-  return command.memoTemplate.get({
-    workspaceSlugName: input.workspaceSlug,
-    templateSlugName: input.templateSlug,
+  return memoTemplateDetailQuery.fetch({
+    workspaceSlug: input.workspaceSlug,
+    templateSlug: input.templateSlug,
   });
 }
