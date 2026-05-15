@@ -1,12 +1,30 @@
 <template>
-  <div class="size-full">
+  <div class="app-shell size-full">
     <div class="border-top flex h-full w-full overflow-hidden">
       <aside
-        class="border-right h-full"
-        :class="{ 'w-[250px] shrink-0': ui.isSidebarOpen, 'hidden': !ui.isSidebarOpen }"
+        v-if="ui.isSidebarOpen"
+        class="border-right h-full w-[250px] shrink-0"
       >
-        <SidebarMenu :is-open="ui.isSidebarOpen" />
+        <SidebarMenu :is-open="true" />
       </aside>
+
+      <div
+        v-else
+        class="sidebar-hover-zone"
+        aria-hidden="true"
+        @mouseenter="openFloatingSidebar"
+      />
+
+      <Transition name="floating-sidebar">
+        <aside
+          v-if="isFloatingSidebarVisible"
+          class="floating-sidebar border-right h-full"
+          @mouseenter="openFloatingSidebar"
+          @mouseleave="closeFloatingSidebar"
+        >
+          <SidebarMenu :is-open="true" />
+        </aside>
+      </Transition>
 
       <div
         class="flex h-full min-w-0 flex-1"
@@ -31,4 +49,62 @@
 import SidebarMenu from '~/app/shell/SidebarMenu/Index.vue';
 
 const { ui } = useUIState();
+const isFloatingSidebarVisible = ref(false);
+
+const openFloatingSidebar = () => {
+  if (ui.value.isSidebarOpen) {
+    return;
+  }
+
+  isFloatingSidebarVisible.value = true;
+};
+
+const closeFloatingSidebar = () => {
+  isFloatingSidebarVisible.value = false;
+};
 </script>
+
+<style scoped>
+.app-shell {
+  position: relative;
+}
+
+.sidebar-hover-zone {
+  position: fixed;
+  top: 3rem;
+  left: 0;
+  bottom: 0;
+  width: 14px;
+  z-index: 40;
+}
+
+.floating-sidebar {
+  position: fixed;
+  top: 3rem;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  z-index: 1100;
+  background-color: var(--color-background);
+  box-shadow: 0 16px 48px rgb(15 23 42 / 0.16);
+}
+
+.floating-sidebar-enter-active,
+.floating-sidebar-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.floating-sidebar-enter-from,
+.floating-sidebar-leave-to {
+  opacity: 0;
+  transform: translateX(-12px);
+}
+
+.floating-sidebar-enter-to,
+.floating-sidebar-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+</style>
