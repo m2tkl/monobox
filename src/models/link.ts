@@ -10,7 +10,8 @@ export type Link = {
 
 export type MemoLinkCount = {
   memo_id: number;
-  link_count: number;
+  direct_link_count: number;
+  backlink_count: number;
 };
 
 export type BaseLink = {

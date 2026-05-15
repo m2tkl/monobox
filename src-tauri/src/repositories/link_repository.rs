@@ -127,33 +127,25 @@ impl LinkRepository {
                 FROM memo
                 WHERE workspace_id = ?
             ),
-            CountableLinks AS (
-                SELECT link.from_memo_id AS memo_id, CAST(link.id AS TEXT) AS row_key
+            DirectLinkCounts AS (
+                SELECT link.from_memo_id AS memo_id, COUNT(*) AS direct_link_count
                 FROM link
                 JOIN WorkspaceMemos ON WorkspaceMemos.id = link.from_memo_id
-
-                UNION ALL
-
-                SELECT link.to_memo_id AS memo_id, CAST(link.id AS TEXT) AS row_key
+                GROUP BY link.from_memo_id
+            ),
+            BacklinkCounts AS (
+                SELECT link.to_memo_id AS memo_id, COUNT(*) AS backlink_count
                 FROM link
                 JOIN WorkspaceMemos ON WorkspaceMemos.id = link.to_memo_id
-
-                UNION ALL
-
-                SELECT
-                    forward_link.from_memo_id AS memo_id,
-                    printf('%d:%d', forward_link.id, sibling_link.id) AS row_key
-                FROM link AS forward_link
-                JOIN link AS sibling_link ON forward_link.to_memo_id = sibling_link.to_memo_id
-                JOIN WorkspaceMemos ON WorkspaceMemos.id = forward_link.from_memo_id
-                WHERE sibling_link.from_memo_id <> forward_link.from_memo_id
+                GROUP BY link.to_memo_id
             )
             SELECT
                 WorkspaceMemos.id,
-                COUNT(CountableLinks.row_key) AS link_count
+                COALESCE(DirectLinkCounts.direct_link_count, 0) AS direct_link_count,
+                COALESCE(BacklinkCounts.backlink_count, 0) AS backlink_count
             FROM WorkspaceMemos
-            LEFT JOIN CountableLinks ON CountableLinks.memo_id = WorkspaceMemos.id
-            GROUP BY WorkspaceMemos.id
+            LEFT JOIN DirectLinkCounts ON DirectLinkCounts.memo_id = WorkspaceMemos.id
+            LEFT JOIN BacklinkCounts ON BacklinkCounts.memo_id = WorkspaceMemos.id
             ORDER BY WorkspaceMemos.id
         ";
 
@@ -163,7 +155,8 @@ impl LinkRepository {
             .query_map([workspace_id], |row| {
                 Ok(MemoLinkCount {
                     memo_id: row.get(0)?,
-                    link_count: row.get(1)?,
+                    direct_link_count: row.get(1)?,
+                    backlink_count: row.get(2)?,
                 })
             })
             .map_err(|e| e.to_string())?
@@ -180,7 +173,7 @@ mod tests {
     use rusqlite::Connection;
 
     #[test]
-    fn list_counts_by_workspace_includes_zero_and_matches_link_categories() {
+    fn list_counts_by_workspace_includes_zero_and_excludes_two_hop_counts() {
         let conn = Connection::open_in_memory().expect("in-memory db should open");
         conn.execute_batch(
             "
@@ -215,11 +208,11 @@ mod tests {
         let counts = LinkRepository::list_counts_by_workspace(&conn, 10)
             .expect("link counts should be returned");
 
-        let pairs: Vec<(i32, i32)> = counts
+        let pairs: Vec<(i32, i32, i32)> = counts
             .into_iter()
-            .map(|item| (item.memo_id, item.link_count))
+            .map(|item| (item.memo_id, item.direct_link_count, item.backlink_count))
             .collect();
 
-        assert_eq!(pairs, vec![(1, 3), (2, 2), (3, 3), (4, 1)]);
+        assert_eq!(pairs, vec![(1, 1, 1), (2, 1, 0), (3, 1, 2), (4, 0, 1)]);
     }
 }

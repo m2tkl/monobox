@@ -74,7 +74,13 @@ export function useBookmarkListReadModel() {
     if (bookmarks.length === 0 || memos.length === 0) return [];
 
     const counts = new Map(
-      (memoLinkCountsSnap.value.current ?? []).map(item => [item.memo_id, item.link_count]),
+      (memoLinkCountsSnap.value.current ?? []).map(item => [
+        item.memo_id,
+        {
+          directLinkCount: item.direct_link_count,
+          backlinkCount: item.backlink_count,
+        },
+      ]),
     );
     const memosById = new Map(memos.map(memo => [memo.id, memo]));
 
@@ -86,7 +92,7 @@ export function useBookmarkListReadModel() {
         return {
           ...memo,
           bookmarkId: bookmark.id,
-          linkCount: counts.get(memo.id) ?? 0,
+          linkCount: (counts.get(memo.id)?.directLinkCount ?? 0) + (counts.get(memo.id)?.backlinkCount ?? 0),
           orderIndex: bookmark.order_index,
         };
       })

@@ -14,7 +14,8 @@ pub struct Link {
 #[derive(Serialize, Deserialize)]
 pub struct MemoLinkCount {
     pub memo_id: i32,
-    pub link_count: i32,
+    pub direct_link_count: i32,
+    pub backlink_count: i32,
 }
 
 #[derive(Serialize, Deserialize)]
