@@ -15,3 +15,16 @@ export const encodeForSlug = (title: string) => {
   const titleEncodedOnlySybols = titleEncodedSpace.replace(charsToReplace, char => encodeURIComponent(char));
   return titleEncodedOnlySybols;
 };
+
+export const buildMemoTitleFromSlug = (slug: string) => {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(slug);
+    }
+    catch {
+      return slug;
+    }
+  })();
+
+  return decoded.replaceAll('_', ' ');
+};

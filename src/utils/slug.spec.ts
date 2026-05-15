@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { encodeForSlug } from './slug';
+import { buildMemoTitleFromSlug, encodeForSlug } from './slug';
 
 describe('encodeForSlug', () => {
   it('returns empty string as is', () => {
@@ -29,5 +29,19 @@ describe('encodeForSlug', () => {
   it('returns input when no changes needed', () => {
     expect(encodeForSlug('simple')).toBe('simple');
     expect(encodeForSlug('under_score')).toBe('under_score');
+  });
+});
+
+describe('buildMemoTitleFromSlug', () => {
+  it('converts underscores back to spaces', () => {
+    expect(buildMemoTitleFromSlug('Project_Notes')).toBe('Project Notes');
+  });
+
+  it('decodes percent-encoded characters before building the title', () => {
+    expect(buildMemoTitleFromSlug('C%23_Reference')).toBe('C# Reference');
+  });
+
+  it('falls back to the raw slug when percent-decoding fails', () => {
+    expect(buildMemoTitleFromSlug('%E0%A4%A')).toBe('%E0%A4%A');
   });
 });

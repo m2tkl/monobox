@@ -265,6 +265,8 @@
 </template>
 
 <script lang="ts" setup>
+import { CREATED_QUERY_SOURCE_NAMED } from './createdQuery';
+import { createMemo } from './resource/command/createMemo';
 import { loadMemoEditingData } from './resource/read/loadMemoEditingData';
 import AltEditDialog from './view/compose-memo/AltEditDialog.vue';
 import EditorToolbarButton from './view/compose-memo/EditorToolbarButton.vue';
@@ -299,7 +301,9 @@ import { useCurrentMemoReadModel } from '~/features/memo-editing/resource/read-m
 import { loadMemoTemplates } from '~/features/memo-templates';
 import { SearchPalette } from '~/features/search';
 import IconButton from '~/shared/components/elements/IconButton.vue';
+import { AppError } from '~/utils/error';
 import { useConsoleLogger } from '~/utils/logger';
+import { buildMemoTitleFromSlug } from '~/utils/slug';
 
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
@@ -339,12 +343,47 @@ const {
 });
 const logger = useConsoleLogger('pages/memo');
 
-await usePageLoader(() => loadMemoEditingData({
-  workspaceSlug,
-  memoSlug,
-  loadKanbanEntries,
-  loadTemplates,
-}));
+const isMemoNotFoundError = (error: unknown) =>
+  error instanceof AppError && error.message.includes('Memo not found for slug:');
+
+const ensureMemoExistsAndLoad = async () => {
+  try {
+    await loadMemoEditingData({
+      workspaceSlug,
+      memoSlug,
+      loadKanbanEntries,
+      loadTemplates,
+    });
+  }
+  catch (error) {
+    if (!isMemoNotFoundError(error)) {
+      throw error;
+    }
+
+    await createMemo({
+      workspaceSlug: workspaceSlug.value,
+      title: buildMemoTitleFromSlug(memoSlug.value),
+    });
+
+    await router.replace({
+      path: route.path,
+      query: {
+        ...route.query,
+        created: CREATED_QUERY_SOURCE_NAMED,
+      },
+      hash: route.hash,
+    });
+
+    await loadMemoEditingData({
+      workspaceSlug,
+      memoSlug,
+      loadKanbanEntries,
+      loadTemplates,
+    });
+  }
+};
+
+await usePageLoader(ensureMemoExistsAndLoad);
 
 const resolvedCurrentMemo = computed(() => {
   const memo = memoVM.value.data.memo;
