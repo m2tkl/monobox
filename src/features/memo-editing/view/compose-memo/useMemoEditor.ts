@@ -433,13 +433,39 @@ export function useMemoEditor(
         // Prevent browser default navigation
         event.preventDefault();
 
+        let resolvedUrl: URL;
+        try {
+          resolvedUrl = new URL(url, window.location.origin);
+        }
+        catch {
+          return;
+        }
+
+        const targetPath = resolvedUrl.pathname;
+        const targetHash = resolvedUrl.hash.replace(/^#/, '');
+
         // If the path is same to itself and a fragment is specified, move the focus.
-        const [path, id] = url.split('#');
-        if (options.route.path === path) {
-          focusHeading(editor, id);
+        if (options.route.path === targetPath && targetHash) {
+          focusHeading(editor, targetHash);
         }
 
         if (isInternalLink(url) && !isModifierKeyPressed(event)) {
+          const clickedPosition = editor.view.posAtCoords({
+            left: event.clientX,
+            top: event.clientY,
+          });
+          const sourceHeadingId = clickedPosition
+            ? EditorSelector.findActiveHeadingIdAtPos(editor, clickedPosition.pos)
+            : EditorSelector.findActiveHeadingId(editor);
+
+          if (sourceHeadingId) {
+            await options.router.replace({
+              path: options.route.path,
+              query: options.route.query,
+              hash: `#${sourceHeadingId}`,
+            });
+          }
+
           // NOTE: Pass the entire URL instead of the path ( `{ path: url }` ) to include the fragment.
           options.router.push(url);
           return;

@@ -2,7 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { Editor as VueEditor } from '@tiptap/vue-3';
 import { describe, it, expect } from 'vitest';
 
-import { findActiveHeadingId } from './selector';
+import { findActiveHeadingId, findActiveHeadingIdAtPos } from './selector';
 import { headingExtension } from '../extensions/heading';
 
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
@@ -63,6 +63,23 @@ describe('editor/core/selector', () => {
     editor.commands.setTextSelection({ from: pos + 1, to: pos + 1 });
 
     expect(findActiveHeadingId(editor)).toBe('h2');
+    editor.destroy();
+  });
+
+  it('returns the closest heading above an arbitrary document position', () => {
+    const editor = createEditor({
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 1, id: 'h1' }, content: [{ type: 'text', text: 'A' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'First section body' }] },
+        { type: 'heading', attrs: { level: 2, id: 'h2' }, content: [{ type: 'text', text: 'B' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Second section body' }] },
+      ],
+    });
+
+    const { pos } = findNodePos(editor, node => node.type.name === 'paragraph' && node.textContent === 'First section body');
+
+    expect(findActiveHeadingIdAtPos(editor, pos + 2)).toBe('h1');
     editor.destroy();
   });
 
