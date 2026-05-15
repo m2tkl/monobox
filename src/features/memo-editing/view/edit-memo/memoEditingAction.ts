@@ -4,7 +4,6 @@ export type ActionResult<T = void> =
 
 export type MemoEditingAction =
   | { type: 'action/open-kanban-modal' }
-  | { type: 'action/show-random-memo' }
   | { type: 'action/toggle-bookmark' }
   | { type: 'action/open-slide-mode' }
   | { type: 'action/copy-markdown' }

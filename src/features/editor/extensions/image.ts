@@ -1,11 +1,17 @@
 import { invoke } from '@tauri-apps/api/core';
 import Image from '@tiptap/extension-image';
+import { type NodeViewProps, VueNodeViewRenderer } from '@tiptap/vue-3';
 import { Plugin } from 'prosemirror-state';
 
+import ImageNodeView from '../nodeviews/Image/Index.vue';
 import type { EditorView } from '@tiptap/pm/view';
+import type { Component } from 'vue';
 
 export const imageExtention = () => {
   return Image.configure().extend({
+    addNodeView() {
+      return VueNodeViewRenderer(ImageNodeView as Component<NodeViewProps>);
+    },
     addProseMirrorPlugins() {
       return [
         new Plugin({

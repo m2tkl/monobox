@@ -43,10 +43,6 @@
                 @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
               />
               <IconButton
-                :icon="iconKey.shuffle"
-                @click="() => void dispatchAction({ type: 'action/show-random-memo' })"
-              />
-              <IconButton
                 :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
                 @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
               />
@@ -633,7 +629,6 @@ const { dispatchAction } = useMemoEditingActions({
     memoSlug,
     isBookmarked,
     hasMemo,
-    workspaceMemos,
     router,
     openKanbanModal,
   },

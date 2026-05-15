@@ -3,14 +3,12 @@ import { toggleMemoBookmark } from '../../resource/command/toggleMemoBookmark';
 import type { ActionResult } from './memoEditingAction';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
-import type { MemoIndexItem } from '~/models/memo';
 
 export type UseMemoEditingPageActionsDeps = {
   workspaceSlug: Ref<string>;
   memoSlug: Ref<string>;
   isBookmarked: Ref<boolean>;
   hasMemo: Ref<boolean>;
-  workspaceMemos: Ref<MemoIndexItem[] | undefined>;
   router: Router;
   openKanbanModal: () => void;
 };
@@ -37,21 +35,6 @@ export function useMemoEditingPageActions(options: UseMemoEditingPageActionsDeps
     }
   };
 
-  const showRandomMemo = async (): Promise<ActionResult> => {
-    const memos = options.workspaceMemos.value;
-    if (!memos || memos.length === 0) {
-      return { ok: false };
-    }
-
-    const randomMemo = memos[Math.floor(Math.random() * memos.length)];
-    if (!randomMemo) {
-      return { ok: false };
-    }
-
-    await options.router.push(`/${options.workspaceSlug.value}/${randomMemo.slug_title}`);
-    return { ok: true, data: undefined };
-  };
-
   const openSlideMode = async (): Promise<ActionResult> => {
     await options.router.push(`/${options.workspaceSlug.value}/${options.memoSlug.value}/_slide`);
     return { ok: true, data: undefined };
@@ -65,7 +48,6 @@ export function useMemoEditingPageActions(options: UseMemoEditingPageActionsDeps
   return {
     openKanbanModal,
     toggleBookmark,
-    showRandomMemo,
     openSlideMode,
   };
 }

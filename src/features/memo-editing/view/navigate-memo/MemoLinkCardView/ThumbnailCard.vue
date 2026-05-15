@@ -18,10 +18,14 @@
         @{{ context }}
       </p>
     </template>
-    <img
+    <ImageWithSkeleton
       v-if="thumbnailImage"
       :src="transformImageSrc(thumbnailImage)"
-    >
+      :alt="title"
+      container-class="thumbnail-image-shell"
+      img-class="thumbnail-image"
+      skeleton-class="thumbnail-image-skeleton"
+    />
     <p
       v-for="(p, index) in truncateString(description ? description : '', 128)?.split('\n')"
       v-else
@@ -34,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+import ImageWithSkeleton from '~/shared/components/elements/ImageWithSkeleton.vue';
+
 defineProps<{
   title: string;
   context?: string;
@@ -73,5 +79,21 @@ defineProps<{
 
 :deep(.card-body) {
   border-top: none !important;
+}
+
+.thumbnail-image-shell {
+  min-height: 120px;
+}
+
+.thumbnail-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.thumbnail-image-skeleton {
+  min-height: 120px;
+  border-radius: 0.5rem;
 }
 </style>

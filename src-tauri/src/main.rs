@@ -30,38 +30,42 @@ fn main() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .manage(app_config.clone())
-        .register_uri_scheme_protocol(
+        .register_asynchronous_uri_scheme_protocol(
             "asset",
-            move |_context: tauri::UriSchemeContext<tauri::Wry>, request: Request<Vec<u8>>| {
+            move |_context: tauri::UriSchemeContext<tauri::Wry>, request: Request<Vec<u8>>, responder| {
                 // According to the specification of PathBuf::join, if the path passed to join
                 // starts with a root (e.g., / or C:\), the result will be the input path itself
                 // instead of being joined with the base path.
-                let asset_file_name = request.uri().path().strip_prefix("/monobox/").unwrap_or("");
-
+                let asset_file_name = request.uri().path().strip_prefix("/monobox/").unwrap_or("").to_string();
                 let base_dir = PathBuf::from(&app_config.asset_dir_path);
-                let file_path = base_dir.join(asset_file_name);
 
-                if file_path.exists() {
-                    match fs::read(&file_path) {
-                        Ok(content) => {
-                            let mime = mime_guess::from_path(&file_path).first_or_octet_stream();
-                            Response::builder()
-                                .header("Content-Type", mime.as_ref())
-                                .status(200)
-                                .body(content)
-                                .expect("Failed to build response")
+                std::thread::spawn(move || {
+                    let file_path = base_dir.join(asset_file_name);
+
+                    let response = if file_path.exists() {
+                        match fs::read(&file_path) {
+                            Ok(content) => {
+                                let mime = mime_guess::from_path(&file_path).first_or_octet_stream();
+                                Response::builder()
+                                    .header("Content-Type", mime.as_ref())
+                                    .status(200)
+                                    .body(content)
+                                    .expect("Failed to build response")
+                            }
+                            Err(_) => Response::builder()
+                                .status(500)
+                                .body(Vec::new())
+                                .expect("Failed to build error response"),
                         }
-                        Err(_) => Response::builder()
-                            .status(500)
+                    } else {
+                        Response::builder()
+                            .status(404)
                             .body(Vec::new())
-                            .expect("Failed to build error response"),
-                    }
-                } else {
-                    Response::builder()
-                        .status(404)
-                        .body(Vec::new())
-                        .expect("Failed to build 404 response")
-                }
+                            .expect("Failed to build 404 response")
+                    };
+
+                    responder.respond(response);
+                });
             },
         )
         .plugin(tauri_plugin_fs::init())

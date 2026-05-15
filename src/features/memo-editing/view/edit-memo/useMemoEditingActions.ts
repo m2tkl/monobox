@@ -77,8 +77,6 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
       switch (action.type) {
         case 'action/open-kanban-modal':
           return pageActions.openKanbanModal();
-        case 'action/show-random-memo':
-          return pageActions.showRandomMemo();
         case 'action/toggle-bookmark':
           return pageActions.toggleBookmark();
         case 'action/open-slide-mode':

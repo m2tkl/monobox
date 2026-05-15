@@ -50,6 +50,22 @@
           v-if="workspaceSlug"
           class="pb-1"
         >
+          <button
+            type="button"
+            class="sidebar-action sidebar-link"
+            @click="showRandomMemo"
+          >
+            <UIcon
+              :name="iconKey.shuffle"
+              class="shrink-0"
+            />
+            <span class="sidebar-action-label">Random memo</span>
+          </button>
+        </div>
+        <div
+          v-if="workspaceSlug"
+          class="pb-1"
+        >
           <NuxtLink
             :to="`/${workspaceSlug}/_kanban`"
             class="sidebar-action sidebar-link"
@@ -137,6 +153,7 @@ import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 defineProps<{ isOpen: boolean }>();
 
 const route = useRoute();
+const router = useRouter();
 
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
 
@@ -160,6 +177,19 @@ const clearDragState = () => {
 
 const openSearchPalette = () => {
   searchPaletteRef.value?.openCommandPalette();
+};
+
+const showRandomMemo = async () => {
+  if (!workspaceSlug.value || workspaceMemos.value.length === 0) {
+    return;
+  }
+
+  const randomMemo = workspaceMemos.value[Math.floor(Math.random() * workspaceMemos.value.length)];
+  if (!randomMemo) {
+    return;
+  }
+
+  await router.push(`/${workspaceSlug.value}/${randomMemo.slug_title}`);
 };
 
 const onBookmarkDragStart = (memoId: number) => {
