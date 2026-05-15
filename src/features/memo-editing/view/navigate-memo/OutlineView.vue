@@ -29,9 +29,22 @@
           <span class="pr-1 text-xs font-semibold outline-item-level">{{ '#'.repeat(item.level) }}</span>
           <span
             v-if="item"
-            class="text-wrap"
+            class="min-w-0 flex-1 text-wrap"
           >
             {{ item.text }}
+          </span>
+          <span
+            v-if="(item.total ?? 0) > 0"
+            class="ml-2 inline-flex shrink-0 items-center text-xs leading-none"
+            style="color: var(--color-text-secondary)"
+          >
+            <UIcon
+              v-if="item.checked === item.total"
+              :name="iconKey.success"
+            />
+            <template v-else>
+              {{ item.checked ?? 0 }}/{{ item.total }}
+            </template>
           </span>
 
           <!-- Link copy -->
@@ -54,6 +67,8 @@ type Heading = {
   id: string;
   level: number;
   text: string;
+  checked?: number;
+  total?: number;
 };
 
 const props = defineProps<{

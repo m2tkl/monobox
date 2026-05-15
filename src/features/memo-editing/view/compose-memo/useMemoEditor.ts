@@ -13,6 +13,7 @@ import {
   CustomExtension,
   EditorDom,
   EditorFocus,
+  EditorQuery,
   EditorSelector,
 } from '~/features/editor';
 
@@ -49,6 +50,8 @@ type Heading = {
   id: string;
   level: number;
   text: string;
+  checked: number;
+  total: number;
 };
 
 type TableImeGuardState = {
@@ -530,6 +533,11 @@ export function useMemoEditor(
    */
   const outline = computed<Heading[]>(() => {
     const editorContent = editor.value?.getJSON();
+    const taskSummaryById = new Map(
+      editorContent
+        ? EditorQuery.summarizeTaskItemsByOutlineSection(editorContent).map(summary => [summary.id, summary])
+        : [],
+    );
 
     const headings = editorContent?.content?.filter(c => c.type === 'heading') as _Heading[] | undefined;
     if (headings === undefined) {
@@ -540,6 +548,8 @@ export function useMemoEditor(
       id: h.attrs ? (h.attrs.id as string) : '',
       text: h.content ? (h.content[0].text as string) : '',
       level: h.attrs ? (h.attrs.level as number) : 1,
+      checked: taskSummaryById.get(h.attrs ? (h.attrs.id as string) : '')?.checked ?? 0,
+      total: taskSummaryById.get(h.attrs ? (h.attrs.id as string) : '')?.total ?? 0,
     }));
   });
 

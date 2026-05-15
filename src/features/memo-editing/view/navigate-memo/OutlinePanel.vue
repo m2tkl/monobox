@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import OutlineView from './OutlineView.vue';
 
-type Heading = { id: string; level: number; text: string };
+type Heading = { id: string; level: number; text: string; checked?: number; total?: number };
 
 const props = defineProps<{
   outline: Heading[];
