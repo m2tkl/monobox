@@ -4,8 +4,11 @@ import { type NodeViewProps, VueNodeViewRenderer } from '@tiptap/vue-3';
 import { Plugin } from 'prosemirror-state';
 
 import ImageNodeView from '../nodeviews/Image/Index.vue';
+
 import type { EditorView } from '@tiptap/pm/view';
 import type { Component } from 'vue';
+
+import { transformImageSrc } from '~/utils/imageSrc';
 
 export const imageExtention = () => {
   return Image.configure().extend({
@@ -99,12 +102,7 @@ export const imageExtention = () => {
     },
     renderHTML({ HTMLAttributes }) {
       const transformedSrc = transformImageSrc(HTMLAttributes.src);
-      return [
-        'figure',
-        { class: 'tiptap-image' },
-        ['img', { ...HTMLAttributes, src: transformedSrc }],
-        ['figcaption', { style: 'font-size: 0.8em; text-align: center; margin-top: 4px;' }, HTMLAttributes.alt || ''],
-      ];
+      return ['img', { ...HTMLAttributes, src: transformedSrc }];
     },
   });
 };
