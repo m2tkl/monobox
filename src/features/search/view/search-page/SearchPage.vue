@@ -9,9 +9,11 @@
               class="text-xl"
             />
             <UInput
+              ref="searchFieldRef"
               v-model="query"
               class="flex-1"
               placeholder="Search in memos"
+              type="search"
             />
             <UButton
               v-if="hasQuery"
@@ -67,6 +69,8 @@
 </template>
 
 <script setup lang="ts">
+import { nextTick, onMounted, ref } from 'vue';
+
 import { useSearchPage } from './useSearchPage';
 
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
@@ -82,4 +86,15 @@ const {
   clearQuery,
   formatDate,
 } = useSearchPage();
+
+const searchFieldRef = ref<{ $el?: Element } | null>(null);
+
+onMounted(async () => {
+  await nextTick();
+  const input = searchFieldRef.value?.$el?.querySelector('input');
+  if (input instanceof HTMLInputElement) {
+    input.focus();
+    input.select();
+  }
+});
 </script>
