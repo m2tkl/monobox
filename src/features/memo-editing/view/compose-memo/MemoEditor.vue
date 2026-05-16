@@ -125,6 +125,13 @@
       name="dialogs"
       :editor="editor"
     />
+
+    <div
+      v-if="slots.status"
+      class="pointer-events-none fixed right-4 bottom-4 z-[60]"
+    >
+      <slot name="status" />
+    </div>
   </div>
 </template>
 
@@ -156,6 +163,7 @@ const props = withDefaults(defineProps<{
 });
 
 const memoTitle = defineModel<string>('memoTitle', { required: true });
+const slots = useSlots();
 const titleFieldRef = ref<InstanceType<typeof TitleFieldStableInput> | null>(null);
 const editorSurfaceRef = ref<HTMLElement | null>(null);
 

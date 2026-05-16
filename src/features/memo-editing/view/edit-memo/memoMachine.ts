@@ -23,7 +23,6 @@ export type MemoEffect =
   | { type: 'effect/save-memo'; mode: 'explicit' | 'auto' }
   | { type: 'effect/sync-links'; added: string[]; deleted: string[] }
   | { type: 'effect/snapshot-saved' }
-  | { type: 'effect/notify-save-succeeded' }
   | { type: 'effect/notify-save-failed' }
   | { type: 'effect/replace-memo-route'; memoSlug: string }
   | { type: 'effect/confirm-delete' }
@@ -136,10 +135,9 @@ const transitions: TransitionMap = {
     },
   },
   saving: {
-    'memo/save-succeeded': ({ state, event }) => ({
+    'memo/save-succeeded': ({ event }) => ({
       state: cleanState,
       effects: [
-        ...(state.mode === 'explicit' ? [{ type: 'effect/notify-save-succeeded' as const }] : []),
         { type: 'effect/snapshot-saved' },
         { type: 'effect/replace-memo-route', memoSlug: event.payload.memoSlug },
       ],

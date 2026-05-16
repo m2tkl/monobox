@@ -140,7 +140,7 @@ describe('useMemoMachine', () => {
     wrapper.unmount();
   });
 
-  it('notifies after an explicit save succeeds', async () => {
+  it('completes an explicit save without a success toast', async () => {
     saveMemo.mockResolvedValue({ memoSlug: 'saved-memo' });
 
     const { wrapper, machine } = mountMachine({ initialState: 'dirty' });
@@ -150,11 +150,8 @@ describe('useMemoMachine', () => {
       payload: { mode: 'explicit' },
     });
 
-    expect(toastAdd).toHaveBeenCalledWith({
-      title: 'Saved',
-      icon: 'success',
-      duration: 1000,
-    });
+    expect(machine.state.value).toEqual({ type: 'clean' });
+    expect(toastAdd).not.toHaveBeenCalled();
 
     wrapper.unmount();
   });

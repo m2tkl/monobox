@@ -162,10 +162,6 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
         options.onSnapshotSaved(options.getCurrentSnapshot());
         return {};
       }
-      case 'effect/notify-save-succeeded': {
-        toast.add({ title: 'Saved', icon: iconKey.success, duration: 1000 });
-        return {};
-      }
       case 'effect/notify-save-failed': {
         toast.add({
           title: 'Failed to save',

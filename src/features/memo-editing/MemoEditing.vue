@@ -25,6 +25,16 @@
             v-model:memo-title="memoTitle"
             :editor="editor"
           >
+            <template #status>
+              <UBadge
+                :color="memoStatusBadge.color"
+                variant="soft"
+                class="memo-status-badge"
+              >
+                {{ memoStatusBadge.label }}
+              </UBadge>
+            </template>
+
             <template #toolbar="{ editor: _editor }">
               <EditorToolbarButton
                 v-for="(item) in getEditorToolbarActionItems(_editor)"
@@ -420,7 +430,6 @@ const computeDirty = () => {
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 const hasMemo = computed(() => memoVM.value.data.memo != null);
 const isBookmarked = computed(() => memoVM.value.data.isBookmarked);
-const workspaceMemos = computed(() => memoVM.value.data.workspaceMemos ?? undefined);
 
 // Reference to control the link palette component
 const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
@@ -442,7 +451,7 @@ const {
   router,
 });
 
-const { dispatch: dispatchMemoEvent } = useMemoMachine({
+const { state: memoState, dispatch: dispatchMemoEvent } = useMemoMachine({
   initialState: { type: 'clean' },
   workspaceSlug,
   memoSlug,
@@ -457,6 +466,20 @@ const { dispatch: dispatchMemoEvent } = useMemoMachine({
     lastSavedSnapshot.value = snapshot;
   },
   logger,
+});
+
+const memoStatusBadge = computed(() => {
+  switch (memoState.value.type) {
+    case 'dirty':
+      return { label: 'Unsaved changes', color: 'warning' as const };
+    case 'saving':
+      return { label: 'Saving...', color: 'info' as const };
+    case 'deleting':
+      return { label: 'Deleting...', color: 'neutral' as const };
+    case 'clean':
+    default:
+      return { label: 'Saved', color: 'success' as const };
+  }
 });
 
 watch(memoTitle, () => {
