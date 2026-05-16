@@ -485,8 +485,13 @@ function handleTitleArrowUp() {
 
 <style>
 .tiptap .code-block {
+  margin: 1rem 0;
   position: relative;
   font-weight: 500;
+}
+
+.tiptap .code-block pre {
+  margin: 0;
 }
 
 .tiptap .code-block-header {
