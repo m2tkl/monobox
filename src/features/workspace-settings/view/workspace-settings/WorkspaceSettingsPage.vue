@@ -134,8 +134,6 @@
 </template>
 
 <script setup lang="ts">
-import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
-
 import { useWorkspaceSettings } from './useWorkspaceSettings';
 
 import { MemoTemplateManager } from '~/features/memo-templates';
@@ -163,9 +161,6 @@ const {
   router,
   toast,
 });
-
-const _appConfig = JSON.parse(await readTextFile('config.json', { baseDir: BaseDirectory.AppData }));
-void _appConfig;
 
 await usePageLoader(async () => {
   await loadWorkspaceSettings();

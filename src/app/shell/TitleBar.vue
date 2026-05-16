@@ -88,22 +88,7 @@
     >
       <ThemeToggle />
 
-      <!--
-        NOTE: Accessing the "_setting" route from the custom Titlebar works on macOS
-        but triggers an error on Windows due to a different configuration file path.
-
-        On Windows, Tauri attempts to load:
-          C:\Users\$username\AppData\Roaming\com.m2tkl.monobox\config.json
-        which fails with "The system cannot find the path specified (os error 3)".
-
-        The actual config file was found here instead:
-          C:\Users\$username\AppData\Roaming\m2tkl\monobox\config\config.json
-
-        Since the "_setting" route was originally exposed only for theme switching
-        and we now have a ThemeToggle button directly on the Titlebar,
-        navigation to "_setting" is no longer necessary.
-        For now, the entry point to "_setting" is removed as a workaround.
-      -->
+      <!-- Theme switching is handled directly in the title bar. -->
       <!-- <IconButton
         :icon="iconKey.setting"
         @click="goToSetting"
