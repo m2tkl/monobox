@@ -17,6 +17,7 @@
     "check:memo-editing:outline-panel": "node scripts/typecheck-frontend-vue-file.mjs src/features/memo-editing/view/navigate-memo/OutlinePanel.vue",
     "check:frontend:vue": "eslint \"src/**/*.vue\"",
     "release:prepare": "node scripts/release-prepare.mjs",
+    "release:version": "npm run release:prepare --",
     "release:tag": "node scripts/release-tag.mjs",
     "release:push-tag": "node scripts/release-push-tag.mjs",
     "test": "vitest run ",

@@ -14,6 +14,16 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 const suggestedTag = `v${packageJson.version}`
 const latestTags = getLines(runAndRead('git', ['tag', '--sort=-creatordate'], repoRoot)).slice(0, 5)
 const headSummary = runAndRead('git', ['show', '--stat', '--oneline', '--no-patch', 'HEAD'], repoRoot).trim()
+const worktreeStatus = getLines(runAndRead('git', ['status', '--short'], repoRoot))
+
+if (worktreeStatus.length > 0) {
+  console.error('Working tree must be clean before creating a release tag')
+  console.error('Commit or stash changes first:')
+  for (const line of worktreeStatus) {
+    console.error(`  ${line}`)
+  }
+  process.exit(1)
+}
 
 console.log(`Current HEAD: ${headSummary}`)
 console.log(`Suggested tag: ${suggestedTag}`)
@@ -33,6 +43,7 @@ try {
   const tagName = answer.trim() || suggestedTag
 
   validateTagName(tagName)
+  validateTagMatchesVersion(tagName, suggestedTag)
 
   if (tagExists(tagName)) {
     console.error(`Tag already exists: ${tagName}`)
@@ -58,6 +69,13 @@ function validateTagName(tagName) {
 
   if (result.status !== 0) {
     console.error(`Invalid tag name: ${tagName}`)
+    process.exit(1)
+  }
+}
+
+function validateTagMatchesVersion(tagName, expectedTagName) {
+  if (tagName !== expectedTagName) {
+    console.error(`Tag name must match package.json version: ${expectedTagName}`)
     process.exit(1)
   }
 }
