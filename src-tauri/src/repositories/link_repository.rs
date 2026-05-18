@@ -85,6 +85,12 @@ impl LinkRepository {
     }
 
     pub fn create(conn: &Connection, memo_id: i32, to_memo_id: i32) -> Result<LinkId> {
+        if memo_id == to_memo_id {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "self links are not allowed".to_string(),
+            ));
+        }
+
         conn.execute(
             "INSERT INTO link (from_memo_id, to_memo_id)
             SELECT ?, id
@@ -214,5 +220,37 @@ mod tests {
             .collect();
 
         assert_eq!(pairs, vec![(1, 1, 1), (2, 1, 0), (3, 1, 2), (4, 0, 1)]);
+    }
+
+    #[test]
+    fn create_rejects_self_links() {
+        let conn = Connection::open_in_memory().expect("in-memory db should open");
+        conn.execute_batch(
+            "
+            CREATE TABLE memo (
+                id INTEGER PRIMARY KEY,
+                workspace_id INTEGER NOT NULL,
+                slug_title TEXT NOT NULL,
+                title TEXT
+            );
+            CREATE TABLE link (
+                id INTEGER PRIMARY KEY,
+                from_memo_id INTEGER NOT NULL,
+                to_memo_id INTEGER NOT NULL
+            );
+
+            INSERT INTO memo (id, workspace_id, slug_title, title) VALUES
+              (1, 10, 'inbox', 'Inbox');
+            ",
+        )
+        .expect("schema and fixtures should be created");
+
+        let result = LinkRepository::create(&conn, 1, 1);
+        assert!(result.is_err());
+
+        let link_count: i32 = conn
+            .query_row("SELECT COUNT(*) FROM link", [], |row| row.get(0))
+            .expect("link count should be readable");
+        assert_eq!(link_count, 0);
     }
 }

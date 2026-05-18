@@ -609,7 +609,7 @@ export function useMemoEditor(
   }
 
   const updateLinks = async (transaction: Transaction) => {
-    const { deletedLinks, addedLinks } = EditorDoc.getChangedLinks(transaction);
+    const { deletedLinks, addedLinks } = EditorDoc.getChangedLinks(transaction, options.route.path);
 
     if (deletedLinks.length === 0 && addedLinks.length === 0) return null;
 

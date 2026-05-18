@@ -2,6 +2,19 @@ import type { Transaction } from '@tiptap/pm/state';
 
 import { isInternalLink } from '~/utils/link';
 
+const normalizeInternalLinkPath = (href: string): string | null => {
+  if (!isInternalLink(href)) {
+    return null;
+  }
+
+  try {
+    return new URL(href, window.location.origin).pathname;
+  }
+  catch {
+    return null;
+  }
+};
+
 /**
  * Finds the first image in the document and returns its source URL.
  *
@@ -29,19 +42,22 @@ export const findHeadImage = (transaction: Transaction) => {
  * It detects which links have been newly added and which have been removed.
  *
  * NOTE:
- *   When determining link changes, only the URL without the hash fragment is considered.
+ *   When determining link changes, only the internal link pathname is considered.
  *   e.g.: /test/page-1#123 is treated as /test/page-1
+ *   If `currentPath` is provided, links to the current page are ignored.
  *
  * @param transaction - The current transaction containing the document state before and after changes.
+ * @param currentPath - The current page path to exclude from link tracking.
  * @returns An object containing `addedLinks` (newly added links) and `deletedLinks` (removed links).
  */
-export const getChangedLinks = (transaction: Transaction) => {
+export const getChangedLinks = (transaction: Transaction, currentPath?: string) => {
   const beforeLinks = new Set<string>();
   transaction.before.descendants((node) => {
     const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
-      if (isInternalLink(linkMark.attrs.href)) {
-        beforeLinks.add(linkMark.attrs.href.split('#')[0]);
+      const normalizedPath = normalizeInternalLinkPath(linkMark.attrs.href);
+      if (normalizedPath && normalizedPath !== currentPath) {
+        beforeLinks.add(normalizedPath);
       }
     }
   });
@@ -51,8 +67,9 @@ export const getChangedLinks = (transaction: Transaction) => {
   transaction.doc.descendants((node) => {
     const linkMark = node.marks.find(mark => mark.type.name === 'link');
     if (linkMark) {
-      if (isInternalLink(linkMark.attrs.href)) {
-        afterLinks.add(linkMark.attrs.href.split('#')[0]);
+      const normalizedPath = normalizeInternalLinkPath(linkMark.attrs.href);
+      if (normalizedPath && normalizedPath !== currentPath) {
+        afterLinks.add(normalizedPath);
       }
     }
   });

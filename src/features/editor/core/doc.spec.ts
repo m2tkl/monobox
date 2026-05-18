@@ -66,4 +66,35 @@ describe('editor/core/doc', () => {
     beforeEditor.destroy();
     afterEditor.destroy();
   });
+
+  it('getChangedLinks ignores heading links to the current memo', () => {
+    const beforeEditor = createEditor({
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Body' }] },
+      ],
+    });
+
+    const afterEditor = createEditor({
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [
+          { type: 'text', text: 'Here', marks: [{ type: 'link', attrs: { href: '/workspace/current-memo#section-1' } }] },
+          { type: 'text', text: 'There', marks: [{ type: 'link', attrs: { href: '/workspace/other-memo#section-2' } }] },
+        ] },
+      ],
+    });
+
+    const transaction = {
+      before: beforeEditor.state.doc,
+      doc: afterEditor.state.doc,
+    } as unknown as Transaction;
+
+    const { addedLinks, deletedLinks } = getChangedLinks(transaction, '/workspace/current-memo');
+    expect(addedLinks).toEqual(['/workspace/other-memo']);
+    expect(deletedLinks).toEqual([]);
+
+    beforeEditor.destroy();
+    afterEditor.destroy();
+  });
 });
