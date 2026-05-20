@@ -56,6 +56,8 @@ const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
 const mainRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}` : '/');
 const kanbanRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_kanban` : '/');
 const searchRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_search` : '/');
+const inboxRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_inbox` : '/');
+const filesRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_files` : '/');
 const settingsRoute = computed(() => workspaceSlug.value ? `/_setting?workspace=${workspaceSlug.value}` : '/_setting');
 
 const defaultItems = computed<ActivityBarItemConfig[]>(() => ([
@@ -67,11 +69,31 @@ const defaultItems = computed<ActivityBarItemConfig[]>(() => ([
     activeRule: {
       matchAll: true,
       workspaceRequired: true,
-      excludeEquals: [
+        excludeEquals: [
         '/_setting',
         searchRoute.value,
         kanbanRoute.value,
+        inboxRoute.value,
+        filesRoute.value,
       ],
+    },
+  },
+  {
+    id: 'inbox',
+    label: 'Inbox',
+    icon: iconKey.folder,
+    to: inboxRoute.value,
+    activeRule: {
+      pathEquals: [inboxRoute.value],
+    },
+  },
+  {
+    id: 'files',
+    label: 'Files',
+    icon: iconKey.documentAttachment,
+    to: filesRoute.value,
+    activeRule: {
+      pathEquals: [filesRoute.value],
     },
   },
   {

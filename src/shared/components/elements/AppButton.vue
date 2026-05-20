@@ -10,6 +10,7 @@
     :disabled="disabled"
     :type="type"
     :square="square"
+    :block="block"
   >
     <slot />
   </UButton>
@@ -22,15 +23,16 @@ const props = withDefaults(defineProps<{
   label?: string;
   icon?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  color?: 'neutral' | 'primary' | 'error' | 'success' | 'warning';
-  variant?: 'solid' | 'outline' | 'ghost' | 'subtle' | 'link';
+  color?: 'neutral' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error';
+  variant?: 'solid' | 'outline' | 'soft' | 'subtle' | 'ghost' | 'link';
   loading?: boolean;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
   square?: boolean;
+  block?: boolean;
 }>(), {
-  variant: 'subtle',
-  color: 'neutral',
+  variant: 'solid',
+  color: 'primary',
   type: 'button',
 });
 
@@ -46,5 +48,6 @@ const {
   disabled,
   type,
   square,
+  block,
 } = toRefs(props);
 </script>

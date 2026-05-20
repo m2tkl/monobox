@@ -1,5 +1,5 @@
 <template>
-  <UButton
+  <AppButton
     type="button"
     variant="ghost"
     color="neutral"
@@ -14,7 +14,7 @@
     @click="!disabled && $emit('exec')"
   >
     {{ label }}
-  </UButton>
+  </AppButton>
 </template>
 
 <script setup lang="ts">

@@ -7,7 +7,7 @@
       orientation="horizontal"
       class="w-full"
     >
-      <UButton
+      <AppButton
         class="flex-1 justify-start"
         :icon="iconKey.add"
         :loading="isNavigating"
@@ -16,7 +16,7 @@
         @click="goToNewMemo()"
       >
         New memo
-      </UButton>
+      </AppButton>
 
       <UDropdownMenu
         :items="templateMenuItems"
@@ -26,7 +26,7 @@
           sideOffset: 8,
         }"
       >
-        <UButton
+        <AppButton
           variant="outline"
           color="neutral"
           :icon="iconKey.chevronDown"

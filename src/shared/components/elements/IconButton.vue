@@ -1,5 +1,5 @@
 <template>
-  <UButton
+  <AppButton
     :icon="icon"
     variant="ghost"
     color="neutral"

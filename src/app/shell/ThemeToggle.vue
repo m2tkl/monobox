@@ -1,5 +1,5 @@
 <template>
-  <UButton
+  <AppButton
     :icon="currentTheme.config.icon"
     variant="ghost"
     color="neutral"

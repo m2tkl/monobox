@@ -24,7 +24,7 @@ const handleError = () => clearError({ redirect: '/' });
         {{ error.message }}
       </p>
 
-      <UButton
+      <AppButton
         class="mt-2"
         :icon="iconKey.arrowLeft"
         size="xl"
@@ -32,7 +32,7 @@ const handleError = () => clearError({ redirect: '/' });
         @click="handleError"
       >
         Back to Home
-      </UButton>
+      </AppButton>
     </div>
   </div>
 </template>

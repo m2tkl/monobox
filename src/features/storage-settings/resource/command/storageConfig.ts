@@ -7,7 +7,7 @@ export const storageConfigCommand = {
   get: () => command.config.get(),
   detect: () => command.config.detect(),
   defaults: () => command.config.defaults(),
-  save: (params: { databasePath: string; assetDirPath: string; setupComplete: boolean; createMissing: boolean }) =>
+  save: (params: { databasePath: string; assetDirPath: string; filesStorageRoot: string; setupComplete: boolean; createMissing: boolean }) =>
     command.config.save(params),
   selectDatabasePath: async () => {
     return await open({
@@ -16,6 +16,12 @@ export const storageConfigCommand = {
     });
   },
   selectAssetDir: async () => {
+    return await open({
+      multiple: false,
+      directory: true,
+    });
+  },
+  selectFilesStorageRoot: async () => {
     return await open({
       multiple: false,
       directory: true,

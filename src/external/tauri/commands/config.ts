@@ -3,6 +3,7 @@ import { invokeCommand } from '../core/invoker';
 export type AppConfigPayload = {
   database_path: string;
   asset_dir_path: string;
+  files_storage_root: string;
   setup_complete: boolean;
   theme_preference?: string | null;
 };
@@ -41,12 +42,14 @@ export const configCommand = {
   save: async (args: {
     databasePath: string;
     assetDirPath: string;
+    filesStorageRoot: string;
     setupComplete: boolean;
     createMissing: boolean;
   }) => {
     return await invokeCommand<AppConfigPayload>('save_app_config', {
       database_path: args.databasePath,
       asset_dir_path: args.assetDirPath,
+      files_storage_root: args.filesStorageRoot,
       setup_complete: args.setupComplete,
       create_missing: args.createMissing,
     });

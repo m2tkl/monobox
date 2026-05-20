@@ -8,7 +8,7 @@
         >
           Templates
         </h4>
-        <UButton
+        <AppButton
           class="template-primary-button"
           size="sm"
           :icon="iconKey.add"
@@ -16,7 +16,7 @@
           @click="createTemplate"
         >
           New template
-        </UButton>
+        </AppButton>
       </div>
     </template>
 
@@ -57,23 +57,23 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <UButton
+          <AppButton
             class="template-soft-button"
             size="xs"
             :loading="defaultingSlug === template.slug_name"
             @click="toggleDefaultTemplate(template)"
           >
             {{ template.is_default ? 'Unset default' : 'Set default' }}
-          </UButton>
-          <UButton
+          </AppButton>
+          <AppButton
             class="template-outline-button"
             size="xs"
             :icon="iconKey.edit"
             @click="editTemplate(template.slug_name)"
           >
             Edit
-          </UButton>
-          <UButton
+          </AppButton>
+          <AppButton
             class="template-delete-button"
             size="xs"
             :icon="iconKey.trash"

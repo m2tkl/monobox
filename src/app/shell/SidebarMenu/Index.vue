@@ -67,6 +67,21 @@
           class="pb-1"
         >
           <NuxtLink
+            :to="`/${workspaceSlug}/_files`"
+            class="sidebar-action sidebar-link"
+          >
+            <UIcon
+              :name="iconKey.documentAttachment"
+              class="shrink-0"
+            />
+            <span class="sidebar-action-label">Files</span>
+          </NuxtLink>
+        </div>
+        <div
+          v-if="workspaceSlug"
+          class="pb-1"
+        >
+          <NuxtLink
             :to="`/${workspaceSlug}/_kanban`"
             class="sidebar-action sidebar-link"
           >

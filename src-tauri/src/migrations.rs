@@ -210,6 +210,34 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         WHERE is_default = 1;
         ",
     ),
+    (
+        "20260518_create_files_table",
+        "CREATE TABLE IF NOT EXISTS files (
+            id TEXT PRIMARY KEY,
+            type TEXT NOT NULL CHECK(type IN ('local_file', 'external_link')),
+            display_name TEXT NOT NULL,
+            relative_path TEXT,
+            url TEXT,
+            imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_files_imported_at ON files(imported_at DESC);
+        ",
+    ),
+    (
+        "20260518_create_note_files_table",
+        "CREATE TABLE IF NOT EXISTS note_files (
+            note_id INTEGER NOT NULL,
+            file_id TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (note_id, file_id),
+            FOREIGN KEY (note_id) REFERENCES memo(id) ON DELETE CASCADE,
+            FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_note_files_file_id ON note_files(file_id);
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

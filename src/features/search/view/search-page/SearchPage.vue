@@ -15,7 +15,7 @@
               placeholder="Search in memos"
               type="search"
             />
-            <UButton
+            <AppButton
               v-if="hasQuery"
               variant="subtle"
               color="neutral"
@@ -23,7 +23,7 @@
               @click="clearQuery"
             >
               Clear
-            </UButton>
+            </AppButton>
           </div>
 
           <LoadingSpinner v-if="isLoading" />

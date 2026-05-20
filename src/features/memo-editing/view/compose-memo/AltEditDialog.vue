@@ -23,23 +23,23 @@
 
         <template #footer>
           <div class="h-8 flex w-full">
-            <UButton
+            <AppButton
               form="set-alt"
               type="submit"
               class="bg-slate-600"
             >
               Save
-            </UButton>
+            </AppButton>
 
             <span class="flex-1" />
 
-            <UButton
+            <AppButton
               variant="solid"
               class="bg-slate-600"
               @click="cancel"
             >
               Cancel
-            </UButton>
+            </AppButton>
           </div>
         </template>
       </UCard>

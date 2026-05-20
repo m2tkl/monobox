@@ -11,6 +11,7 @@ use crate::config::{load_config, save_config};
 pub struct ConfigPayload {
     pub database_path: String,
     pub asset_dir_path: String,
+    pub files_storage_root: String,
     pub setup_complete: bool,
     pub theme_preference: Option<String>,
 }
@@ -19,6 +20,7 @@ pub struct ConfigPayload {
 pub struct SaveConfigArgs {
     pub database_path: String,
     pub asset_dir_path: String,
+    pub files_storage_root: String,
     pub setup_complete: bool,
     pub create_missing: bool,
 }
@@ -49,6 +51,7 @@ pub fn get_app_config() -> Result<ConfigPayload, String> {
     Ok(ConfigPayload {
         database_path: config.database_path,
         asset_dir_path: config.asset_dir_path,
+        files_storage_root: config.files_storage_root,
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
     })
@@ -100,7 +103,12 @@ pub fn get_default_storage_paths() -> Result<DefaultStoragePaths, String> {
 
 #[command]
 pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
-    validate_storage_paths(&args.database_path, &args.asset_dir_path, args.create_missing)?;
+    validate_storage_paths(
+        &args.database_path,
+        &args.asset_dir_path,
+        &args.files_storage_root,
+        args.create_missing,
+    )?;
 
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
@@ -109,6 +117,7 @@ pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
     let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
     config.database_path = args.database_path.clone();
     config.asset_dir_path = args.asset_dir_path.clone();
+    config.files_storage_root = args.files_storage_root.clone();
     config.setup_complete = args.setup_complete;
 
     save_config(&config, &config_path)?;
@@ -116,6 +125,7 @@ pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
     Ok(ConfigPayload {
         database_path: args.database_path,
         asset_dir_path: args.asset_dir_path,
+        files_storage_root: args.files_storage_root,
         setup_complete: args.setup_complete,
         theme_preference: config.theme_preference,
     })
@@ -124,6 +134,7 @@ pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
 fn validate_storage_paths(
     database_path: &str,
     asset_dir_path: &str,
+    files_storage_root: &str,
     create_missing: bool,
 ) -> Result<(), String> {
     let db_path = PathBuf::from(database_path);
@@ -171,6 +182,22 @@ fn validate_storage_paths(
         }
     }
 
+    if !files_storage_root.trim().is_empty() {
+        let files_path = PathBuf::from(files_storage_root);
+        if files_path.exists() && !files_path.is_dir() {
+            return Err("FILES_STORAGE_NOT_DIR:Files storage path is not a directory".to_string());
+        }
+        if !files_path.exists() {
+            if create_missing {
+                fs::create_dir_all(&files_path)
+                    .map_err(|e| format!("FILES_STORAGE_CREATE_FAILED:Failed to create files storage directory: {}", e))?;
+            }
+            else {
+                return Err("FILES_STORAGE_MISSING:Files storage directory does not exist".to_string());
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -179,7 +206,12 @@ pub fn validate_app_config() -> Result<(), String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
     let config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
-    validate_storage_paths(&config.database_path, &config.asset_dir_path, false)
+    validate_storage_paths(
+        &config.database_path,
+        &config.asset_dir_path,
+        &config.files_storage_root,
+        false,
+    )
 }
 
 #[command]
@@ -196,6 +228,7 @@ pub fn set_theme_preference(args: ThemePreferenceArgs) -> Result<ConfigPayload, 
     Ok(ConfigPayload {
         database_path: config.database_path,
         asset_dir_path: config.asset_dir_path,
+        files_storage_root: config.files_storage_root,
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
     })

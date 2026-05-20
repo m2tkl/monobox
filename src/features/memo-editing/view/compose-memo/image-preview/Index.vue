@@ -28,7 +28,7 @@
 
             <div class="ml-auto flex items-center gap-1">
               <UTooltip text="Zoom out">
-                <UButton
+                <AppButton
                   :icon="iconKey.zoomOut"
                   variant="ghost"
                   color="neutral"
@@ -38,7 +38,7 @@
                 />
               </UTooltip>
               <UTooltip text="Zoom in">
-                <UButton
+                <AppButton
                   :icon="iconKey.zoomIn"
                   variant="ghost"
                   color="neutral"
@@ -48,7 +48,7 @@
                 />
               </UTooltip>
               <UTooltip text="Reset">
-                <UButton
+                <AppButton
                   :icon="iconKey.zoomReset"
                   variant="ghost"
                   color="neutral"
@@ -57,7 +57,7 @@
                   @click="resetZoom"
                 />
               </UTooltip>
-              <UButton
+              <AppButton
                 :icon="iconKey.close"
                 variant="ghost"
                 color="neutral"

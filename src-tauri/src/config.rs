@@ -7,6 +7,8 @@ use std::path::{Path, PathBuf};
 pub struct AppConfig {
     pub database_path: String,
     pub asset_dir_path: String,
+    #[serde(default)]
+    pub files_storage_root: String,
     #[serde(default = "default_setup_complete")]
     pub setup_complete: bool,
     #[serde(default)]
@@ -22,6 +24,7 @@ impl Default for AppConfig {
         AppConfig {
             database_path: "${app_data_dir}/data.db".to_string(),
             asset_dir_path: "${app_data_dir}/_assets/".to_string(),
+            files_storage_root: String::new(),
             setup_complete: false,
             theme_preference: None,
         }
@@ -44,6 +47,7 @@ pub fn load_config(config_dir: &Path, data_dir: &Path) -> Result<AppConfig, Stri
         // Replace placeholders in the configuration
         config.database_path = replace_placeholders(&config.database_path, data_dir);
         config.asset_dir_path = replace_placeholders(&config.asset_dir_path, data_dir);
+        config.files_storage_root = replace_placeholders(&config.files_storage_root, data_dir);
 
         Ok(config)
     } else {
@@ -53,6 +57,8 @@ pub fn load_config(config_dir: &Path, data_dir: &Path) -> Result<AppConfig, Stri
             replace_placeholders(&default_config.database_path, data_dir);
         default_config.asset_dir_path =
             replace_placeholders(&default_config.asset_dir_path, data_dir);
+        default_config.files_storage_root =
+            replace_placeholders(&default_config.files_storage_root, data_dir);
 
         save_config(&default_config, &config_path)?;
         Ok(default_config)

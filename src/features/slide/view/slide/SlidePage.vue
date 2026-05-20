@@ -7,14 +7,14 @@
 
     <template #actions>
       <div class="fixed bottom-6 right-6 z-50 flex gap-2">
-        <UButton
+        <AppButton
           :icon="iconKey.arrowLeft"
           color="neutral"
           variant="soft"
           @click="$router.go(-1)"
         >
           Exit
-        </UButton>
+        </AppButton>
       </div>
     </template>
   </NuxtLayout>

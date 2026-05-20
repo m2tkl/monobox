@@ -37,14 +37,14 @@
               v-if="hasMoreRecentMemos"
               class="mt-4 text-center"
             >
-              <UButton
+              <AppButton
                 variant="link"
                 color="info"
                 class="text-sm"
                 @click="loadMore"
               >
                 Load more
-              </UButton>
+              </AppButton>
             </div>
           </template>
         </div>

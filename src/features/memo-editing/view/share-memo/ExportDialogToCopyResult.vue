@@ -12,12 +12,12 @@
     </template>
 
     <template #footer>
-      <UButton
+      <AppButton
         class="bg-slate-600"
         @click="$emit('copy', textToExport_)"
       >
         Copy
-      </UButton>
+      </AppButton>
     </template>
   </UModal>
 </template>

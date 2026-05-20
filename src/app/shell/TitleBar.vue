@@ -49,7 +49,7 @@
           }"
         >
           <div class="flex items-center">
-            <UButton
+            <AppButton
               :label="workspaceName"
               variant="subtle"
               color="neutral"

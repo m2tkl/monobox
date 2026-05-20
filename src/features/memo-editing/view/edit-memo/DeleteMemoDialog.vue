@@ -8,23 +8,23 @@
 
         <template #footer>
           <div class="flex h-8 w-full">
-            <UButton
+            <AppButton
               type="submit"
               color="error"
               @click="resolveConfirmation(true)"
             >
               Delete
-            </UButton>
+            </AppButton>
 
             <span class="flex-1" />
 
-            <UButton
+            <AppButton
               variant="solid"
               color="neutral"
               @click="resolveConfirmation(false)"
             >
               Cancel
-            </UButton>
+            </AppButton>
           </div>
         </template>
       </UCard>

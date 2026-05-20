@@ -3,7 +3,7 @@
     :items="menuItems"
     :popper="{ placement: 'bottom-start' }"
   >
-    <UButton
+    <AppButton
       variant="ghost"
       :icon="currentTheme.config.icon"
       :label="currentTheme.config.name"

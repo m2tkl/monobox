@@ -31,7 +31,7 @@
                   {{ templateName }}
                 </div>
               </div>
-              <UButton
+              <AppButton
                 :icon="iconKey.close"
                 variant="ghost"
                 color="neutral"
@@ -104,14 +104,14 @@
               </template>
 
               <template #context-menu>
-                <UButton
+                <AppButton
                   class="template-save-button"
                   size="xs"
                   :loading="isSaving"
                   @click="saveTemplate"
                 >
                   Save
-                </UButton>
+                </AppButton>
               </template>
             </MemoEditor>
           </div>

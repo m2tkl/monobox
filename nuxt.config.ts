@@ -9,6 +9,13 @@ export default defineNuxtConfig({
     '@nuxt/test-utils/module',
   ],
 
+  components: [
+    {
+      path: '~/shared/components/elements',
+      pathPrefix: false,
+    },
+  ],
+
   // Enable SSG
   ssr: false,
   devtools: { enabled: false },
@@ -111,6 +118,11 @@ export default defineNuxtConfig({
         'carbon:arrow-up',
         'carbon:arrow-down',
         'carbon:edit',
+        'carbon:folder',
+        'carbon:document-attachment',
+        'carbon:renew',
+        'carbon:filter',
+        'carbon:launch',
       ],
       scan: true,
     },

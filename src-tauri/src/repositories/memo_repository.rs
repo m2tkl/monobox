@@ -1,4 +1,5 @@
 use crate::models::memo::{MemoDetail, MemoIndexItem, MemoSearchItem};
+use crate::repositories::FileRepository;
 use rusqlite::{Connection, OptionalExtension, Result};
 use serde_json::Value;
 
@@ -245,6 +246,9 @@ impl MemoRepository {
                 )?;
             }
         }
+
+        FileRepository::sync_note_files(&tx, memo_id, content)
+            .map_err(|e| rusqlite::Error::InvalidParameterName(e))?;
 
         tx.commit()?;
         Ok(())

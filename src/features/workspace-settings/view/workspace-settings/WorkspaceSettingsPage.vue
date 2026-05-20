@@ -101,13 +101,13 @@
                     Danger zone
                   </h4>
                 </template>
-                <UButton
+                <AppButton
                   color="error"
                   variant="subtle"
                   @click="openDeleteConfirmation"
                 >
                   Delete this workspace
-                </UButton>
+                </AppButton>
               </UCard>
             </template>
           </template>

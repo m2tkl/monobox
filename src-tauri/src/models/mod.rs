@@ -1,4 +1,5 @@
 pub mod bookmark;
+pub mod file;
 pub mod kanban;
 pub mod kanban_assignment;
 pub mod kanban_status;

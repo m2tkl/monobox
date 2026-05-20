@@ -26,7 +26,7 @@
             >
               {{ cancelLabel }}
             </AppButton>
-            <UButton
+            <AppButton
               type="button"
               variant="subtle"
               :color="confirmColor"
@@ -34,7 +34,7 @@
               @click="confirm"
             >
               {{ confirmLabel }}
-            </UButton>
+            </AppButton>
           </div>
         </template>
       </UCard>

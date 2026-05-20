@@ -41,6 +41,10 @@
                 <span class="font-semibold">Assets</span>
                 <span>{{ formState.assetDirPath }}</span>
               </div>
+              <div class="flex gap-2">
+                <span class="font-semibold">Files</span>
+                <span>{{ formState.filesStorageRoot || 'Not set' }}</span>
+              </div>
             </div>
           </div>
 
@@ -120,6 +124,7 @@
             >
               <div>{{ formState.databasePath }}</div>
               <div>{{ formState.assetDirPath }}</div>
+              <div>{{ formState.filesStorageRoot || 'Files storage not set' }}</div>
             </div>
           </div>
 
@@ -243,6 +248,26 @@
             </div>
           </UFormField>
 
+          <UFormField
+            label="Files storage folder"
+            name="filesStorageRoot"
+            description="Select the folder where imported files will be stored."
+          >
+            <div class="flex gap-2">
+              <UInput
+                v-model="formState.filesStorageRoot"
+                class="flex-1"
+                placeholder="/path/to/managed-files"
+              />
+              <AppButton
+                type="button"
+                @click="selectFilesStorageRoot"
+              >
+                Browse
+              </AppButton>
+            </div>
+          </UFormField>
+
           <div
             v-if="mode === 'setup' && recommendedPaths"
             class="flex flex-wrap gap-2"
@@ -345,6 +370,7 @@ import { handleError } from '~/utils/error';
 type FormState = {
   databasePath: string;
   assetDirPath: string;
+  filesStorageRoot: string;
 };
 
 type ValidationError = {
@@ -376,11 +402,13 @@ const setupView = ref<'existing' | 'choice' | 'default' | 'custom'>('choice');
 const initialState = ref<FormState>({
   databasePath: '',
   assetDirPath: '',
+  filesStorageRoot: '',
 });
 
 const formState = reactive<FormState>({
   databasePath: '',
   assetDirPath: '',
+  filesStorageRoot: '',
 });
 
 const validate = (state: Partial<FormState>): ValidationError[] => {
@@ -401,9 +429,11 @@ const loadConfig = async () => {
     initialState.value = {
       databasePath: config.database_path,
       assetDirPath: config.asset_dir_path,
+      filesStorageRoot: config.files_storage_root,
     };
     formState.databasePath = config.database_path;
     formState.assetDirPath = config.asset_dir_path;
+    formState.filesStorageRoot = config.files_storage_root;
 
     if (props.mode === 'setup') {
       const [candidates, defaults] = await Promise.all([
@@ -415,6 +445,7 @@ const loadConfig = async () => {
       recommendedPaths.value = {
         databasePath: defaults.database_path,
         assetDirPath: defaults.asset_dir_path,
+        filesStorageRoot: '',
       };
       const hasConfigValues = config.database_path.length > 0 || config.asset_dir_path.length > 0;
       setupView.value = hasConfigValues ? 'existing' : 'choice';
@@ -436,6 +467,7 @@ const loadConfig = async () => {
 const resetForm = () => {
   formState.databasePath = initialState.value.databasePath;
   formState.assetDirPath = initialState.value.assetDirPath;
+  formState.filesStorageRoot = initialState.value.filesStorageRoot;
 };
 
 const applyRecommended = () => {
@@ -444,6 +476,7 @@ const applyRecommended = () => {
   }
   formState.databasePath = recommendedPaths.value.databasePath;
   formState.assetDirPath = recommendedPaths.value.assetDirPath;
+  formState.filesStorageRoot = recommendedPaths.value.filesStorageRoot;
 };
 
 const showDefault = () => {
@@ -474,6 +507,7 @@ const saveConfig = async (createMissing: boolean) => {
     await storageConfigCommand.save({
       databasePath: formState.databasePath,
       assetDirPath: formState.assetDirPath,
+      filesStorageRoot: formState.filesStorageRoot,
       setupComplete: true,
       createMissing,
     });
@@ -481,6 +515,7 @@ const saveConfig = async (createMissing: boolean) => {
     initialState.value = {
       databasePath: formState.databasePath,
       assetDirPath: formState.assetDirPath,
+      filesStorageRoot: formState.filesStorageRoot,
     };
 
     showMissingDialog.value = false;
@@ -495,7 +530,7 @@ const saveConfig = async (createMissing: boolean) => {
   }
   catch (error) {
     const { code, message } = parseConfigError(error);
-    if (code === 'DB_FILE_MISSING' || code === 'DB_PARENT_MISSING' || code === 'ASSET_DIR_MISSING') {
+    if (code === 'DB_FILE_MISSING' || code === 'DB_PARENT_MISSING' || code === 'ASSET_DIR_MISSING' || code === 'FILES_STORAGE_MISSING') {
       missingDetail.value = message;
       showMissingDialog.value = true;
       return;
@@ -545,6 +580,13 @@ const selectAssetDir = async () => {
   const result = await storageConfigCommand.selectAssetDir();
   if (typeof result === 'string') {
     formState.assetDirPath = result;
+  }
+};
+
+const selectFilesStorageRoot = async () => {
+  const result = await storageConfigCommand.selectFilesStorageRoot();
+  if (typeof result === 'string') {
+    formState.filesStorageRoot = result;
   }
 };
 

@@ -20,12 +20,12 @@
     </template>
 
     <template #footer>
-      <UButton
+      <AppButton
         class="bg-slate-600"
         @click="$emit('select', exportTargets.filter((link) => link.target))"
       >
         Export
-      </UButton>
+      </AppButton>
     </template>
   </UModal>
 </template>

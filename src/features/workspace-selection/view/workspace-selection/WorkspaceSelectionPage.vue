@@ -11,19 +11,19 @@
               Workspace
             </h2>
             <div class="flex items-center gap-2">
-              <UButton
+              <AppButton
                 variant="ghost"
                 :style="{ color: 'var(--color-text-primary)' }"
                 @click="goToSettings"
               >
                 Settings
-              </UButton>
-              <UButton
+              </AppButton>
+              <AppButton
                 style="background-color: var(--color-primary); color: white;"
                 @click="openNewWorkspaceModal"
               >
                 New
-              </UButton>
+              </AppButton>
             </div>
           </div>
 
@@ -90,14 +90,14 @@
 
         <template #footer>
           <div class="h-8">
-            <UButton
+            <AppButton
               form="create-workspace-form"
               type="submit"
               :loading="isCreatingWorkspace"
               style="background-color: var(--color-primary); color: white;"
             >
               Create
-            </UButton>
+            </AppButton>
           </div>
         </template>
       </UModal>
