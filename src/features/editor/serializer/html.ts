@@ -173,6 +173,10 @@ function wrapWithMarks(text: string, marks?: JSONContent['marks']): string {
         const href = mark.attrs?.href ?? '#';
         return `<a href="${escapeHtml(href)}">${acc}</a>`;
       }
+      case 'fileLink': {
+        const fileId = mark.attrs?.fileId ?? '';
+        return `<a data-monobox-file-id="${escapeHtml(fileId)}" data-link-type="file">${acc}</a>`;
+      }
       default:
         return acc;
     }

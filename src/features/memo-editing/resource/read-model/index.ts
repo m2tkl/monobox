@@ -1,5 +1,6 @@
 import { computed } from 'vue';
 
+import type { MemoLinkedFileItem } from '~/models/file';
 import type { Link } from '~/models/link';
 import type { MemoDetail, MemoIndexItem } from '~/models/memo';
 
@@ -7,6 +8,7 @@ import { useRoute } from '#imports';
 import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
+import { memoFilesQuery } from '~/resources/file/queries';
 import { memoDetailQuery, workspaceMemosQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -15,6 +17,7 @@ export type CurrentMemoReadModel = {
   data: {
     memo: MemoDetail | null;
     links: Link[];
+    linkedFiles: MemoLinkedFileItem[];
     workspaceMemos: MemoIndexItem[];
     isBookmarked: boolean;
   };
@@ -40,6 +43,11 @@ export function useCurrentMemoReadModel() {
     memoSlug,
   });
 
+  const { snapshot: filesSnap } = useQuery(memoFilesQuery, {
+    workspaceSlug,
+    memoSlug,
+  });
+
   const { snapshot: workspaceMemosSnap } = useQuery(workspaceMemosQuery, {
     workspaceSlug,
   });
@@ -50,6 +58,7 @@ export function useCurrentMemoReadModel() {
 
   const memo = computed(() => memoSnap.value.current ?? null);
   const links = computed<Link[]>(() => linksSnap.value.current ?? []);
+  const linkedFiles = computed<MemoLinkedFileItem[]>(() => filesSnap.value.current ?? []);
   const workspaceMemos = computed<MemoIndexItem[]>(() => workspaceMemosSnap.value.current ?? []);
 
   const isBookmarked = computed<boolean>(() => {
@@ -63,9 +72,10 @@ export function useCurrentMemoReadModel() {
     data: computed(() => ({
       memo: memo.value,
       links: links.value,
+      linkedFiles: linkedFiles.value,
       workspaceMemos: workspaceMemos.value,
       isBookmarked: isBookmarked.value,
     })),
-    snapshots: [memoSnap, linksSnap, workspaceMemosSnap, bookmarksSnap],
+    snapshots: [memoSnap, linksSnap, filesSnap, workspaceMemosSnap, bookmarksSnap],
   });
 }

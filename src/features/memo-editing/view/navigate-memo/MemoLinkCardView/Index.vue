@@ -84,6 +84,42 @@
         </ul>
       </div>
     </div>
+
+    <div
+      v-if="props.files.length !== 0"
+      class="my-4"
+    >
+      <div class="mb-3 flex items-center gap-2 px-4 text-sm font-semibold memo-link-title">
+        <UIcon :name="iconKey.documentAttachment" />
+        Files
+      </div>
+
+      <ul class="flex flex-col gap-2 px-4">
+        <li
+          v-for="file in props.files"
+          :key="file.id"
+          class="overflow-hidden rounded-lg"
+        >
+          <button
+            type="button"
+            class="memo-file-row size-full text-left"
+            @click="openManagedFile(file.id)"
+          >
+            <div class="memo-file-row__main">
+              <UIcon
+                :name="file.type === 'external_link' ? iconKey.link : iconKey.documentAttachment"
+                class="memo-file-icon shrink-0"
+              />
+              <span class="memo-file-name">{{ file.display_name }}</span>
+            </div>
+            <UIcon
+              name="carbon:launch"
+              class="memo-file-open-icon shrink-0"
+            />
+          </button>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -91,16 +127,22 @@
 import ThumbnailCard from './ThumbnailCard.vue';
 import TitleCard from './TitleCard.vue';
 
+import type { MemoLinkedFileItem } from '~/models/file';
 import type { Link } from '~/models/link';
+
+import { fileCommand } from '~/resources/file/commands';
+import { handleError } from '~/utils/error';
 
 const props = defineProps<{
   memoTitle: string;
   links: Array<Link>;
+  files: Array<MemoLinkedFileItem>;
 }>();
 
 const TITLE_TRUNCATE = 32;
 
 const route = useRoute();
+const toast = useToast();
 const buildMemoPath = (slug: string) => `/${route.params.workspace}/${slug}`;
 
 const forwardLinks = computed(() =>
@@ -113,9 +155,67 @@ const twoHopLinks = computed(() =>
   props.links.filter(link => link.link_type === 'TwoHop'),
 );
 
+const openManagedFile = async (fileId: string) => {
+  try {
+    await fileCommand.openManagedFile(fileId);
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to open file.',
+      description: appError.message,
+      color: 'error',
+    });
+  }
+};
+
 function extractsTitleParts(title: string): { memoTitle: string; context: string } {
   const parts = title.split('/');
   const memoTitle = parts.pop() ?? title;
   return { memoTitle, context: parts.join('/') };
 }
 </script>
+
+<style scoped>
+.memo-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-elevated);
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.memo-file-row:hover {
+  background-color: color-mix(in srgb, var(--color-surface-hover) 82%, transparent);
+  border-color: var(--color-border-hover);
+}
+
+.memo-file-row__main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.memo-file-icon {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.memo-file-name {
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+.memo-file-open-icon {
+  color: var(--color-text-secondary);
+}
+</style>

@@ -16,6 +16,9 @@ import {
   EditorQuery,
   EditorSelector,
 } from '~/features/editor';
+import { fileCommand } from '~/resources/file/commands';
+import { isModifierKeyPressed } from '~/utils/event';
+import { isInternalLink } from '~/utils/link';
 
 type MemoEditorOptions = {
   /**
@@ -426,6 +429,14 @@ export function useMemoEditor(
       editor.registerPlugin(CustomExtension.removeHeadingIdOnPastePlugin);
 
       const handleLinkClick = async (event: MouseEvent) => {
+        const linkElement = (event.target as HTMLElement | null)?.closest('a');
+        const fileId = linkElement?.getAttribute('data-monobox-file-id');
+        if (fileId) {
+          event.preventDefault();
+          await fileCommand.openManagedFile(fileId);
+          return;
+        }
+
         const url = EditorDom.getLinkFromMouseClickEvent(event);
 
         // If clicked element is not link, do nothing.

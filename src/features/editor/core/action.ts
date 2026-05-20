@@ -24,6 +24,10 @@ export const unsetLink = (editor: Editor) => {
   editor.chain().focus().unsetMark('link').run();
 };
 
+export const unsetFileLink = (editor: Editor) => {
+  editor.chain().focus().unsetMark('fileLink').run();
+};
+
 export const toggleHeading = (
   editor: Editor,
   { h }: { h: Level },
@@ -202,6 +206,28 @@ export function insertLinkToMemo(
   // NOTE:
   //   Explicitly unset the link input to prevent subsequent input from being linked after inserting a link.
   editor.commands.unsetMark('link');
+}
+
+export function insertFileLink(
+  editor: Editor,
+  displayText: string,
+  fileId: string,
+): void {
+  editor.commands.insertContent({
+    type: 'text',
+    text: displayText,
+    marks: [
+      {
+        type: 'fileLink',
+        attrs: {
+          fileId,
+          label: displayText,
+        },
+      },
+    ],
+  });
+
+  editor.commands.unsetMark('fileLink');
 }
 
 export const applyTargetBlankToExternalLinks = (editor: Editor) => {

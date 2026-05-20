@@ -93,6 +93,12 @@ export const customMarkdownSerializer = new MarkdownSerializer(
   },
   {
     ...defaultMarkdownSerializer.marks,
+    fileLink: {
+      open: '',
+      close: '',
+      mixable: false,
+      expelEnclosingWhitespace: false,
+    },
     bold: {
       open: '**',
       close: '**',

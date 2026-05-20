@@ -95,6 +95,7 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
         return ['a', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
       },
     }),
+    CustomExtension.fileLinkExtension(),
     CustomExtension.imageExtention(),
     CustomExtension.headingExtension(),
     CustomExtension.listNormalizationExtension,

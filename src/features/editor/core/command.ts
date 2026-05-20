@@ -17,6 +17,7 @@ import {
   deleteTableColumn,
   deleteEditorTable,
   unsetLink,
+  unsetFileLink,
   resetStyle,
 } from './action';
 
@@ -41,6 +42,7 @@ export type EditorMsg =
   | { type: 'deleteTable' }
   | { type: 'clearFormat' }
   | { type: 'unsetLink' }
+  | { type: 'unsetFileLink' }
   | { type: 'setLink'; href: string }
   ;
 
@@ -72,6 +74,7 @@ const defaultHandlers: EditorCommandHandlerMap = {
   deleteTable: (editor) => { deleteEditorTable(editor); },
   clearFormat: editor => resetStyle(editor),
   unsetLink: editor => unsetLink(editor),
+  unsetFileLink: editor => unsetFileLink(editor),
   setLink: (editor, msg) => setLink(editor, msg.href),
 };
 

@@ -133,6 +133,137 @@
                 :editor="_editor"
                 @exit="finishImgAltEditing"
               />
+
+              <UModal v-model:open="isInboxInsertModalOpen">
+                <template #content>
+                  <UCard
+                    :ui="fileInsertModalCardUi"
+                  >
+                    <template #header>
+                      <div class="text-sm font-semibold">
+                        Import from Inbox
+                      </div>
+                    </template>
+
+                    <div class="inbox-insert-palette">
+                      <UCommandPalette
+                        v-model:search-term="inboxInsertSearchTerm"
+                        v-model="selectedInboxInsertCommand"
+                        :groups="inboxInsertCommandGroups"
+                        :class="fileInsertPaletteClass"
+                        :autoclear="false"
+                        icon="carbon:search"
+                        placeholder="Search Inbox files"
+                        command-attribute="title"
+                        :fuse="fileInsertPaletteFuse"
+                        :empty-state="{
+                          icon: 'carbon:search-locate',
+                          label: 'No files available in Inbox.',
+                          queryLabel: 'No matching Inbox files found.',
+                        }"
+                        @update:model-value="onSelectInboxInsertCommand"
+                      >
+                        <template #item-label="{ item }">
+                          <span
+                            class="truncate"
+                            style="color: var(--color-text-primary)"
+                            v-html="getPaletteLabelHtml(item)"
+                          />
+                        </template>
+                      </UCommandPalette>
+                    </div>
+                  </UCard>
+                </template>
+              </UModal>
+
+              <UModal v-model:open="isFilesInsertModalOpen">
+                <template #content>
+                  <UCard
+                    :ui="fileInsertModalCardUi"
+                  >
+                    <template #header>
+                      <div class="text-sm font-semibold">
+                        Insert from Files
+                      </div>
+                    </template>
+
+                    <div class="inbox-insert-palette">
+                      <UCommandPalette
+                        v-model:search-term="filesInsertSearchTerm"
+                        v-model="selectedFilesInsertCommand"
+                        :groups="filesInsertCommandGroups"
+                        :class="fileInsertPaletteClass"
+                        :autoclear="false"
+                        icon="carbon:search"
+                        placeholder="Search Files"
+                        command-attribute="title"
+                        :fuse="fileInsertPaletteFuse"
+                        :empty-state="{
+                          icon: 'carbon:search-locate',
+                          label: 'No files have been added yet.',
+                          queryLabel: 'No matching files found.',
+                        }"
+                        @update:model-value="onSelectFilesInsertCommand"
+                      >
+                        <template #item-label="{ item }">
+                          <span
+                            class="truncate"
+                            style="color: var(--color-text-primary)"
+                            v-html="getPaletteLabelHtml(item)"
+                          />
+                        </template>
+                        <template #item-trailing="{ item }">
+                          <span
+                            class="text-xs"
+                            style="color: var(--color-text-secondary)"
+                          >
+                            {{ getFilesInsertMeta(item) }}
+                          </span>
+                        </template>
+                      </UCommandPalette>
+                    </div>
+                  </UCard>
+                </template>
+              </UModal>
+
+              <UModal v-model:open="isExternalFileModalOpen">
+                <template #content>
+                  <UCard>
+                    <template #header>
+                      <div class="text-sm font-semibold">
+                        Create and insert shared link
+                      </div>
+                    </template>
+
+                    <div class="space-y-4">
+                      <UFormField label="Name">
+                        <UInput v-model="externalFileForm.displayName" />
+                      </UFormField>
+                      <UFormField label="URL">
+                        <UInput v-model="externalFileForm.url" />
+                      </UFormField>
+                    </div>
+
+                    <template #footer>
+                      <div class="flex justify-end gap-2">
+                        <AppButton
+                          variant="ghost"
+                          @click="isExternalFileModalOpen = false"
+                        >
+                          Cancel
+                        </AppButton>
+                        <AppButton
+                          :loading="isInsertingManagedFile"
+                          :disabled="!externalFileForm.displayName || !externalFileForm.url"
+                          @click="createExternalFileAndInsert"
+                        >
+                          Create and insert
+                        </AppButton>
+                      </div>
+                    </template>
+                  </UCard>
+                </template>
+              </UModal>
             </template>
           </MemoEditor>
 
@@ -150,7 +281,7 @@
               <div class="flex items-start gap-3">
                 <div class="template-suggestion-scroll">
                   <div class="flex w-max items-center gap-2">
-                    <UButton
+                    <AppButton
                       v-for="template in availableTemplates"
                       :key="template.id"
                       variant="soft"
@@ -160,7 +291,7 @@
                       @click="applyTemplate(template.slug_name)"
                     >
                       {{ template.name }}
-                    </UButton>
+                    </AppButton>
                   </div>
                 </div>
               </div>
@@ -224,6 +355,7 @@
             v-if="memoVM.data.memo"
             :memo-title="memoVM.data.memo.title"
             :links="memoVM.data.links"
+            :files="memoVM.data.linkedFiles"
           />
 
           <!-- Margin for editor scroll -->
@@ -304,11 +436,13 @@ import type { DeleteMemoDialogHandle } from './view/edit-memo/useMemoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';
 import type { LocationQueryRaw } from 'vue-router';
+import type { InboxFileItem, ManagedFileListItem } from '~/models/file';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import { buildExtensions, CodeBlockComponent, dispatchEditorMsg } from '~/features/editor';
+import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction } from '~/features/editor';
 import { useCurrentMemoReadModel } from '~/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/features/memo-templates';
+import { fileCommand } from '~/resources/file/commands';
 import { SearchPalette } from '~/features/search';
 import IconButton from '~/shared/components/elements/IconButton.vue';
 import { AppError } from '~/utils/error';
@@ -575,6 +709,23 @@ onBeforeUnmount(() => {
 const contextMenuItems: DropdownMenuItem[][] = [
   [
     {
+      label: 'Insert from Inbox',
+      icon: iconKey.folder,
+      onSelect: () => { void openInboxInsertModal(); },
+    },
+    {
+      label: 'Create external file link',
+      icon: iconKey.link,
+      onSelect: () => { isExternalFileModalOpen.value = true; },
+    },
+    {
+      label: 'Insert from Files',
+      icon: iconKey.documentAttachment,
+      onSelect: () => { void openFilesInsertModal(); },
+    },
+  ],
+  [
+    {
       label: 'Slide mode',
       icon: iconKey.pageLink,
       onSelect: () => { void dispatchAction({ type: 'action/open-slide-mode' }); },
@@ -664,6 +815,239 @@ const {
   open: startImgAltEditing,
   close: finishImgAltEditing,
 } = useDialog();
+
+const isInboxInsertModalOpen = ref(false);
+const isFilesInsertModalOpen = ref(false);
+const isExternalFileModalOpen = ref(false);
+const isInsertingManagedFile = ref(false);
+const inboxItems = ref<InboxFileItem[]>([]);
+const managedFiles = ref<ManagedFileListItem[]>([]);
+const inboxInsertSearchTerm = ref('');
+const selectedInboxInsertCommand = ref<unknown[]>([]);
+const filesInsertSearchTerm = ref('');
+const selectedFilesInsertCommand = ref<unknown[]>([]);
+const externalFileForm = reactive({
+  displayName: '',
+  url: '',
+});
+
+const fileInsertModalCardUi = {
+  header: 'px-4 py-3 sm:px-4',
+  body: 'p-0 sm:p-0',
+} as const;
+
+const fileInsertPaletteClass = 'max-h-[calc(60vh)] min-h-[calc(60vh)]';
+
+const fileInsertPaletteFuse = {
+  fuseOptions: {
+    includeMatches: true,
+    keys: ['title', 'normalizedTitle'],
+  },
+  resultLimit: 30,
+};
+
+type FileInsertPaletteItem = {
+  label: string;
+  title: string;
+  normalizedTitle: string;
+};
+
+type InboxInsertCommandItem = FileInsertPaletteItem & {
+  path: string;
+};
+
+type InboxInsertCommandGroup = {
+  id: string;
+  label: string;
+  items: InboxInsertCommandItem[];
+};
+
+type FilesInsertCommandItem = FileInsertPaletteItem & {
+  fileId: string;
+  fileType: ManagedFileListItem['type'];
+};
+
+type FilesInsertCommandGroup = {
+  id: string;
+  label: string;
+  items: FilesInsertCommandItem[];
+};
+
+const inboxInsertCommandGroups = computed<InboxInsertCommandGroup[]>(() => [{
+  id: 'inbox-files',
+  label: 'Inbox',
+  items: inboxItems.value
+    .map(item => ({
+      ...createFileInsertPaletteItem(item.display_name),
+      path: item.path,
+    })),
+}]);
+
+const filesInsertCommandGroups = computed<FilesInsertCommandGroup[]>(() => [{
+  id: 'managed-files',
+  label: 'Files',
+  items: managedFiles.value.map(item => ({
+    ...createFileInsertPaletteItem(item.display_name),
+    fileId: item.id,
+    fileType: item.type,
+  })),
+}]);
+
+const loadInboxItems = async () => {
+  const page = await fileCommand.listInbox({ limit: 50, offset: 0 });
+  inboxItems.value = page.items;
+};
+
+const loadManagedFiles = async () => {
+  const page = await fileCommand.listFiles({ limit: 50, offset: 0 });
+  managedFiles.value = page.items;
+};
+
+const openInboxInsertModal = async () => {
+  try {
+    await loadInboxItems();
+    inboxInsertSearchTerm.value = '';
+    selectedInboxInsertCommand.value = [];
+    isInboxInsertModalOpen.value = true;
+  }
+  catch (error) {
+    if (error instanceof AppError) {
+      toast.add({
+        title: 'Failed to load Inbox.',
+        description: error.message,
+        color: 'error',
+      });
+    }
+  }
+};
+
+const openFilesInsertModal = async () => {
+  try {
+    await loadManagedFiles();
+    filesInsertSearchTerm.value = '';
+    selectedFilesInsertCommand.value = [];
+    isFilesInsertModalOpen.value = true;
+  }
+  catch (error) {
+    if (error instanceof AppError) {
+      toast.add({
+        title: 'Failed to load Files.',
+        description: error.message,
+        color: 'error',
+      });
+    }
+  }
+};
+
+const insertManagedFile = async (fileId: string, displayName: string) => {
+  if (!editor.value) {
+    return;
+  }
+
+  EditorAction.insertFileLink(editor.value, displayName, fileId);
+  isFilesInsertModalOpen.value = false;
+};
+
+const onSelectInboxInsertCommand = (command: unknown) => {
+  if (!command || typeof command !== 'object' || !('path' in command) || typeof command.path !== 'string') {
+    return;
+  }
+
+  selectedInboxInsertCommand.value = [];
+  void insertInboxFile(command.path);
+};
+
+const onSelectFilesInsertCommand = (command: unknown) => {
+  if (!command || typeof command !== 'object' || !('fileId' in command) || !('title' in command) || typeof command.fileId !== 'string' || typeof command.title !== 'string') {
+    return;
+  }
+
+  selectedFilesInsertCommand.value = [];
+  void insertManagedFile(command.fileId, command.title);
+};
+
+const createFileInsertPaletteItem = (displayName: string): FileInsertPaletteItem => ({
+  label: displayName,
+  title: displayName,
+  normalizedTitle: displayName.normalize('NFC'),
+});
+
+const getPaletteLabelHtml = (item: unknown) => {
+  if (!item || typeof item !== 'object') {
+    return '';
+  }
+
+  const command = item as FileInsertPaletteItem & { labelHtml?: string };
+  return command.labelHtml || command.title;
+};
+
+const getFilesInsertMeta = (item: unknown) => {
+  if (!item || typeof item !== 'object') {
+    return '';
+  }
+
+  const command = item as FilesInsertCommandItem;
+  return command.fileType === 'external_link' ? 'Link' : 'File';
+};
+
+const insertInboxFile = async (path: string) => {
+  if (!editor.value) {
+    return;
+  }
+
+  isInsertingManagedFile.value = true;
+  try {
+    const file = await fileCommand.importInboxFile(path);
+    EditorAction.insertFileLink(editor.value, file.display_name, file.id);
+    await loadInboxItems();
+    await loadManagedFiles();
+    isInboxInsertModalOpen.value = false;
+  }
+  catch (error) {
+    if (error instanceof AppError) {
+      toast.add({
+        title: 'Failed to insert Inbox file.',
+        description: error.message,
+        color: 'error',
+      });
+    }
+  }
+  finally {
+    isInsertingManagedFile.value = false;
+  }
+};
+
+
+const createExternalFileAndInsert = async () => {
+  if (!editor.value) {
+    return;
+  }
+
+  isInsertingManagedFile.value = true;
+  try {
+    const file = await fileCommand.createExternalLink({
+      displayName: externalFileForm.displayName,
+      url: externalFileForm.url,
+    });
+    EditorAction.insertFileLink(editor.value, file.display_name, file.id);
+    externalFileForm.displayName = '';
+    externalFileForm.url = '';
+    await loadManagedFiles();
+    isExternalFileModalOpen.value = false;
+  }
+  catch (error) {
+    if (error instanceof AppError) {
+      toast.add({
+        title: 'Failed to insert shared link.',
+        description: error.message,
+        color: 'error',
+      });
+    }
+  }
+  finally {
+    isInsertingManagedFile.value = false;
+  }
+};
 
 /* --- Export with related pages (Step1: select targets) --- */
 const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useMemoExport({
