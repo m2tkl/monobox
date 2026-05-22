@@ -36,9 +36,7 @@
             </div>
           </div>
 
-          <div
-            class="min-h-0 flex-1"
-          >
+          <div class="min-h-0 flex-1">
             <InboxPanel
               v-if="activeTab === 'inbox'"
               ref="inboxPanelRef"
@@ -61,34 +59,40 @@
                     icon="carbon:search"
                   />
 
-                  <AppButton
-                    :color="showUnlinkedOnly ? 'primary' : 'neutral'"
-                    :variant="showUnlinkedOnly ? 'soft' : 'outline'"
-                    size="sm"
-                    icon="carbon:filter"
-                    class="filter-toggle-button"
-                    @click="toggleUnlinkedOnly"
-                  >
-                    Unlinked only
-                  </AppButton>
+                  <div class="toolbar-button-slot">
+                    <AppButton
+                      :color="showUnlinkedOnly ? 'primary' : 'neutral'"
+                      :variant="showUnlinkedOnly ? 'soft' : 'outline'"
+                      size="sm"
+                      icon="carbon:filter"
+                      class="filter-toggle-button"
+                      @click="toggleUnlinkedOnly"
+                    >
+                      Unlinked only
+                    </AppButton>
+                  </div>
                 </div>
 
                 <div class="table-toolbar-actions">
-                  <AppButton
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="carbon:renew"
-                    @click="loadPage"
-                  >
-                    Refresh
-                  </AppButton>
-                  <AppButton
-                    size="sm"
-                    @click="isCreateModalOpen = true"
-                  >
-                    Add shared link
-                  </AppButton>
+                  <div class="toolbar-button-slot">
+                    <AppButton
+                      color="neutral"
+                      variant="outline"
+                      size="sm"
+                      icon="carbon:renew"
+                      @click="loadPage"
+                    >
+                      Refresh
+                    </AppButton>
+                  </div>
+                  <div class="toolbar-button-slot">
+                    <AppButton
+                      size="sm"
+                      @click="isCreateModalOpen = true"
+                    >
+                      Add shared link
+                    </AppButton>
+                  </div>
                 </div>
               </div>
 
@@ -245,7 +249,7 @@
                 <AppButton
                   :loading="isSubmitting"
                   :disabled="!createForm.displayName || !createForm.url"
-                  @click="createExternalLink"
+                  @click="createManagedLink"
                 >
                   Add
                 </AppButton>
@@ -351,7 +355,6 @@
                   </div>
                 </div>
               </div>
-
             </div>
 
             <template #footer>
@@ -385,11 +388,29 @@
               </div>
             </template>
 
-            <div class="space-y-3 text-sm">
-              <div><span class="font-semibold">Type:</span> {{ detail.type }}</div>
-              <div><span class="font-semibold">Imported:</span> {{ detail.imported_at }}</div>
-              <div v-if="detail.relative_path"><span class="font-semibold">Relative path:</span> {{ detail.relative_path }}</div>
-              <div v-if="detail.url"><span class="font-semibold">URL:</span> {{ detail.url }}</div>
+            <div
+              v-if="isDetailLoading"
+              class="py-4"
+            >
+              <LoadingSpinner />
+            </div>
+
+            <div
+              v-else
+              class="space-y-3 text-sm"
+            >
+              <div>
+                <span class="font-semibold">Type:</span> {{ detail.type }}
+              </div>
+              <div>
+                <span class="font-semibold">Imported:</span> {{ detail.imported_at }}
+              </div>
+              <div v-if="detail.relative_path">
+                <span class="font-semibold">Relative path:</span> {{ detail.relative_path }}
+              </div>
+              <div v-if="detail.url">
+                <span class="font-semibold">URL:</span> {{ detail.url }}
+              </div>
 
               <div class="space-y-2">
                 <div class="font-semibold">
@@ -417,7 +438,7 @@
                 <AppButton
                   color="neutral"
                   variant="ghost"
-                  @click="isDetailModalOpen = false"
+                  @click="closeDetailModal"
                 >
                   Close
                 </AppButton>
@@ -438,114 +459,14 @@
 
 <script setup lang="ts">
 import InboxPanel from './InboxPanel.vue';
+import { useFilesPage } from './useFilesPage';
 
-import type { ManagedFileDetail, ManagedFileListItem } from '~/models/file';
-import type { MemoIndexItem } from '~/models/memo';
-
-import { fileCommand } from '~/resources/file/commands';
-import { memoCommand } from '~/resources/memo/commands';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
-import { handleError } from '~/utils/error';
-import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
-
-type MemoCommandItem = {
-  label: string;
-  title: string;
-  slug: string;
-};
-
-type MemoCommandGroup = {
-  id: string;
-  label: string;
-  ignoreFilter?: boolean;
-  items: MemoCommandItem[];
-};
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
-const activeTab = computed<'files' | 'inbox'>(() => route.query.tab === 'inbox' ? 'inbox' : 'files');
 
-const isLoading = ref(true);
-const isSubmitting = ref(false);
-const items = ref<ManagedFileListItem[]>([]);
-const totalCount = ref(0);
-const memos = ref<MemoIndexItem[]>([]);
-const detail = ref<ManagedFileDetail | null>(null);
-const isCreateModalOpen = ref(false);
-const isEditModalOpen = ref(false);
-const isLinkModalOpen = ref(false);
-const isDetailModalOpen = ref(false);
-const inboxPanelRef = ref<{ loadPage: () => Promise<void> } | null>(null);
-const pendingFileId = ref('');
-const pendingEditFileId = ref('');
-const selectedMemoSlug = ref('');
-const selectedMemoCommand = ref<unknown[]>([]);
-const memoSearchQuery = ref('');
-const createForm = reactive({
-  displayName: '',
-  url: '',
-});
-const editForm = reactive({
-  displayName: '',
-});
-const pageSize = 20;
-const currentPage = ref(1);
-const searchQuery = ref('');
-const showUnlinkedOnly = ref(false);
-
-const memoOptions = computed(() => memos.value.map(memo => ({
-  label: memo.title,
-  value: memo.slug_title,
-})));
-const memoCommandGroups = computed<MemoCommandGroup[]>(() => [{
-  id: 'memos',
-  label: 'Notes',
-  ignoreFilter: true,
-  items: memos.value
-    .map(memo => ({
-      label: memo.title,
-      title: memo.title,
-      slug: memo.slug_title,
-    }))
-    .filter((memo) => {
-      const needle = memoSearchQuery.value.trim().toLocaleLowerCase('ja-JP');
-      if (!needle) {
-        return true;
-      }
-
-      return memo.title.toLocaleLowerCase('ja-JP').includes(needle)
-        || memo.slug.toLocaleLowerCase('ja-JP').includes(needle);
-    }),
-}]);
-const pendingFileItem = computed(() => items.value.find(item => item.id === pendingFileId.value) ?? null);
-const selectedMemoTitle = computed(() => memos.value.find(memo => memo.slug_title === selectedMemoSlug.value)?.title ?? '');
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize)));
-const pageStart = computed(() => totalCount.value === 0 ? 0 : (currentPage.value - 1) * pageSize + 1);
-const pageEnd = computed(() => Math.min(totalCount.value, currentPage.value * pageSize));
-const filteredItems = computed(() => {
-  const needle = searchQuery.value.trim().toLowerCase();
-  if (!needle) {
-    return items.value;
-  }
-
-  return items.value.filter(item =>
-    item.display_name.toLowerCase().includes(needle)
-    || item.type.toLowerCase().includes(needle),
-  );
-});
-const setActiveTab = async (tab: 'files' | 'inbox') => {
-  const nextQuery = {
-    ...route.query,
-    ...(tab === 'inbox' ? { tab: 'inbox' } : { tab: undefined }),
-  };
-  await router.replace({
-    path: route.path,
-    query: nextQuery,
-    hash: route.hash,
-  });
-};
 const columns = [
   {
     accessorKey: 'display_name',
@@ -565,253 +486,58 @@ const columns = [
   },
 ];
 
-const linkSelectUi = {
-  base: 'rounded-[calc(var(--ui-radius)*1.5)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] ring ring-inset ring-[var(--color-border-light)] hover:ring-[var(--color-border-hover)] data-[state=open]:ring-[var(--color-border-hover)]',
-  content: 'rounded-xl border border-[var(--color-border-light)] bg-[var(--color-surface-elevated)] shadow-lg',
-  item: 'text-[var(--color-text-primary)]',
-};
-
-const loadPage = async () => {
-  isLoading.value = true;
-  try {
-    const [filesPage, workspaceMemos] = await Promise.all([
-      fileCommand.listFiles({
-        limit: pageSize,
-        offset: (currentPage.value - 1) * pageSize,
-        unlinkedOnly: showUnlinkedOnly.value,
-      }),
-      memoCommand.list({ slugName: workspaceSlug.value }),
-    ]);
-    items.value = filesPage.items;
-    totalCount.value = filesPage.total_count;
-    memos.value = workspaceMemos;
-    if (currentPage.value > totalPages.value) {
-      currentPage.value = totalPages.value;
-    }
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to load files.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isLoading.value = false;
-  }
-};
-
-const reloadInbox = async () => {
-  await inboxPanelRef.value?.loadPage();
-};
-
-const goToPreviousPage = async () => {
-  if (currentPage.value <= 1) {
-    return;
-  }
-  currentPage.value -= 1;
-  await loadPage();
-};
-
-const goToNextPage = async () => {
-  if (currentPage.value >= totalPages.value) {
-    return;
-  }
-  currentPage.value += 1;
-  await loadPage();
-};
-
-const toggleUnlinkedOnly = async () => {
-  showUnlinkedOnly.value = !showUnlinkedOnly.value;
-  currentPage.value = 1;
-  await loadPage();
-};
-
-const openManagedFile = async (fileId: string) => {
-  try {
-    await fileCommand.openManagedFile(fileId);
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to open file.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-};
-
-const createExternalLink = async () => {
-  isSubmitting.value = true;
-  try {
-    await fileCommand.createExternalLink({
-      displayName: createForm.displayName,
-      url: createForm.url,
-    });
-    createForm.displayName = '';
-    createForm.url = '';
-    isCreateModalOpen.value = false;
-    toast.add({ title: 'Shared link added.' });
-    await loadPage();
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to add shared link.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isSubmitting.value = false;
-  }
-};
-
-const openEditModal = (item: ManagedFileListItem) => {
-  pendingEditFileId.value = item.id;
-  editForm.displayName = item.display_name;
-  isEditModalOpen.value = true;
-};
-
-const closeEditModal = () => {
-  pendingEditFileId.value = '';
-  editForm.displayName = '';
-  isEditModalOpen.value = false;
-};
-
-const saveDisplayName = async () => {
-  if (!pendingEditFileId.value) {
-    return;
-  }
-
-  isSubmitting.value = true;
-  try {
-    const updated = await fileCommand.updateDisplayName({
-      fileId: pendingEditFileId.value,
-      displayName: editForm.displayName,
-    });
-    if (detail.value?.id === updated.id) {
-      detail.value = {
-        ...detail.value,
-        display_name: updated.display_name,
-      };
-    }
-    closeEditModal();
-    toast.add({ title: 'Name updated.' });
-    await loadPage();
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to update name.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isSubmitting.value = false;
-  }
-};
-
-const openLinkModal = (fileId: string) => {
-  pendingFileId.value = fileId;
-  selectedMemoSlug.value = memos.value[0]?.slug_title ?? '';
-  selectedMemoCommand.value = [];
-  memoSearchQuery.value = '';
-  isLinkModalOpen.value = true;
-};
-
-const closeLinkModal = () => {
-  pendingFileId.value = '';
-  selectedMemoCommand.value = [];
-  memoSearchQuery.value = '';
-  isLinkModalOpen.value = false;
-};
-
-const onSelectMemoCommand = (command: unknown) => {
-  if (!command || typeof command !== 'object' || !('slug' in command) || typeof command.slug !== 'string') {
-    return;
-  }
-
-  selectedMemoSlug.value = command.slug;
-  selectedMemoCommand.value = [];
-};
-
-const linkToMemo = async () => {
-  if (!pendingFileId.value || !selectedMemoSlug.value) {
-    return;
-  }
-
-  isSubmitting.value = true;
-  try {
-    await fileCommand.linkFileToMemo({
-      workspaceSlug: workspaceSlug.value,
-      memoSlug: selectedMemoSlug.value,
-      fileId: pendingFileId.value,
-    });
-    toast.add({ title: 'Linked to note.' });
-    closeLinkModal();
-    await loadPage();
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to link to note.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isSubmitting.value = false;
-  }
-};
-
-const showDetail = async (fileId: string) => {
-  try {
-    detail.value = await fileCommand.getFileDetail(fileId);
-    isDetailModalOpen.value = true;
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to load details.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-};
-
-const removeRecord = async (fileId: string) => {
-  isSubmitting.value = true;
-  try {
-    await fileCommand.deleteFileRecord(fileId);
-    toast.add({ title: 'File removed.' });
-    await loadPage();
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to remove file.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isSubmitting.value = false;
-  }
-};
-
-onMounted(() => {
-  if (activeTab.value === 'files') {
-    void loadPage();
-  }
-});
-
-watch(activeTab, (tab) => {
-  if (tab === 'files') {
-    void loadPage();
-  }
+const {
+  workspaceSlug,
+  activeTab,
+  isLoading,
+  isSubmitting,
+  isDetailLoading,
+  items,
+  totalCount,
+  detail,
+  isCreateModalOpen,
+  isEditModalOpen,
+  isLinkModalOpen,
+  isDetailModalOpen,
+  inboxPanelRef,
+  pendingFileId,
+  pendingEditFileId,
+  selectedMemoCommand,
+  memoSearchQuery,
+  createForm,
+  editForm,
+  currentPage,
+  searchQuery,
+  showUnlinkedOnly,
+  memoCommandGroups,
+  pendingFileItem,
+  selectedMemoSlug,
+  selectedMemoTitle,
+  totalPages,
+  pageStart,
+  pageEnd,
+  filteredItems,
+  setActiveTab,
+  loadPage,
+  goToPreviousPage,
+  goToNextPage,
+  toggleUnlinkedOnly,
+  openManagedFile,
+  createManagedLink,
+  openEditModal,
+  closeEditModal,
+  saveDisplayName,
+  openLinkModal,
+  closeLinkModal,
+  closeDetailModal,
+  onSelectMemoCommand,
+  linkToMemo,
+  showDetail,
+  removeRecord,
+} = useFilesPage({
+  route,
+  router,
+  toast,
 });
 </script>
 
@@ -882,6 +608,10 @@ watch(activeTab, (tab) => {
   white-space: nowrap;
 }
 
+.toolbar-button-slot {
+  display: contents;
+}
+
 .table-footer {
   overflow: hidden;
   border: 1px solid var(--color-border-light);
@@ -918,126 +648,61 @@ watch(activeTab, (tab) => {
   transition: background-color 0.18s ease;
 }
 
-.managed-table :deep(.managed-table-row:hover) {
-  background-color: color-mix(in srgb, var(--color-surface-hover) 82%, transparent);
-}
-
-.type-text {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
-.count-text {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
 .action-strip {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 0.35rem;
   padding: 0;
-}
-
-.delete-action-button {
-  color: var(--color-text-secondary);
-}
-
-.delete-action-button:hover:not(:disabled) {
-  color: #b91c1c;
-  background-color: color-mix(in srgb, #fecaca 52%, transparent);
+  white-space: nowrap;
 }
 
 .file-name-button {
-  color: var(--color-primary);
-  text-decoration: none;
-  transition: color 0.18s ease;
-}
-
-.file-name-button:hover {
-  color: var(--color-primary-hover);
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: color 0.18s ease, text-decoration-color 0.18s ease;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-primary-hover) 55%, transparent);
-  text-underline-offset: 0.16em;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.18em;
 }
 
-.link-modal-description {
-  color: var(--color-text-secondary);
-}
-
-.link-summary-card {
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--color-border-light);
-  border-radius: 12px;
-  background-color: color-mix(in srgb, var(--color-surface-muted) 88%, var(--color-background));
-}
-
-.link-summary-label {
-  margin-bottom: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.link-summary-value {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.link-summary-caption {
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-}
-
-.link-empty-hint {
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background-color: color-mix(in srgb, var(--color-surface) 78%, transparent);
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-}
-
-.memo-command-palette {
-  min-height: calc(60vh);
-  max-height: calc(60vh);
-  overflow: hidden;
-  border: 1px solid var(--color-border-light);
-  border-radius: 12px;
-  background-color: color-mix(in srgb, var(--color-surface-elevated) 92%, var(--color-background));
-}
-
-.memo-command-palette :deep([data-slot='input']) {
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.selected-memo-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.8rem 0.95rem;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border-light));
-  border-radius: 12px;
-  background-color: color-mix(in srgb, var(--color-primary-light) 18%, var(--color-surface-elevated));
-}
-
-.selected-memo-label {
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  font-weight: 700;
+.file-name-button:hover,
+.file-name-button:focus-visible {
   color: var(--color-primary);
+  text-decoration-color: currentColor;
 }
 
-.selected-memo-value {
-  min-width: 0;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
+@media (max-width: 640px) {
+  .table-toolbar {
+    display: block;
+  }
+
+  .table-toolbar-left {
+    display: block;
+  }
+
+  .table-search {
+    width: 100%;
+    margin-bottom: 0.75rem;
+  }
+
+  .table-toolbar-actions {
+    display: block;
+  }
+
+  .toolbar-button-slot {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .table-toolbar-actions .toolbar-button-slot:last-child {
+    margin-bottom: 0;
+  }
+
+  .toolbar-button-slot :deep(button),
+  .toolbar-button-slot :deep(a) {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

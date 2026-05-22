@@ -1,5 +1,6 @@
-import type { ChangeRef } from './changes';
 import { resourceRefs, serializeResourceRef, type ResourceRef } from './refs';
+
+import type { ChangeRef } from './changes';
 
 type ChangeRule = {
   source: ChangeRef['type'];
@@ -94,6 +95,16 @@ const affectRules: ReadonlyArray<ChangeRule> = [
   // kanban entry collection changed -> kanbanEntryCollection
   defineAffects<Extract<ChangeRef, { type: 'kanbanEntryCollectionChanged' }>>('kanbanEntryCollectionChanged').resource(
     change => resourceRefs.kanbanEntryCollection(change.workspaceSlug, change.memoSlug),
+  ),
+  defineAffects<Extract<ChangeRef, { type: 'fileCollectionChanged' }>>('fileCollectionChanged').resource(
+    change => resourceRefs.fileCollection(change.workspaceSlug),
+  ),
+  defineAffects<Extract<ChangeRef, { type: 'fileChanged' }>>('fileChanged').resources([
+    change => resourceRefs.fileCollection(change.workspaceSlug),
+    change => resourceRefs.file(change.workspaceSlug, change.fileId),
+  ]),
+  defineAffects<Extract<ChangeRef, { type: 'inboxFileCollectionChanged' }>>('inboxFileCollectionChanged').resource(
+    () => resourceRefs.inboxFileCollection(),
   ),
 ];
 

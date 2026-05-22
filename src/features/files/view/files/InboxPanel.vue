@@ -23,16 +23,18 @@
           icon="carbon:search"
         />
 
-        <div class="flex items-center gap-2">
-          <AppButton
-            color="neutral"
-            variant="outline"
-            size="sm"
-            icon="carbon:renew"
-            @click="loadPage"
-          >
-            Refresh
-          </AppButton>
+        <div class="table-toolbar-actions">
+          <div class="toolbar-button-slot">
+            <AppButton
+              color="neutral"
+              variant="outline"
+              size="sm"
+              icon="carbon:renew"
+              @click="loadPage"
+            >
+              Refresh
+            </AppButton>
+          </div>
         </div>
       </div>
 
@@ -88,7 +90,6 @@
             </div>
           </template>
         </UTable>
-
       </div>
 
       <div
@@ -154,9 +155,9 @@
             </div>
 
             <div class="space-y-3">
-                <div class="link-summary-label">
-                  Note (optional)
-                </div>
+              <div class="link-summary-label">
+                Note (optional)
+              </div>
 
               <UCommandPalette
                 v-model:search-term="memoSearchQuery"
@@ -188,7 +189,6 @@
                 </div>
               </div>
             </div>
-
           </div>
 
           <template #footer>
@@ -216,26 +216,9 @@
 </template>
 
 <script setup lang="ts">
-import type { InboxFileItem } from '~/models/file';
-import type { MemoIndexItem } from '~/models/memo';
+import { useInboxPanel } from './useInboxPanel';
 
-import { fileCommand } from '~/resources/file/commands';
-import { memoCommand } from '~/resources/memo/commands';
 import LoadingSpinner from '~/shared/components/status/LoadingSpinner.vue';
-import { handleError } from '~/utils/error';
-
-type MemoCommandItem = {
-  label: string;
-  title: string;
-  slug: string;
-};
-
-type MemoCommandGroup = {
-  id: string;
-  label: string;
-  ignoreFilter?: boolean;
-  items: MemoCommandItem[];
-};
 
 const props = defineProps<{
   workspaceSlug: string;
@@ -243,214 +226,37 @@ const props = defineProps<{
 
 const toast = useToast();
 
-const isLoading = ref(true);
-const isSubmitting = ref(false);
-const items = ref<InboxFileItem[]>([]);
-const totalCount = ref(0);
-const memos = ref<MemoIndexItem[]>([]);
-const isLinkModalOpen = ref(false);
-const pendingInboxPath = ref<string>('');
-const selectedMemoSlug = ref<string>('');
-const selectedMemoCommand = ref<unknown[]>([]);
-const memoSearchQuery = ref('');
-const pageSize = 20;
-const currentPage = ref(1);
-const searchQuery = ref('');
-const columns = [
-  {
-    accessorKey: 'display_name',
-    header: 'Name',
-  },
-  {
-    accessorKey: 'acquired_at',
-    header: 'Date',
-  },
-  {
-    accessorKey: 'actions',
-    header: '',
-  },
-];
-
-const memoOptions = computed(() => memos.value.map(memo => ({
-  label: memo.title,
-  value: memo.slug_title,
-})));
-const memoCommandGroups = computed<MemoCommandGroup[]>(() => [{
-  id: 'memos',
-  label: 'Notes',
-  ignoreFilter: true,
-  items: memos.value
-    .map(memo => ({
-      label: memo.title,
-      title: memo.title,
-      slug: memo.slug_title,
-    }))
-    .filter((memo) => {
-      const needle = memoSearchQuery.value.trim().toLocaleLowerCase('ja-JP');
-      if (!needle) {
-        return true;
-      }
-
-      return memo.title.toLocaleLowerCase('ja-JP').includes(needle)
-        || memo.slug.toLocaleLowerCase('ja-JP').includes(needle);
-    }),
-}]);
-const pendingInboxItem = computed(() => items.value.find(item => item.path === pendingInboxPath.value) ?? null);
-const selectedMemoTitle = computed(() => memos.value.find(memo => memo.slug_title === selectedMemoSlug.value)?.title ?? '');
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize)));
-const pageStart = computed(() => totalCount.value === 0 ? 0 : (currentPage.value - 1) * pageSize + 1);
-const pageEnd = computed(() => Math.min(totalCount.value, currentPage.value * pageSize));
-const filteredItems = computed(() => {
-  const needle = searchQuery.value.trim().toLowerCase();
-  if (!needle) {
-    return items.value;
-  }
-
-  return items.value.filter(item => item.display_name.toLowerCase().includes(needle));
-});
-
-const formatAcquiredAt = (value: number) => {
-  if (!value) {
-    return 'Unknown date';
-  }
-  return new Intl.DateTimeFormat('ja-JP', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
-};
-
-const loadPage = async () => {
-  isLoading.value = true;
-  try {
-    const [inboxItems, workspaceMemos] = await Promise.all([
-      fileCommand.listInbox({
-        limit: pageSize,
-        offset: (currentPage.value - 1) * pageSize,
-      }),
-      memoCommand.list({ slugName: props.workspaceSlug }),
-    ]);
-    items.value = inboxItems.items;
-    totalCount.value = inboxItems.total_count;
-    memos.value = workspaceMemos;
-    if (currentPage.value > totalPages.value) {
-      currentPage.value = totalPages.value;
-    }
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to load Inbox.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isLoading.value = false;
-  }
-};
-
-const goToPreviousPage = async () => {
-  if (currentPage.value <= 1) {
-    return;
-  }
-  currentPage.value -= 1;
-  await loadPage();
-};
-
-const goToNextPage = async () => {
-  if (currentPage.value >= totalPages.value) {
-    return;
-  }
-  currentPage.value += 1;
-  await loadPage();
-};
-
-const openInboxFile = async (path: string) => {
-  await fileCommand.openLocalPath(path);
-};
-
-const importFile = async (path: string) => {
-  isSubmitting.value = true;
-  try {
-    await fileCommand.importInboxFile(path);
-    toast.add({ title: 'File imported.' });
-    await loadPage();
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to import file.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isSubmitting.value = false;
-  }
-};
-
-const openImportModal = (path: string) => {
-  pendingInboxPath.value = path;
-  selectedMemoSlug.value = '';
-  selectedMemoCommand.value = [];
-  memoSearchQuery.value = '';
-  isLinkModalOpen.value = true;
-};
-
-const closeLinkModal = () => {
-  isLinkModalOpen.value = false;
-  pendingInboxPath.value = '';
-  selectedMemoCommand.value = [];
-  memoSearchQuery.value = '';
-};
-
-const onSelectMemoCommand = (command: unknown) => {
-  if (!command || typeof command !== 'object' || !('slug' in command) || typeof command.slug !== 'string') {
-    return;
-  }
-
-  selectedMemoSlug.value = command.slug;
-  selectedMemoCommand.value = [];
-};
-
-const confirmImport = async () => {
-  if (!pendingInboxPath.value) {
-    return;
-  }
-
-  if (!selectedMemoSlug.value) {
-    await importFile(pendingInboxPath.value);
-    closeLinkModal();
-    return;
-  }
-
-  isSubmitting.value = true;
-  try {
-    const file = await fileCommand.importInboxFile(pendingInboxPath.value);
-    await fileCommand.linkFileToMemo({
-      workspaceSlug: props.workspaceSlug,
-      memoSlug: selectedMemoSlug.value,
-      fileId: file.id,
-    });
-    toast.add({ title: 'File imported and linked.' });
-    closeLinkModal();
-    await loadPage();
-  }
-  catch (error) {
-    const appError = handleError(error);
-    toast.add({
-      title: 'Failed to import and link file.',
-      description: appError.message,
-      color: 'error',
-    });
-  }
-  finally {
-    isSubmitting.value = false;
-  }
-};
-
-onMounted(() => {
-  void loadPage();
+const {
+  isLoading,
+  isSubmitting,
+  items,
+  totalCount,
+  isLinkModalOpen,
+  pendingInboxPath,
+  selectedMemoCommand,
+  memoSearchQuery,
+  columns,
+  memoCommandGroups,
+  pendingInboxItem,
+  selectedMemoTitle,
+  totalPages,
+  currentPage,
+  searchQuery,
+  pageStart,
+  pageEnd,
+  filteredItems,
+  formatAcquiredAt,
+  loadPage,
+  goToPreviousPage,
+  goToNextPage,
+  openInboxFile,
+  openImportModal,
+  closeLinkModal,
+  onSelectMemoCommand,
+  confirmImport,
+} = useInboxPanel({
+  workspaceSlug: props.workspaceSlug,
+  toast,
 });
 
 defineExpose({
@@ -468,8 +274,18 @@ defineExpose({
 }
 
 .table-search {
-  max-width: 20rem;
-  width: 100%;
+  width: min(24rem, 100%);
+  flex: 0 1 24rem;
+}
+
+.table-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolbar-button-slot {
+  display: contents;
 }
 
 .link-modal-description {
@@ -496,20 +312,6 @@ defineExpose({
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-text-primary);
-}
-
-.link-summary-caption {
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-}
-
-.link-empty-hint {
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background-color: color-mix(in srgb, var(--color-surface) 78%, transparent);
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
 }
 
 .memo-command-palette {
@@ -551,6 +353,7 @@ defineExpose({
 }
 
 .table-shell {
+  overflow: hidden;
   border: 1px solid var(--color-border-light);
   border-radius: 14px;
   background-color: color-mix(in srgb, var(--color-surface-elevated) 88%, var(--color-background));
@@ -614,5 +417,30 @@ defineExpose({
   justify-content: flex-end;
   gap: 0.35rem;
   padding: 0;
+}
+
+@media (max-width: 640px) {
+  .table-toolbar {
+    display: block;
+  }
+
+  .table-search {
+    max-width: none;
+    margin-bottom: 0.75rem;
+  }
+
+  .table-toolbar-actions {
+    display: block;
+  }
+
+  .toolbar-button-slot {
+    display: block;
+  }
+
+  .toolbar-button-slot :deep(button),
+  .toolbar-button-slot :deep(a) {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

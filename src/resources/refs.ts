@@ -10,7 +10,10 @@ export type ResourceRef =
   | { type: 'bookmarkCollection'; workspaceSlug: string }
   | { type: 'kanbanCollection'; workspaceSlug: string }
   | { type: 'kanbanStatusCollection'; workspaceSlug: string; kanbanId: number }
-  | { type: 'kanbanEntryCollection'; workspaceSlug: string; memoSlug: string };
+  | { type: 'kanbanEntryCollection'; workspaceSlug: string; memoSlug: string }
+  | { type: 'fileCollection'; workspaceSlug: string }
+  | { type: 'file'; workspaceSlug: string; fileId: string }
+  | { type: 'inboxFileCollection' };
 
 export const resourceRefs = {
   workspaceCollection: (): ResourceRef => ({ type: 'workspaceCollection' }),
@@ -25,6 +28,9 @@ export const resourceRefs = {
   kanbanCollection: (workspaceSlug: string): ResourceRef => ({ type: 'kanbanCollection', workspaceSlug }),
   kanbanStatusCollection: (workspaceSlug: string, kanbanId: number): ResourceRef => ({ type: 'kanbanStatusCollection', workspaceSlug, kanbanId }),
   kanbanEntryCollection: (workspaceSlug: string, memoSlug: string): ResourceRef => ({ type: 'kanbanEntryCollection', workspaceSlug, memoSlug }),
+  fileCollection: (workspaceSlug: string): ResourceRef => ({ type: 'fileCollection', workspaceSlug }),
+  file: (workspaceSlug: string, fileId: string): ResourceRef => ({ type: 'file', workspaceSlug, fileId }),
+  inboxFileCollection: (): ResourceRef => ({ type: 'inboxFileCollection' }),
 };
 
 export function serializeResourceRef(ref: ResourceRef) {

@@ -1,2 +1,2 @@
-export { default as InboxPage } from './view/InboxPage.vue';
-export { default as FilesPage } from './view/FilesPage.vue';
+export { default as InboxPage } from './view/inbox/InboxPage.vue';
+export { default as FilesPage } from './view/files/FilesPage.vue';
