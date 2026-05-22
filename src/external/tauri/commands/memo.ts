@@ -16,7 +16,10 @@ export const memoCommand = {
       workspace_slug_name: memo.workspaceSlugName,
       slug_title: encodeForSlug(memo.title),
       title: memo.title,
-      content: JSON.stringify(''),
+      content: JSON.stringify({
+        type: 'doc',
+        content: [],
+      }),
     });
   },
 

@@ -548,10 +548,21 @@ fn collect_file_ids(node: &Value, out: &mut BTreeSet<String>) {
 }
 
 fn append_file_link_block(content: &str, file_id: &str, display_name: &str) -> Result<String, String> {
-    let mut doc: Value = serde_json::from_str(content).unwrap_or_else(|_| json!({
-        "type": "doc",
-        "content": [],
-    }));
+    let mut doc = match serde_json::from_str::<Value>(content) {
+        Ok(Value::Object(mut object)) => {
+            if object.get("type").and_then(Value::as_str) != Some("doc") {
+                object.insert("type".to_string(), Value::String("doc".to_string()));
+            }
+            if !object.get("content").is_some_and(Value::is_array) {
+                object.insert("content".to_string(), Value::Array(Vec::new()));
+            }
+            Value::Object(object)
+        }
+        _ => json!({
+            "type": "doc",
+            "content": [],
+        }),
+    };
 
     let content_array = doc
         .get_mut("content")
@@ -680,5 +691,21 @@ mod tests {
             .expect("content should update");
         assert!(updated.contains("\"fileId\":\"FILE123\""));
         assert!(updated.contains("\"label\":\"proposal.pdf\""));
+    }
+
+    #[test]
+    fn append_file_link_block_handles_legacy_empty_string_json() {
+        let updated = append_file_link_block(r#""""#, "FILE123", "proposal.pdf")
+            .expect("legacy empty-string content should be normalized");
+        assert!(updated.contains("\"type\":\"doc\""));
+        assert!(updated.contains("\"fileId\":\"FILE123\""));
+    }
+
+    #[test]
+    fn append_file_link_block_handles_doc_without_content_array() {
+        let updated = append_file_link_block(r#"{"type":"doc"}"#, "FILE123", "proposal.pdf")
+            .expect("missing content array should be added");
+        assert!(updated.contains("\"content\":["));
+        assert!(updated.contains("\"fileId\":\"FILE123\""));
     }
 }
