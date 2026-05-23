@@ -298,84 +298,22 @@
 
       <UModal v-model:open="isLinkModalOpen">
         <template #content>
-          <UCard>
-            <template #header>
-              <div class="space-y-1">
-                <div class="text-sm font-semibold">
-                  Link to note
-                </div>
-                <p class="text-sm link-modal-description">
-                  Add a managed file link to the end of the selected note.
-                </p>
-              </div>
-            </template>
-
-            <div class="space-y-4">
-              <div class="link-summary-card">
-                <div class="link-summary-label">
-                  File
-                </div>
-                <div class="link-summary-value">
-                  {{ pendingFileItem?.display_name ?? 'Nothing selected' }}
-                </div>
-              </div>
-
-              <div class="space-y-3">
-                <div class="link-summary-label">
-                  Note
-                </div>
-
-                <UCommandPalette
-                  v-model:search-term="memoSearchQuery"
-                  v-model="selectedMemoCommand"
-                  class="memo-command-palette"
-                  :groups="memoCommandGroups"
-                  :autoclear="false"
-                  icon="carbon:search"
-                  placeholder="Search notes"
-                  command-attribute="title"
-                  :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 30 }"
-                  :empty-state="{
-                    icon: 'carbon:search-locate',
-                    label: 'No notes found.',
-                    queryLabel: 'No matching notes found.',
-                  }"
-                  @update:model-value="onSelectMemoCommand"
-                />
-
-                <div
-                  v-if="selectedMemoTitle"
-                  class="selected-memo-card"
-                >
-                  <div class="selected-memo-label">
-                    Selected
-                  </div>
-                  <div class="selected-memo-value">
-                    {{ selectedMemoTitle }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <template #footer>
-              <div class="flex justify-end gap-2">
-                <AppButton
-                  color="neutral"
-                  variant="ghost"
-                  @click="closeLinkModal"
-                >
-                  Close
-                </AppButton>
-                <AppButton
-                  :loading="isSubmitting"
-                  :disabled="!selectedMemoSlug || !pendingFileId"
-                  @click="linkToMemo"
-                >
-                  Link to note
-                </AppButton>
-              </div>
-            </template>
-          </UCard>
+          <FileMemoTargetDialog
+            v-model:search-term="memoSearchQuery"
+            v-model:selected-command="selectedMemoCommand"
+            title="Link to note"
+            description="Add a managed file link to the end of the selected note."
+            note-label="Note"
+            action-label="Link to note"
+            :action-disabled="!selectedMemoSlug || !pendingFileId"
+            :action-loading="isSubmitting"
+            :file-display-name="pendingFileItem?.display_name ?? ''"
+            :selected-memo-title="selectedMemoTitle"
+            :groups="memoCommandGroups"
+            @close="closeLinkModal"
+            @submit="linkToMemo"
+            @select-command="onSelectMemoCommand"
+          />
         </template>
       </UModal>
 
@@ -458,6 +396,7 @@
 </template>
 
 <script setup lang="ts">
+import FileMemoTargetDialog from './FileMemoTargetDialog.vue';
 import InboxPanel from './InboxPanel.vue';
 import { useFilesPage } from './useFilesPage';
 
