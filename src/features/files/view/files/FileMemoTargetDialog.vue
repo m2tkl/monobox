@@ -1,5 +1,5 @@
 <template>
-  <UCard>
+  <UCard class="file-target-dialog">
     <template #header>
       <div class="space-y-1">
         <div class="text-sm font-semibold">
@@ -11,7 +11,7 @@
       </div>
     </template>
 
-    <div class="space-y-4">
+    <div class="dialog-body space-y-4">
       <div class="link-summary-card">
         <div class="link-summary-value">
           {{ fileDisplayName || 'Nothing selected' }}
@@ -41,15 +41,17 @@
           @update:model-value="$emit('select-command', $event)"
         />
 
-        <div
-          v-if="selectedMemoTitle"
-          class="selected-memo-card"
-        >
-          <div class="selected-memo-label">
-            Selected
-          </div>
-          <div class="selected-memo-value">
-            {{ selectedMemoTitle }}
+        <div class="selected-memo-slot">
+          <div
+            class="selected-memo-card"
+            :class="{ 'selected-memo-card--active': !!selectedMemoTitle }"
+          >
+            <div class="selected-memo-label">
+              Selected
+            </div>
+            <div class="selected-memo-value">
+              {{ selectedMemoTitle || 'None' }}
+            </div>
           </div>
         </div>
       </div>
@@ -113,6 +115,16 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
 </script>
 
 <style scoped>
+.file-target-dialog {
+  width: min(42rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+}
+
+.dialog-body {
+  overflow: auto;
+}
+
 .link-modal-description {
   color: var(--color-text-secondary);
 }
@@ -140,8 +152,8 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
 }
 
 .memo-command-palette {
-  min-height: calc(60vh);
-  max-height: calc(60vh);
+  min-height: min(24rem, 50vh);
+  max-height: min(24rem, 50vh);
   overflow: hidden;
   border: 1px solid var(--color-border-light);
   border-radius: 12px;
@@ -152,14 +164,23 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
   border-bottom: 1px solid var(--color-border-light);
 }
 
+.selected-memo-slot {
+  min-height: 3.85rem;
+}
+
 .selected-memo-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.8rem 0.95rem;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border-light));
+  border: 1px dashed color-mix(in srgb, var(--color-border-light) 72%, transparent);
   border-radius: 12px;
+  background-color: color-mix(in srgb, var(--color-surface-muted) 42%, transparent);
+}
+
+.selected-memo-card--active {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border-light));
   background-color: color-mix(in srgb, var(--color-primary-light) 18%, var(--color-surface-elevated));
 }
 
@@ -167,13 +188,38 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
   flex-shrink: 0;
   font-size: 0.78rem;
   font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.selected-memo-card--active .selected-memo-label {
   color: var(--color-primary);
 }
 
 .selected-memo-value {
   min-width: 0;
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.selected-memo-card--active .selected-memo-value {
   color: var(--color-text-primary);
+}
+
+@media (max-width: 640px) {
+  .file-target-dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 1rem);
+  }
+
+  .dialog-body {
+    max-height: calc(100vh - 12rem);
+  }
+
+  .memo-command-palette {
+    min-height: min(18rem, 42vh);
+    max-height: min(18rem, 42vh);
+  }
 }
 </style>

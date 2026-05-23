@@ -83,7 +83,7 @@ export function useManagedFileDialogs(options: UseManagedFileDialogsOptions) {
 
   const openLinkModal = (fileId: string) => {
     pendingFileId.value = fileId;
-    selectedMemoSlug.value = options.memos.value[0]?.slug_title ?? '';
+    selectedMemoSlug.value = '';
     selectedMemoCommand.value = [];
     memoSearchQuery.value = '';
     isLinkModalOpen.value = true;
@@ -91,6 +91,7 @@ export function useManagedFileDialogs(options: UseManagedFileDialogsOptions) {
 
   const closeLinkModal = () => {
     pendingFileId.value = '';
+    selectedMemoSlug.value = '';
     selectedMemoCommand.value = [];
     memoSearchQuery.value = '';
     isLinkModalOpen.value = false;
