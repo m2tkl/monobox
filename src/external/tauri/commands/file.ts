@@ -2,7 +2,6 @@ import { invokeCommand } from '../core/invoker';
 
 import type {
   InboxFilePage,
-  InboxFileItem,
   ManagedFileDetail,
   MemoLinkedFileItem,
   ManagedFileListPage,
@@ -73,6 +72,13 @@ export const fileCommand = {
     return await invokeCommand<ManagedFileRecord>('update_file_display_name', {
       file_id: params.fileId,
       display_name: params.displayName,
+    });
+  },
+
+  updateNote: async (params: { fileId: string; note: string }) => {
+    return await invokeCommand<ManagedFileRecord>('update_file_note', {
+      file_id: params.fileId,
+      note: params.note,
     });
   },
 

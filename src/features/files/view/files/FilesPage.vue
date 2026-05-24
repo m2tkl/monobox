@@ -296,7 +296,10 @@
         </template>
       </UModal>
 
-      <UModal v-model:open="isLinkModalOpen">
+      <UModal
+        v-model:open="isLinkModalOpen"
+        :ui="{ content: 'bg-transparent shadow-none ring-0 divide-y-0 p-0 w-auto max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] overflow-hidden' }"
+      >
         <template #content>
           <FileMemoTargetDialog
             v-model:search-term="memoSearchQuery"
@@ -344,10 +347,33 @@
                 <span class="font-semibold">Imported:</span> {{ detail.imported_at }}
               </div>
               <div v-if="detail.relative_path">
-                <span class="font-semibold">Relative path:</span> {{ detail.relative_path }}
+                <span class="font-semibold">File name:</span> {{ detail.relative_path.split('/').at(-1) }}
               </div>
               <div v-if="detail.url">
                 <span class="font-semibold">URL:</span> {{ detail.url }}
+              </div>
+
+              <div class="space-y-2">
+                <div class="font-semibold">
+                  Memo
+                </div>
+                <UTextarea
+                  v-model="detailNoteDraft"
+                  class="w-full"
+                  :rows="4"
+                  placeholder="Add a short memo about this file"
+                />
+                <div class="flex justify-end">
+                  <AppButton
+                    color="neutral"
+                    variant="outline"
+                    :disabled="!hasDetailNoteChanges"
+                    :loading="isSubmitting"
+                    @click="saveDetailNote"
+                  >
+                    Save memo
+                  </AppButton>
+                </div>
               </div>
 
               <div class="space-y-2">
@@ -445,6 +471,7 @@ const {
   memoSearchQuery,
   createForm,
   editForm,
+  detailNoteDraft,
   currentPage,
   searchQuery,
   showUnlinkedOnly,
@@ -472,6 +499,8 @@ const {
   onSelectMemoCommand,
   linkToMemo,
   showDetail,
+  hasDetailNoteChanges,
+  saveDetailNote,
   removeRecord,
 } = useFilesPage({
   route,

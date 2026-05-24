@@ -57,6 +57,12 @@ pub struct UpdateFileDisplayNameArgs {
 }
 
 #[derive(Deserialize)]
+pub struct UpdateFileNoteArgs {
+    pub file_id: String,
+    pub note: String,
+}
+
+#[derive(Deserialize)]
 pub struct OpenLocalPathArgs {
     pub path: String,
 }
@@ -199,6 +205,12 @@ pub fn update_file_display_name(
 ) -> Result<ManagedFileRecord, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     FileRepository::update_display_name(&conn, &args.file_id, &args.display_name)
+}
+
+#[command]
+pub fn update_file_note(args: UpdateFileNoteArgs) -> Result<ManagedFileRecord, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    FileRepository::update_note(&conn, &args.file_id, &args.note)
 }
 
 #[command]

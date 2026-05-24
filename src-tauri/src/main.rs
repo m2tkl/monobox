@@ -88,6 +88,7 @@ fn main() {
             commands::file::open_local_path,
             commands::file::delete_file_record,
             commands::file::update_file_display_name,
+            commands::file::update_file_note,
             commands::file::link_file_to_memo,
             commands::file::list_files_for_memo,
             // Workspace

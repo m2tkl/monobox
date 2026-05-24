@@ -238,6 +238,12 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         CREATE INDEX IF NOT EXISTS idx_note_files_file_id ON note_files(file_id);
         ",
     ),
+    (
+        "20260523_add_note_to_files",
+        "
+        ALTER TABLE files ADD COLUMN note TEXT;
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

@@ -130,7 +130,10 @@
       </div>
     </div>
 
-    <UModal v-model:open="isLinkModalOpen">
+    <UModal
+      v-model:open="isLinkModalOpen"
+      :ui="{ content: 'bg-transparent shadow-none ring-0 divide-y-0 p-0 w-auto max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] overflow-hidden' }"
+    >
       <template #content>
         <FileMemoTargetDialog
           v-model:search-term="memoSearchQuery"

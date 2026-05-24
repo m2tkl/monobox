@@ -123,8 +123,8 @@ impl FileRepository {
 
         let tx = conn.transaction().map_err(|e| e.to_string())?;
         let insert_result = tx.execute(
-            "INSERT INTO files (id, type, display_name, relative_path, url, imported_at)
-             VALUES (?, 'local_file', ?, ?, NULL, CURRENT_TIMESTAMP)",
+            "INSERT INTO files (id, type, display_name, note, relative_path, url, imported_at)
+             VALUES (?, 'local_file', ?, NULL, ?, NULL, CURRENT_TIMESTAMP)",
             params![&file_id, &display_name, &relative_path],
         );
 
@@ -135,7 +135,7 @@ impl FileRepository {
 
         let record = tx
             .query_row(
-                "SELECT id, type, display_name, relative_path, url, imported_at
+                "SELECT id, type, display_name, note, relative_path, url, imported_at
                  FROM files
                  WHERE id = ?",
                 [&file_id],
@@ -144,9 +144,10 @@ impl FileRepository {
                         id: row.get(0)?,
                         file_type: row.get(1)?,
                         display_name: row.get(2)?,
-                        relative_path: row.get(3)?,
-                        url: row.get(4)?,
-                        imported_at: row.get(5)?,
+                        note: row.get(3)?,
+                        relative_path: row.get(4)?,
+                        url: row.get(5)?,
+                        imported_at: row.get(6)?,
                     })
                 },
             )
@@ -163,14 +164,14 @@ impl FileRepository {
     ) -> Result<ManagedFileRecord, String> {
         let file_id = generate_file_id();
         conn.execute(
-            "INSERT INTO files (id, type, display_name, relative_path, url, imported_at)
-             VALUES (?, 'external_link', ?, NULL, ?, CURRENT_TIMESTAMP)",
+            "INSERT INTO files (id, type, display_name, note, relative_path, url, imported_at)
+             VALUES (?, 'external_link', ?, NULL, NULL, ?, CURRENT_TIMESTAMP)",
             params![&file_id, display_name, url],
         )
         .map_err(|e| e.to_string())?;
 
         conn.query_row(
-            "SELECT id, type, display_name, relative_path, url, imported_at
+            "SELECT id, type, display_name, note, relative_path, url, imported_at
              FROM files
              WHERE id = ?",
             [&file_id],
@@ -179,9 +180,10 @@ impl FileRepository {
                     id: row.get(0)?,
                     file_type: row.get(1)?,
                     display_name: row.get(2)?,
-                    relative_path: row.get(3)?,
-                    url: row.get(4)?,
-                    imported_at: row.get(5)?,
+                    note: row.get(3)?,
+                    relative_path: row.get(4)?,
+                    url: row.get(5)?,
+                    imported_at: row.get(6)?,
                 })
             },
         )
@@ -263,7 +265,7 @@ impl FileRepository {
 
     pub fn find_record(conn: &Connection, file_id: &str) -> Result<Option<ManagedFileRecord>, String> {
         conn.query_row(
-            "SELECT id, type, display_name, relative_path, url, imported_at
+            "SELECT id, type, display_name, note, relative_path, url, imported_at
              FROM files
              WHERE id = ?",
             [file_id],
@@ -272,9 +274,10 @@ impl FileRepository {
                     id: row.get(0)?,
                     file_type: row.get(1)?,
                     display_name: row.get(2)?,
-                    relative_path: row.get(3)?,
-                    url: row.get(4)?,
-                    imported_at: row.get(5)?,
+                    note: row.get(3)?,
+                    relative_path: row.get(4)?,
+                    url: row.get(5)?,
+                    imported_at: row.get(6)?,
                 })
             },
         )
@@ -336,6 +339,35 @@ impl FileRepository {
             .ok_or_else(|| "File record was not found.".to_string())
     }
 
+    pub fn update_note(
+        conn: &Connection,
+        file_id: &str,
+        note: &str,
+    ) -> Result<ManagedFileRecord, String> {
+        let normalized_note = note.trim();
+        let stored_note = if normalized_note.is_empty() {
+            None
+        } else {
+            Some(normalized_note)
+        };
+
+        let updated = conn
+            .execute(
+                "UPDATE files
+                 SET note = ?
+                 WHERE id = ?",
+                params![stored_note, file_id],
+            )
+            .map_err(|e| e.to_string())?;
+
+        if updated == 0 {
+            return Err("File record was not found.".to_string());
+        }
+
+        Self::find_record(conn, file_id)?
+            .ok_or_else(|| "File record was not found.".to_string())
+    }
+
     pub fn get_file_detail(conn: &Connection, file_id: &str) -> Result<Option<ManagedFileDetail>, String> {
         let Some(record) = Self::find_record(conn, file_id)? else {
             return Ok(None);
@@ -369,6 +401,7 @@ impl FileRepository {
             id: record.id,
             file_type: record.file_type,
             display_name: record.display_name,
+            note: record.note,
             relative_path: record.relative_path,
             url: record.url,
             imported_at: record.imported_at,
@@ -662,7 +695,18 @@ fn build_physical_file_name(original_name: &str, file_id: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{append_file_link_block, build_physical_file_name, collect_file_ids_from_content};
+    use rusqlite::{params, Connection};
+
+    use super::{append_file_link_block, build_physical_file_name, collect_file_ids_from_content, FileRepository};
+    use crate::migrations::apply_migrations;
+
+    fn setup_conn() -> Connection {
+        let conn = Connection::open_in_memory().expect("in-memory DB should open");
+        conn.execute("CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)", [])
+            .expect("schema_migrations should be creatable");
+        apply_migrations(&conn).expect("migrations should apply");
+        conn
+    }
 
     #[test]
     fn build_physical_name_preserves_extension() {
@@ -707,5 +751,40 @@ mod tests {
             .expect("missing content array should be added");
         assert!(updated.contains("\"content\":["));
         assert!(updated.contains("\"fileId\":\"FILE123\""));
+    }
+
+    #[test]
+    fn update_note_persists_trimmed_text_and_detail_exposes_it() {
+        let conn = setup_conn();
+        conn.execute(
+            "INSERT INTO files (id, type, display_name, note, relative_path, url, imported_at)
+             VALUES (?, 'local_file', ?, NULL, ?, NULL, CURRENT_TIMESTAMP)",
+            params!["FILE123", "proposal.pdf", "proposal__mb_FILE123.pdf"],
+        )
+        .expect("file should insert");
+
+        let updated = FileRepository::update_note(&conn, "FILE123", "  quick memo  ")
+            .expect("note should update");
+        assert_eq!(updated.note.as_deref(), Some("quick memo"));
+
+        let detail = FileRepository::get_file_detail(&conn, "FILE123")
+            .expect("detail should load")
+            .expect("detail should exist");
+        assert_eq!(detail.note.as_deref(), Some("quick memo"));
+    }
+
+    #[test]
+    fn update_note_clears_value_when_blank() {
+        let conn = setup_conn();
+        conn.execute(
+            "INSERT INTO files (id, type, display_name, note, relative_path, url, imported_at)
+             VALUES (?, 'local_file', ?, ?, ?, NULL, CURRENT_TIMESTAMP)",
+            params!["FILE123", "proposal.pdf", "existing memo", "proposal__mb_FILE123.pdf"],
+        )
+        .expect("file should insert");
+
+        let updated = FileRepository::update_note(&conn, "FILE123", "   ")
+            .expect("note should clear");
+        assert_eq!(updated.note, None);
     }
 }

@@ -1,5 +1,13 @@
 <template>
-  <UCard class="file-target-dialog">
+  <UCard
+    class="file-target-dialog"
+    :ui="{
+      root: 'flex flex-col',
+      header: 'shrink-0 p-4 sm:px-6',
+      body: 'flex-1 min-h-0 overflow-y-auto p-4 sm:p-6',
+      footer: 'shrink-0 p-4 sm:px-6',
+    }"
+  >
     <template #header>
       <div class="space-y-1">
         <div class="text-sm font-semibold">
@@ -18,7 +26,7 @@
         </div>
       </div>
 
-      <div class="space-y-3">
+      <div class="note-section">
         <div class="link-summary-label">
           {{ noteLabel }}
         </div>
@@ -40,18 +48,18 @@
           }"
           @update:model-value="$emit('select-command', $event)"
         />
+      </div>
 
-        <div class="selected-memo-slot">
-          <div
-            class="selected-memo-card"
-            :class="{ 'selected-memo-card--active': !!selectedMemoTitle }"
-          >
-            <div class="selected-memo-label">
-              Selected
-            </div>
-            <div class="selected-memo-value">
-              {{ selectedMemoTitle || 'None' }}
-            </div>
+      <div class="selected-memo-slot">
+        <div
+          class="selected-memo-card"
+          :class="{ 'selected-memo-card--active': !!selectedMemoTitle }"
+        >
+          <div class="selected-memo-label">
+            Selected
+          </div>
+          <div class="selected-memo-value">
+            {{ selectedMemoTitle || 'None' }}
           </div>
         </div>
       </div>
@@ -116,13 +124,16 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
 
 <style scoped>
 .file-target-dialog {
-  width: min(42rem, calc(100vw - 2rem));
-  max-width: calc(100vw - 2rem);
-  max-height: calc(100vh - 2rem);
+  width: min(42rem, calc(100vw - 1rem));
+  max-width: 42rem;
+  max-height: calc(100dvh - 1rem);
+  overflow: hidden;
 }
 
-.dialog-body {
-  overflow: auto;
+.note-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .link-modal-description {
@@ -152,8 +163,9 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
 }
 
 .memo-command-palette {
-  min-height: min(24rem, 50vh);
-  max-height: min(24rem, 50vh);
+  min-height: 10rem;
+  height: min(18rem, 30dvh);
+  max-height: min(18rem, 30dvh);
   overflow: hidden;
   border: 1px solid var(--color-border-light);
   border-radius: 12px;
@@ -165,7 +177,6 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
 }
 
 .selected-memo-slot {
-  min-height: 3.85rem;
 }
 
 .selected-memo-card {
@@ -174,6 +185,7 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.8rem 0.95rem;
+  width: 100%;
   border: 1px dashed color-mix(in srgb, var(--color-border-light) 72%, transparent);
   border-radius: 12px;
   background-color: color-mix(in srgb, var(--color-surface-muted) 42%, transparent);
@@ -208,18 +220,14 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
 
 @media (max-width: 640px) {
   .file-target-dialog {
-    width: calc(100vw - 1rem);
-    max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 1rem);
-  }
-
-  .dialog-body {
-    max-height: calc(100vh - 12rem);
+    width: 100%;
+    max-width: 100%;
   }
 
   .memo-command-palette {
-    min-height: min(18rem, 42vh);
-    max-height: min(18rem, 42vh);
+    min-height: 9rem;
+    height: min(12rem, 24dvh);
+    max-height: min(12rem, 24dvh);
   }
 }
 </style>

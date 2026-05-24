@@ -40,6 +40,7 @@ pub struct ManagedFileDetail {
     #[serde(rename = "type")]
     pub file_type: String,
     pub display_name: String,
+    pub note: Option<String>,
     pub relative_path: Option<String>,
     pub url: Option<String>,
     pub imported_at: String,
@@ -68,6 +69,7 @@ pub struct ManagedFileRecord {
     #[serde(rename = "type")]
     pub file_type: String,
     pub display_name: String,
+    pub note: Option<String>,
     pub relative_path: Option<String>,
     pub url: Option<String>,
     pub imported_at: String,

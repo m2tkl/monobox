@@ -1,10 +1,11 @@
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { createExternalFileLink } from '../../resource/command/createExternalFileLink';
 import { deleteManagedFile } from '../../resource/command/deleteManagedFile';
 import { linkManagedFileToMemo } from '../../resource/command/linkManagedFileToMemo';
 import { openManagedFile as executeOpenManagedFile } from '../../resource/command/openManagedFile';
 import { renameManagedFile } from '../../resource/command/renameManagedFile';
+import { updateManagedFileNote } from '../../resource/command/updateManagedFileNote';
 import { useManagedFileDetailReadModel } from '../../resource/read-model';
 
 import type { ComputedRef, Ref } from 'vue';
@@ -36,6 +37,18 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
 
   const detail = computed(() => detailReadModel.value.data.detail);
   const isDetailLoading = computed(() => detailReadModel.value.flags.isLoading);
+  const detailNoteDraft = ref('');
+  const hasDetailNoteChanges = computed(() =>
+    detailNoteDraft.value.trim() !== (detail.value?.note ?? ''),
+  );
+
+  watch(
+    () => [options.detailFileId.value, detail.value?.note ?? ''] as const,
+    ([fileId, note]) => {
+      detailNoteDraft.value = fileId ? note : '';
+    },
+    { immediate: true },
+  );
 
   const refreshDetail = async () => {
     if (!options.detailFileId.value) {
@@ -164,6 +177,34 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
     }
   };
 
+  const saveDetailNote = async () => {
+    if (!options.detailFileId.value || !hasDetailNoteChanges.value) {
+      return;
+    }
+
+    isSubmitting.value = true;
+    try {
+      await updateManagedFileNote({
+        workspaceSlug: options.workspaceSlug.value,
+        fileId: options.detailFileId.value,
+        note: detailNoteDraft.value,
+      });
+      options.toast.add({ title: 'Memo updated.' });
+      await refreshDetail();
+    }
+    catch (error) {
+      const appError = handleError(error);
+      options.toast.add({
+        title: 'Failed to update memo.',
+        description: appError.message,
+        color: 'error',
+      });
+    }
+    finally {
+      isSubmitting.value = false;
+    }
+  };
+
   const removeRecord = async (fileId: string) => {
     isSubmitting.value = true;
     try {
@@ -193,12 +234,15 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
     isSubmitting,
     detail,
     isDetailLoading,
+    detailNoteDraft,
+    hasDetailNoteChanges,
     refreshDetail,
     openManagedFile,
     createManagedLink,
     saveDisplayName,
     linkToMemo,
     showDetail,
+    saveDetailNote,
     removeRecord,
   };
 }

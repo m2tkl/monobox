@@ -11,6 +11,7 @@ export const fileCommand = {
   openLocalPath: (path: string) => tauriCommand.file.openLocalPath(path),
   deleteFileRecord: (fileId: string) => tauriCommand.file.deleteFileRecord(fileId),
   updateDisplayName: (params: { fileId: string; displayName: string }) => tauriCommand.file.updateDisplayName(params),
+  updateNote: (params: { fileId: string; note: string }) => tauriCommand.file.updateNote(params),
   linkFileToMemo: (params: { workspaceSlug: string; memoSlug: string; fileId: string }) => tauriCommand.file.linkFileToMemo(params),
   listFilesForMemo: (params: { workspaceSlug: string; memoSlug: string }) => tauriCommand.file.listFilesForMemo(params),
 } as const;

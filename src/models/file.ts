@@ -18,6 +18,7 @@ export type ManagedFileRecord = {
   id: string;
   type: ManagedFileType;
   display_name: string;
+  note?: string | null;
   relative_path?: string | null;
   url?: string | null;
   imported_at: string;
@@ -55,6 +56,7 @@ export type ManagedFileDetail = {
   id: string;
   type: ManagedFileType;
   display_name: string;
+  note?: string | null;
   relative_path?: string | null;
   url?: string | null;
   imported_at: string;
