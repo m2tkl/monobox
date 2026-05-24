@@ -138,7 +138,7 @@ pub fn open_managed_file(args: FileIdArgs) -> Result<(), String> {
 
     match target.open_kind.as_str() {
         "path" => open_file_with_fallback(&target.value),
-        "url" => open_with_system(&target.value, true),
+        "url" => open_with_system_background(&target.value),
         _ => Err("Unsupported open target.".to_string()),
     }
 }
@@ -180,6 +180,35 @@ fn open_with_system(target: &str, _is_url: bool) -> Result<(), String> {
     else {
         Err(format!("Open command exited with status: {}", status))
     }
+}
+
+fn open_with_system_background(target: &str) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut cmd = ProcessCommand::new("open");
+        cmd.arg(target);
+        cmd
+    };
+
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut cmd = ProcessCommand::new("cmd");
+        cmd.args(["/C", "start", "", target]);
+        cmd
+    };
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut command = {
+        let mut cmd = ProcessCommand::new("xdg-open");
+        cmd.arg(target);
+        cmd
+    };
+
+    command
+        .spawn()
+        .map_err(|e| format!("Failed to launch opener: {}", e))?;
+
+    Ok(())
 }
 
 fn open_file_with_fallback(path: &str) -> Result<(), String> {
