@@ -130,29 +130,23 @@
       </div>
     </div>
 
-    <UModal
-      v-model:open="isLinkModalOpen"
-      :ui="{ content: 'bg-transparent shadow-none ring-0 divide-y-0 p-0 w-auto max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] overflow-hidden' }"
-    >
-      <template #content>
-        <FileMemoTargetDialog
-          v-model:search-term="memoSearchQuery"
-          v-model:selected-command="selectedMemoCommand"
-          title="Import file"
-          description="Import a file from Inbox. Optionally select a note to add a link at the end of it."
-          note-label="Note (optional)"
-          action-label="Import"
-          :action-disabled="!pendingInboxPath"
-          :action-loading="isSubmitting"
-          :file-display-name="pendingInboxItem?.display_name ?? ''"
-          :selected-memo-title="selectedMemoTitle"
-          :groups="memoCommandGroups"
-          @close="closeLinkModal"
-          @submit="confirmImport"
-          @select-command="onSelectMemoCommand"
-        />
-      </template>
-    </UModal>
+    <FileMemoTargetDialog
+      v-model:search-term="memoSearchQuery"
+      v-model:selected-command="selectedMemoCommand"
+      :open="isLinkModalOpen"
+      title="Import file"
+      description="Import a file from Inbox. Optionally select a note to add a link at the end of it."
+      note-label="Note (optional)"
+      action-label="Import"
+      :action-disabled="!pendingInboxPath"
+      :action-loading="isSubmitting"
+      :file-display-name="pendingInboxItem?.display_name ?? ''"
+      :selected-memo-title="selectedMemoTitle"
+      :groups="memoCommandGroups"
+      @close="closeLinkModal"
+      @submit="confirmImport"
+      @select-command="onSelectMemoCommand"
+    />
   </div>
 </template>
 

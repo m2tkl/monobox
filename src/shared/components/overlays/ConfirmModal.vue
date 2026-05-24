@@ -1,49 +1,34 @@
 <template>
-  <UModal v-model:open="open">
-    <template #content>
-      <UCard>
-        <div class="space-y-3">
-          <div
-            class="text-sm font-semibold"
-            style="color: var(--color-text-primary)"
-          >
-            {{ title }}
-          </div>
-          <div
-            v-if="description"
-            class="text-xs"
-            style="color: var(--color-text-secondary)"
-          >
-            {{ description }}
-          </div>
-        </div>
-
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <AppButton
-              type="button"
-              @click="cancel"
-            >
-              {{ cancelLabel }}
-            </AppButton>
-            <AppButton
-              type="button"
-              variant="subtle"
-              :color="confirmColor"
-              :loading="loading"
-              @click="confirm"
-            >
-              {{ confirmLabel }}
-            </AppButton>
-          </div>
-        </template>
-      </UCard>
+  <AppDialog
+    v-model:open="open"
+    :title="title"
+    :description="description"
+  >
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <AppButton
+          type="button"
+          @click="cancel"
+        >
+          {{ cancelLabel }}
+        </AppButton>
+        <AppButton
+          type="button"
+          variant="subtle"
+          :color="confirmColor"
+          :loading="loading"
+          @click="confirm"
+        >
+          {{ confirmLabel }}
+        </AppButton>
+      </div>
     </template>
-  </UModal>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
 import AppButton from '~/shared/components/elements/AppButton.vue';
+import AppDialog from '~/shared/components/overlays/AppDialog.vue';
 
 const props = withDefaults(defineProps<{
   open: boolean;

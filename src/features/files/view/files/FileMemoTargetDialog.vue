@@ -1,24 +1,20 @@
 <template>
-  <UCard
-    class="file-target-dialog"
-    :ui="{
+  <AppDialog
+    :open="open"
+    :title="title"
+    :description="description"
+    card-class="file-target-dialog"
+    :modal-ui="{
+      content: 'bg-transparent shadow-none ring-0 divide-y-0 p-0 w-auto max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] overflow-hidden',
+    }"
+    :card-ui="{
       root: 'flex flex-col',
       header: 'shrink-0 p-4 sm:px-6',
       body: 'flex-1 min-h-0 overflow-y-auto p-4 sm:p-6',
       footer: 'shrink-0 p-4 sm:px-6',
     }"
+    @update:open="$emit('close')"
   >
-    <template #header>
-      <div class="space-y-1">
-        <div class="text-sm font-semibold">
-          {{ title }}
-        </div>
-        <p class="text-sm link-modal-description">
-          {{ description }}
-        </p>
-      </div>
-    </template>
-
     <div class="dialog-body space-y-4">
       <div class="link-summary-card">
         <div class="link-summary-value">
@@ -83,10 +79,13 @@
         </AppButton>
       </div>
     </template>
-  </UCard>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
+import AppButton from '~/shared/components/elements/AppButton.vue';
+import AppDialog from '~/shared/components/overlays/AppDialog.vue';
+
 type MemoCommandItem = {
   label: string;
   title: string;
@@ -101,6 +100,7 @@ type MemoCommandGroup = {
 };
 
 defineProps<{
+  open: boolean;
   title: string;
   description: string;
   noteLabel: string;
@@ -134,10 +134,6 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-}
-
-.link-modal-description {
-  color: var(--color-text-secondary);
 }
 
 .link-summary-card {
@@ -174,9 +170,6 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
 
 .memo-command-palette :deep([data-slot='input']) {
   border-bottom: 1px solid var(--color-border-light);
-}
-
-.selected-memo-slot {
 }
 
 .selected-memo-card {

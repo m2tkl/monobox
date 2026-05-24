@@ -296,29 +296,23 @@
         </template>
       </UModal>
 
-      <UModal
-        v-model:open="isLinkModalOpen"
-        :ui="{ content: 'bg-transparent shadow-none ring-0 divide-y-0 p-0 w-auto max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1rem)] overflow-hidden' }"
-      >
-        <template #content>
-          <FileMemoTargetDialog
-            v-model:search-term="memoSearchQuery"
-            v-model:selected-command="selectedMemoCommand"
-            title="Link to note"
-            description="Add a managed file link to the end of the selected note."
-            note-label="Note"
-            action-label="Link to note"
-            :action-disabled="!selectedMemoSlug || !pendingFileId"
-            :action-loading="isSubmitting"
-            :file-display-name="pendingFileItem?.display_name ?? ''"
-            :selected-memo-title="selectedMemoTitle"
-            :groups="memoCommandGroups"
-            @close="closeLinkModal"
-            @submit="linkToMemo"
-            @select-command="onSelectMemoCommand"
-          />
-        </template>
-      </UModal>
+      <FileMemoTargetDialog
+        v-model:search-term="memoSearchQuery"
+        v-model:selected-command="selectedMemoCommand"
+        :open="isLinkModalOpen"
+        title="Link to note"
+        description="Add a managed file link to the end of the selected note."
+        note-label="Note"
+        action-label="Link to note"
+        :action-disabled="!selectedMemoSlug || !pendingFileId"
+        :action-loading="isSubmitting"
+        :file-display-name="pendingFileItem?.display_name ?? ''"
+        :selected-memo-title="selectedMemoTitle"
+        :groups="memoCommandGroups"
+        @close="closeLinkModal"
+        @submit="linkToMemo"
+        @select-command="onSelectMemoCommand"
+      />
 
       <UModal v-model:open="isDetailModalOpen">
         <template #content>
