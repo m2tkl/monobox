@@ -25,6 +25,7 @@ export * as EditorFocus from './core/focus';
 export * as EditorDoc from './core/doc';
 export * as EditorMsg from './core/command';
 export { default as CodeBlockComponent } from './nodeviews/CodeBlock';
+export { default as TableComponent } from './nodeviews/Table';
 export type { EditorMsg as EditorMsgType } from './core/command';
 export type { EditorCommandHandler, EditorCommandHandlerMap } from './core/command';
 export { createEditorDispatcher, dispatchEditorMsg } from './core/command';
@@ -36,13 +37,14 @@ export { customMarkdownSerializer, convertToMarkdown } from './serializer/markdo
 
 type BuildExtensionsOptions = {
   CodeBlockComponent: Component<NodeViewProps>;
+  TableComponent?: Component<NodeViewProps>;
 };
 
 /**
  * Factory to build extentions for editor
  */
 export function buildExtensions(options: BuildExtensionsOptions): Extensions {
-  const { CodeBlockComponent } = options;
+  const { CodeBlockComponent, TableComponent } = options;
 
   const extensions = [
     StarterKit.configure({ heading: false, codeBlock: false }),
@@ -102,7 +104,7 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
     CustomExtension.markdownPasteExtension,
     CustomExtension.codeBlockExtension(CodeBlockComponent),
     CustomExtension.codeBlockNavExtension(),
-    CustomExtension.tableExtension(),
+    CustomExtension.tableExtension(TableComponent),
     CustomExtension.tableRowExtension(),
     CustomExtension.tableHeaderExtension(),
     CustomExtension.tableCellExtension(),

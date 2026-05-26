@@ -440,7 +440,7 @@ import type { InboxFileItem, ManagedFileListItem } from '~/models/file';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import IconButton from '~/app/elements/IconButton.vue';
-import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction } from '~/app/features/editor';
+import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent } from '~/app/features/editor';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
@@ -451,6 +451,7 @@ import { buildMemoTitleFromSlug } from '~/utils/slug';
 
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
+  TableComponent: TableComponent as Component<NodeViewProps>,
 });
 
 const route = useRoute();

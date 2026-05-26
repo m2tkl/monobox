@@ -43,21 +43,22 @@ export const customMarkdownSerializer = new MarkdownSerializer(
     },
     table(state, node) {
       const rows = node.content.content;
-      const headerRow = rows.find(row => row.type.name === 'tableRow'
+      const explicitHeaderRow = rows.find(row => row.type.name === 'tableRow'
         && row.childCount > 0
         && Array.from({ length: row.childCount }).every((_, index) => row.child(index).type.name === 'tableHeader'));
 
       const columnCount = rows.reduce((max, row) => Math.max(max, row.childCount), 0);
+      const headerSourceRow = explicitHeaderRow ?? rows[0] ?? null;
       const fallbackHeader = Array.from({ length: columnCount }, () => ' ');
-      const header = headerRow
-        ? Array.from({ length: columnCount }, (_, index) => escapeTableCellText(headerRow.maybeChild(index)?.textContent ?? ' '))
+      const header = headerSourceRow
+        ? Array.from({ length: columnCount }, (_, index) => escapeTableCellText(headerSourceRow.maybeChild(index)?.textContent ?? ' '))
         : fallbackHeader;
 
       state.write(`| ${header.join(' | ')} |\n`);
       state.write(`| ${Array.from({ length: columnCount }, () => '---').join(' | ')} |\n`);
 
       rows.forEach((row) => {
-        if (row === headerRow) {
+        if (row === headerSourceRow) {
           return;
         }
 

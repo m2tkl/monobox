@@ -77,4 +77,40 @@ describe('serializer/markdown - convertToMarkdown', () => {
     expect(md).toContain('| Ada | Admin |');
     editor.destroy();
   });
+
+  it('uses the first row as markdown header when the table has no explicit header row', () => {
+    const editor = new Editor({ extensions: buildExtensions({ CodeBlockComponent: {} as never }) });
+    const content: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'A' }] }] },
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'B' }] }] },
+              ],
+            },
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '1' }] }] },
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '2' }] }] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    editor.commands.setContent(content);
+
+    const md = convertToMarkdown(editor.state.doc);
+    expect(md).toContain('| A | B |');
+    expect(md).toContain('| --- | --- |');
+    expect(md).toContain('| 1 | 2 |');
+    expect(md).not.toContain('|   |   |');
+    editor.destroy();
+  });
 });

@@ -150,7 +150,7 @@ import type { EditorMsgType } from '~/app/features/editor';
 import type { MemoIndexItem } from '~/models/memo';
 
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
-import { buildExtensions, CodeBlockComponent, dispatchEditorMsg } from '~/app/features/editor';
+import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, TableComponent } from '~/app/features/editor';
 import { EditorToolbarButton, MemoEditor, useMemoEditor } from '~/app/features/memo-editing';
 import { SearchPalette } from '~/app/features/search';
 import { useQuery } from '~/resource-runtime/useQuery';
@@ -186,6 +186,7 @@ const memoEditorRef = ref<InstanceType<typeof MemoEditor> | null>(null);
 
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
+  TableComponent: TableComponent as Component<NodeViewProps>,
 });
 
 const {
