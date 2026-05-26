@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { WorkspaceKanban } from '~/features/workspace-kanban';
+import { WorkspaceKanban } from '~/app/features/workspace-kanban';
 
 definePageMeta({
   path: '/:workspace/_kanban',

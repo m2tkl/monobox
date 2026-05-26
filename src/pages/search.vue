@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { SearchPage } from '~/features/search';
+import { SearchPage } from '~/app/features/search';
 
 definePageMeta({
   path: '/:workspace/_search',

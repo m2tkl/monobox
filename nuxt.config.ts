@@ -9,15 +9,15 @@ export default defineNuxtConfig({
     '@nuxt/test-utils/module',
   ],
 
+  // Enable SSG
+  ssr: false,
+
   components: [
     {
-      path: '~/shared/components/elements',
+      path: '~/app/elements',
       pathPrefix: false,
     },
   ],
-
-  // Enable SSG
-  ssr: false,
   devtools: { enabled: false },
 
   css: [

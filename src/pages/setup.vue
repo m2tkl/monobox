@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { StorageSetupPage } from '~/features/storage-settings';
+import { StorageSetupPage } from '~/app/features/storage-settings';
 
 definePageMeta({
   path: '/_setup',

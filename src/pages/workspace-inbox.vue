@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { InboxPage } from '~/features/files';
+import { InboxPage } from '~/app/features/files';
 
 definePageMeta({
   path: '/:workspace/_inbox',

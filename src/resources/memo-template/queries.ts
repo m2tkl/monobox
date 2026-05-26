@@ -1,5 +1,6 @@
-import { sortMemoTemplates } from '~/features/memo-templates/template';
 import type { MemoTemplateDetail, MemoTemplateIndexItem } from '~/models/memoTemplate';
+
+import { sortMemoTemplates } from '~/app/features/memo-templates/template';
 import { defineQuery } from '~/resource-runtime/query';
 import { command } from '~/resources/command';
 import { resourceRefs } from '~/resources/refs';

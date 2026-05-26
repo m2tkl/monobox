@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { SlidePage } from '~/features/slide';
+import { SlidePage } from '~/app/features/slide';
 
 definePageMeta({
   path: '/:workspace/:memo/_slide',

@@ -11,9 +11,9 @@
 </template>
 
 <script setup lang="ts">
-import TitleBar from '~/app/shell/TitleBar.vue';
+import TitleBar from '~/app/scaffold/TitleBar.vue';
 import { command } from '~/external/tauri/command';
-import { ImagePreviewDialog } from '~/features/memo-editing';
+import { ImagePreviewDialog } from '~/app/features/memo-editing';
 import { handleError } from '~/utils/error';
 
 const router = useRouter();

@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import { MemoBrowsing } from '~/features/memo-browsing';
+import { MemoBrowsing } from '~/app/features/memo-browsing';
 
 definePageMeta({
   path: '/:workspace',

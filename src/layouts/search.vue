@@ -11,5 +11,5 @@
 </template>
 
 <script setup lang="ts">
-import SearchShell from '~/app/shell/SearchShell.vue';
+import SearchShell from '~/app/scaffold/SearchShell.vue';
 </script>

@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { MemoEditing } from '~/features/memo-editing';
+import { MemoEditing } from '~/app/features/memo-editing';
 
 definePageMeta({
   path: '/:workspace/:memo',
