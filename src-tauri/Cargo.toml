@@ -4,6 +4,7 @@ version = "0.7.3"
 description = "Local note-taking app like scrapbox"
 authors = ["m2tkl"]
 edition = "2021"
+default-run = "monobox"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

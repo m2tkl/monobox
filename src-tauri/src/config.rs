@@ -13,10 +13,22 @@ pub struct AppConfig {
     pub setup_complete: bool,
     #[serde(default)]
     pub theme_preference: Option<String>,
+    #[serde(default = "default_mcp_port")]
+    pub mcp_port: u16,
+    #[serde(default = "default_mcp_token")]
+    pub mcp_token: String,
 }
 
 fn default_setup_complete() -> bool {
     true
+}
+
+fn default_mcp_port() -> u16 {
+    38453
+}
+
+fn default_mcp_token() -> String {
+    String::new()
 }
 
 impl Default for AppConfig {
@@ -27,6 +39,8 @@ impl Default for AppConfig {
             files_storage_root: String::new(),
             setup_complete: false,
             theme_preference: None,
+            mcp_port: default_mcp_port(),
+            mcp_token: default_mcp_token(),
         }
     }
 }
@@ -97,10 +111,7 @@ pub fn save_config(config: &AppConfig, config_path: &PathBuf) -> Result<(), Stri
     let file_name = config_path
         .file_name()
         .ok_or_else(|| "Failed to resolve config filename".to_string())?;
-    let tmp_path = parent_dir.join(format!(
-        ".{}.tmp",
-        file_name.to_string_lossy()
-    ));
+    let tmp_path = parent_dir.join(format!(".{}.tmp", file_name.to_string_lossy()));
 
     let mut file = fs::File::create(&tmp_path)
         .map_err(|e| format!("Failed to create temp config file: {}", e))?;

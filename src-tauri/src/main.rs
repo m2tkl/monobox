@@ -5,6 +5,7 @@ mod commands;
 mod config;
 mod database;
 mod errors;
+mod mcp;
 mod migrations;
 mod models;
 mod repositories;
@@ -12,15 +13,26 @@ mod repositories;
 use mime_guess;
 use std::{fs, path::PathBuf};
 use tauri::http::{Request, Response};
+use uuid::Uuid;
 
 fn main() {
     let proj_dirs = directories::ProjectDirs::from("com", "m2tkl", "monobox")
         .expect("Failed to determine project directories");
-    let app_config = config::load_config(proj_dirs.config_dir(), proj_dirs.data_dir())
+    let app_config = load_runtime_config(proj_dirs.config_dir(), proj_dirs.data_dir())
         .expect("Failed to load or create config");
+    let runtime_config = build_runtime_config(app_config);
+    let mut mcp_server_info = mcp::build_server_info(&runtime_config);
+    let asset_dir_path = runtime_config.asset_dir_path.clone();
 
-    if app_config.setup_complete {
-        database::initialize_database().expect("Failed to initialize database");
+    if runtime_config.setup_complete {
+        if let Err(error) = database::initialize_database() {
+            eprintln!("Failed to initialize database: {}", error);
+        }
+    }
+
+    if let Err(error) = mcp::spawn_http_server(runtime_config.clone()) {
+        eprintln!("Failed to start monobox MCP server: {}", error);
+        mcp_server_info.enabled = false;
     }
 
     tauri::Builder::default()
@@ -29,15 +41,23 @@ fn main() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
-        .manage(app_config.clone())
+        .manage(runtime_config.clone())
+        .manage(mcp_server_info)
         .register_asynchronous_uri_scheme_protocol(
             "asset",
-            move |_context: tauri::UriSchemeContext<tauri::Wry>, request: Request<Vec<u8>>, responder| {
+            move |_context: tauri::UriSchemeContext<tauri::Wry>,
+                  request: Request<Vec<u8>>,
+                  responder| {
                 // According to the specification of PathBuf::join, if the path passed to join
                 // starts with a root (e.g., / or C:\), the result will be the input path itself
                 // instead of being joined with the base path.
-                let asset_file_name = request.uri().path().strip_prefix("/monobox/").unwrap_or("").to_string();
-                let base_dir = PathBuf::from(&app_config.asset_dir_path);
+                let asset_file_name = request
+                    .uri()
+                    .path()
+                    .strip_prefix("/monobox/")
+                    .unwrap_or("")
+                    .to_string();
+                let base_dir = PathBuf::from(&asset_dir_path);
 
                 std::thread::spawn(move || {
                     let file_path = base_dir.join(asset_file_name);
@@ -45,7 +65,8 @@ fn main() {
                     let response = if file_path.exists() {
                         match fs::read(&file_path) {
                             Ok(content) => {
-                                let mime = mime_guess::from_path(&file_path).first_or_octet_stream();
+                                let mime =
+                                    mime_guess::from_path(&file_path).first_or_octet_stream();
                                 Response::builder()
                                     .header("Content-Type", mime.as_ref())
                                     .status(200)
@@ -76,6 +97,8 @@ fn main() {
             commands::config::detect_storage_candidates,
             commands::config::validate_app_config,
             commands::config::get_default_storage_paths,
+            commands::config::get_mcp_server_info,
+            commands::config::regenerate_mcp_server_token,
             commands::config::set_theme_preference,
             // Files
             commands::file::list_inbox_files,
@@ -142,4 +165,28 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tauri application");
+}
+
+fn build_runtime_config(mut app_config: config::AppConfig) -> config::AppConfig {
+    if app_config.mcp_token.trim().is_empty() {
+        app_config.mcp_token = Uuid::new_v4().to_string();
+    }
+    app_config
+}
+
+fn load_runtime_config(
+    config_dir: &std::path::Path,
+    data_dir: &std::path::Path,
+) -> Result<config::AppConfig, String> {
+    let config_path = config_dir.join("config.json");
+    let mut app_config = config::load_config(config_dir, data_dir)?;
+
+    if app_config.mcp_token.trim().is_empty() {
+        app_config.mcp_token = Uuid::new_v4().to_string();
+        if let Err(error) = config::save_config(&app_config, &config_path) {
+            eprintln!("Failed to persist MCP token: {}", error);
+        }
+    }
+
+    Ok(app_config)
 }
