@@ -1,7 +1,7 @@
 use crate::database::get_conn;
-use crate::models::memo::{MemoDetail, MemoSearchItem};
+use crate::models::memo::{CurrentMemoDetail, MemoDetail, MemoSearchItem};
 use crate::models::MemoIndexItem;
-use crate::repositories::{MemoRepository, WorkspaceRepository};
+use crate::repositories::{MemoRepository, MemoViewRepository, WorkspaceRepository};
 use serde::Deserialize;
 use tauri::command;
 
@@ -40,6 +40,27 @@ pub fn get_memo(args: GetMemoArgs) -> Result<MemoDetail, String> {
         Ok(None) => Err(format!("Memo not found for slug: {}", args.memo_slug_title)),
         Err(e) => Err(e.to_string()),
     }
+}
+
+#[command]
+pub fn get_current_memo() -> Result<Option<CurrentMemoDetail>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    MemoViewRepository::get_current_memo(&conn)
+}
+
+#[command]
+pub fn record_memo_view(args: GetMemoArgs) -> Result<(), String> {
+    let mut conn = get_conn().map_err(|e| e.to_string())?;
+
+    let workspace = WorkspaceRepository::find_by_slug(&conn, &args.workspace_slug_name)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
+
+    let memo = MemoRepository::find_by_slug(&conn, workspace.id, &args.memo_slug_title)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
+
+    MemoViewRepository::record_view(&mut conn, workspace.id, memo.id)
 }
 
 #[derive(Deserialize)]

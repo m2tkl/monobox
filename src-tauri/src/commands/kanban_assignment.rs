@@ -58,7 +58,9 @@ pub struct UpsertKanbanAssignmentStatusArgs {
 }
 
 #[command]
-pub fn upsert_kanban_assignment_status(args: UpsertKanbanAssignmentStatusArgs) -> Result<(), String> {
+pub fn upsert_kanban_assignment_status(
+    args: UpsertKanbanAssignmentStatusArgs,
+) -> Result<(), String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
 
     let workspace = WorkspaceRepository::find_by_slug(&conn, &args.workspace_slug_name)
@@ -101,8 +103,9 @@ pub fn remove_kanban_assignment(args: RemoveKanbanAssignmentArgs) -> Result<(), 
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
 
-    let deleted = KanbanAssignmentRepository::delete_entry(&conn, workspace.id, memo.id, args.kanban_id)
-        .map_err(|e| e.to_string())?;
+    let deleted =
+        KanbanAssignmentRepository::delete_entry(&conn, workspace.id, memo.id, args.kanban_id)
+            .map_err(|e| e.to_string())?;
 
     if !deleted {
         return Err("Memo is not in the kanban.".to_string());

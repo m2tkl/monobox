@@ -38,7 +38,10 @@ pub fn get_memo_template(args: GetMemoTemplateArgs) -> Result<MemoTemplateDetail
 
     match MemoTemplateRepository::find_by_slug(&conn, workspace.id, &args.template_slug_name) {
         Ok(Some(template)) => Ok(template),
-        Ok(None) => Err(format!("Memo template not found for slug: {}", args.template_slug_name)),
+        Ok(None) => Err(format!(
+            "Memo template not found for slug: {}",
+            args.template_slug_name
+        )),
         Err(error) => Err(error),
     }
 }
@@ -85,8 +88,14 @@ pub fn save_memo_template(args: SaveMemoTemplateArgs) -> Result<(), String> {
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
 
-    let template = MemoTemplateRepository::find_by_slug(&conn, workspace.id, &args.target_slug_name)?
-        .ok_or_else(|| format!("Memo template not found for slug: {}", args.target_slug_name))?;
+    let template =
+        MemoTemplateRepository::find_by_slug(&conn, workspace.id, &args.target_slug_name)?
+            .ok_or_else(|| {
+                format!(
+                    "Memo template not found for slug: {}",
+                    args.target_slug_name
+                )
+            })?;
 
     MemoTemplateRepository::save(
         &conn,
@@ -111,8 +120,14 @@ pub fn delete_memo_template(args: DeleteMemoTemplateArgs) -> Result<(), String> 
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
 
-    let template = MemoTemplateRepository::find_by_slug(&conn, workspace.id, &args.template_slug_name)?
-        .ok_or_else(|| format!("Memo template not found for slug: {}", args.template_slug_name))?;
+    let template =
+        MemoTemplateRepository::find_by_slug(&conn, workspace.id, &args.template_slug_name)?
+            .ok_or_else(|| {
+                format!(
+                    "Memo template not found for slug: {}",
+                    args.template_slug_name
+                )
+            })?;
 
     MemoTemplateRepository::delete(&conn, template.id)
 }
@@ -131,8 +146,14 @@ pub fn set_default_memo_template(args: SetDefaultMemoTemplateArgs) -> Result<(),
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
 
-    let template = MemoTemplateRepository::find_by_slug(&conn, workspace.id, &args.template_slug_name)?
-        .ok_or_else(|| format!("Memo template not found for slug: {}", args.template_slug_name))?;
+    let template =
+        MemoTemplateRepository::find_by_slug(&conn, workspace.id, &args.template_slug_name)?
+            .ok_or_else(|| {
+                format!(
+                    "Memo template not found for slug: {}",
+                    args.template_slug_name
+                )
+            })?;
 
     MemoTemplateRepository::set_default(&conn, workspace.id, template.id)
 }

@@ -29,12 +29,11 @@ impl KanbanRepository {
     }
 
     pub fn create(conn: &Connection, workspace_id: i32, name: &str) -> Result<Kanban> {
-        let order_index: i32 = conn
-            .query_row(
-                "SELECT COALESCE(MAX(order_index) + 1, 0) FROM kanban WHERE workspace_id = ?",
-                [workspace_id],
-                |row| row.get(0),
-            )?;
+        let order_index: i32 = conn.query_row(
+            "SELECT COALESCE(MAX(order_index) + 1, 0) FROM kanban WHERE workspace_id = ?",
+            [workspace_id],
+            |row| row.get(0),
+        )?;
 
         conn.execute(
             "INSERT INTO kanban (workspace_id, name, order_index)

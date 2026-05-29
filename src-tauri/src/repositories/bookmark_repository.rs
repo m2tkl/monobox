@@ -83,7 +83,12 @@ impl BookmarkRepository {
         let insert_index = match position {
             "before" => target_index,
             "after" => target_index + 1,
-            _ => return Err(format!("Unsupported bookmark reorder position: {}", position)),
+            _ => {
+                return Err(format!(
+                    "Unsupported bookmark reorder position: {}",
+                    position
+                ))
+            }
         };
 
         bookmarks.insert(insert_index, current);
@@ -130,9 +135,12 @@ mod tests {
         BookmarkRepository::reorder_by_memo_id(&conn, 10, 101, 103, "after")
             .expect("reorder should succeed");
 
-        let ordered = BookmarkRepository::list_by_workspace(&conn, 10)
-            .expect("bookmarks should be listed");
-        let memo_ids: Vec<i32> = ordered.into_iter().map(|bookmark| bookmark.memo_id).collect();
+        let ordered =
+            BookmarkRepository::list_by_workspace(&conn, 10).expect("bookmarks should be listed");
+        let memo_ids: Vec<i32> = ordered
+            .into_iter()
+            .map(|bookmark| bookmark.memo_id)
+            .collect();
 
         assert_eq!(memo_ids, vec![102, 103, 101, 104]);
     }

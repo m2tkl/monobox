@@ -3,6 +3,7 @@ export type MemoDetail = {
   slug_title: string;
   title: string;
   content: string; // JSON
+  plain_text: string;
   description?: string;
   thumbnail_image?: string;
   workspace_id: number;

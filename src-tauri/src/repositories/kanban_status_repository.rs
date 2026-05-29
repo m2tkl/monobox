@@ -41,14 +41,13 @@ impl KanbanStatusRepository {
         name: &str,
         color: Option<&str>,
     ) -> Result<KanbanStatus> {
-        let order_index: i32 = conn
-            .query_row(
-                "SELECT COALESCE(MAX(order_index) + 1, 0)
+        let order_index: i32 = conn.query_row(
+            "SELECT COALESCE(MAX(order_index) + 1, 0)
                 FROM kanban_status
                 WHERE workspace_id = ? AND kanban_id = ?",
-                (workspace_id, kanban_id),
-                |row| row.get(0),
-            )?;
+            (workspace_id, kanban_id),
+            |row| row.get(0),
+        )?;
 
         conn.execute(
             "INSERT INTO kanban_status (workspace_id, kanban_id, name, color, order_index)

@@ -20,8 +20,7 @@ pub fn list_kanban_statuses(args: ListKanbanStatusesArgs) -> Result<Vec<KanbanSt
 
     let kanban_id = if let Some(id) = args.kanban_id {
         id
-    }
-    else {
+    } else {
         let kanbans = crate::repositories::KanbanRepository::list_by_workspace(&conn, workspace.id)
             .map_err(|e| e.to_string())?;
         kanbans
@@ -52,8 +51,7 @@ pub fn create_kanban_status(args: CreateKanbanStatusArgs) -> Result<KanbanStatus
 
     let kanban_id = if let Some(id) = args.kanban_id {
         id
-    }
-    else {
+    } else {
         let kanbans = crate::repositories::KanbanRepository::list_by_workspace(&conn, workspace.id)
             .map_err(|e| e.to_string())?;
         kanbans
@@ -120,8 +118,8 @@ pub fn delete_kanban_status(args: DeleteKanbanStatusArgs) -> Result<(), String> 
 
     let tx = conn.transaction().map_err(|e| e.to_string())?;
 
-    let deleted = KanbanStatusRepository::delete(&tx, workspace.id, args.id)
-        .map_err(|e| e.to_string())?;
+    let deleted =
+        KanbanStatusRepository::delete(&tx, workspace.id, args.id).map_err(|e| e.to_string())?;
 
     if !deleted {
         return Err(format!("Kanban status not found: {}", args.id));

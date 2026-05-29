@@ -84,11 +84,49 @@ impl MemoRepository {
 
         let memo: Option<MemoDetail> = stmt
             .query_row((workspace_id, memo_slug_title), |row| {
+                let content: String = row.get(3)?;
                 Ok(MemoDetail {
                     id: row.get(0)?,
                     slug_title: row.get(1)?,
                     title: row.get(2)?,
-                    content: row.get(3)?,
+                    plain_text: extract_plain_text_from_json_str(&content),
+                    content,
+                    description: row.get(4)?,
+                    thumbnail_image: row.get(5)?,
+                    workspace_id: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                    modified_at: row.get(9)?,
+                })
+            })
+            .optional()?;
+
+        Ok(memo)
+    }
+
+    pub fn find_by_id(
+        conn: &Connection,
+        workspace_id: i32,
+        memo_id: i32,
+    ) -> Result<Option<MemoDetail>> {
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, slug_title, title, json(content) AS content, description, thumbnail_image, workspace_id, created_at, updated_at, modified_at
+                FROM memo
+                WHERE
+                  workspace_id = ?
+                  AND id = ?",
+            )?;
+
+        let memo: Option<MemoDetail> = stmt
+            .query_row((workspace_id, memo_id), |row| {
+                let content: String = row.get(3)?;
+                Ok(MemoDetail {
+                    id: row.get(0)?,
+                    slug_title: row.get(1)?,
+                    title: row.get(2)?,
+                    plain_text: extract_plain_text_from_json_str(&content),
+                    content,
                     description: row.get(4)?,
                     thumbnail_image: row.get(5)?,
                     workspace_id: row.get(6)?,
@@ -132,11 +170,13 @@ impl MemoRepository {
         )?;
 
         let memo = stmt.query_row([memo_id], |row| {
+            let content: String = row.get(3)?;
             Ok(MemoDetail {
                 id: row.get(0)?,
                 slug_title: row.get(1)?,
                 title: row.get(2)?,
-                content: row.get(3)?,
+                plain_text: extract_plain_text_from_json_str(&content),
+                content,
                 description: row.get(4)?,
                 thumbnail_image: row.get(5)?,
                 workspace_id: row.get(6)?,
@@ -384,7 +424,7 @@ fn update_link_text(
     serde_json::to_string(&doc).map_err(MemoError::from)
 }
 
-fn extract_plain_text_from_json_str(json_str: &str) -> String {
+pub(crate) fn extract_plain_text_from_json_str(json_str: &str) -> String {
     let Ok(doc) = serde_json::from_str::<Value>(json_str) else {
         return String::new();
     };
@@ -856,8 +896,11 @@ mod tests {
     #[test]
     fn save_updates_matching_links_inside_templates() {
         let mut conn = Connection::open_in_memory().expect("in-memory DB should open");
-        conn.execute("CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)", [])
-            .expect("schema_migrations should be creatable");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
         apply_migrations(&conn).expect("migrations should apply");
 
         conn.execute(

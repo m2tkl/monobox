@@ -4,7 +4,10 @@ use rusqlite::{Connection, OptionalExtension, Result};
 pub struct MemoTemplateRepository;
 
 impl MemoTemplateRepository {
-    pub fn list(conn: &Connection, workspace_id: i32) -> Result<Vec<MemoTemplateIndexItem>, String> {
+    pub fn list(
+        conn: &Connection,
+        workspace_id: i32,
+    ) -> Result<Vec<MemoTemplateIndexItem>, String> {
         let mut stmt = conn
             .prepare(
                 "SELECT id, slug_name, name, is_default, created_at, updated_at
@@ -126,7 +129,11 @@ impl MemoTemplateRepository {
         Ok(())
     }
 
-    pub fn set_default(conn: &Connection, workspace_id: i32, template_id: i32) -> Result<(), String> {
+    pub fn set_default(
+        conn: &Connection,
+        workspace_id: i32,
+        template_id: i32,
+    ) -> Result<(), String> {
         conn.execute(
             "UPDATE memo_template
             SET is_default = 0
@@ -166,8 +173,11 @@ mod tests {
     #[test]
     fn set_default_marks_only_one_template_in_workspace() {
         let conn = Connection::open_in_memory().expect("in-memory DB should open");
-        conn.execute("CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)", [])
-            .expect("schema_migrations should be creatable");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
         apply_migrations(&conn).expect("migrations should apply");
 
         conn.execute(
@@ -198,8 +208,11 @@ mod tests {
     #[test]
     fn clear_default_unsets_default_template() {
         let conn = Connection::open_in_memory().expect("in-memory DB should open");
-        conn.execute("CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)", [])
-            .expect("schema_migrations should be creatable");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
         apply_migrations(&conn).expect("migrations should apply");
 
         conn.execute(

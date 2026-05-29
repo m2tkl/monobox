@@ -3,9 +3,11 @@ use std::fs::OpenOptions;
 use std::path::PathBuf;
 
 use directories::ProjectDirs;
-use tauri::command;
+use tauri::{command, State};
+use uuid::Uuid;
 
 use crate::config::{load_config, save_config};
+use crate::mcp::McpServerInfo;
 
 #[derive(serde::Serialize)]
 pub struct ConfigPayload {
@@ -14,6 +16,7 @@ pub struct ConfigPayload {
     pub files_storage_root: String,
     pub setup_complete: bool,
     pub theme_preference: Option<String>,
+    pub mcp_server_url: String,
 }
 
 #[derive(serde::Deserialize)]
@@ -43,7 +46,7 @@ pub struct ThemePreferenceArgs {
 }
 
 #[command]
-pub fn get_app_config() -> Result<ConfigPayload, String> {
+pub fn get_app_config(mcp_server_info: State<McpServerInfo>) -> Result<ConfigPayload, String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
     let config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
@@ -54,6 +57,29 @@ pub fn get_app_config() -> Result<ConfigPayload, String> {
         files_storage_root: config.files_storage_root,
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
+        mcp_server_url: mcp_server_info.url.clone(),
+    })
+}
+
+#[command]
+pub fn get_mcp_server_info(mcp_server_info: State<McpServerInfo>) -> Result<McpServerInfo, String> {
+    Ok(mcp_server_info.inner().clone())
+}
+
+#[command]
+pub fn regenerate_mcp_server_token() -> Result<McpServerInfo, String> {
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config_path = proj_dirs.config_dir().join("config.json");
+    let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    config.mcp_token = Uuid::new_v4().to_string();
+    save_config(&config, &config_path)?;
+    Ok(McpServerInfo {
+        enabled: false,
+        port: config.mcp_port,
+        token: config.mcp_token.clone(),
+        url: crate::mcp::build_server_url(config.mcp_port, &config.mcp_token),
+        setup_complete: config.setup_complete,
     })
 }
 
@@ -102,7 +128,10 @@ pub fn get_default_storage_paths() -> Result<DefaultStoragePaths, String> {
 }
 
 #[command]
-pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
+pub fn save_app_config(
+    args: SaveConfigArgs,
+    mcp_server_info: State<McpServerInfo>,
+) -> Result<ConfigPayload, String> {
     validate_storage_paths(
         &args.database_path,
         &args.asset_dir_path,
@@ -128,6 +157,7 @@ pub fn save_app_config(args: SaveConfigArgs) -> Result<ConfigPayload, String> {
         files_storage_root: args.files_storage_root,
         setup_complete: args.setup_complete,
         theme_preference: config.theme_preference,
+        mcp_server_url: mcp_server_info.url.clone(),
     })
 }
 
@@ -147,10 +177,13 @@ fn validate_storage_paths(
         .ok_or_else(|| "DB_PARENT_MISSING:Database path has no parent".to_string())?;
     if !db_parent.exists() {
         if create_missing {
-            fs::create_dir_all(db_parent)
-                .map_err(|e| format!("DB_PARENT_CREATE_FAILED:Failed to create db directory: {}", e))?;
-        }
-        else {
+            fs::create_dir_all(db_parent).map_err(|e| {
+                format!(
+                    "DB_PARENT_CREATE_FAILED:Failed to create db directory: {}",
+                    e
+                )
+            })?;
+        } else {
             return Err("DB_PARENT_MISSING:Database directory does not exist".to_string());
         }
     }
@@ -162,8 +195,7 @@ fn validate_storage_paths(
                 .create(true)
                 .open(&db_path)
                 .map_err(|e| format!("DB_FILE_CREATE_FAILED:Failed to create db file: {}", e))?;
-        }
-        else {
+        } else {
             return Err("DB_FILE_MISSING:Database file does not exist".to_string());
         }
     }
@@ -174,10 +206,13 @@ fn validate_storage_paths(
     }
     if !asset_path.exists() {
         if create_missing {
-            fs::create_dir_all(&asset_path)
-                .map_err(|e| format!("ASSET_DIR_CREATE_FAILED:Failed to create asset directory: {}", e))?;
-        }
-        else {
+            fs::create_dir_all(&asset_path).map_err(|e| {
+                format!(
+                    "ASSET_DIR_CREATE_FAILED:Failed to create asset directory: {}",
+                    e
+                )
+            })?;
+        } else {
             return Err("ASSET_DIR_MISSING:Asset directory does not exist".to_string());
         }
     }
@@ -189,11 +224,16 @@ fn validate_storage_paths(
         }
         if !files_path.exists() {
             if create_missing {
-                fs::create_dir_all(&files_path)
-                    .map_err(|e| format!("FILES_STORAGE_CREATE_FAILED:Failed to create files storage directory: {}", e))?;
-            }
-            else {
-                return Err("FILES_STORAGE_MISSING:Files storage directory does not exist".to_string());
+                fs::create_dir_all(&files_path).map_err(|e| {
+                    format!(
+                        "FILES_STORAGE_CREATE_FAILED:Failed to create files storage directory: {}",
+                        e
+                    )
+                })?;
+            } else {
+                return Err(
+                    "FILES_STORAGE_MISSING:Files storage directory does not exist".to_string(),
+                );
             }
         }
     }
@@ -215,7 +255,10 @@ pub fn validate_app_config() -> Result<(), String> {
 }
 
 #[command]
-pub fn set_theme_preference(args: ThemePreferenceArgs) -> Result<ConfigPayload, String> {
+pub fn set_theme_preference(
+    args: ThemePreferenceArgs,
+    mcp_server_info: State<McpServerInfo>,
+) -> Result<ConfigPayload, String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
     let config_path = proj_dirs.config_dir().join("config.json");
@@ -231,5 +274,6 @@ pub fn set_theme_preference(args: ThemePreferenceArgs) -> Result<ConfigPayload, 
         files_storage_root: config.files_storage_root,
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
+        mcp_server_url: mcp_server_info.url.clone(),
     })
 }
