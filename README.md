@@ -29,6 +29,8 @@ Available tools:
 - `get_workspace`
 - `list_memos`
 - `get_memo`
+- `get_memo_plain_text`
+- `get_memo_context`
 - `get_current_memo`
 - `get_current_memo_plain_text`
 - `get_current_memo_context`
@@ -38,9 +40,9 @@ Available tools:
 - `list_memo_files`
 - `get_memo_links`
 
-Use `get_current_memo_plain_text` when you only need the memo currently open in the app for summarization, drafting, or quick review. It returns the title, description, plain text body, and both UTC and local view timestamps.
+Use `get_memo_plain_text` when you want one specific memo in a lightweight summarization-friendly shape. Use `get_current_memo_plain_text` when you want the memo currently open in the app. Both return the title, description, plain text body, and timestamps.
 
-`get_current_memo_context` is the higher-level tool when you also want related memos and attached files. By default it is plain-text first: it omits `memo.content` JSON unless you set `include_content_json = true`.
+`get_memo_context` is the higher-level tool for one specific memo. `get_current_memo_context` is the same idea for the memo currently open in the app. Both are plain-text first: they omit `memo.content` JSON unless you set `include_content_json = true`.
 
 It can return:
 

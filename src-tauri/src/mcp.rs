@@ -201,6 +201,70 @@ pub fn tool_definitions() -> Value {
             }
         },
         {
+            "name": "get_memo_plain_text",
+            "description": "Fetch one memo as a lightweight plain-text payload for summarization and quick reading.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_slug_name": {
+                        "type": "string",
+                        "description": "Workspace slug."
+                    },
+                    "memo_slug_title": {
+                        "type": "string",
+                        "description": "Memo slug."
+                    }
+                },
+                "required": ["workspace_slug_name", "memo_slug_title"]
+            }
+        },
+        {
+            "name": "get_memo_context",
+            "description": "Fetch one memo together with agent-friendly plain text, related memo summaries, attached files, and a combined context_text export.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_slug_name": {
+                        "type": "string",
+                        "description": "Workspace slug."
+                    },
+                    "memo_slug_title": {
+                        "type": "string",
+                        "description": "Memo slug."
+                    },
+                    "include_content_json": {
+                        "type": "boolean",
+                        "description": "When true, include memo.content JSON in the response. Defaults to false for this high-level tool."
+                    },
+                    "include_plain_text": {
+                        "type": "boolean",
+                        "description": "When true, include memo.plain_text for the target memo. Defaults to true."
+                    },
+                    "include_links": {
+                        "type": "boolean",
+                        "description": "When true, include grouped forward/backward/two-hop related memos. Defaults to true."
+                    },
+                    "include_files": {
+                        "type": "boolean",
+                        "description": "When true, include attached file summaries. Defaults to true."
+                    },
+                    "include_context_text": {
+                        "type": "boolean",
+                        "description": "When true, include a combined plain-text export in context_text. Defaults to true."
+                    },
+                    "include_related_memo_plain_text": {
+                        "type": "boolean",
+                        "description": "When true, include plain_text for related memos. Defaults to false."
+                    },
+                    "max_related_memos_per_group": {
+                        "type": "integer",
+                        "description": "Maximum number of related memos to include for each of forward/backward/two-hop groups. Defaults to 10."
+                    }
+                },
+                "required": ["workspace_slug_name", "memo_slug_title"]
+            }
+        },
+        {
             "name": "get_current_memo",
             "description": "Fetch the memo the user most recently viewed in the app.",
             "inputSchema": {
@@ -397,6 +461,57 @@ fn call_tool(name: &str, args: &Value) -> Result<Value, String> {
                 .map_err(|err| err.to_string())?
                 .ok_or_else(|| format!("Memo not found for slug: {}", memo_slug_title))?;
             Ok(json!(memo))
+        }
+        "get_memo_plain_text" => {
+            ensure_setup_complete()?;
+            let workspace_slug_name = required_string(args, "workspace_slug_name")?;
+            let memo_slug_title = required_string(args, "memo_slug_title")?;
+            let conn = get_conn().map_err(|err| err.to_string())?;
+            let workspace = resolve_workspace(&conn, &workspace_slug_name)?;
+            let memo = MemoRepository::find_by_slug(&conn, workspace.id, &memo_slug_title)
+                .map_err(|err| err.to_string())?
+                .ok_or_else(|| format!("Memo not found for slug: {}", memo_slug_title))?;
+            Ok(json!(build_memo_plain_text_value(
+                &workspace_slug_name,
+                &memo_slug_title,
+                &memo
+            )))
+        }
+        "get_memo_context" => {
+            ensure_setup_complete()?;
+            let workspace_slug_name = required_string(args, "workspace_slug_name")?;
+            let memo_slug_title = required_string(args, "memo_slug_title")?;
+            let include_content_json = optional_bool(args, "include_content_json").unwrap_or(false);
+            let include_plain_text = optional_bool(args, "include_plain_text").unwrap_or(true);
+            let include_links = optional_bool(args, "include_links").unwrap_or(true);
+            let include_files = optional_bool(args, "include_files").unwrap_or(true);
+            let include_context_text = optional_bool(args, "include_context_text").unwrap_or(true);
+            let include_related_memo_plain_text =
+                optional_bool(args, "include_related_memo_plain_text").unwrap_or(false);
+            let max_related_memos_per_group =
+                optional_i64(args, "max_related_memos_per_group").unwrap_or(10);
+            let conn = get_conn().map_err(|err| err.to_string())?;
+            let workspace = resolve_workspace(&conn, &workspace_slug_name)?;
+            let memo = MemoRepository::find_by_slug(&conn, workspace.id, &memo_slug_title)
+                .map_err(|err| err.to_string())?
+                .ok_or_else(|| format!("Memo not found for slug: {}", memo_slug_title))?;
+
+            let context = build_memo_context_value(
+                &conn,
+                &workspace_slug_name,
+                &memo_slug_title,
+                &memo,
+                include_related_memo_plain_text,
+                max_related_memos_per_group.max(1) as usize,
+            )?;
+            Ok(shape_current_memo_context(
+                context,
+                include_content_json,
+                include_plain_text,
+                include_links,
+                include_files,
+                include_context_text,
+            ))
         }
         "get_current_memo" => {
             ensure_setup_complete()?;
@@ -680,6 +795,188 @@ fn optional_bool(args: &Value, key: &str) -> Option<bool> {
     args.get(key).and_then(Value::as_bool)
 }
 
+fn build_memo_plain_text_value(
+    workspace_slug_name: &str,
+    memo_slug_title: &str,
+    memo: &crate::models::memo::MemoDetail,
+) -> Value {
+    json!({
+        "workspace_slug_name": workspace_slug_name,
+        "memo_slug_title": memo_slug_title,
+        "title": memo.title,
+        "description": memo.description,
+        "plain_text": memo.plain_text,
+        "created_at": memo.created_at,
+        "updated_at": memo.updated_at,
+        "modified_at": memo.modified_at,
+    })
+}
+
+fn build_memo_context_value(
+    conn: &rusqlite::Connection,
+    workspace_slug_name: &str,
+    memo_slug_title: &str,
+    memo: &crate::models::memo::MemoDetail,
+    include_related_memo_plain_text: bool,
+    max_related_memos_per_group: usize,
+) -> Result<Value, String> {
+    let files = FileRepository::list_files_for_memo(conn, memo.id)?;
+    let links = LinkRepository::list(conn, memo.id)?;
+    let max_related_memos_per_group = max_related_memos_per_group.max(1);
+
+    let mut forward = Vec::new();
+    let mut backward = Vec::new();
+    let mut two_hop = Vec::new();
+    let mut forward_total_count = 0usize;
+    let mut backward_total_count = 0usize;
+    let mut two_hop_total_count = 0usize;
+
+    for link in links {
+        let plain_text = if include_related_memo_plain_text {
+            MemoRepository::find_by_id(conn, memo.workspace_id, link.id)
+                .map_err(|e| e.to_string())?
+                .map(|related_memo| related_memo.plain_text)
+        } else {
+            None
+        };
+
+        let related = json!({
+            "id": link.id,
+            "slug_title": link.slug_title,
+            "title": link.title,
+            "description": link.description,
+            "thumbnail_image": link.thumbnail_image,
+            "plain_text": plain_text,
+        });
+
+        match link.link_type.as_str() {
+            "Forward" => {
+                forward_total_count += 1;
+                if forward.len() < max_related_memos_per_group {
+                    forward.push(related);
+                }
+            }
+            "Backward" => {
+                backward_total_count += 1;
+                if backward.len() < max_related_memos_per_group {
+                    backward.push(related);
+                }
+            }
+            "TwoHop" => {
+                two_hop_total_count += 1;
+                if two_hop.len() < max_related_memos_per_group {
+                    two_hop.push(related);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let context_text = build_context_text_from_values(
+        &memo.title,
+        &memo.plain_text,
+        &forward,
+        &backward,
+        &two_hop,
+        &files,
+    );
+
+    Ok(json!({
+        "workspace_slug_name": workspace_slug_name,
+        "memo_slug_title": memo_slug_title,
+        "memo": memo,
+        "files": files,
+        "links": {
+            "forward": {
+                "total_count": forward_total_count,
+                "items": forward,
+            },
+            "backward": {
+                "total_count": backward_total_count,
+                "items": backward,
+            },
+            "two_hop": {
+                "total_count": two_hop_total_count,
+                "items": two_hop,
+            }
+        },
+        "context_text": context_text,
+    }))
+}
+
+fn build_context_text_from_values(
+    title: &str,
+    plain_text: &str,
+    forward: &[Value],
+    backward: &[Value],
+    two_hop: &[Value],
+    files: &[crate::models::file::MemoLinkedFileItem],
+) -> String {
+    let mut lines = vec![
+        format!("# {}", title),
+        String::new(),
+        "## Current Memo".to_string(),
+        String::new(),
+    ];
+
+    if !plain_text.trim().is_empty() {
+        lines.push(plain_text.to_string());
+        lines.push(String::new());
+    }
+
+    append_related_group_values(&mut lines, "Forward Links", forward);
+    append_related_group_values(&mut lines, "Backward Links", backward);
+    append_related_group_values(&mut lines, "Two-Hop Links", two_hop);
+
+    if !files.is_empty() {
+        lines.push("## Attached Files".to_string());
+        lines.push(String::new());
+        for file in files {
+            lines.push(format!("- {}", file.display_name));
+        }
+        lines.push(String::new());
+    }
+
+    while lines.last().is_some_and(|line| line.is_empty()) {
+        lines.pop();
+    }
+
+    lines.join("\n")
+}
+
+fn append_related_group_values(lines: &mut Vec<String>, heading: &str, memos: &[Value]) {
+    if memos.is_empty() {
+        return;
+    }
+
+    lines.push(format!("## {}", heading));
+    lines.push(String::new());
+
+    for memo in memos {
+        let title = memo
+            .get("title")
+            .and_then(Value::as_str)
+            .unwrap_or("Untitled");
+        lines.push(format!("### {}", title));
+        lines.push(String::new());
+
+        let plain_text = memo
+            .get("plain_text")
+            .and_then(Value::as_str)
+            .filter(|text| !text.trim().is_empty());
+        let description = memo
+            .get("description")
+            .and_then(Value::as_str)
+            .filter(|text| !text.trim().is_empty());
+
+        if let Some(text) = plain_text.or(description) {
+            lines.push(text.to_string());
+        }
+
+        lines.push(String::new());
+    }
+}
+
 fn shape_current_memo_context(
     mut context: Value,
     include_content_json: bool,
@@ -760,6 +1057,8 @@ mod tests {
 
         assert!(names.contains(&"list_workspaces".to_string()));
         assert!(names.contains(&"get_memo".to_string()));
+        assert!(names.contains(&"get_memo_plain_text".to_string()));
+        assert!(names.contains(&"get_memo_context".to_string()));
         assert!(names.contains(&"get_current_memo_plain_text".to_string()));
         assert!(names.contains(&"get_file_detail".to_string()));
     }
