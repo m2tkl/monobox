@@ -35,6 +35,7 @@ export const memoCommand = {
       workspace_slug_name: string;
       memo_slug_title: string;
       viewed_at: string;
+      viewed_at_local: string;
       memo: MemoDetail;
     } | null>('get_current_memo');
   },

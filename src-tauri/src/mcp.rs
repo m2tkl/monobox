@@ -209,6 +209,51 @@ pub fn tool_definitions() -> Value {
             }
         },
         {
+            "name": "get_current_memo_plain_text",
+            "description": "Fetch the currently viewed memo as a lightweight plain-text payload for summarization and quick reading.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "get_current_memo_context",
+            "description": "Fetch the currently viewed memo together with agent-friendly plain text, related memo summaries, attached files, and a combined context_text export.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "include_content_json": {
+                        "type": "boolean",
+                        "description": "When true, include memo.content JSON in the response. Defaults to false for this high-level tool."
+                    },
+                    "include_plain_text": {
+                        "type": "boolean",
+                        "description": "When true, include memo.plain_text for the current memo. Defaults to true."
+                    },
+                    "include_links": {
+                        "type": "boolean",
+                        "description": "When true, include grouped forward/backward/two-hop related memos. Defaults to true."
+                    },
+                    "include_files": {
+                        "type": "boolean",
+                        "description": "When true, include attached file summaries. Defaults to true."
+                    },
+                    "include_context_text": {
+                        "type": "boolean",
+                        "description": "When true, include a combined plain-text export in context_text. Defaults to true."
+                    },
+                    "include_related_memo_plain_text": {
+                        "type": "boolean",
+                        "description": "When true, include plain_text for related memos. Defaults to true."
+                    },
+                    "max_related_memos_per_group": {
+                        "type": "integer",
+                        "description": "Maximum number of related memos to include for each of forward/backward/two-hop groups. Defaults to 10."
+                    }
+                }
+            }
+        },
+        {
             "name": "search_memos",
             "description": "Full-text search memos inside one workspace.",
             "inputSchema": {
@@ -358,6 +403,38 @@ fn call_tool(name: &str, args: &Value) -> Result<Value, String> {
             let conn = get_conn().map_err(|err| err.to_string())?;
             let memo = crate::repositories::MemoViewRepository::get_current_memo(&conn)?;
             Ok(json!(memo))
+        }
+        "get_current_memo_plain_text" => {
+            ensure_setup_complete()?;
+            let conn = get_conn().map_err(|err| err.to_string())?;
+            let memo = crate::repositories::MemoViewRepository::get_current_memo_plain_text(&conn)?;
+            Ok(json!(memo))
+        }
+        "get_current_memo_context" => {
+            ensure_setup_complete()?;
+            let include_content_json = optional_bool(args, "include_content_json").unwrap_or(false);
+            let include_plain_text = optional_bool(args, "include_plain_text").unwrap_or(true);
+            let include_links = optional_bool(args, "include_links").unwrap_or(true);
+            let include_files = optional_bool(args, "include_files").unwrap_or(true);
+            let include_context_text = optional_bool(args, "include_context_text").unwrap_or(true);
+            let include_related_memo_plain_text =
+                optional_bool(args, "include_related_memo_plain_text").unwrap_or(false);
+            let max_related_memos_per_group =
+                optional_i64(args, "max_related_memos_per_group").unwrap_or(10);
+            let conn = get_conn().map_err(|err| err.to_string())?;
+            let context = crate::repositories::MemoViewRepository::get_current_memo_context(
+                &conn,
+                include_related_memo_plain_text,
+                max_related_memos_per_group.max(1) as usize,
+            )?;
+            Ok(shape_current_memo_context(
+                json!(context),
+                include_content_json,
+                include_plain_text,
+                include_links,
+                include_files,
+                include_context_text,
+            ))
         }
         "search_memos" => {
             ensure_setup_complete()?;
@@ -603,9 +680,48 @@ fn optional_bool(args: &Value, key: &str) -> Option<bool> {
     args.get(key).and_then(Value::as_bool)
 }
 
+fn shape_current_memo_context(
+    mut context: Value,
+    include_content_json: bool,
+    include_plain_text: bool,
+    include_links: bool,
+    include_files: bool,
+    include_context_text: bool,
+) -> Value {
+    let Some(context_obj) = context.as_object_mut() else {
+        return context;
+    };
+
+    if let Some(memo_obj) = context_obj.get_mut("memo").and_then(Value::as_object_mut) {
+        if !include_content_json {
+            memo_obj.remove("content");
+        }
+        if !include_plain_text {
+            memo_obj.remove("plain_text");
+        }
+    }
+
+    if !include_links {
+        context_obj.remove("links");
+    }
+
+    if !include_files {
+        context_obj.remove("files");
+    }
+
+    if !include_context_text {
+        context_obj.remove("context_text");
+    }
+
+    context
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{build_server_url, handle_json_rpc_request, tool_definitions, RpcRequest};
+    use super::{
+        build_server_url, handle_json_rpc_request, shape_current_memo_context, tool_definitions,
+        RpcRequest,
+    };
     use serde_json::json;
 
     #[test]
@@ -644,6 +760,38 @@ mod tests {
 
         assert!(names.contains(&"list_workspaces".to_string()));
         assert!(names.contains(&"get_memo".to_string()));
+        assert!(names.contains(&"get_current_memo_plain_text".to_string()));
         assert!(names.contains(&"get_file_detail".to_string()));
+    }
+
+    #[test]
+    fn shape_current_memo_context_drops_optional_sections() {
+        let shaped = shape_current_memo_context(
+            json!({
+                "memo": {
+                    "title": "Memo",
+                    "content": "{\"type\":\"doc\"}",
+                    "plain_text": "Body"
+                },
+                "links": {
+                    "forward": {"total_count": 1, "items": []},
+                    "backward": {"total_count": 0, "items": []},
+                    "two_hop": {"total_count": 0, "items": []}
+                },
+                "files": [{"display_name": "proposal.pdf"}],
+                "context_text": "# Memo\n\nBody"
+            }),
+            false,
+            true,
+            false,
+            false,
+            false,
+        );
+
+        assert!(shaped["memo"].get("content").is_none());
+        assert_eq!(shaped["memo"]["plain_text"], "Body");
+        assert!(shaped.get("links").is_none());
+        assert!(shaped.get("files").is_none());
+        assert!(shaped.get("context_text").is_none());
     }
 }
