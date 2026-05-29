@@ -35,3 +35,11 @@ pub struct MemoSearchItem {
     pub modified_at: String,
     pub snippet: Option<String>,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct CurrentMemoDetail {
+    pub workspace_slug_name: String,
+    pub memo_slug_title: String,
+    pub viewed_at: String,
+    pub memo: MemoDetail,
+}

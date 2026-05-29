@@ -30,6 +30,22 @@ export const memoCommand = {
     });
   },
 
+  getCurrent: async () => {
+    return await invokeCommand<{
+      workspace_slug_name: string;
+      memo_slug_title: string;
+      viewed_at: string;
+      memo: MemoDetail;
+    } | null>('get_current_memo');
+  },
+
+  recordView: async (memo: { workspaceSlugName: string; memoSlugTitle: string }) => {
+    await invokeCommand('record_memo_view', {
+      workspace_slug_name: memo.workspaceSlugName,
+      memo_slug_title: memo.memoSlugTitle,
+    });
+  },
+
   save: async (
     memo: { workspaceSlug: string; memoSlug: string },
     newMemo: {

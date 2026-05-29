@@ -244,6 +244,33 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         ALTER TABLE files ADD COLUMN note TEXT;
         ",
     ),
+    (
+        "20260529_create_memo_view_event_table",
+        "CREATE TABLE IF NOT EXISTS memo_view_event (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            viewed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE,
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_memo_view_event_memo_id ON memo_view_event(memo_id);
+        CREATE INDEX IF NOT EXISTS idx_memo_view_event_viewed_at ON memo_view_event(viewed_at DESC);
+        ",
+    ),
+    (
+        "20260529_create_memo_view_state_table",
+        "CREATE TABLE IF NOT EXISTS memo_view_state (
+            slot TEXT PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            viewed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE,
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE
+        );
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

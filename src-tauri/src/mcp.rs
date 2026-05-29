@@ -201,6 +201,14 @@ pub fn tool_definitions() -> Value {
             }
         },
         {
+            "name": "get_current_memo",
+            "description": "Fetch the memo the user most recently viewed in the app.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
             "name": "search_memos",
             "description": "Full-text search memos inside one workspace.",
             "inputSchema": {
@@ -343,6 +351,12 @@ fn call_tool(name: &str, args: &Value) -> Result<Value, String> {
             let memo = MemoRepository::find_by_slug(&conn, workspace.id, &memo_slug_title)
                 .map_err(|err| err.to_string())?
                 .ok_or_else(|| format!("Memo not found for slug: {}", memo_slug_title))?;
+            Ok(json!(memo))
+        }
+        "get_current_memo" => {
+            ensure_setup_complete()?;
+            let conn = get_conn().map_err(|err| err.to_string())?;
+            let memo = crate::repositories::MemoViewRepository::get_current_memo(&conn)?;
             Ok(json!(memo))
         }
         "search_memos" => {

@@ -444,6 +444,7 @@ import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, T
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
+import { command } from '~/external/tauri/command';
 import { fileCommand } from '~/resources/file/commands';
 import { AppError } from '~/utils/error';
 import { useConsoleLogger } from '~/utils/logger';
@@ -529,6 +530,10 @@ const ensureMemoExistsAndLoad = async () => {
 };
 
 await usePageLoader(ensureMemoExistsAndLoad);
+await command.memo.recordView({
+  workspaceSlugName: workspaceSlug.value,
+  memoSlugTitle: memoSlug.value,
+});
 
 const resolvedCurrentMemo = computed(() => {
   const memo = memoVM.value.data.memo;

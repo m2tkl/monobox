@@ -123,6 +123,8 @@ fn main() {
             // Memo
             commands::memo::get_workspace_memos,
             commands::memo::get_memo,
+            commands::memo::get_current_memo,
+            commands::memo::record_memo_view,
             commands::memo::create_memo,
             commands::memo::save_memo,
             commands::memo::delete_memo,
