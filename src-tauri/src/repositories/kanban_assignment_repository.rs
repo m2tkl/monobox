@@ -102,5 +102,4 @@ impl KanbanAssignmentRepository {
         )?;
         Ok(deleted > 0)
     }
-
 }

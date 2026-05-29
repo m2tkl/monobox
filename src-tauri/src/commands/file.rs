@@ -69,7 +69,8 @@ pub struct OpenLocalPathArgs {
 
 #[command]
 pub fn list_inbox_files(args: ListFilesArgs) -> Result<InboxFilePage, String> {
-    let user_dirs = UserDirs::new().ok_or_else(|| "Failed to determine the user directories.".to_string())?;
+    let user_dirs =
+        UserDirs::new().ok_or_else(|| "Failed to determine the user directories.".to_string())?;
     let downloads_dir = user_dirs
         .download_dir()
         .ok_or_else(|| "Downloads folder could not be resolved.".to_string())?;
@@ -176,8 +177,7 @@ fn open_with_system(target: &str, _is_url: bool) -> Result<(), String> {
 
     if status.success() {
         Ok(())
-    }
-    else {
+    } else {
         Err(format!("Open command exited with status: {}", status))
     }
 }
@@ -215,8 +215,9 @@ fn open_file_with_fallback(path: &str) -> Result<(), String> {
     match open_with_system(path, false) {
         Ok(()) => Ok(()),
         Err(open_error) => {
-            reveal_item_in_dir(path)
-                .map_err(|reveal_error| format!("{}; fallback reveal failed: {}", open_error, reveal_error))?;
+            reveal_item_in_dir(path).map_err(|reveal_error| {
+                format!("{}; fallback reveal failed: {}", open_error, reveal_error)
+            })?;
             Ok(())
         }
     }
@@ -257,7 +258,12 @@ pub fn link_file_to_memo(args: LinkFileToMemoArgs) -> Result<(), String> {
     let file_record = FileRepository::find_record(&conn, &args.file_id)?
         .ok_or_else(|| "File record was not found.".to_string())?;
 
-    FileRepository::append_file_link_to_memo(&mut conn, memo.id, &file_record.id, &file_record.display_name)
+    FileRepository::append_file_link_to_memo(
+        &mut conn,
+        memo.id,
+        &file_record.id,
+        &file_record.display_name,
+    )
 }
 
 #[command]

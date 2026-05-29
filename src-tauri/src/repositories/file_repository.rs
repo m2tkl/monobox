@@ -73,7 +73,11 @@ impl FileRepository {
             });
         }
 
-        items.sort_by(|a, b| b.acquired_at.cmp(&a.acquired_at).then_with(|| a.display_name.cmp(&b.display_name)));
+        items.sort_by(|a, b| {
+            b.acquired_at
+                .cmp(&a.acquired_at)
+                .then_with(|| a.display_name.cmp(&b.display_name))
+        });
         let limit = limit.max(1) as usize;
         let offset = offset.max(0) as usize;
         let total_count = items.len() as i64;
@@ -241,18 +245,20 @@ impl FileRepository {
 
         let mut stmt = conn.prepare(list_sql).map_err(|e| e.to_string())?;
 
-        let rows = stmt.query_map(params![limit, offset], |row| {
-            Ok(ManagedFileListItem {
-                id: row.get(0)?,
-                file_type: row.get(1)?,
-                display_name: row.get(2)?,
-                imported_at: row.get(3)?,
-                related_note_count: row.get(4)?,
+        let rows = stmt
+            .query_map(params![limit, offset], |row| {
+                Ok(ManagedFileListItem {
+                    id: row.get(0)?,
+                    file_type: row.get(1)?,
+                    display_name: row.get(2)?,
+                    imported_at: row.get(3)?,
+                    related_note_count: row.get(4)?,
+                })
             })
-        })
-        .map_err(|e| e.to_string())?;
+            .map_err(|e| e.to_string())?;
 
-        let items = rows.collect::<Result<Vec<_>, _>>()
+        let items = rows
+            .collect::<Result<Vec<_>, _>>()
             .map_err(|e| e.to_string())?;
 
         Ok(ManagedFileListPage {
@@ -263,7 +269,10 @@ impl FileRepository {
         })
     }
 
-    pub fn find_record(conn: &Connection, file_id: &str) -> Result<Option<ManagedFileRecord>, String> {
+    pub fn find_record(
+        conn: &Connection,
+        file_id: &str,
+    ) -> Result<Option<ManagedFileRecord>, String> {
         conn.query_row(
             "SELECT id, type, display_name, note, relative_path, url, imported_at
              FROM files
@@ -309,7 +318,8 @@ impl FileRepository {
             })
             .map_err(|e| e.to_string())?;
 
-        rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())
     }
 
     pub fn update_display_name(
@@ -335,8 +345,7 @@ impl FileRepository {
             return Err("File record was not found.".to_string());
         }
 
-        Self::find_record(conn, file_id)?
-            .ok_or_else(|| "File record was not found.".to_string())
+        Self::find_record(conn, file_id)?.ok_or_else(|| "File record was not found.".to_string())
     }
 
     pub fn update_note(
@@ -364,11 +373,13 @@ impl FileRepository {
             return Err("File record was not found.".to_string());
         }
 
-        Self::find_record(conn, file_id)?
-            .ok_or_else(|| "File record was not found.".to_string())
+        Self::find_record(conn, file_id)?.ok_or_else(|| "File record was not found.".to_string())
     }
 
-    pub fn get_file_detail(conn: &Connection, file_id: &str) -> Result<Option<ManagedFileDetail>, String> {
+    pub fn get_file_detail(
+        conn: &Connection,
+        file_id: &str,
+    ) -> Result<Option<ManagedFileDetail>, String> {
         let Some(record) = Self::find_record(conn, file_id)? else {
             return Ok(None);
         };
@@ -419,7 +430,9 @@ impl FileRepository {
 
         match record.file_type.as_str() {
             "external_link" => {
-                let url = record.url.ok_or_else(|| "External link URL is missing.".to_string())?;
+                let url = record
+                    .url
+                    .ok_or_else(|| "External link URL is missing.".to_string())?;
                 Ok(ResolvedFileOpenTarget {
                     open_kind: "url".to_string(),
                     value: url,
@@ -496,7 +509,9 @@ impl FileRepository {
     ) -> Result<(), String> {
         let tx = conn.transaction().map_err(|e| e.to_string())?;
         let current_content: String = tx
-            .query_row("SELECT content FROM memo WHERE id = ?", [memo_id], |row| row.get(0))
+            .query_row("SELECT content FROM memo WHERE id = ?", [memo_id], |row| {
+                row.get(0)
+            })
             .map_err(|e| e.to_string())?;
 
         let updated_content = append_file_link_block(&current_content, file_id, display_name)?;
@@ -580,7 +595,11 @@ fn collect_file_ids(node: &Value, out: &mut BTreeSet<String>) {
     }
 }
 
-fn append_file_link_block(content: &str, file_id: &str, display_name: &str) -> Result<String, String> {
+fn append_file_link_block(
+    content: &str,
+    file_id: &str,
+    display_name: &str,
+) -> Result<String, String> {
     let mut doc = match serde_json::from_str::<Value>(content) {
         Ok(Value::Object(mut object)) => {
             if object.get("type").and_then(Value::as_str) != Some("doc") {
@@ -684,11 +703,13 @@ fn build_physical_file_name(original_name: &str, file_id: &str) -> String {
         .and_then(|value| value.to_str())
         .filter(|value| !value.is_empty())
         .unwrap_or("file");
-    let ext = path.extension().and_then(|value| value.to_str()).unwrap_or("");
+    let ext = path
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or("");
     if ext.is_empty() {
         format!("{}__mb_{}", stem, file_id)
-    }
-    else {
+    } else {
         format!("{}__mb_{}.{}", stem, file_id, ext)
     }
 }
@@ -697,13 +718,19 @@ fn build_physical_file_name(original_name: &str, file_id: &str) -> String {
 mod tests {
     use rusqlite::{params, Connection};
 
-    use super::{append_file_link_block, build_physical_file_name, collect_file_ids_from_content, FileRepository};
+    use super::{
+        append_file_link_block, build_physical_file_name, collect_file_ids_from_content,
+        FileRepository,
+    };
     use crate::migrations::apply_migrations;
 
     fn setup_conn() -> Connection {
         let conn = Connection::open_in_memory().expect("in-memory DB should open");
-        conn.execute("CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)", [])
-            .expect("schema_migrations should be creatable");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
         apply_migrations(&conn).expect("migrations should apply");
         conn
     }
@@ -726,13 +753,17 @@ mod tests {
           ]
         }"#;
 
-        assert_eq!(collect_file_ids_from_content(content), vec!["FILE123".to_string()]);
+        assert_eq!(
+            collect_file_ids_from_content(content),
+            vec!["FILE123".to_string()]
+        );
     }
 
     #[test]
     fn append_file_link_block_adds_file_link_paragraph() {
-        let updated = append_file_link_block(r#"{"type":"doc","content":[]}"#, "FILE123", "proposal.pdf")
-            .expect("content should update");
+        let updated =
+            append_file_link_block(r#"{"type":"doc","content":[]}"#, "FILE123", "proposal.pdf")
+                .expect("content should update");
         assert!(updated.contains("\"fileId\":\"FILE123\""));
         assert!(updated.contains("\"label\":\"proposal.pdf\""));
     }
@@ -779,12 +810,17 @@ mod tests {
         conn.execute(
             "INSERT INTO files (id, type, display_name, note, relative_path, url, imported_at)
              VALUES (?, 'local_file', ?, ?, ?, NULL, CURRENT_TIMESTAMP)",
-            params!["FILE123", "proposal.pdf", "existing memo", "proposal__mb_FILE123.pdf"],
+            params![
+                "FILE123",
+                "proposal.pdf",
+                "existing memo",
+                "proposal__mb_FILE123.pdf"
+            ],
         )
         .expect("file should insert");
 
-        let updated = FileRepository::update_note(&conn, "FILE123", "   ")
-            .expect("note should clear");
+        let updated =
+            FileRepository::update_note(&conn, "FILE123", "   ").expect("note should clear");
         assert_eq!(updated.note, None);
     }
 }

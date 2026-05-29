@@ -856,8 +856,11 @@ mod tests {
     #[test]
     fn save_updates_matching_links_inside_templates() {
         let mut conn = Connection::open_in_memory().expect("in-memory DB should open");
-        conn.execute("CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)", [])
-            .expect("schema_migrations should be creatable");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
         apply_migrations(&conn).expect("migrations should apply");
 
         conn.execute(
