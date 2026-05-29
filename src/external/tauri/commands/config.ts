@@ -6,6 +6,15 @@ export type AppConfigPayload = {
   files_storage_root: string;
   setup_complete: boolean;
   theme_preference?: string | null;
+  mcp_server_url: string;
+};
+
+export type McpServerInfo = {
+  enabled: boolean;
+  port: number;
+  token: string;
+  url: string;
+  setup_complete: boolean;
 };
 
 export type StorageCandidates = {
@@ -33,6 +42,14 @@ export const configCommand = {
 
   validate: async () => {
     await invokeCommand('validate_app_config');
+  },
+
+  mcpServerInfo: async () => {
+    return await invokeCommand<McpServerInfo>('get_mcp_server_info');
+  },
+
+  regenerateMcpServerToken: async () => {
+    return await invokeCommand<McpServerInfo>('regenerate_mcp_server_token');
   },
 
   setThemePreference: async (mode: string) => {

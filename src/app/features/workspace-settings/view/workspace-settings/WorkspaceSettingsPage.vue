@@ -45,6 +45,73 @@
                 class="text-base font-semibold"
                 style="color: var(--color-text-primary)"
               >
+                MCP Server
+              </h4>
+            </template>
+
+            <div
+              v-if="mcpServerInfo"
+              class="space-y-4"
+            >
+              <div class="text-sm">
+                <div style="color: var(--color-text-secondary);">
+                  Status
+                </div>
+                <div style="color: var(--color-text-primary);">
+                  {{ mcpServerStatus }}
+                </div>
+              </div>
+
+              <div class="text-sm">
+                <div style="color: var(--color-text-secondary);">
+                  URL
+                </div>
+                <code class="settings-code">{{ mcpServerInfo.url }}</code>
+                <div class="settings-actions">
+                  <AppButton
+                    size="sm"
+                    variant="subtle"
+                    :icon="iconKey.copy"
+                    @click="copyMcpServerUrl"
+                  >
+                    Copy URL
+                  </AppButton>
+
+                  <AppButton
+                    size="sm"
+                    variant="subtle"
+                    :icon="iconKey.renew"
+                    @click="regenerateMcpServerUrl"
+                  >
+                    Regenerate URL
+                  </AppButton>
+                </div>
+              </div>
+
+              <div
+                v-if="mcpServerRestartRequired"
+                class="text-sm"
+                style="color: var(--color-text-secondary);"
+              >
+                Restart monobox before using the regenerated URL from Codex.
+              </div>
+            </div>
+
+            <div
+              v-else
+              class="text-sm"
+              style="color: var(--color-text-muted)"
+            >
+              Failed to load MCP server info.
+            </div>
+          </UCard>
+
+          <UCard class="card-themed">
+            <template #header>
+              <h4
+                class="text-base font-semibold"
+                style="color: var(--color-text-primary)"
+              >
                 Appearance
               </h4>
             </template>
@@ -134,13 +201,17 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue';
+
 import { useWorkspaceSettings } from './useWorkspaceSettings';
 
+import AppButton from '~/app/elements/AppButton.vue';
 import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
 import ThemeSelector from '~/app/elements/settings/ThemeSelector.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { MemoTemplateManager } from '~/app/features/memo-templates';
 import { StoragePathsForm } from '~/app/features/storage-settings';
+import { command } from '~/external/tauri/command';
 import { iconKey } from '~/utils/icon';
 
 const { currentTheme } = useTheme();
@@ -161,9 +232,74 @@ const {
   router,
   toast,
 });
+const mcpServerInfo = ref<Awaited<ReturnType<typeof command.config.mcpServerInfo>> | null>(null);
+const mcpServerRestartRequired = ref(false);
+const mcpServerStatus = computed(() => {
+  if (!mcpServerInfo.value) return 'Unavailable';
+  if (mcpServerRestartRequired.value) return 'Pending restart';
+  if (!mcpServerInfo.value.setup_complete) return 'Setup incomplete';
+  if (!mcpServerInfo.value.enabled) return 'Disabled';
+  return 'Running inside this app';
+});
+
+const loadMcpServerInfo = async () => {
+  try {
+    mcpServerInfo.value = await command.config.mcpServerInfo();
+    mcpServerRestartRequired.value = false;
+  }
+  catch (error) {
+    console.error(error);
+    mcpServerInfo.value = null;
+  }
+};
+
+const copyMcpServerUrl = async () => {
+  if (!mcpServerInfo.value) return;
+
+  try {
+    await navigator.clipboard.writeText(mcpServerInfo.value.url);
+    toast.add({
+      title: 'Copied MCP URL.',
+      duration: 1200,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to copy MCP URL.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+};
+
+const regenerateMcpServerUrl = async () => {
+  try {
+    mcpServerInfo.value = await command.config.regenerateMcpServerToken();
+    mcpServerRestartRequired.value = true;
+    toast.add({
+      title: 'Generated a new MCP URL.',
+      description: 'Restart monobox, then update Codex to the new URL.',
+      duration: 2500,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to regenerate MCP URL.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+};
 
 await usePageLoader(async () => {
-  await loadWorkspaceSettings();
+  await Promise.all([
+    loadWorkspaceSettings(),
+    loadMcpServerInfo(),
+  ]);
 });
 </script>
 
@@ -208,5 +344,22 @@ await usePageLoader(async () => {
   color: var(--color-text-primary);
   background-color: var(--color-surface-elevated);
   border-color: var(--color-border-light);
+}
+
+.settings-code {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
 </style>
