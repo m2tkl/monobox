@@ -6,6 +6,8 @@
 
   /* Window */
   --app-window-opacity: 1;
+  --app-titlebar-height: 3rem;
+  --app-sidebar-width: 250px;
 
   /* Primary Colors */
   --color-primary: #3367D6;

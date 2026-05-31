@@ -1,9 +1,9 @@
 <template>
   <div class="app-shell size-full">
-    <div class="border-top flex h-full w-full overflow-hidden">
+    <div class="flex h-full w-full overflow-hidden">
       <aside
         v-if="ui.isSidebarOpen"
-        class="border-right h-full w-[250px] shrink-0"
+        class="app-sidebar border-right h-full shrink-0"
       >
         <SidebarMenu :is-open="true" />
       </aside>
@@ -72,19 +72,24 @@ const closeFloatingSidebar = () => {
 
 .sidebar-hover-zone {
   position: fixed;
-  top: 3rem;
+  top: var(--app-titlebar-height);
   left: 0;
   bottom: 0;
   width: 14px;
   z-index: 40;
 }
 
+.app-sidebar {
+  width: var(--app-sidebar-width);
+  background-color: var(--color-background);
+}
+
 .floating-sidebar {
   position: fixed;
-  top: 3rem;
+  top: var(--app-titlebar-height);
   left: 0;
   bottom: 0;
-  width: 250px;
+  width: var(--app-sidebar-width);
   z-index: 1100;
   background-color: var(--color-background);
   box-shadow: 0 16px 48px rgb(15 23 42 / 0.16);

@@ -4,7 +4,7 @@
 
     <UApp>
       <TitleBar />
-      <NuxtPage class="h-screen pt-[3rem]" />
+      <NuxtPage class="h-screen pt-[var(--app-titlebar-height)]" />
       <ImagePreviewDialog />
     </UApp>
   </div>

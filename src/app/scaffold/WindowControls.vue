@@ -68,11 +68,24 @@
 <script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
+
+const props = withDefaults(defineProps<{
+  placement?: 'sidebar' | 'actions';
+}>(), {
+  placement: 'sidebar',
+});
 
 const appWindow = getCurrentWindow();
 const isMacOS = ref(false);
-const showControls = ref(true);
+const isPlatformReady = ref(false);
+const showControls = computed(() => {
+  if (!isPlatformReady.value) {
+    return false;
+  }
+
+  return props.placement === 'sidebar' ? isMacOS.value : !isMacOS.value;
+});
 
 onMounted(async () => {
   // Detect platform
@@ -84,6 +97,9 @@ onMounted(async () => {
     console.warn('Failed to get platform info:', error);
     // Fallback to user agent detection
     isMacOS.value = navigator.userAgent.includes('Mac');
+  }
+  finally {
+    isPlatformReady.value = true;
   }
 });
 
