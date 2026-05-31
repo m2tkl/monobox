@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import type { JSONContent } from '@tiptap/vue-3';
+import { convertEditorJsonToHtml } from './html';
 
-import { convertEditorJsonToHtml } from '~/app/features/editor';
+import type { JSONContent } from '@tiptap/vue-3';
 
 describe('serializer/html - convertEditorJsonToHtml', () => {
   it('renders heading with +1 level (memo body rules)', () => {
@@ -59,6 +59,38 @@ describe('serializer/html - convertEditorJsonToHtml', () => {
 
     const html = convertEditorJsonToHtml(json);
     expect(html).toContain('<img src="http://example.com/x.png" alt="x">');
+  });
+
+  it('renders task item text inline with the checkbox', () => {
+    const json: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'taskList',
+          content: [
+            {
+              type: 'taskItem',
+              attrs: { checked: false },
+              content: [
+                { type: 'paragraph', content: [{ type: 'text', text: 'Later' }] },
+              ],
+            },
+            {
+              type: 'taskItem',
+              attrs: { checked: true },
+              content: [
+                { type: 'paragraph', content: [{ type: 'text', text: 'Done' }] },
+              ],
+            },
+          ],
+        },
+      ],
+    } as const;
+
+    const html = convertEditorJsonToHtml(json);
+    expect(html).toContain('<li><input type="checkbox" disabled> Later</li>');
+    expect(html).toContain('<li><input type="checkbox" disabled checked> Done</li>');
+    expect(html).not.toContain('<input type="checkbox" disabled> <p>Later</p>');
   });
 
   it('renders tables with header and body sections', () => {

@@ -57,8 +57,11 @@ function renderNode(node: JSONContent): string {
       const originalLevel = typeof rawLevel === 'number' ? rawLevel : 1;
       // Add +1 because memo title is level 1 heading.
       const level = Math.min(originalLevel + 1, 6);
+      const id = typeof node.attrs?.id === 'string' && node.attrs.id.length > 0
+        ? ` id="${escapeHtml(node.attrs.id)}"`
+        : '';
 
-      return `<h${level}>${renderChildren(node)}</h${level}>`;
+      return `<h${level}${id}>${renderChildren(node)}</h${level}>`;
     }
 
     case 'text':
@@ -110,8 +113,8 @@ function renderNode(node: JSONContent): string {
       return `<ul>${renderChildren(node)}</ul>`;
 
     case 'taskItem': {
-      const checked = node.attrs?.checked ? 'checked' : '';
-      return `<li><input type="checkbox" disabled ${checked}> ${renderChildren(node)}</li>`;
+      const checked = node.attrs?.checked ? ' checked' : '';
+      return `<li><input type="checkbox" disabled${checked}> ${renderTaskItemChildren(node)}</li>`;
     }
 
     case 'blockquote':
@@ -147,6 +150,16 @@ function renderNode(node: JSONContent): string {
  */
 function renderChildren(node: JSONContent): string {
   return (node.content ?? []).map(renderNode).join('');
+}
+
+function renderTaskItemChildren(node: JSONContent): string {
+  return (node.content ?? []).map((child) => {
+    if (child.type === 'paragraph') {
+      return renderChildren(child);
+    }
+
+    return renderNode(child);
+  }).join('');
 }
 
 /**
