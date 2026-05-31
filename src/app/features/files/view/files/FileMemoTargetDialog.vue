@@ -22,9 +22,9 @@
         </div>
       </div>
 
-      <div class="note-section">
+      <div class="memo-section">
         <div class="link-summary-label">
-          {{ noteLabel }}
+          {{ memoLabel }}
         </div>
 
         <UCommandPalette
@@ -34,13 +34,13 @@
           :groups="groups"
           :autoclear="false"
           icon="carbon:search"
-          placeholder="Search notes"
+          placeholder="Search memos"
           command-attribute="title"
           :fuse="{ fuseOptions: { includeMatches: true }, resultLimit: 30 }"
           :empty-state="{
             icon: 'carbon:search-locate',
-            label: 'No notes found.',
-            queryLabel: 'No matching notes found.',
+            label: 'No memos found.',
+            queryLabel: 'No matching memos found.',
           }"
           @update:model-value="$emit('select-command', $event)"
         />
@@ -103,7 +103,7 @@ defineProps<{
   open: boolean;
   title: string;
   description: string;
-  noteLabel: string;
+  memoLabel: string;
   actionLabel: string;
   actionDisabled: boolean;
   actionLoading: boolean;
@@ -130,7 +130,7 @@ const selectedCommand = defineModel<unknown[]>('selectedCommand', { default: [] 
   overflow: hidden;
 }
 
-.note-section {
+.memo-section {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;

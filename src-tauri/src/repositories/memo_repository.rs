@@ -287,7 +287,7 @@ impl MemoRepository {
             }
         }
 
-        FileRepository::sync_note_files(&tx, memo_id, content)
+        FileRepository::sync_memo_files(&tx, memo_id, content)
             .map_err(|e| rusqlite::Error::InvalidParameterName(e))?;
 
         tx.commit()?;

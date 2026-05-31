@@ -142,14 +142,14 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
         memoSlug: options.selectedMemoSlug.value,
         fileId: options.pendingFileId.value,
       });
-      options.toast.add({ title: 'Linked to note.' });
+      options.toast.add({ title: 'Linked to memo.' });
       options.closeLinkModal();
       await refreshDetail();
     }
     catch (error) {
       const appError = handleError(error);
       options.toast.add({
-        title: 'Failed to link to note.',
+        title: 'Failed to link to memo.',
         description: appError.message,
         color: 'error',
       });

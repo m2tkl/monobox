@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use crate::models::file::{
     InboxFileItem, InboxFilePage, ManagedFileDetail, ManagedFileListItem, ManagedFileListPage,
-    ManagedFileRecord, MemoLinkedFileItem, RelatedNoteSummary, ResolvedFileOpenTarget,
+    ManagedFileRecord, MemoLinkedFileItem, RelatedMemoSummary, ResolvedFileOpenTarget,
 };
 
 pub struct FileRepository;
@@ -205,7 +205,7 @@ impl FileRepository {
         let total_count_sql = if unlinked_only {
             "SELECT COUNT(*) FROM files
              WHERE NOT EXISTS (
-               SELECT 1 FROM note_files WHERE note_files.file_id = files.id
+               SELECT 1 FROM memo_files WHERE memo_files.file_id = files.id
              )"
         } else {
             "SELECT COUNT(*) FROM files"
@@ -220,11 +220,11 @@ impl FileRepository {
                     files.type,
                     files.display_name,
                     files.imported_at,
-                    COUNT(note_files.note_id) AS related_note_count
+                    COUNT(memo_files.memo_id) AS related_memo_count
                  FROM files
-                 LEFT JOIN note_files ON note_files.file_id = files.id
+                 LEFT JOIN memo_files ON memo_files.file_id = files.id
                  WHERE NOT EXISTS (
-                   SELECT 1 FROM note_files AS note_files_filter WHERE note_files_filter.file_id = files.id
+                   SELECT 1 FROM memo_files AS memo_files_filter WHERE memo_files_filter.file_id = files.id
                  )
                  GROUP BY files.id, files.type, files.display_name, files.imported_at
                  ORDER BY files.imported_at DESC, files.display_name ASC
@@ -235,9 +235,9 @@ impl FileRepository {
                     files.type,
                     files.display_name,
                     files.imported_at,
-                    COUNT(note_files.note_id) AS related_note_count
+                    COUNT(memo_files.memo_id) AS related_memo_count
                  FROM files
-                 LEFT JOIN note_files ON note_files.file_id = files.id
+                 LEFT JOIN memo_files ON memo_files.file_id = files.id
                  GROUP BY files.id, files.type, files.display_name, files.imported_at
                  ORDER BY files.imported_at DESC, files.display_name ASC
                  LIMIT ? OFFSET ?"
@@ -252,7 +252,7 @@ impl FileRepository {
                     file_type: row.get(1)?,
                     display_name: row.get(2)?,
                     imported_at: row.get(3)?,
-                    related_note_count: row.get(4)?,
+                    related_memo_count: row.get(4)?,
                 })
             })
             .map_err(|e| e.to_string())?;
@@ -301,9 +301,9 @@ impl FileRepository {
         let mut stmt = conn
             .prepare(
                 "SELECT files.id, files.type, files.display_name
-                 FROM note_files
-                 JOIN files ON files.id = note_files.file_id
-                 WHERE note_files.note_id = ?
+                 FROM memo_files
+                 JOIN files ON files.id = memo_files.file_id
+                 WHERE memo_files.memo_id = ?
                  ORDER BY files.imported_at DESC, files.display_name ASC",
             )
             .map_err(|e| e.to_string())?;
@@ -387,18 +387,18 @@ impl FileRepository {
         let mut stmt = conn
             .prepare(
                 "SELECT memo.id, workspace.slug_name, memo.slug_title, memo.title
-                 FROM note_files
-                 JOIN memo ON memo.id = note_files.note_id
+                 FROM memo_files
+                 JOIN memo ON memo.id = memo_files.memo_id
                  JOIN workspace ON workspace.id = memo.workspace_id
-                 WHERE note_files.file_id = ?
+                 WHERE memo_files.file_id = ?
                  ORDER BY memo.modified_at DESC, memo.id DESC",
             )
             .map_err(|e| e.to_string())?;
 
-        let related_notes = stmt
+        let related_memos = stmt
             .query_map([file_id], |row| {
-                Ok(RelatedNoteSummary {
-                    note_id: row.get(0)?,
+                Ok(RelatedMemoSummary {
+                    memo_id: row.get(0)?,
                     workspace_slug_name: row.get(1)?,
                     memo_slug_title: row.get(2)?,
                     title: row.get(3)?,
@@ -416,7 +416,7 @@ impl FileRepository {
             relative_path: record.relative_path,
             url: record.url,
             imported_at: record.imported_at,
-            related_notes,
+            related_memos,
         }))
     }
 
@@ -483,13 +483,13 @@ impl FileRepository {
     pub fn delete_file_record(conn: &Connection, file_id: &str) -> Result<(), String> {
         let related_count: i64 = conn
             .query_row(
-                "SELECT COUNT(*) FROM note_files WHERE file_id = ?",
+                "SELECT COUNT(*) FROM memo_files WHERE file_id = ?",
                 [file_id],
                 |row| row.get(0),
             )
             .map_err(|e| e.to_string())?;
         if related_count > 0 {
-            return Err("Cannot delete a file record that is still linked from notes.".to_string());
+            return Err("Cannot delete a file record that is still linked from memos.".to_string());
         }
 
         let deleted = conn
@@ -537,23 +537,23 @@ impl FileRepository {
         )
         .map_err(|e| e.to_string())?;
 
-        sync_note_files_in_tx(&tx, memo_id, &updated_content)?;
+        sync_memo_files_in_tx(&tx, memo_id, &updated_content)?;
         tx.commit().map_err(|e| e.to_string())
     }
 
-    pub fn sync_note_files(conn: &Connection, memo_id: i32, content: &str) -> Result<(), String> {
-        sync_note_files_in_tx(conn, memo_id, content)
+    pub fn sync_memo_files(conn: &Connection, memo_id: i32, content: &str) -> Result<(), String> {
+        sync_memo_files_in_tx(conn, memo_id, content)
     }
 }
 
-fn sync_note_files_in_tx(conn: &Connection, memo_id: i32, content: &str) -> Result<(), String> {
+fn sync_memo_files_in_tx(conn: &Connection, memo_id: i32, content: &str) -> Result<(), String> {
     let file_ids = collect_file_ids_from_content(content);
-    conn.execute("DELETE FROM note_files WHERE note_id = ?", [memo_id])
+    conn.execute("DELETE FROM memo_files WHERE memo_id = ?", [memo_id])
         .map_err(|e| e.to_string())?;
 
     for file_id in file_ids {
         conn.execute(
-            "INSERT INTO note_files (note_id, file_id) VALUES (?, ?)",
+            "INSERT INTO memo_files (memo_id, file_id) VALUES (?, ?)",
             params![memo_id, file_id],
         )
         .map_err(|e| e.to_string())?;

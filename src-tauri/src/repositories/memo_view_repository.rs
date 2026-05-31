@@ -453,8 +453,8 @@ mod tests {
                 url TEXT,
                 imported_at TEXT DEFAULT CURRENT_TIMESTAMP
             );
-            CREATE TABLE note_files (
-                note_id INTEGER NOT NULL,
+            CREATE TABLE memo_files (
+                memo_id INTEGER NOT NULL,
                 file_id TEXT NOT NULL
             );
 
@@ -472,7 +472,7 @@ mod tests {
               (104, 14, 15);
             INSERT INTO files (id, type, display_name) VALUES
               ('FILE123', 'local_file', 'proposal.pdf');
-            INSERT INTO note_files (note_id, file_id) VALUES
+            INSERT INTO memo_files (memo_id, file_id) VALUES
               (11, 'FILE123');
             "#,
         )

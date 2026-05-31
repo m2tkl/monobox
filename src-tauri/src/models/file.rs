@@ -7,7 +7,7 @@ pub struct ManagedFileListItem {
     pub file_type: String,
     pub display_name: String,
     pub imported_at: String,
-    pub related_note_count: i64,
+    pub related_memo_count: i64,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -27,8 +27,8 @@ pub struct ManagedFileListPage {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct RelatedNoteSummary {
-    pub note_id: i32,
+pub struct RelatedMemoSummary {
+    pub memo_id: i32,
     pub workspace_slug_name: String,
     pub memo_slug_title: String,
     pub title: String,
@@ -44,7 +44,7 @@ pub struct ManagedFileDetail {
     pub relative_path: Option<String>,
     pub url: Option<String>,
     pub imported_at: String,
-    pub related_notes: Vec<RelatedNoteSummary>,
+    pub related_memos: Vec<RelatedMemoSummary>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

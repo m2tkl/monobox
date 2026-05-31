@@ -29,7 +29,7 @@ export type ManagedFileListItem = {
   type: ManagedFileType;
   display_name: string;
   imported_at: string;
-  related_note_count: number;
+  related_memo_count: number;
 };
 
 export type MemoLinkedFileItem = {
@@ -45,8 +45,8 @@ export type ManagedFileListPage = {
   offset: number;
 };
 
-export type RelatedNoteSummary = {
-  note_id: number;
+export type RelatedMemoSummary = {
+  memo_id: number;
   workspace_slug_name: string;
   memo_slug_title: string;
   title: string;
@@ -60,7 +60,7 @@ export type ManagedFileDetail = {
   relative_path?: string | null;
   url?: string | null;
   imported_at: string;
-  related_notes: RelatedNoteSummary[];
+  related_memos: RelatedMemoSummary[];
 };
 
 export type ResolvedFileOpenTarget = {

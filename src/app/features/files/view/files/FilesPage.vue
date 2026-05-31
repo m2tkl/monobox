@@ -141,9 +141,9 @@
                     </span>
                   </template>
 
-                  <template #related_note_count-cell="{ row }">
+                  <template #related_memo_count-cell="{ row }">
                     <span class="text-sm font-medium count-text">
-                      {{ row.original.related_note_count }}
+                      {{ row.original.related_memo_count }}
                     </span>
                   </template>
 
@@ -161,13 +161,13 @@
                         size="xs"
                         @click="openLinkModal(row.original.id)"
                       >
-                        Link to note
+                        Link to memo
                       </AppButton>
                       <AppButton
                         variant="ghost"
                         class="delete-action-button"
                         size="xs"
-                        :disabled="row.original.related_note_count > 0"
+                        :disabled="row.original.related_memo_count > 0"
                         @click="removeRecord(row.original.id)"
                       >
                         Remove
@@ -300,10 +300,10 @@
         v-model:search-term="memoSearchQuery"
         v-model:selected-command="selectedMemoCommand"
         :open="isLinkModalOpen"
-        title="Link to note"
-        description="Add a managed file link to the end of the selected note."
-        note-label="Note"
-        action-label="Link to note"
+        title="Link to memo"
+        description="Add a managed file link to the end of the selected memo."
+        memo-label="Memo"
+        action-label="Link to memo"
         :action-disabled="!selectedMemoSlug || !pendingFileId"
         :action-loading="isSubmitting"
         :file-display-name="pendingFileItem?.display_name ?? ''"
@@ -372,21 +372,21 @@
 
               <div class="space-y-2">
                 <div class="font-semibold">
-                  Related notes
+                  Related memos
                 </div>
                 <div
-                  v-if="detail.related_notes.length === 0"
+                  v-if="detail.related_memos.length === 0"
                   style="color: var(--color-text-muted)"
                 >
-                  No related notes.
+                  No related memos.
                 </div>
                 <NuxtLink
-                  v-for="note in detail.related_notes"
-                  :key="`${note.workspace_slug_name}/${note.memo_slug_title}`"
+                  v-for="memo in detail.related_memos"
+                  :key="`${memo.workspace_slug_name}/${memo.memo_slug_title}`"
                   class="block underline"
-                  :to="`/${note.workspace_slug_name}/${note.memo_slug_title}`"
+                  :to="`/${memo.workspace_slug_name}/${memo.memo_slug_title}`"
                 >
-                  {{ note.title }}
+                  {{ memo.title }}
                 </NuxtLink>
               </div>
             </div>
@@ -436,8 +436,8 @@ const columns = [
     header: 'Type',
   },
   {
-    accessorKey: 'related_note_count',
-    header: 'Linked notes',
+    accessorKey: 'related_memo_count',
+    header: 'Linked memos',
   },
   {
     accessorKey: 'actions',

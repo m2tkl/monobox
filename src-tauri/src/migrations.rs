@@ -245,6 +245,12 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         ",
     ),
     (
+        "20260531_rename_note_files_to_memo_files",
+        "
+        ALTER TABLE note_files RENAME TO memo_files;
+        ",
+    ),
+    (
         "20260529_create_memo_view_event_table",
         "CREATE TABLE IF NOT EXISTS memo_view_event (
             id INTEGER PRIMARY KEY,
@@ -293,6 +299,12 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         BEGIN
             UPDATE focus_memo SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END;
+        ",
+    ),
+    (
+        "20260601_rename_memo_files_note_id_to_memo_id",
+        "
+        ALTER TABLE memo_files RENAME COLUMN note_id TO memo_id;
         ",
     ),
 ];

@@ -71,7 +71,7 @@ export function useInboxPanel(options: UseInboxPanelOptions) {
 
   const memoCommandGroups = computed<MemoCommandGroup[]>(() => [{
     id: 'memos',
-    label: 'Notes',
+    label: 'Memos',
     ignoreFilter: true,
     items: memos.value
       .map(memo => ({

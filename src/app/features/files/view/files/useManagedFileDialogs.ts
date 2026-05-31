@@ -43,7 +43,7 @@ export function useManagedFileDialogs(options: UseManagedFileDialogsOptions) {
 
   const memoCommandGroups = computed<MemoCommandGroup[]>(() => [{
     id: 'memos',
-    label: 'Notes',
+    label: 'Memos',
     ignoreFilter: true,
     items: options.memos.value
       .map(memo => ({
