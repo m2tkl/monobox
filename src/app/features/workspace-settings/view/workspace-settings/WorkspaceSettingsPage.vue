@@ -112,6 +112,76 @@
                 class="text-base font-semibold"
                 style="color: var(--color-text-primary)"
               >
+                Global shortcuts
+              </h4>
+            </template>
+
+            <div class="space-y-5">
+              <div class="settings-control">
+                <div class="settings-control__label">
+                  <div
+                    class="text-sm font-medium"
+                    style="color: var(--color-text-primary)"
+                  >
+                    Focus app
+                  </div>
+                  <div
+                    class="text-xs"
+                    style="color: var(--color-text-muted)"
+                  >
+                    Bring monobox to the front
+                  </div>
+                </div>
+                <AppInput
+                  v-model="focusAppShortcut"
+                  placeholder="CommandOrControl+Shift+M"
+                  :disabled="isGlobalShortcutSaving"
+                />
+              </div>
+
+              <div class="settings-control">
+                <div class="settings-control__label">
+                  <div
+                    class="text-sm font-medium"
+                    style="color: var(--color-text-primary)"
+                  >
+                    New memo
+                  </div>
+                  <div
+                    class="text-xs"
+                    style="color: var(--color-text-muted)"
+                  >
+                    Create a memo in the active workspace
+                  </div>
+                </div>
+                <AppInput
+                  v-model="newMemoShortcut"
+                  placeholder="CommandOrControl+Shift+N"
+                  :disabled="isGlobalShortcutSaving"
+                />
+              </div>
+
+              <div class="settings-actions">
+                <AppButton
+                  size="sm"
+                  variant="subtle"
+                  :icon="iconKey.save"
+                  :loading="isGlobalShortcutSaving"
+                  :disabled="!isGlobalShortcutDirty"
+                  @click="saveGlobalShortcuts"
+                >
+                  Save shortcuts
+                </AppButton>
+              </div>
+            </div>
+          </UCard>
+
+          <UCard class="card-themed">
+            <template #header>
+              <h4
+                class="text-base font-semibold"
+                style="color: var(--color-text-primary)"
+              >
                 Appearance
               </h4>
             </template>
@@ -247,6 +317,7 @@ import { computed, ref } from 'vue';
 import { useWorkspaceSettings } from './useWorkspaceSettings';
 
 import AppButton from '~/app/elements/AppButton.vue';
+import AppInput from '~/app/elements/AppInput.vue';
 import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
 import ThemeSelector from '~/app/elements/settings/ThemeSelector.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
@@ -278,6 +349,11 @@ const mcpServerRestartRequired = ref(false);
 const savedWindowOpacity = ref(1);
 const windowOpacity = ref(1);
 const isWindowOpacitySaving = ref(false);
+const savedFocusAppShortcut = ref('');
+const savedNewMemoShortcut = ref('');
+const focusAppShortcut = ref('');
+const newMemoShortcut = ref('');
+const isGlobalShortcutSaving = ref(false);
 const mcpServerStatus = computed(() => {
   if (!mcpServerInfo.value) return 'Unavailable';
   if (mcpServerRestartRequired.value) return 'Pending restart';
@@ -288,6 +364,10 @@ const mcpServerStatus = computed(() => {
 const windowOpacityPercent = computed(() => Math.round(windowOpacity.value * 100));
 const isWindowOpacityDirty = computed(() => (
   Math.abs(windowOpacity.value - savedWindowOpacity.value) > 0.001
+));
+const isGlobalShortcutDirty = computed(() => (
+  focusAppShortcut.value.trim() !== savedFocusAppShortcut.value
+  || newMemoShortcut.value.trim() !== savedNewMemoShortcut.value
 ));
 
 const applyWindowOpacity = (opacity: number) => {
@@ -352,6 +432,10 @@ const loadAppAppearance = async () => {
     const config = await command.config.get();
     savedWindowOpacity.value = config.app_window_opacity;
     windowOpacity.value = config.app_window_opacity;
+    savedFocusAppShortcut.value = config.focus_app_shortcut;
+    focusAppShortcut.value = config.focus_app_shortcut;
+    savedNewMemoShortcut.value = config.new_memo_shortcut;
+    newMemoShortcut.value = config.new_memo_shortcut;
     applyWindowOpacity(config.app_window_opacity);
   }
   catch (error) {
@@ -388,6 +472,43 @@ const saveWindowOpacity = async () => {
   finally {
     isWindowOpacitySaving.value = false;
   }
+};
+
+const saveGlobalShortcuts = async () => {
+  try {
+    isGlobalShortcutSaving.value = true;
+    const config = await command.config.setGlobalShortcuts({
+      focusAppShortcut: focusAppShortcut.value,
+      newMemoShortcut: newMemoShortcut.value,
+    });
+    savedFocusAppShortcut.value = config.focus_app_shortcut;
+    focusAppShortcut.value = config.focus_app_shortcut;
+    savedNewMemoShortcut.value = config.new_memo_shortcut;
+    newMemoShortcut.value = config.new_memo_shortcut;
+    toast.add({
+      title: 'Saved global shortcuts.',
+      duration: 1200,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to save global shortcuts.',
+      description: shortcutErrorMessage(error),
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isGlobalShortcutSaving.value = false;
+  }
+};
+
+const shortcutErrorMessage = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  const [, detail] = message.split(':', 2);
+  return detail || message;
 };
 
 await usePageLoader(async () => {

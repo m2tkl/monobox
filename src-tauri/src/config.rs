@@ -15,6 +15,10 @@ pub struct AppConfig {
     pub theme_preference: Option<String>,
     #[serde(default = "default_app_window_opacity")]
     pub app_window_opacity: f64,
+    #[serde(default = "default_focus_app_shortcut")]
+    pub focus_app_shortcut: String,
+    #[serde(default = "default_new_memo_shortcut")]
+    pub new_memo_shortcut: String,
     #[serde(default = "default_mcp_port")]
     pub mcp_port: u16,
     #[serde(default = "default_mcp_token")]
@@ -33,6 +37,14 @@ fn default_app_window_opacity() -> f64 {
     1.0
 }
 
+pub fn default_focus_app_shortcut() -> String {
+    "CommandOrControl+Shift+M".to_string()
+}
+
+pub fn default_new_memo_shortcut() -> String {
+    "CommandOrControl+Shift+N".to_string()
+}
+
 fn default_mcp_token() -> String {
     String::new()
 }
@@ -46,6 +58,8 @@ impl Default for AppConfig {
             setup_complete: false,
             theme_preference: None,
             app_window_opacity: default_app_window_opacity(),
+            focus_app_shortcut: default_focus_app_shortcut(),
+            new_memo_shortcut: default_new_memo_shortcut(),
             mcp_port: default_mcp_port(),
             mcp_token: default_mcp_token(),
         }

@@ -3,10 +3,13 @@ use std::fs::OpenOptions;
 use std::path::PathBuf;
 
 use directories::ProjectDirs;
-use tauri::{command, State};
+use tauri::{command, AppHandle, State};
 use uuid::Uuid;
 
 use crate::config::{load_config, save_config};
+use crate::global_shortcuts::{
+    normalize_shortcut, update_global_shortcuts, GlobalShortcutSettings,
+};
 use crate::mcp::McpServerInfo;
 
 #[derive(serde::Serialize)]
@@ -17,6 +20,8 @@ pub struct ConfigPayload {
     pub setup_complete: bool,
     pub theme_preference: Option<String>,
     pub app_window_opacity: f64,
+    pub focus_app_shortcut: String,
+    pub new_memo_shortcut: String,
     pub mcp_server_url: String,
 }
 
@@ -51,6 +56,12 @@ pub struct WindowOpacityArgs {
     pub opacity: f64,
 }
 
+#[derive(serde::Deserialize)]
+pub struct GlobalShortcutArgs {
+    pub focus_app_shortcut: String,
+    pub new_memo_shortcut: String,
+}
+
 #[command]
 pub fn get_app_config(mcp_server_info: State<McpServerInfo>) -> Result<ConfigPayload, String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
@@ -64,6 +75,8 @@ pub fn get_app_config(mcp_server_info: State<McpServerInfo>) -> Result<ConfigPay
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
         app_window_opacity: config.app_window_opacity,
+        focus_app_shortcut: config.focus_app_shortcut,
+        new_memo_shortcut: config.new_memo_shortcut,
         mcp_server_url: mcp_server_info.url.clone(),
     })
 }
@@ -165,6 +178,8 @@ pub fn save_app_config(
         setup_complete: args.setup_complete,
         theme_preference: config.theme_preference,
         app_window_opacity: config.app_window_opacity,
+        focus_app_shortcut: config.focus_app_shortcut,
+        new_memo_shortcut: config.new_memo_shortcut,
         mcp_server_url: mcp_server_info.url.clone(),
     })
 }
@@ -283,6 +298,8 @@ pub fn set_theme_preference(
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
         app_window_opacity: config.app_window_opacity,
+        focus_app_shortcut: config.focus_app_shortcut,
+        new_memo_shortcut: config.new_memo_shortcut,
         mcp_server_url: mcp_server_info.url.clone(),
     })
 }
@@ -313,6 +330,55 @@ pub fn set_app_window_opacity(
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
         app_window_opacity: config.app_window_opacity,
+        focus_app_shortcut: config.focus_app_shortcut,
+        new_memo_shortcut: config.new_memo_shortcut,
+        mcp_server_url: mcp_server_info.url.clone(),
+    })
+}
+
+#[command]
+pub fn set_global_shortcuts(
+    app: AppHandle,
+    args: GlobalShortcutArgs,
+    mcp_server_info: State<McpServerInfo>,
+) -> Result<ConfigPayload, String> {
+    let focus_app_shortcut = normalize_shortcut(&args.focus_app_shortcut)?;
+    let new_memo_shortcut = normalize_shortcut(&args.new_memo_shortcut)?;
+
+    if focus_app_shortcut == new_memo_shortcut {
+        return Err("DUPLICATE_SHORTCUT:Shortcuts must be different".to_string());
+    }
+
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config_path = proj_dirs.config_dir().join("config.json");
+
+    let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    update_global_shortcuts(
+        &app,
+        &GlobalShortcutSettings {
+            focus_app_shortcut: config.focus_app_shortcut.clone(),
+            new_memo_shortcut: config.new_memo_shortcut.clone(),
+        },
+        GlobalShortcutSettings {
+            focus_app_shortcut: focus_app_shortcut.clone(),
+            new_memo_shortcut: new_memo_shortcut.clone(),
+        },
+    )?;
+
+    config.focus_app_shortcut = focus_app_shortcut;
+    config.new_memo_shortcut = new_memo_shortcut;
+    save_config(&config, &config_path)?;
+
+    Ok(ConfigPayload {
+        database_path: config.database_path,
+        asset_dir_path: config.asset_dir_path,
+        files_storage_root: config.files_storage_root,
+        setup_complete: config.setup_complete,
+        theme_preference: config.theme_preference,
+        app_window_opacity: config.app_window_opacity,
+        focus_app_shortcut: config.focus_app_shortcut,
+        new_memo_shortcut: config.new_memo_shortcut,
         mcp_server_url: mcp_server_info.url.clone(),
     })
 }

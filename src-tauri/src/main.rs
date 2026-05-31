@@ -5,6 +5,7 @@ mod commands;
 mod config;
 mod database;
 mod errors;
+mod global_shortcuts;
 mod mcp;
 mod migrations;
 mod models;
@@ -43,6 +44,15 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .manage(runtime_config.clone())
         .manage(mcp_server_info)
+        .manage(global_shortcuts::GlobalShortcutState::from_config(
+            &runtime_config,
+        ))
+        .setup(|app| {
+            #[cfg(desktop)]
+            global_shortcuts::register_global_shortcuts(app)?;
+
+            Ok(())
+        })
         .register_asynchronous_uri_scheme_protocol(
             "asset",
             move |_context: tauri::UriSchemeContext<tauri::Wry>,
@@ -101,6 +111,7 @@ fn main() {
             commands::config::regenerate_mcp_server_token,
             commands::config::set_theme_preference,
             commands::config::set_app_window_opacity,
+            commands::config::set_global_shortcuts,
             // Files
             commands::file::list_inbox_files,
             commands::file::import_inbox_file,

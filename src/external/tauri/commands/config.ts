@@ -7,6 +7,8 @@ export type AppConfigPayload = {
   setup_complete: boolean;
   theme_preference?: string | null;
   app_window_opacity: number;
+  focus_app_shortcut: string;
+  new_memo_shortcut: string;
   mcp_server_url: string;
 };
 
@@ -59,6 +61,16 @@ export const configCommand = {
 
   setAppWindowOpacity: async (opacity: number) => {
     return await invokeCommand<AppConfigPayload>('set_app_window_opacity', { opacity });
+  },
+
+  setGlobalShortcuts: async (args: {
+    focusAppShortcut: string;
+    newMemoShortcut: string;
+  }) => {
+    return await invokeCommand<AppConfigPayload>('set_global_shortcuts', {
+      focus_app_shortcut: args.focusAppShortcut,
+      new_memo_shortcut: args.newMemoShortcut,
+    });
   },
 
   save: async (args: {
