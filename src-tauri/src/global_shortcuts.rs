@@ -5,8 +5,8 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 use crate::config::AppConfig;
 
-pub const FOCUS_APP_EVENT: &str = "monobox.shortcut.global.focus-app";
-pub const NEW_MEMO_EVENT: &str = "monobox.shortcut.global.new-memo";
+pub const FOCUS_APP_EVENT: &str = "monobox:shortcut:global:focus-app";
+pub const NEW_MEMO_EVENT: &str = "monobox:shortcut:global:new-memo";
 
 #[derive(Clone)]
 pub struct GlobalShortcutSettings {

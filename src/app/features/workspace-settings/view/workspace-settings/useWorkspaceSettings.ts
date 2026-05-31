@@ -37,11 +37,13 @@ export function useWorkspaceSettings(options: UseWorkspaceSettingsOptions) {
     hasWorkspaceContext.value && currentWorkspaceReadModel.value.flags.isLoading,
   );
 
-  const activeTab = ref<'app' | 'workspace'>(hasWorkspaceContext.value ? 'workspace' : 'app');
+  const activePanel = ref<'mcp-server' | 'global-shortcuts' | 'appearance' | 'storage-paths' | 'memo-templates' | 'danger-zone'>(
+    hasWorkspaceContext.value ? 'memo-templates' : 'mcp-server',
+  );
   const isDeleteConfirmationOpen = ref(false);
 
   watch(hasWorkspaceContext, (next) => {
-    activeTab.value = next ? 'workspace' : 'app';
+    activePanel.value = next ? 'memo-templates' : 'mcp-server';
   });
 
   const openDeleteConfirmation = () => {
@@ -95,7 +97,7 @@ export function useWorkspaceSettings(options: UseWorkspaceSettingsOptions) {
     hasWorkspaceContext,
     currentWorkspace,
     isWorkspaceLoading,
-    activeTab,
+    activePanel,
     isDeleteConfirmationOpen,
     openDeleteConfirmation,
     closeDeleteConfirmation,

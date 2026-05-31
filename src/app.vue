@@ -21,7 +21,7 @@ import { command } from '~/external/tauri/command';
 import { handleError } from '~/utils/error';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
-const NEW_MEMO_SHORTCUT_EVENT = 'monobox.shortcut.global.new-memo';
+const NEW_MEMO_SHORTCUT_EVENT = 'monobox:shortcut:global:new-memo';
 
 const router = useRouter();
 const route = useRoute();

@@ -7,5 +7,6 @@ import { WorkspaceSettingsPage } from '~/app/features/workspace-settings';
 
 definePageMeta({
   path: '/_setting',
+  layout: false,
 });
 </script>
