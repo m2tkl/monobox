@@ -99,6 +99,7 @@ export default defineNuxtConfig({
         'carbon:chevron-down',
         'carbon:home',
         'carbon:copy',
+        'carbon:save',
         'carbon:text-clear-format',
         'carbon:side-panel-open',
         'carbon:side-panel-close',

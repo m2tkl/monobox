@@ -98,10 +98,7 @@
           v-if="bookmarks.length > 0"
           class="pb-1"
         >
-          <div
-            class="sticky top-0 z-10"
-            style="background-color: var(--color-background)"
-          >
+          <div class="sticky top-0 z-10">
             <div class="flex h-8 items-center px-2">
               <h2 class="text-xs font-semibold uppercase tracking-wide sidebar-heading">
                 Bookmarks

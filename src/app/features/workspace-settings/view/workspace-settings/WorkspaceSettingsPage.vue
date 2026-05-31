@@ -126,6 +126,47 @@
                   Current: {{ currentTheme.config.name }} - {{ currentTheme.config.description }}
                 </span>
               </div>
+
+              <div class="settings-control">
+                <div class="settings-control__label">
+                  <div
+                    class="text-sm font-medium"
+                    style="color: var(--color-text-primary)"
+                  >
+                    Background opacity
+                  </div>
+                  <div
+                    class="text-xs"
+                    style="color: var(--color-text-muted)"
+                  >
+                    {{ windowOpacityPercent }}%
+                  </div>
+                </div>
+
+                <input
+                  v-model.number="windowOpacity"
+                  class="settings-range"
+                  type="range"
+                  min="0.2"
+                  max="1"
+                  step="0.05"
+                  :disabled="isWindowOpacitySaving"
+                  @input="applyWindowOpacity(windowOpacity)"
+                >
+
+                <div class="settings-actions">
+                  <AppButton
+                    size="sm"
+                    variant="subtle"
+                    :icon="iconKey.save"
+                    :loading="isWindowOpacitySaving"
+                    :disabled="!isWindowOpacityDirty"
+                    @click="saveWindowOpacity"
+                  >
+                    Save background opacity
+                  </AppButton>
+                </div>
+              </div>
             </div>
           </UCard>
 
@@ -234,6 +275,9 @@ const {
 });
 const mcpServerInfo = ref<Awaited<ReturnType<typeof command.config.mcpServerInfo>> | null>(null);
 const mcpServerRestartRequired = ref(false);
+const savedWindowOpacity = ref(1);
+const windowOpacity = ref(1);
+const isWindowOpacitySaving = ref(false);
 const mcpServerStatus = computed(() => {
   if (!mcpServerInfo.value) return 'Unavailable';
   if (mcpServerRestartRequired.value) return 'Pending restart';
@@ -241,6 +285,14 @@ const mcpServerStatus = computed(() => {
   if (!mcpServerInfo.value.enabled) return 'Disabled';
   return 'Running inside this app';
 });
+const windowOpacityPercent = computed(() => Math.round(windowOpacity.value * 100));
+const isWindowOpacityDirty = computed(() => (
+  Math.abs(windowOpacity.value - savedWindowOpacity.value) > 0.001
+));
+
+const applyWindowOpacity = (opacity: number) => {
+  document.documentElement.style.setProperty('--app-window-opacity', String(opacity));
+};
 
 const loadMcpServerInfo = async () => {
   try {
@@ -295,10 +347,54 @@ const regenerateMcpServerUrl = async () => {
   }
 };
 
+const loadAppAppearance = async () => {
+  try {
+    const config = await command.config.get();
+    savedWindowOpacity.value = config.app_window_opacity;
+    windowOpacity.value = config.app_window_opacity;
+    applyWindowOpacity(config.app_window_opacity);
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to load appearance settings.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+};
+
+const saveWindowOpacity = async () => {
+  try {
+    isWindowOpacitySaving.value = true;
+    const config = await command.config.setAppWindowOpacity(windowOpacity.value);
+    savedWindowOpacity.value = config.app_window_opacity;
+    windowOpacity.value = config.app_window_opacity;
+    applyWindowOpacity(config.app_window_opacity);
+    toast.add({
+      title: 'Saved window opacity.',
+      duration: 1200,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to save window opacity.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isWindowOpacitySaving.value = false;
+  }
+};
+
 await usePageLoader(async () => {
   await Promise.all([
     loadWorkspaceSettings(),
     loadMcpServerInfo(),
+    loadAppAppearance(),
   ]);
 });
 </script>
@@ -361,5 +457,22 @@ await usePageLoader(async () => {
   gap: 8px;
   margin-top: 10px;
   flex-wrap: wrap;
+}
+
+.settings-control {
+  max-width: 360px;
+}
+
+.settings-control__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.settings-range {
+  width: 100%;
+  accent-color: var(--color-primary);
 }
 </style>

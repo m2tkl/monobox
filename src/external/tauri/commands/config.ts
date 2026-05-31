@@ -6,6 +6,7 @@ export type AppConfigPayload = {
   files_storage_root: string;
   setup_complete: boolean;
   theme_preference?: string | null;
+  app_window_opacity: number;
   mcp_server_url: string;
 };
 
@@ -54,6 +55,10 @@ export const configCommand = {
 
   setThemePreference: async (mode: string) => {
     return await invokeCommand<AppConfigPayload>('set_theme_preference', { mode });
+  },
+
+  setAppWindowOpacity: async (opacity: number) => {
+    return await invokeCommand<AppConfigPayload>('set_app_window_opacity', { opacity });
   },
 
   save: async (args: {

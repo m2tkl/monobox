@@ -13,6 +13,8 @@ pub struct AppConfig {
     pub setup_complete: bool,
     #[serde(default)]
     pub theme_preference: Option<String>,
+    #[serde(default = "default_app_window_opacity")]
+    pub app_window_opacity: f64,
     #[serde(default = "default_mcp_port")]
     pub mcp_port: u16,
     #[serde(default = "default_mcp_token")]
@@ -27,6 +29,10 @@ fn default_mcp_port() -> u16 {
     38453
 }
 
+fn default_app_window_opacity() -> f64 {
+    1.0
+}
+
 fn default_mcp_token() -> String {
     String::new()
 }
@@ -39,6 +45,7 @@ impl Default for AppConfig {
             files_storage_root: String::new(),
             setup_complete: false,
             theme_preference: None,
+            app_window_opacity: default_app_window_opacity(),
             mcp_port: default_mcp_port(),
             mcp_token: default_mcp_token(),
         }

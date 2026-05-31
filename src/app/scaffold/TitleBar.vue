@@ -161,7 +161,7 @@ const workspaceMenuItems: ComputedRef<DropdownMenuItem[][]> = computed(() => [
   top: 0;
   left: 0;
   z-index: 1000;
-  background-color: var(--color-background);
+  background-color: transparent;
 }
 
 .titlebar-search-text {

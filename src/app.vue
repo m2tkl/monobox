@@ -27,6 +27,10 @@ onMounted(async () => {
     if (config.theme_preference === 'light' || config.theme_preference === 'dark') {
       colorMode.preference = config.theme_preference;
     }
+    document.documentElement.style.setProperty(
+      '--app-window-opacity',
+      String(config.app_window_opacity),
+    );
     const shouldRedirect = await needsSetup(config);
     if (shouldRedirect) {
       await router.replace('/_setup');

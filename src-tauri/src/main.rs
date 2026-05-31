@@ -100,6 +100,7 @@ fn main() {
             commands::config::get_mcp_server_info,
             commands::config::regenerate_mcp_server_token,
             commands::config::set_theme_preference,
+            commands::config::set_app_window_opacity,
             // Files
             commands::file::list_inbox_files,
             commands::file::import_inbox_file,

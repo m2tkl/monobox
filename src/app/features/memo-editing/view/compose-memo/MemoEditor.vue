@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: var(--color-background)">
+  <div>
     <!-- Toolbar -->
     <div
       class="sticky h-8 left-0 top-0 z-50 border-b-1"

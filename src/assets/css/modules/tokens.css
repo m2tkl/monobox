@@ -4,20 +4,23 @@
   /* Light theme (default) */
   /* === Color System === */
 
+  /* Window */
+  --app-window-opacity: 1;
+
   /* Primary Colors */
   --color-primary: #3367D6;
   --color-primary-hover: #2563eb;
   --color-primary-light: #b3c8f5;
 
   /* Surface Colors (backgrounds & elevated surfaces) */
-  --color-background: rgb(226 232 240);        /* Global background */
-  --color-surface: #e2e8f0;                   /* Default surface */
-  --color-surface-elevated: #ffffff;          /* Elevated surface (cards, modals) */
-  --color-surface-hover: #f1f5f9;             /* Hover state surface */
-  --color-surface-active: #e0e7ff;            /* Active state surface - more distinct blue tint */
-  --color-surface-muted: #f8fafc;             /* Muted background */
-  --color-card-bg: #ffffff;                   /* Card background */
-  --color-kanban-column-bg: #f3f6fa;          /* Kanban column background */
+  --color-background: rgb(226 232 240 / var(--app-window-opacity)); /* Global background */
+  --color-surface: rgb(226 232 240 / var(--app-window-opacity)); /* Default surface */
+  --color-surface-elevated: rgb(255 255 255 / var(--app-window-opacity)); /* Elevated surface (cards, modals) */
+  --color-surface-hover: rgb(241 245 249 / var(--app-window-opacity)); /* Hover state surface */
+  --color-surface-active: rgb(224 231 255 / var(--app-window-opacity)); /* Active state surface - more distinct blue tint */
+  --color-surface-muted: rgb(248 250 252 / var(--app-window-opacity)); /* Muted background */
+  --color-card-bg: rgb(255 255 255 / var(--app-window-opacity)); /* Card background */
+  --color-kanban-column-bg: rgb(243 246 250 / var(--app-window-opacity)); /* Kanban column background */
 
   /* Text Colors */
   --color-text-primary: #1e293b;              /* Main text */
@@ -115,15 +118,15 @@
   --color-primary-light: #93c5fd;
 
   /* Surface Colors */
-  --color-background: #0f172a;
-  --color-surface: #1e293b;
+  --color-background: rgb(15 23 42 / var(--app-window-opacity));
+  --color-surface: rgb(30 41 59 / var(--app-window-opacity));
   --color-surface-rgb: 30, 41, 59;
-  --color-surface-elevated: #334155;
-  --color-surface-hover: #475569;
-  --color-surface-active: #64748b;
-  --color-surface-muted: #1e293b;
-  --color-card-bg: #334155;
-  --color-kanban-column-bg: #243141;
+  --color-surface-elevated: rgb(51 65 85 / var(--app-window-opacity));
+  --color-surface-hover: rgb(71 85 105 / var(--app-window-opacity));
+  --color-surface-active: rgb(100 116 139 / var(--app-window-opacity));
+  --color-surface-muted: rgb(30 41 59 / var(--app-window-opacity));
+  --color-card-bg: rgb(51 65 85 / var(--app-window-opacity));
+  --color-kanban-column-bg: rgb(36 49 65 / var(--app-window-opacity));
 
   /* Text Colors */
   --color-text-primary: #f1f5f9;

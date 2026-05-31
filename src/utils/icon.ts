@@ -43,6 +43,7 @@ export const iconKey = {
   chevronDown: 'carbon:chevron-down',
   home: 'carbon:home',
   copy: 'carbon:copy',
+  save: 'carbon:save',
   clearFormat: 'carbon:text-clear-format',
   annotation: 'carbon:text-annotation-toggle',
   tree: 'carbon:tree-view-alt',

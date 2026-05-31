@@ -13,10 +13,7 @@
           </div>
 
           <template v-else>
-            <div
-              class="sticky top-0 z-10"
-              style="background-color: var(--color-background)"
-            >
+            <div class="sticky top-0 z-10">
               <div class="flex h-12 items-center">
                 <UIcon
                   :name="iconKey.recent"

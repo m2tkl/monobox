@@ -19,7 +19,6 @@
           <div
             id="main"
             class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto"
-            style="background-color: var(--color-background)"
           >
             <MemoEditor
               v-if="editor"

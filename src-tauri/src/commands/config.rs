@@ -16,6 +16,7 @@ pub struct ConfigPayload {
     pub files_storage_root: String,
     pub setup_complete: bool,
     pub theme_preference: Option<String>,
+    pub app_window_opacity: f64,
     pub mcp_server_url: String,
 }
 
@@ -45,6 +46,11 @@ pub struct ThemePreferenceArgs {
     pub mode: String,
 }
 
+#[derive(serde::Deserialize)]
+pub struct WindowOpacityArgs {
+    pub opacity: f64,
+}
+
 #[command]
 pub fn get_app_config(mcp_server_info: State<McpServerInfo>) -> Result<ConfigPayload, String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
@@ -57,6 +63,7 @@ pub fn get_app_config(mcp_server_info: State<McpServerInfo>) -> Result<ConfigPay
         files_storage_root: config.files_storage_root,
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
+        app_window_opacity: config.app_window_opacity,
         mcp_server_url: mcp_server_info.url.clone(),
     })
 }
@@ -157,6 +164,7 @@ pub fn save_app_config(
         files_storage_root: args.files_storage_root,
         setup_complete: args.setup_complete,
         theme_preference: config.theme_preference,
+        app_window_opacity: config.app_window_opacity,
         mcp_server_url: mcp_server_info.url.clone(),
     })
 }
@@ -274,6 +282,37 @@ pub fn set_theme_preference(
         files_storage_root: config.files_storage_root,
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
+        app_window_opacity: config.app_window_opacity,
+        mcp_server_url: mcp_server_info.url.clone(),
+    })
+}
+
+#[command]
+pub fn set_app_window_opacity(
+    args: WindowOpacityArgs,
+    mcp_server_info: State<McpServerInfo>,
+) -> Result<ConfigPayload, String> {
+    if !args.opacity.is_finite() {
+        return Err("INVALID_OPACITY:Opacity must be a finite number".to_string());
+    }
+
+    let opacity = args.opacity.clamp(0.2, 1.0);
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config_path = proj_dirs.config_dir().join("config.json");
+
+    let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    config.app_window_opacity = opacity;
+
+    save_config(&config, &config_path)?;
+
+    Ok(ConfigPayload {
+        database_path: config.database_path,
+        asset_dir_path: config.asset_dir_path,
+        files_storage_root: config.files_storage_root,
+        setup_complete: config.setup_complete,
+        theme_preference: config.theme_preference,
+        app_window_opacity: config.app_window_opacity,
         mcp_server_url: mcp_server_info.url.clone(),
     })
 }

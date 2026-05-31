@@ -67,6 +67,7 @@ const closeFloatingSidebar = () => {
 <style scoped>
 .app-shell {
   position: relative;
+  background-color: transparent;
 }
 
 .sidebar-hover-zone {
