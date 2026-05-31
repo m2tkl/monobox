@@ -46,7 +46,7 @@ export const imageExtention = () => {
                     const uploadedImageUrl = await uploadImage(image);
                     const node = view.state.schema.nodes.image.create({
                       src: uploadedImageUrl,
-                      alt: image.name,
+                      alt: '',
                     });
                     const transaction = view.state.tr.insert(
                       coordinates ? coordinates.pos : 0,
@@ -83,7 +83,7 @@ export const imageExtention = () => {
                     const uploadedImageUrl = await uploadImage(image);
                     const node = view.state.schema.nodes.image.create({
                       src: uploadedImageUrl,
-                      alt: image.name,
+                      alt: '',
                     });
                     const transaction = view.state.tr.replaceSelectionWith(
                       node,
@@ -114,7 +114,6 @@ async function uploadImage(image: File) {
     reader.onload = async (event) => {
       try {
         const base64Data = (event.target?.result as string).split(',')[1];
-        const _fileName = image.name;
         const mimeType = image.type;
 
         const response = await invoke('save_image', {
