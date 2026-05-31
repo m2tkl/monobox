@@ -16,8 +16,8 @@ import {
   EditorQuery,
   EditorSelector,
 } from '~/app/features/editor';
+import { getMemoLinkOpenIntent } from '~/app/features/memo-editing/memoLinkOpenIntent';
 import { fileCommand } from '~/resources/file/commands';
-import { isModifierKeyPressed } from '~/utils/event';
 import { isInternalLink } from '~/utils/link';
 
 type MemoEditorOptions = {
@@ -35,6 +35,8 @@ type MemoEditorOptions = {
    */
   onChanged?: (reason: 'content') => void;
   onLinksChanged?: (added: string[], deleted: string[]) => void;
+  onOpenContext?: (url: string) => void;
+  onOpenContextWindow?: (url: string) => void;
 
   /**
    * Router object for callback
@@ -458,12 +460,25 @@ export function useMemoEditor(
         const targetPath = resolvedUrl.pathname;
         const targetHash = resolvedUrl.hash.replace(/^#/, '');
 
+        if (isInternalLink(url)) {
+          const intent = getMemoLinkOpenIntent(event);
+          if (intent === 'context-window') {
+            options.onOpenContextWindow?.(url);
+            return;
+          }
+
+          if (intent === 'context-view') {
+            options.onOpenContext?.(url);
+            return;
+          }
+        }
+
         // If the path is same to itself and a fragment is specified, move the focus.
         if (options.route.path === targetPath && targetHash) {
           focusHeading(editor, targetHash);
         }
 
-        if (isInternalLink(url) && !isModifierKeyPressed(event)) {
+        if (isInternalLink(url)) {
           const clickedPosition = editor.view.posAtCoords({
             left: event.clientX,
             top: event.clientY,

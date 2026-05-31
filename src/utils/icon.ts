@@ -55,6 +55,7 @@ export const iconKey = {
   zoomReset: 'carbon:zoom-reset',
 
   close: 'carbon:close',
+  openPanel: 'carbon:launch',
 
   sidebarOpen: 'carbon:side-panel-open',
   sidebarClose: 'carbon:side-panel-close',

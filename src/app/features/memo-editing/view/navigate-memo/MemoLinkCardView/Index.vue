@@ -27,7 +27,10 @@
           :key="memo.id"
           class="aspect-[1/1] overflow-hidden rounded-lg"
         >
-          <NuxtLink :to="buildMemoPath(memo.slug_title)">
+          <NuxtLink
+            :to="buildMemoPath(memo.slug_title)"
+            @click="(event: MouseEvent) => onMemoLinkClick(event, memo.slug_title, memo.title)"
+          >
             <ThumbnailCard
               :title="truncateString(extractsTitleParts(memo.title).memoTitle, TITLE_TRUNCATE)"
               :context="extractsTitleParts(memo.title).context !== memoTitle ? extractsTitleParts(memo.title).context : undefined"
@@ -53,6 +56,7 @@
                 <NuxtLink
                   :to="buildMemoPath(link.slug_title)"
                   class="flex flex-col"
+                  @click="(event: MouseEvent) => onMemoLinkClick(event, link.slug_title, link.title)"
                 >
                   <TitleCard
                     :title="truncateString(extractsTitleParts(link.title).memoTitle, TITLE_TRUNCATE)"
@@ -70,7 +74,10 @@
                 :key="thl.link_id"
                 class="aspect-[1/1] overflow-hidden rounded-lg"
               >
-                <NuxtLink :to="buildMemoPath(thl.slug_title)">
+                <NuxtLink
+                  :to="buildMemoPath(thl.slug_title)"
+                  @click="(event: MouseEvent) => onMemoLinkClick(event, thl.slug_title, thl.title)"
+                >
                   <ThumbnailCard
                     :title="truncateString(extractsTitleParts(thl.title).memoTitle, TITLE_TRUNCATE)"
                     :context="extractsTitleParts(thl.title).context !== link.title ? extractsTitleParts(thl.title).context : undefined"
@@ -130,6 +137,7 @@ import TitleCard from './TitleCard.vue';
 import type { MemoLinkedFileItem } from '~/models/file';
 import type { Link } from '~/models/link';
 
+import { getMemoLinkOpenIntent } from '~/app/features/memo-editing/memoLinkOpenIntent';
 import { fileCommand } from '~/resources/file/commands';
 import { handleError } from '~/utils/error';
 
@@ -139,11 +147,31 @@ const props = defineProps<{
   files: Array<MemoLinkedFileItem>;
 }>();
 
+const emit = defineEmits<{
+  'open-context': [path: string];
+  'open-context-window': [path: string, title: string];
+}>();
+
 const TITLE_TRUNCATE = 32;
 
 const route = useRoute();
 const toast = useToast();
 const buildMemoPath = (slug: string) => `/${route.params.workspace}/${slug}`;
+
+const onMemoLinkClick = (event: MouseEvent, memoSlug: string, memoTitle: string) => {
+  const intent = getMemoLinkOpenIntent(event);
+  if (intent === 'navigate') {
+    return;
+  }
+
+  event.preventDefault();
+  if (intent === 'context-window') {
+    emit('open-context-window', buildMemoPath(memoSlug), memoTitle);
+    return;
+  }
+
+  emit('open-context', buildMemoPath(memoSlug));
+};
 
 const forwardLinks = computed(() =>
   props.links.filter(link => link.link_type === 'Forward'),

@@ -1,9 +1,7 @@
 <template>
   <NuxtLayout name="default">
     <template #main>
-      <div
-        class="flex size-full justify-center"
-      >
+      <div class="memo-editing-shell">
         <OutlinePanel
           :outline="outline"
           :active-heading-id="activeHeadingId"
@@ -15,355 +13,372 @@
         />
 
         <div
-          id="main"
-          class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto"
-          style="background-color: var(--color-background)"
+          class="memo-editing-content"
+          :class="{ 'memo-editing-content--with-context': isContextViewOpen }"
         >
-          <MemoEditor
-            v-if="editor"
-            ref="memoEditorRef"
-            v-model:memo-title="memoTitle"
-            :editor="editor"
+          <div
+            id="main"
+            class="hide-scrollbar h-full min-w-0 flex-1 overflow-y-auto"
+            style="background-color: var(--color-background)"
           >
-            <template #status>
-              <UBadge
-                :color="memoStatusBadge.color"
-                variant="soft"
-                class="memo-status-badge"
-              >
-                {{ memoStatusBadge.label }}
-              </UBadge>
-            </template>
-
-            <template #toolbar="{ editor: _editor }">
-              <EditorToolbarButton
-                v-for="(item) in getEditorToolbarActionItems(_editor)"
-                :key="item.msg.type"
-                :label="item.label"
-                :icon="item.icon"
-                @exec="dispatchEditorMsg(_editor, item.msg)"
-              />
-            </template>
-
-            <template #context-menu>
-              <IconButton
-                :icon="iconKey.kanban"
-                :disabled="isKanbanLoading || !memoVM.data.memo"
-                aria-label="Kanban"
-                @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
-              />
-              <IconButton
-                :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
-                @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
-              />
-
-              <UDropdownMenu
-                :items="contextMenuItems"
-              >
-                <div class="flex items-center">
-                  <UIcon
-                    :name="iconKey.dotMenuVertical"
-                  />
-                </div>
-              </UDropdownMenu>
-            </template>
-
-            <template #bubble-menu="{ editor: _editor }">
-              <template v-if="_editor.isActive('image')">
-                <EditorToolbarButton
-                  :icon="iconKey.annotation"
-                  @exec="() => void dispatchAction({ type: 'action/start-image-alt-editing' })"
-                />
-                <EditorToolbarButton
-                  :icon="iconKey.zoomIn"
-                  @exec="() => void dispatchAction({ type: 'action/open-selected-image-preview' })"
-                />
-              </template>
-
-              <template v-else>
-                <div
-                  v-for="(actionGroup, groupIndex) in bubbleMenuItems"
-                  :key="groupIndex"
-                  class="flex gap-0.5"
+            <MemoEditor
+              v-if="editor"
+              ref="memoEditorRef"
+              v-model:memo-title="memoTitle"
+              :editor="editor"
+            >
+              <template #status>
+                <UBadge
+                  :color="memoStatusBadge.color"
+                  variant="soft"
+                  class="memo-status-badge"
                 >
-                  <span
-                    v-if="groupIndex !== 0"
-                    class="mx-0.5 font-thin text-slate-400"
-                  >|</span>
-                  <div
-                    v-for="(item, index) in actionGroup"
-                    :key="index"
-                  >
-                    <EditorToolbarButton
-                      :icon="item.icon"
-                      @exec="item.action"
-                    />
-                  </div>
-                </div>
+                  {{ memoStatusBadge.label }}
+                </UBadge>
               </template>
-            </template>
 
-            <template #table-bubble-menu="{ editor: _editor, tableSelectionAxis }">
-              <div
-                v-for="item in getTableBubbleMenuActionItems(_editor, tableSelectionAxis)"
-                :key="item.msg.type"
-                :class="item.dividerBefore ? 'mt-1 border-t pt-1' : ''"
-                style="border-color: var(--color-border-light)"
-              >
+              <template #toolbar="{ editor: _editor }">
                 <EditorToolbarButton
+                  v-for="(item) in getEditorToolbarActionItems(_editor)"
+                  :key="item.msg.type"
                   :label="item.label"
                   :icon="item.icon"
-                  :disabled="item.disabled"
-                  tabindex="-1"
-                  full-width
                   @exec="dispatchEditorMsg(_editor, item.msg)"
                 />
-              </div>
-            </template>
+              </template>
 
-            <template #dialogs="{ editor: _editor }">
-              <LinkEditDialog
-                v-model:open="isEditingLink"
-                :editor="_editor"
-                @exit="finishLinkEditing"
-              />
+              <template #context-menu>
+                <IconButton
+                  :icon="iconKey.kanban"
+                  :disabled="isKanbanLoading || !memoVM.data.memo"
+                  aria-label="Kanban"
+                  @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
+                />
+                <IconButton
+                  :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+                  @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
+                />
 
-              <AltEditDialog
-                v-model:open="isEditingImgAlt"
-                :editor="_editor"
-                @exit="finishImgAltEditing"
-              />
+                <UDropdownMenu
+                  :items="contextMenuItems"
+                >
+                  <div class="flex items-center">
+                    <UIcon
+                      :name="iconKey.dotMenuVertical"
+                    />
+                  </div>
+                </UDropdownMenu>
+              </template>
 
-              <UModal v-model:open="isInboxInsertModalOpen">
-                <template #content>
-                  <UCard
-                    :ui="fileInsertModalCardUi"
+              <template #bubble-menu="{ editor: _editor }">
+                <template v-if="_editor.isActive('image')">
+                  <EditorToolbarButton
+                    :icon="iconKey.annotation"
+                    @exec="() => void dispatchAction({ type: 'action/start-image-alt-editing' })"
+                  />
+                  <EditorToolbarButton
+                    :icon="iconKey.zoomIn"
+                    @exec="() => void dispatchAction({ type: 'action/open-selected-image-preview' })"
+                  />
+                </template>
+
+                <template v-else>
+                  <div
+                    v-for="(actionGroup, groupIndex) in bubbleMenuItems"
+                    :key="groupIndex"
+                    class="flex gap-0.5"
                   >
-                    <template #header>
-                      <div class="text-sm font-semibold">
-                        Import from Inbox
-                      </div>
-                    </template>
-
-                    <div class="inbox-insert-palette">
-                      <UCommandPalette
-                        v-model:search-term="inboxInsertSearchTerm"
-                        v-model="selectedInboxInsertCommand"
-                        :groups="inboxInsertCommandGroups"
-                        :class="fileInsertPaletteClass"
-                        :autoclear="false"
-                        icon="carbon:search"
-                        placeholder="Search Inbox files"
-                        command-attribute="title"
-                        :fuse="fileInsertPaletteFuse"
-                        :empty-state="{
-                          icon: 'carbon:search-locate',
-                          label: 'No files available in Inbox.',
-                          queryLabel: 'No matching Inbox files found.',
-                        }"
-                        @update:model-value="onSelectInboxInsertCommand"
-                      >
-                        <template #item-label="{ item }">
-                          <span
-                            class="truncate"
-                            style="color: var(--color-text-primary)"
-                            v-html="getPaletteLabelHtml(item)"
-                          />
-                        </template>
-                      </UCommandPalette>
-                    </div>
-                  </UCard>
-                </template>
-              </UModal>
-
-              <UModal v-model:open="isFilesInsertModalOpen">
-                <template #content>
-                  <UCard
-                    :ui="fileInsertModalCardUi"
-                  >
-                    <template #header>
-                      <div class="text-sm font-semibold">
-                        Insert from Files
-                      </div>
-                    </template>
-
-                    <div class="inbox-insert-palette">
-                      <UCommandPalette
-                        v-model:search-term="filesInsertSearchTerm"
-                        v-model="selectedFilesInsertCommand"
-                        :groups="filesInsertCommandGroups"
-                        :class="fileInsertPaletteClass"
-                        :autoclear="false"
-                        icon="carbon:search"
-                        placeholder="Search Files"
-                        command-attribute="title"
-                        :fuse="fileInsertPaletteFuse"
-                        :empty-state="{
-                          icon: 'carbon:search-locate',
-                          label: 'No files have been added yet.',
-                          queryLabel: 'No matching files found.',
-                        }"
-                        @update:model-value="onSelectFilesInsertCommand"
-                      >
-                        <template #item-label="{ item }">
-                          <span
-                            class="truncate"
-                            style="color: var(--color-text-primary)"
-                            v-html="getPaletteLabelHtml(item)"
-                          />
-                        </template>
-                        <template #item-trailing="{ item }">
-                          <span
-                            class="text-xs"
-                            style="color: var(--color-text-secondary)"
-                          >
-                            {{ getFilesInsertMeta(item) }}
-                          </span>
-                        </template>
-                      </UCommandPalette>
-                    </div>
-                  </UCard>
-                </template>
-              </UModal>
-
-              <UModal v-model:open="isExternalFileModalOpen">
-                <template #content>
-                  <UCard>
-                    <template #header>
-                      <div class="text-sm font-semibold">
-                        Create and insert shared link
-                      </div>
-                    </template>
-
-                    <div class="space-y-4">
-                      <UFormField label="Name">
-                        <UInput v-model="externalFileForm.displayName" />
-                      </UFormField>
-                      <UFormField label="URL">
-                        <UInput v-model="externalFileForm.url" />
-                      </UFormField>
-                    </div>
-
-                    <template #footer>
-                      <div class="flex justify-end gap-2">
-                        <AppButton
-                          variant="ghost"
-                          @click="isExternalFileModalOpen = false"
-                        >
-                          Cancel
-                        </AppButton>
-                        <AppButton
-                          :loading="isInsertingManagedFile"
-                          :disabled="!externalFileForm.displayName || !externalFileForm.url"
-                          @click="createExternalFileAndInsert"
-                        >
-                          Create and insert
-                        </AppButton>
-                      </div>
-                    </template>
-                  </UCard>
-                </template>
-              </UModal>
-            </template>
-          </MemoEditor>
-
-          <div
-            v-if="shouldShowInlineTemplateSuggestions"
-            class="template-suggestion-shell"
-          >
-            <div class="template-suggestion-inline">
-              <div
-                class="mb-2 text-xs font-medium"
-                style="color: var(--color-text-secondary)"
-              >
-                Use template?
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="template-suggestion-scroll">
-                  <div class="flex w-max items-center gap-2">
-                    <AppButton
-                      v-for="template in availableTemplates"
-                      :key="template.id"
-                      variant="soft"
-                      color="neutral"
-                      :loading="isApplyingTemplate && selectedTemplateId === template.id"
-                      :disabled="isApplyingTemplate"
-                      @click="applyTemplate(template.slug_name)"
+                    <span
+                      v-if="groupIndex !== 0"
+                      class="mx-0.5 font-thin text-slate-400"
+                    >|</span>
+                    <div
+                      v-for="(item, index) in actionGroup"
+                      :key="index"
                     >
-                      {{ template.name }}
-                    </AppButton>
+                      <EditorToolbarButton
+                        :icon="item.icon"
+                        @exec="item.action"
+                      />
+                    </div>
+                  </div>
+                </template>
+              </template>
+
+              <template #table-bubble-menu="{ editor: _editor, tableSelectionAxis }">
+                <div
+                  v-for="item in getTableBubbleMenuActionItems(_editor, tableSelectionAxis)"
+                  :key="item.msg.type"
+                  :class="item.dividerBefore ? 'mt-1 border-t pt-1' : ''"
+                  style="border-color: var(--color-border-light)"
+                >
+                  <EditorToolbarButton
+                    :label="item.label"
+                    :icon="item.icon"
+                    :disabled="item.disabled"
+                    tabindex="-1"
+                    full-width
+                    @exec="dispatchEditorMsg(_editor, item.msg)"
+                  />
+                </div>
+              </template>
+
+              <template #dialogs="{ editor: _editor }">
+                <LinkEditDialog
+                  v-model:open="isEditingLink"
+                  :editor="_editor"
+                  @exit="finishLinkEditing"
+                />
+
+                <AltEditDialog
+                  v-model:open="isEditingImgAlt"
+                  :editor="_editor"
+                  @exit="finishImgAltEditing"
+                />
+
+                <UModal v-model:open="isInboxInsertModalOpen">
+                  <template #content>
+                    <UCard
+                      :ui="fileInsertModalCardUi"
+                    >
+                      <template #header>
+                        <div class="text-sm font-semibold">
+                          Import from Inbox
+                        </div>
+                      </template>
+
+                      <div class="inbox-insert-palette">
+                        <UCommandPalette
+                          v-model:search-term="inboxInsertSearchTerm"
+                          v-model="selectedInboxInsertCommand"
+                          :groups="inboxInsertCommandGroups"
+                          :class="fileInsertPaletteClass"
+                          :autoclear="false"
+                          icon="carbon:search"
+                          placeholder="Search Inbox files"
+                          command-attribute="title"
+                          :fuse="fileInsertPaletteFuse"
+                          :empty-state="{
+                            icon: 'carbon:search-locate',
+                            label: 'No files available in Inbox.',
+                            queryLabel: 'No matching Inbox files found.',
+                          }"
+                          @update:model-value="onSelectInboxInsertCommand"
+                        >
+                          <template #item-label="{ item }">
+                            <span
+                              class="truncate"
+                              style="color: var(--color-text-primary)"
+                              v-html="getPaletteLabelHtml(item)"
+                            />
+                          </template>
+                        </UCommandPalette>
+                      </div>
+                    </UCard>
+                  </template>
+                </UModal>
+
+                <UModal v-model:open="isFilesInsertModalOpen">
+                  <template #content>
+                    <UCard
+                      :ui="fileInsertModalCardUi"
+                    >
+                      <template #header>
+                        <div class="text-sm font-semibold">
+                          Insert from Files
+                        </div>
+                      </template>
+
+                      <div class="inbox-insert-palette">
+                        <UCommandPalette
+                          v-model:search-term="filesInsertSearchTerm"
+                          v-model="selectedFilesInsertCommand"
+                          :groups="filesInsertCommandGroups"
+                          :class="fileInsertPaletteClass"
+                          :autoclear="false"
+                          icon="carbon:search"
+                          placeholder="Search Files"
+                          command-attribute="title"
+                          :fuse="fileInsertPaletteFuse"
+                          :empty-state="{
+                            icon: 'carbon:search-locate',
+                            label: 'No files have been added yet.',
+                            queryLabel: 'No matching files found.',
+                          }"
+                          @update:model-value="onSelectFilesInsertCommand"
+                        >
+                          <template #item-label="{ item }">
+                            <span
+                              class="truncate"
+                              style="color: var(--color-text-primary)"
+                              v-html="getPaletteLabelHtml(item)"
+                            />
+                          </template>
+                          <template #item-trailing="{ item }">
+                            <span
+                              class="text-xs"
+                              style="color: var(--color-text-secondary)"
+                            >
+                              {{ getFilesInsertMeta(item) }}
+                            </span>
+                          </template>
+                        </UCommandPalette>
+                      </div>
+                    </UCard>
+                  </template>
+                </UModal>
+
+                <UModal v-model:open="isExternalFileModalOpen">
+                  <template #content>
+                    <UCard>
+                      <template #header>
+                        <div class="text-sm font-semibold">
+                          Create and insert shared link
+                        </div>
+                      </template>
+
+                      <div class="space-y-4">
+                        <UFormField label="Name">
+                          <UInput v-model="externalFileForm.displayName" />
+                        </UFormField>
+                        <UFormField label="URL">
+                          <UInput v-model="externalFileForm.url" />
+                        </UFormField>
+                      </div>
+
+                      <template #footer>
+                        <div class="flex justify-end gap-2">
+                          <AppButton
+                            variant="ghost"
+                            @click="isExternalFileModalOpen = false"
+                          >
+                            Cancel
+                          </AppButton>
+                          <AppButton
+                            :loading="isInsertingManagedFile"
+                            :disabled="!externalFileForm.displayName || !externalFileForm.url"
+                            @click="createExternalFileAndInsert"
+                          >
+                            Create and insert
+                          </AppButton>
+                        </div>
+                      </template>
+                    </UCard>
+                  </template>
+                </UModal>
+              </template>
+            </MemoEditor>
+
+            <div
+              v-if="shouldShowInlineTemplateSuggestions"
+              class="template-suggestion-shell"
+            >
+              <div class="template-suggestion-inline">
+                <div
+                  class="mb-2 text-xs font-medium"
+                  style="color: var(--color-text-secondary)"
+                >
+                  Use template?
+                </div>
+                <div class="flex items-start gap-3">
+                  <div class="template-suggestion-scroll">
+                    <div class="flex w-max items-center gap-2">
+                      <AppButton
+                        v-for="template in availableTemplates"
+                        :key="template.id"
+                        variant="soft"
+                        color="neutral"
+                        :loading="isApplyingTemplate && selectedTemplateId === template.id"
+                        :disabled="isApplyingTemplate"
+                        @click="applyTemplate(template.slug_name)"
+                      >
+                        {{ template.name }}
+                      </AppButton>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <UModal v-model:open="isKanbanModalOpen">
-            <template #content>
-              <UCard>
-                <div class="kanban-assign-modal">
-                  <div class="kanban-assign-title">
-                    Kanban assignments
-                  </div>
-                  <div
-                    v-if="kanbans.length === 0"
-                    class="kanban-assign-empty"
-                  >
-                    No Kanban boards available.
-                  </div>
-                  <div
-                    v-else
-                    class="kanban-assign-list"
-                  >
+            <UModal v-model:open="isKanbanModalOpen">
+              <template #content>
+                <UCard>
+                  <div class="kanban-assign-modal">
+                    <div class="kanban-assign-title">
+                      Kanban assignments
+                    </div>
                     <div
-                      v-for="kanban in kanbans"
-                      :key="kanban.id"
-                      class="kanban-assign-row"
+                      v-if="kanbans.length === 0"
+                      class="kanban-assign-empty"
                     >
-                      <div class="kanban-assign-info">
-                        <div class="kanban-assign-name">
-                          {{ kanban.name }}
+                      No Kanban boards available.
+                    </div>
+                    <div
+                      v-else
+                      class="kanban-assign-list"
+                    >
+                      <div
+                        v-for="kanban in kanbans"
+                        :key="kanban.id"
+                        class="kanban-assign-row"
+                      >
+                        <div class="kanban-assign-info">
+                          <div class="kanban-assign-name">
+                            {{ kanban.name }}
+                          </div>
+                          <div
+                            v-if="kanbanEntryMap.get(kanban.id)"
+                            class="kanban-assign-meta"
+                          >
+                            {{ kanbanEntryMap.get(kanban.id)?.kanban_status_name || 'No status' }}
+                          </div>
                         </div>
-                        <div
-                          v-if="kanbanEntryMap.get(kanban.id)"
-                          class="kanban-assign-meta"
-                        >
-                          {{ kanbanEntryMap.get(kanban.id)?.kanban_status_name || 'No status' }}
+                        <div class="kanban-assign-actions">
+                          <USelect
+                            v-model="kanbanSelections[kanban.id]"
+                            :items="getStatusOptions(kanban.id)"
+                            size="xs"
+                            variant="outline"
+                            label-key="label"
+                            value-key="value"
+                            :disabled="isKanbanUpdating(kanban.id)"
+                            @update:model-value="(value) => applyKanbanStatus(kanban.id, typeof value === 'string' ? Number(value) : value)"
+                          />
                         </div>
-                      </div>
-                      <div class="kanban-assign-actions">
-                        <USelect
-                          v-model="kanbanSelections[kanban.id]"
-                          :items="getStatusOptions(kanban.id)"
-                          size="xs"
-                          variant="outline"
-                          label-key="label"
-                          value-key="value"
-                          :disabled="isKanbanUpdating(kanban.id)"
-                          @update:model-value="(value) => applyKanbanStatus(kanban.id, typeof value === 'string' ? Number(value) : value)"
-                        />
                       </div>
                     </div>
                   </div>
-                </div>
-              </UCard>
-            </template>
-          </UModal>
+                </UCard>
+              </template>
+            </UModal>
 
-          <!-- Related links -->
-          <MemoLinkCardView
-            v-if="memoVM.data.memo"
-            :memo-title="memoVM.data.memo.title"
-            :links="memoVM.data.links"
-            :files="memoVM.data.linkedFiles"
-          />
+            <!-- Related links -->
+            <MemoLinkCardView
+              v-if="memoVM.data.memo"
+              :memo-title="memoVM.data.memo.title"
+              :links="memoVM.data.links"
+              :files="memoVM.data.linkedFiles"
+              @open-context="openContextView"
+              @open-context-window="openContextWindowFromUrl"
+            />
 
-          <!-- Margin for editor scroll -->
-          <div class="flex h-[calc(100vh-40px)] items-center justify-center">
-            <p class="font-bold text-slate-400">
-              Happy writing... 📝
-            </p>
+            <!-- Margin for editor scroll -->
+            <div class="flex h-[calc(100vh-40px)] items-center justify-center">
+              <p class="font-bold text-slate-400">
+                Happy writing... 📝
+              </p>
+            </div>
           </div>
+
+          <ContextView
+            v-if="isContextViewOpen"
+            :memo="contextMemo"
+            :is-loading="isContextMemoLoading"
+            :has-error="hasContextMemoError"
+            :target-hash="contextViewHash"
+            @close="closeContextView"
+            @open-window="openContextMemoInWindow"
+          />
         </div>
       </div>
     </template>
@@ -417,6 +432,8 @@ import MemoEditor from './view/compose-memo/MemoEditor.vue';
 import { useMemoEditor } from './view/compose-memo/useMemoEditor';
 import { useMemoEditorActions } from './view/compose-memo/useMemoEditorActions';
 import { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInteractions';
+import ContextView from './view/context-view/ContextView.vue';
+import { openContextWindow } from './view/context-view/openContextWindow';
 import DeleteMemoDialog from './view/edit-memo/DeleteMemoDialog.vue';
 import { useMemoEditingActions } from './view/edit-memo/useMemoEditingActions';
 import { useMemoMachine } from './view/edit-memo/useMemoMachine';
@@ -445,10 +462,12 @@ import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/re
 import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
 import { command } from '~/external/tauri/command';
+import { useQuery } from '~/resource-runtime/useQuery';
 import { fileCommand } from '~/resources/file/commands';
+import { memoDetailQuery } from '~/resources/memo/queries';
 import { AppError } from '~/utils/error';
 import { useConsoleLogger } from '~/utils/logger';
-import { buildMemoTitleFromSlug } from '~/utils/slug';
+import { buildMemoTitleFromSlug, encodeForSlug } from '~/utils/slug';
 
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
@@ -570,6 +589,104 @@ const computeDirty = () => {
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 const hasMemo = computed(() => memoVM.value.data.memo != null);
 const isBookmarked = computed(() => memoVM.value.data.isBookmarked);
+const contextViewWorkspaceSlug = ref('');
+const contextViewMemoSlug = ref('');
+const contextViewHash = ref('');
+const isContextViewOpen = computed(() => contextViewWorkspaceSlug.value.length > 0 && contextViewMemoSlug.value.length > 0);
+const { snapshot: contextMemoSnap } = useQuery(memoDetailQuery, {
+  workspaceSlug: contextViewWorkspaceSlug,
+  memoSlug: contextViewMemoSlug,
+}, {
+  enabled: isContextViewOpen,
+});
+const contextMemo = computed(() => contextMemoSnap.value.current ?? null);
+const isContextMemoLoading = computed(() => contextMemoSnap.value.status === 'loading');
+const hasContextMemoError = computed(() => contextMemoSnap.value.status === 'error');
+
+const parseMemoPath = (url: string) => {
+  let resolvedUrl: URL;
+  try {
+    resolvedUrl = new URL(url, window.location.origin);
+  }
+  catch {
+    return null;
+  }
+
+  const [targetWorkspaceSlug, targetMemoSlug] = resolvedUrl.pathname
+    .split('/')
+    .filter(Boolean);
+  if (!targetWorkspaceSlug || !targetMemoSlug) {
+    return null;
+  }
+
+  return {
+    workspaceSlug: encodeForSlug(decodeURIComponent(targetWorkspaceSlug)),
+    memoSlug: encodeForSlug(decodeURIComponent(targetMemoSlug)),
+    hash: resolvedUrl.hash,
+  };
+};
+
+const openContextView = (url: string) => {
+  const target = parseMemoPath(url);
+  if (!target) {
+    return;
+  }
+
+  contextViewWorkspaceSlug.value = target.workspaceSlug;
+  contextViewMemoSlug.value = target.memoSlug;
+  contextViewHash.value = target.hash;
+};
+
+const buildContextWindowPath = (target: NonNullable<ReturnType<typeof parseMemoPath>>) =>
+  `/${target.workspaceSlug}/${target.memoSlug}/_context${target.hash}`;
+
+const openContextWindowForTarget = (
+  target: NonNullable<ReturnType<typeof parseMemoPath>>,
+  title: string,
+) => {
+  const contextWindow = openContextWindow({
+    path: buildContextWindowPath(target),
+    title,
+  });
+  void contextWindow.once('tauri://error', (event) => {
+    toast.add({
+      title: 'Failed to open Context window.',
+      description: String(event.payload),
+      color: 'error',
+    });
+  });
+};
+
+const openContextWindowFromUrl = (url: string, title?: string) => {
+  const target = parseMemoPath(url);
+  if (!target) {
+    return;
+  }
+
+  openContextWindowForTarget(
+    target,
+    title ?? buildMemoTitleFromSlug(target.memoSlug),
+  );
+};
+
+const closeContextView = () => {
+  contextViewWorkspaceSlug.value = '';
+  contextViewMemoSlug.value = '';
+  contextViewHash.value = '';
+};
+
+const openContextMemoInWindow = () => {
+  if (!isContextViewOpen.value || !contextMemo.value) {
+    return;
+  }
+
+  openContextWindowForTarget({
+    workspaceSlug: contextViewWorkspaceSlug.value,
+    memoSlug: contextViewMemoSlug.value,
+    hash: contextViewHash.value,
+  }, contextMemo.value.title);
+  closeContextView();
+};
 
 // Reference to control the link palette component
 const linkPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
@@ -587,6 +704,8 @@ const {
   extensions: extensions,
   onChanged: (_reason) => { void dispatchMemoEvent({ type: 'memo/content-updated', payload: { dirty: computeDirty() } }); },
   onLinksChanged: (added, deleted) => { void dispatchMemoEvent({ type: 'memo/links-changed', payload: { added, deleted } }); },
+  onOpenContext: openContextView,
+  onOpenContextWindow: openContextWindowFromUrl,
   route,
   router,
 });
@@ -1099,6 +1218,21 @@ const copyLinkToHeadingAction = (fullUrl: string, titleWithHeading: string) => {
 </script>
 
 <style>
+.memo-editing-shell {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+
+.memo-editing-content {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+
 .custom-heading {
   font-family: 'Arial', sans-serif;
   margin: 16px 0;
@@ -1258,5 +1392,11 @@ a.external-link {
 
 .template-suggestion-scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-scrollbar-thumb-hover);
+}
+
+@media (max-width: 1100px) {
+  .memo-editing-content--with-context {
+    flex-direction: column;
+  }
 }
 </style>

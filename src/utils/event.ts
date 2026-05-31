@@ -1,6 +1,7 @@
 /**
  * Utility functions to detect modifier key states from mouse and keyboard events.
  */
+import { isMac } from './platform';
 
 /**
  * Determines whether any modifier key (Shift, Ctrl, Alt, or Meta/Cmd) is pressed during a mouse event.
