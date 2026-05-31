@@ -34,6 +34,8 @@ export const iconKey = {
 
   bookmark: 'carbon:bookmark',
   bookmarkFilled: 'carbon:bookmark-filled',
+  focus: 'carbon:pin',
+  focusFilled: 'carbon:pin-filled',
   recent: 'carbon:recently-viewed',
   switch: 'carbon:arrows-horizontal',
   database: 'carbon:db2-database',

@@ -11,6 +11,7 @@ export type ChangeRef =
   | { type: 'memoTemplateDeleted'; workspaceSlug: string }
   | { type: 'memoTemplateDefaultChanged'; workspaceSlug: string }
   | { type: 'bookmarkCollectionChanged'; workspaceSlug: string }
+  | { type: 'focusMemoCollectionChanged'; workspaceSlug: string }
   | { type: 'kanbanCollectionChanged'; workspaceSlug: string }
   | { type: 'kanbanStatusCollectionChanged'; workspaceSlug: string; kanbanId: number }
   | { type: 'kanbanEntryCollectionChanged'; workspaceSlug: string; memoSlug: string }
@@ -41,6 +42,7 @@ export const changeRefs = {
   memoTemplateDeleted: (workspaceSlug: string): ChangeRef => ({ type: 'memoTemplateDeleted', workspaceSlug }),
   memoTemplateDefaultChanged: (workspaceSlug: string): ChangeRef => ({ type: 'memoTemplateDefaultChanged', workspaceSlug }),
   bookmarkCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'bookmarkCollectionChanged', workspaceSlug }),
+  focusMemoCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'focusMemoCollectionChanged', workspaceSlug }),
   kanbanCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'kanbanCollectionChanged', workspaceSlug }),
   kanbanStatusCollectionChanged: (workspaceSlug: string, kanbanId: number): ChangeRef => ({ type: 'kanbanStatusCollectionChanged', workspaceSlug, kanbanId }),
   kanbanEntryCollectionChanged: (workspaceSlug: string, memoSlug: string): ChangeRef => ({ type: 'kanbanEntryCollectionChanged', workspaceSlug, memoSlug }),

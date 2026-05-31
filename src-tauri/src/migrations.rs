@@ -271,6 +271,30 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         );
         ",
     ),
+    (
+        "20260531_create_focus_memo_table",
+        "CREATE TABLE IF NOT EXISTS focus_memo (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            order_index INTEGER NOT NULL DEFAULT 0,
+            done_for_today_on TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (workspace_id, memo_id),
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE,
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_focus_memo_workspace_id ON focus_memo(workspace_id);
+        CREATE INDEX IF NOT EXISTS idx_focus_memo_done_for_today_on ON focus_memo(done_for_today_on);
+
+        CREATE TRIGGER IF NOT EXISTS trigger_focus_memo_updated_at AFTER UPDATE ON focus_memo
+        BEGIN
+            UPDATE focus_memo SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

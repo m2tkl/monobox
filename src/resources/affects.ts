@@ -84,6 +84,9 @@ const affectRules: ReadonlyArray<ChangeRule> = [
   defineAffects<Extract<ChangeRef, { type: 'bookmarkCollectionChanged' }>>('bookmarkCollectionChanged').resource(
     change => resourceRefs.bookmarkCollection(change.workspaceSlug),
   ),
+  defineAffects<Extract<ChangeRef, { type: 'focusMemoCollectionChanged' }>>('focusMemoCollectionChanged').resource(
+    change => resourceRefs.focusMemoCollection(change.workspaceSlug),
+  ),
   // kanban collection changed -> kanbanCollection
   defineAffects<Extract<ChangeRef, { type: 'kanbanCollectionChanged' }>>('kanbanCollectionChanged').resource(
     change => resourceRefs.kanbanCollection(change.workspaceSlug),

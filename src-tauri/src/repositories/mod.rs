@@ -1,5 +1,6 @@
 pub mod bookmark_repository;
 pub mod file_repository;
+pub mod focus_memo_repository;
 pub mod kanban_assignment_repository;
 pub mod kanban_repository;
 pub mod kanban_status_repository;
@@ -11,6 +12,7 @@ pub mod workspace_repository;
 
 pub use bookmark_repository::BookmarkRepository;
 pub use file_repository::FileRepository;
+pub use focus_memo_repository::FocusMemoRepository;
 pub use kanban_assignment_repository::KanbanAssignmentRepository;
 pub use kanban_repository::KanbanRepository;
 pub use kanban_status_repository::KanbanStatusRepository;

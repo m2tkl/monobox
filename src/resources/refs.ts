@@ -8,6 +8,7 @@ export type ResourceRef =
   | { type: 'linkCollection'; workspaceSlug: string; memoSlug: string }
   | { type: 'memoLinkCountCollection'; workspaceSlug: string }
   | { type: 'bookmarkCollection'; workspaceSlug: string }
+  | { type: 'focusMemoCollection'; workspaceSlug: string }
   | { type: 'kanbanCollection'; workspaceSlug: string }
   | { type: 'kanbanStatusCollection'; workspaceSlug: string; kanbanId: number }
   | { type: 'kanbanEntryCollection'; workspaceSlug: string; memoSlug: string }
@@ -25,6 +26,7 @@ export const resourceRefs = {
   linkCollection: (workspaceSlug: string, memoSlug: string): ResourceRef => ({ type: 'linkCollection', workspaceSlug, memoSlug }),
   memoLinkCountCollection: (workspaceSlug: string): ResourceRef => ({ type: 'memoLinkCountCollection', workspaceSlug }),
   bookmarkCollection: (workspaceSlug: string): ResourceRef => ({ type: 'bookmarkCollection', workspaceSlug }),
+  focusMemoCollection: (workspaceSlug: string): ResourceRef => ({ type: 'focusMemoCollection', workspaceSlug }),
   kanbanCollection: (workspaceSlug: string): ResourceRef => ({ type: 'kanbanCollection', workspaceSlug }),
   kanbanStatusCollection: (workspaceSlug: string, kanbanId: number): ResourceRef => ({ type: 'kanbanStatusCollection', workspaceSlug, kanbanId }),
   kanbanEntryCollection: (workspaceSlug: string, memoSlug: string): ResourceRef => ({ type: 'kanbanEntryCollection', workspaceSlug, memoSlug }),

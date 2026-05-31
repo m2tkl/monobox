@@ -1,5 +1,6 @@
 import { bookmarkCommand } from './bookmark/commands';
 import { fileCommand } from './file/commands';
+import { focusMemoCommand } from './focus-memo/commands';
 import { kanbanCommand } from './kanban/commands';
 import { kanbanAssignmentCommand } from './kanban-assignment/commands';
 import { kanbanStatusCommand } from './kanban-status/commands';
@@ -12,6 +13,7 @@ export const command = {
   workspace: workspaceCommand,
   memo: memoCommand,
   file: fileCommand,
+  focusMemo: focusMemoCommand,
   memoTemplate: memoTemplateCommand,
   link: linkCommand,
   bookmark: bookmarkCommand,

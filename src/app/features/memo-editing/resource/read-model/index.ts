@@ -8,6 +8,7 @@ import { useRoute } from '#imports';
 import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
+import { workspaceFocusMemosQuery } from '~/resources/focus-memo/queries';
 import { memoFilesQuery } from '~/resources/file/queries';
 import { memoDetailQuery, workspaceMemosQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
@@ -20,6 +21,7 @@ export type CurrentMemoReadModel = {
     linkedFiles: MemoLinkedFileItem[];
     workspaceMemos: MemoIndexItem[];
     isBookmarked: boolean;
+    isFocused: boolean;
   };
   flags: {
     isLoading: boolean;
@@ -56,6 +58,10 @@ export function useCurrentMemoReadModel() {
     workspaceSlug,
   });
 
+  const { snapshot: focusMemosSnap } = useQuery(workspaceFocusMemosQuery, {
+    workspaceSlug,
+  });
+
   const memo = computed(() => memoSnap.value.current ?? null);
   const links = computed<Link[]>(() => linksSnap.value.current ?? []);
   const linkedFiles = computed<MemoLinkedFileItem[]>(() => filesSnap.value.current ?? []);
@@ -68,6 +74,13 @@ export function useCurrentMemoReadModel() {
     return bookmarks.some(bookmark => bookmark.memo_id === currentMemo.id);
   });
 
+  const isFocused = computed<boolean>(() => {
+    const currentMemo = memo.value;
+    if (!currentMemo) return false;
+    const focusMemos = focusMemosSnap.value.current ?? [];
+    return focusMemos.some(focusMemo => focusMemo.memo_id === currentMemo.id);
+  });
+
   return defineReadModel<CurrentMemoReadModel['data']>({
     data: computed(() => ({
       memo: memo.value,
@@ -75,7 +88,8 @@ export function useCurrentMemoReadModel() {
       linkedFiles: linkedFiles.value,
       workspaceMemos: workspaceMemos.value,
       isBookmarked: isBookmarked.value,
+      isFocused: isFocused.value,
     })),
-    snapshots: [memoSnap, linksSnap, filesSnap, workspaceMemosSnap, bookmarksSnap],
+    snapshots: [memoSnap, linksSnap, filesSnap, workspaceMemosSnap, bookmarksSnap, focusMemosSnap],
   });
 }

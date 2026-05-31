@@ -2,6 +2,7 @@
   <div
     ref="outlineRef"
     class="hide-scrollbar h-full overflow-y-auto outline-container"
+    :style="outlineContainerStyle"
   >
     <div
       class="sticky left-0 top-0 z-50 flex h-8 items-center gap-1.5 border-b memo-separator outline-header px-2 py-1.5 text-sm"
@@ -90,6 +91,19 @@ const emits = defineEmits<{
   (e: 'copy-link', id: string, text: string): void;
 }>();
 
+const { ui } = useUIState();
+const focusPaneBottomInset = computed(() => {
+  if (!ui.value.isFocusPaneOpen) {
+    return 0;
+  }
+
+  return ui.value.isFocusPaneExpanded ? 464 : 304;
+});
+const outlineContainerStyle = computed(() => ({
+  paddingBottom: focusPaneBottomInset.value > 0 ? `${focusPaneBottomInset.value}px` : undefined,
+  scrollPaddingBottom: focusPaneBottomInset.value > 0 ? `${focusPaneBottomInset.value}px` : undefined,
+}));
+
 /* --- Outline auto scroll --- */
 /**
  * Reference to control the outline auto scroll
@@ -133,7 +147,7 @@ const scrollOutlineItemIntoView = (outlineItem: Element, outlineContainer: HTMLE
 
   // Check if the active item is out of the visible range
   const isAbove = itemRect.top < containerRect.top + tocHeadingHeight + offset;
-  const isBelow = itemRect.bottom > containerRect.bottom - offset;
+  const isBelow = itemRect.bottom > containerRect.bottom - focusPaneBottomInset.value - offset;
 
   if (isAbove || isBelow) {
     const currentScrollTop = outlineContainer.scrollTop;
@@ -142,7 +156,7 @@ const scrollOutlineItemIntoView = (outlineItem: Element, outlineContainer: HTMLE
     // Determine the new scroll position
     const targetScrollTop = isAbove
       ? currentScrollTop + itemTopRelativeToContainer - (tocHeadingHeight + offset)
-      : currentScrollTop + (itemRect.bottom - containerRect.bottom) + offset;
+      : currentScrollTop + (itemRect.bottom - containerRect.bottom) + focusPaneBottomInset.value + offset;
 
     outlineContainer.scrollTo({
       top: targetScrollTop,

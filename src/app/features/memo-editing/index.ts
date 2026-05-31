@@ -18,6 +18,7 @@ export { removeMemoKanbanStatus } from './resource/command/removeMemoKanbanStatu
 export { saveMemo } from './resource/command/saveMemo';
 export { syncMemoLinks } from './resource/command/syncMemoLinks';
 export { toggleMemoBookmark } from './resource/command/toggleMemoBookmark';
+export { toggleMemoFocusMemo } from './resource/command/toggleMemoFocusMemo';
 export { upsertMemoKanbanStatus } from './resource/command/upsertMemoKanbanStatus';
 export { default as AltEditDialog } from './view/compose-memo/AltEditDialog.vue';
 export { default as EditorToolbarButton } from './view/compose-memo/EditorToolbarButton.vue';

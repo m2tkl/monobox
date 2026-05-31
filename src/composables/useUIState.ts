@@ -1,5 +1,8 @@
 const ui = reactive({
   isSidebarOpen: true,
+  isFocusPaneOpen: false,
+  isFocusPaneExpanded: false,
+  focusPaneSortMode: 'focused' as 'focused' | 'updated',
 });
 
 const toggleSidebar = () => {

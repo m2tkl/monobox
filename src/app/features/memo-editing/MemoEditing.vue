@@ -53,10 +53,22 @@
                   aria-label="Kanban"
                   @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
                 />
-                <IconButton
-                  :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
-                  @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
-                />
+                <UTooltip text="Bookmark">
+                  <IconButton
+                    :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+                    aria-label="Bookmark"
+                    @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
+                  />
+                </UTooltip>
+                <UTooltip text="Focus">
+                  <IconButton
+                    class="focus-action-button"
+                    :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
+                    :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
+                    aria-label="Focus"
+                    @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
+                  />
+                </UTooltip>
 
                 <UDropdownMenu
                   :items="contextMenuItems"
@@ -588,6 +600,7 @@ const computeDirty = () => {
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 const hasMemo = computed(() => memoVM.value.data.memo != null);
 const isBookmarked = computed(() => memoVM.value.data.isBookmarked);
+const isFocused = computed(() => memoVM.value.data.isFocused);
 const contextViewWorkspaceSlug = ref('');
 const contextViewMemoSlug = ref('');
 const contextViewHash = ref('');
@@ -1197,6 +1210,7 @@ const { dispatchAction } = useMemoEditingActions({
     workspaceSlug,
     memoSlug,
     isBookmarked,
+    isFocused,
     hasMemo,
     router,
     openKanbanModal,
@@ -1391,6 +1405,11 @@ a.external-link {
 
 .template-suggestion-scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-scrollbar-thumb-hover);
+}
+
+.focus-action-button--active {
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
 }
 
 @media (max-width: 1100px) {

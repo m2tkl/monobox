@@ -2,6 +2,7 @@ pub mod asset;
 pub mod bookmark;
 pub mod config;
 pub mod file;
+pub mod focus_memo;
 pub mod kanban;
 pub mod kanban_assignment;
 pub mod kanban_status;

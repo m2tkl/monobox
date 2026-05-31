@@ -93,6 +93,8 @@ export default defineNuxtConfig({
         'carbon:menu',
         'carbon:bookmark',
         'carbon:bookmark-filled',
+        'carbon:pin',
+        'carbon:pin-filled',
         'carbon:recently-viewed',
         'carbon:arrows-horizontal',
         'carbon:db2-database',

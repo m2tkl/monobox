@@ -41,11 +41,13 @@
       </div>
     </div>
 
+    <FocusMemoDrawer />
     <slot name="actions" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { FocusMemoDrawer } from '~/app/features/focus-memo';
 import SidebarMenu from '~/app/scaffold/SidebarMenu/Index.vue';
 
 const { ui } = useUIState();
