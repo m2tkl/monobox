@@ -161,10 +161,6 @@ fn reregister_previous_shortcuts(app: &AppHandle, previous: &GlobalShortcutSetti
 }
 
 fn focus_main_window(app: &AppHandle) {
-    if let Err(error) = app.show() {
-        eprintln!("Failed to show app: {}", error);
-    }
-
     if let Some(window) = app.get_webview_window("main") {
         if let Err(error) = window.unminimize() {
             eprintln!("Failed to unminimize main window: {}", error);
