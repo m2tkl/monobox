@@ -75,6 +75,14 @@ export const fileCommand = {
     });
   },
 
+  updateExternalLink: async (params: { fileId: string; displayName: string; url: string }) => {
+    return await invokeCommand<ManagedFileRecord>('update_external_file_link', {
+      file_id: params.fileId,
+      display_name: params.displayName,
+      url: params.url,
+    });
+  },
+
   updateNote: async (params: { fileId: string; note: string }) => {
     return await invokeCommand<ManagedFileRecord>('update_file_note', {
       file_id: params.fileId,

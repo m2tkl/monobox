@@ -57,6 +57,13 @@ pub struct UpdateFileDisplayNameArgs {
 }
 
 #[derive(Deserialize)]
+pub struct UpdateExternalFileLinkArgs {
+    pub file_id: String,
+    pub display_name: String,
+    pub url: String,
+}
+
+#[derive(Deserialize)]
 pub struct UpdateFileNoteArgs {
     pub file_id: String,
     pub note: String,
@@ -149,39 +156,6 @@ pub fn open_local_path(args: OpenLocalPathArgs) -> Result<(), String> {
     open_file_with_fallback(&args.path)
 }
 
-fn open_with_system(target: &str, _is_url: bool) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    let mut command = {
-        let mut cmd = ProcessCommand::new("open");
-        cmd.arg(target);
-        cmd
-    };
-
-    #[cfg(target_os = "windows")]
-    let mut command = {
-        let mut cmd = ProcessCommand::new("cmd");
-        cmd.args(["/C", "start", "", target]);
-        cmd
-    };
-
-    #[cfg(all(unix, not(target_os = "macos")))]
-    let mut command = {
-        let mut cmd = ProcessCommand::new("xdg-open");
-        cmd.arg(target);
-        cmd
-    };
-
-    let status = command
-        .status()
-        .map_err(|e| format!("Failed to launch opener: {}", e))?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("Open command exited with status: {}", status))
-    }
-}
-
 fn open_with_system_background(target: &str) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     let mut command = {
@@ -212,7 +186,7 @@ fn open_with_system_background(target: &str) -> Result<(), String> {
 }
 
 fn open_file_with_fallback(path: &str) -> Result<(), String> {
-    match open_with_system(path, false) {
+    match open_with_system_background(path) {
         Ok(()) => Ok(()),
         Err(open_error) => {
             reveal_item_in_dir(path).map_err(|reveal_error| {
@@ -235,6 +209,14 @@ pub fn update_file_display_name(
 ) -> Result<ManagedFileRecord, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     FileRepository::update_display_name(&conn, &args.file_id, &args.display_name)
+}
+
+#[command]
+pub fn update_external_file_link(
+    args: UpdateExternalFileLinkArgs,
+) -> Result<ManagedFileRecord, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    FileRepository::update_external_link(&conn, &args.file_id, &args.display_name, &args.url)
 }
 
 #[command]

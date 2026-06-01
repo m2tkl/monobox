@@ -1,65 +1,35 @@
-import { computed, ref, watch } from 'vue';
+import { ref } from 'vue';
 
 import { createExternalFileLink } from '../../resource/command/createExternalFileLink';
 import { deleteManagedFile } from '../../resource/command/deleteManagedFile';
 import { linkManagedFileToMemo } from '../../resource/command/linkManagedFileToMemo';
 import { openManagedFile as executeOpenManagedFile } from '../../resource/command/openManagedFile';
 import { renameManagedFile } from '../../resource/command/renameManagedFile';
+import { updateExternalFileLink } from '../../resource/command/updateExternalFileLink';
 import { updateManagedFileNote } from '../../resource/command/updateManagedFileNote';
-import { useManagedFileDetailReadModel } from '../../resource/read-model';
 
 import type { ComputedRef, Ref } from 'vue';
+import type { ManagedFileDetail } from '~/models/file';
 
-import { managedFileDetailQuery } from '~/resources/file/queries';
+import { command } from '~/resources/command';
 import { handleError } from '~/utils/error';
 
 type UseManagedFileActionsOptions = {
   workspaceSlug: ComputedRef<string>;
-  detailFileId: Ref<string>;
   pendingFileId: Ref<string>;
   pendingEditFileId: Ref<string>;
   selectedMemoSlug: Ref<string>;
   createForm: Ref<{ displayName: string; url: string }>;
-  editForm: Ref<{ displayName: string }>;
+  editForm: Ref<{ displayName: string; url: string; note: string; type: 'local_file' | 'external_link' | '' }>;
   closeEditModal: () => void;
   closeLinkModal: () => void;
-  closeDetailModal: () => void;
-  openDetailModal: (fileId: string) => void;
   toast: ReturnType<typeof useToast>;
 };
 
 export function useManagedFileActions(options: UseManagedFileActionsOptions) {
   const isSubmitting = ref(false);
-  const detailReadModel = useManagedFileDetailReadModel(
-    options.workspaceSlug,
-    computed(() => options.detailFileId.value || ''),
-  );
-
-  const detail = computed(() => detailReadModel.value.data.detail);
-  const isDetailLoading = computed(() => detailReadModel.value.flags.isLoading);
-  const detailNoteDraft = ref('');
-  const hasDetailNoteChanges = computed(() =>
-    detailNoteDraft.value.trim() !== (detail.value?.note ?? ''),
-  );
-
-  watch(
-    () => [options.detailFileId.value, detail.value?.note ?? ''] as const,
-    ([fileId, note]) => {
-      detailNoteDraft.value = fileId ? note : '';
-    },
-    { immediate: true },
-  );
-
-  const refreshDetail = async () => {
-    if (!options.detailFileId.value) {
-      return;
-    }
-
-    await managedFileDetailQuery.fetch({
-      workspaceSlug: options.workspaceSlug.value,
-      fileId: options.detailFileId.value,
-    });
-  };
+  const isEditDetailLoading = ref(false);
+  const editDetail = ref<ManagedFileDetail | null>(null);
 
   const openManagedFile = async (fileId: string) => {
     try {
@@ -101,26 +71,43 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
     }
   };
 
-  const saveDisplayName = async () => {
+  const saveEdit = async () => {
     if (!options.pendingEditFileId.value) {
       return;
     }
 
     isSubmitting.value = true;
     try {
-      await renameManagedFile({
+      const isExternalLink = options.editForm.value.type === 'external_link';
+      if (isExternalLink) {
+        await updateExternalFileLink({
+          workspaceSlug: options.workspaceSlug.value,
+          fileId: options.pendingEditFileId.value,
+          displayName: options.editForm.value.displayName,
+          url: options.editForm.value.url,
+        });
+      }
+      else {
+        await renameManagedFile({
+          workspaceSlug: options.workspaceSlug.value,
+          fileId: options.pendingEditFileId.value,
+          displayName: options.editForm.value.displayName,
+        });
+      }
+
+      await updateManagedFileNote({
         workspaceSlug: options.workspaceSlug.value,
         fileId: options.pendingEditFileId.value,
-        displayName: options.editForm.value.displayName,
+        note: options.editForm.value.note,
       });
+
       options.closeEditModal();
-      options.toast.add({ title: 'Name updated.' });
-      await refreshDetail();
+      options.toast.add({ title: isExternalLink ? 'Link updated.' : 'File updated.' });
     }
     catch (error) {
       const appError = handleError(error);
       options.toast.add({
-        title: 'Failed to update name.',
+        title: 'Failed to update file.',
         description: appError.message,
         color: 'error',
       });
@@ -144,7 +131,6 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
       });
       options.toast.add({ title: 'Linked to memo.' });
       options.closeLinkModal();
-      await refreshDetail();
     }
     catch (error) {
       const appError = handleError(error);
@@ -154,54 +140,29 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
         color: 'error',
       });
     }
-    finally {
-      isSubmitting.value = false;
-    }
   };
 
-  const showDetail = async (fileId: string) => {
+  const loadEditTarget = async (fileId: string) => {
+    isEditDetailLoading.value = true;
+    editDetail.value = null;
     try {
-      await managedFileDetailQuery.fetch({
-        workspaceSlug: options.workspaceSlug.value,
-        fileId,
-      });
-      options.openDetailModal(fileId);
+      const fileDetail = await command.file.getFileDetail(fileId);
+      editDetail.value = fileDetail;
+      options.editForm.value.displayName = fileDetail.display_name;
+      options.editForm.value.url = fileDetail.url ?? '';
+      options.editForm.value.note = fileDetail.note ?? '';
+      options.editForm.value.type = fileDetail.type;
     }
     catch (error) {
       const appError = handleError(error);
       options.toast.add({
-        title: 'Failed to load details.',
-        description: appError.message,
-        color: 'error',
-      });
-    }
-  };
-
-  const saveDetailNote = async () => {
-    if (!options.detailFileId.value || !hasDetailNoteChanges.value) {
-      return;
-    }
-
-    isSubmitting.value = true;
-    try {
-      await updateManagedFileNote({
-        workspaceSlug: options.workspaceSlug.value,
-        fileId: options.detailFileId.value,
-        note: detailNoteDraft.value,
-      });
-      options.toast.add({ title: 'Memo updated.' });
-      await refreshDetail();
-    }
-    catch (error) {
-      const appError = handleError(error);
-      options.toast.add({
-        title: 'Failed to update memo.',
+        title: 'Failed to load file details.',
         description: appError.message,
         color: 'error',
       });
     }
     finally {
-      isSubmitting.value = false;
+      isEditDetailLoading.value = false;
     }
   };
 
@@ -212,8 +173,8 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
         workspaceSlug: options.workspaceSlug.value,
         fileId,
       });
-      if (options.detailFileId.value === fileId) {
-        options.closeDetailModal();
+      if (editDetail.value?.id === fileId) {
+        options.closeEditModal();
       }
       options.toast.add({ title: 'File removed.' });
     }
@@ -232,17 +193,13 @@ export function useManagedFileActions(options: UseManagedFileActionsOptions) {
 
   return {
     isSubmitting,
-    detail,
-    isDetailLoading,
-    detailNoteDraft,
-    hasDetailNoteChanges,
-    refreshDetail,
+    isEditDetailLoading,
+    editDetail,
     openManagedFile,
     createManagedLink,
-    saveDisplayName,
+    saveEdit,
+    loadEditTarget,
     linkToMemo,
-    showDetail,
-    saveDetailNote,
     removeRecord,
   };
 }

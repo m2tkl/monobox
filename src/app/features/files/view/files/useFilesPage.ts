@@ -4,6 +4,8 @@ import { useManagedFileActions } from './useManagedFileActions';
 import { useManagedFileDialogs } from './useManagedFileDialogs';
 import { useManagedFilesListState } from './useManagedFilesListState';
 
+import type { ManagedFileListItem } from '~/models/file';
+
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 type UseFilesPageOptions = {
@@ -29,7 +31,6 @@ export function useFilesPage(options: UseFilesPageOptions) {
   });
   const actions = useManagedFileActions({
     workspaceSlug,
-    detailFileId: dialogs.detailFileId,
     pendingFileId: dialogs.pendingFileId,
     pendingEditFileId: dialogs.pendingEditFileId,
     selectedMemoSlug: dialogs.selectedMemoSlug,
@@ -37,8 +38,6 @@ export function useFilesPage(options: UseFilesPageOptions) {
     editForm: dialogs.editForm,
     closeEditModal: dialogs.closeEditModal,
     closeLinkModal: dialogs.closeLinkModal,
-    closeDetailModal: dialogs.closeDetailModal,
-    openDetailModal: dialogs.openDetailModal,
     toast: options.toast,
   });
 
@@ -56,7 +55,12 @@ export function useFilesPage(options: UseFilesPageOptions) {
 
   const loadPage = async () => {
     await listState.loadPage();
-    await actions.refreshDetail();
+  };
+
+  const openEditModal = async (item: ManagedFileListItem) => {
+    dialogs.openEditModal(item);
+    await actions.loadEditTarget(item.id);
+    dialogs.showEditModal();
   };
 
   onMounted(() => {
@@ -79,6 +83,7 @@ export function useFilesPage(options: UseFilesPageOptions) {
     ...listState,
     ...dialogs,
     ...actions,
+    openEditModal,
     loadPage,
   };
 }

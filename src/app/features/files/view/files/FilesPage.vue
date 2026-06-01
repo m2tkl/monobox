@@ -128,7 +128,7 @@
                       <button
                         type="button"
                         class="file-name-button truncate text-left text-sm font-semibold"
-                        @click="showDetail(row.original.id)"
+                        @click="openManagedFile(row.original.id)"
                       >
                         {{ row.original.display_name }}
                       </button>
@@ -150,13 +150,15 @@
                   <template #actions-cell="{ row }">
                     <div class="action-strip">
                       <AppButton
+                        color="neutral"
                         variant="outline"
                         size="xs"
                         @click="openEditModal(row.original)"
                       >
-                        Rename
+                        Edit
                       </AppButton>
                       <AppButton
+                        color="neutral"
                         variant="outline"
                         size="xs"
                         @click="openLinkModal(row.original.id)"
@@ -164,6 +166,7 @@
                         Link to memo
                       </AppButton>
                       <AppButton
+                        color="error"
                         variant="ghost"
                         class="delete-action-button"
                         size="xs"
@@ -264,14 +267,74 @@
           <UCard>
             <template #header>
               <div class="text-sm font-semibold">
-                Rename file
+                {{ editForm.type === 'external_link' ? 'Edit shared link' : 'Edit file' }}
               </div>
             </template>
 
             <div class="space-y-4">
+              <div
+                v-if="isEditDetailLoading"
+                class="py-2"
+              >
+                <LoadingSpinner />
+              </div>
+
               <UFormField label="Name">
                 <AppInput v-model="editForm.displayName" />
               </UFormField>
+
+              <div
+                v-if="editDetail"
+                class="space-y-2 text-sm"
+              >
+                <div>
+                  <span class="font-semibold">Type:</span> {{ editDetail.type }}
+                </div>
+                <div>
+                  <span class="font-semibold">Imported:</span> {{ editDetail.imported_at }}
+                </div>
+                <div v-if="editDetail.relative_path">
+                  <span class="font-semibold">File name:</span> {{ editDetail.relative_path.split('/').at(-1) }}
+                </div>
+              </div>
+
+              <UFormField
+                v-if="editForm.type === 'external_link'"
+                label="URL"
+              >
+                <AppInput v-model="editForm.url" />
+              </UFormField>
+              <UFormField label="Note">
+                <UTextarea
+                  v-model="editForm.note"
+                  class="w-full"
+                  :rows="4"
+                  placeholder="Add a short note about this file"
+                />
+              </UFormField>
+
+              <div
+                v-if="editDetail"
+                class="space-y-2 text-sm"
+              >
+                <div class="font-semibold">
+                  Related memos
+                </div>
+                <div
+                  v-if="editDetail.related_memos.length === 0"
+                  style="color: var(--color-text-muted)"
+                >
+                  No related memos.
+                </div>
+                <NuxtLink
+                  v-for="memo in editDetail.related_memos"
+                  :key="`${memo.workspace_slug_name}/${memo.memo_slug_title}`"
+                  class="block underline"
+                  :to="`/${memo.workspace_slug_name}/${memo.memo_slug_title}`"
+                >
+                  {{ memo.title }}
+                </NuxtLink>
+              </div>
             </div>
 
             <template #footer>
@@ -281,12 +344,21 @@
                   variant="ghost"
                   @click="closeEditModal"
                 >
-                  Cancel
+                  Close
+                </AppButton>
+                <AppButton
+                  v-if="editDetail"
+                  color="neutral"
+                  variant="outline"
+                  icon="carbon:launch"
+                  @click="openManagedFile(editDetail.id)"
+                >
+                  Open
                 </AppButton>
                 <AppButton
                   :loading="isSubmitting"
-                  :disabled="!pendingEditFileId || !editForm.displayName.trim()"
-                  @click="saveDisplayName"
+                  :disabled="isEditDetailLoading || !pendingEditFileId || !editForm.displayName.trim() || (editForm.type === 'external_link' && !editForm.url.trim())"
+                  @click="saveEdit"
                 >
                   Save
                 </AppButton>
@@ -313,104 +385,6 @@
         @submit="linkToMemo"
         @select-command="onSelectMemoCommand"
       />
-
-      <UModal v-model:open="isDetailModalOpen">
-        <template #content>
-          <UCard v-if="detail">
-            <template #header>
-              <div class="text-sm font-semibold">
-                {{ detail.display_name }}
-              </div>
-            </template>
-
-            <div
-              v-if="isDetailLoading"
-              class="py-4"
-            >
-              <LoadingSpinner />
-            </div>
-
-            <div
-              v-else
-              class="space-y-3 text-sm"
-            >
-              <div>
-                <span class="font-semibold">Type:</span> {{ detail.type }}
-              </div>
-              <div>
-                <span class="font-semibold">Imported:</span> {{ detail.imported_at }}
-              </div>
-              <div v-if="detail.relative_path">
-                <span class="font-semibold">File name:</span> {{ detail.relative_path.split('/').at(-1) }}
-              </div>
-              <div v-if="detail.url">
-                <span class="font-semibold">URL:</span> {{ detail.url }}
-              </div>
-
-              <div class="space-y-2">
-                <div class="font-semibold">
-                  Memo
-                </div>
-                <UTextarea
-                  v-model="detailNoteDraft"
-                  class="w-full"
-                  :rows="4"
-                  placeholder="Add a short memo about this file"
-                />
-                <div class="flex justify-end">
-                  <AppButton
-                    color="neutral"
-                    variant="outline"
-                    :disabled="!hasDetailNoteChanges"
-                    :loading="isSubmitting"
-                    @click="saveDetailNote"
-                  >
-                    Save memo
-                  </AppButton>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <div class="font-semibold">
-                  Related memos
-                </div>
-                <div
-                  v-if="detail.related_memos.length === 0"
-                  style="color: var(--color-text-muted)"
-                >
-                  No related memos.
-                </div>
-                <NuxtLink
-                  v-for="memo in detail.related_memos"
-                  :key="`${memo.workspace_slug_name}/${memo.memo_slug_title}`"
-                  class="block underline"
-                  :to="`/${memo.workspace_slug_name}/${memo.memo_slug_title}`"
-                >
-                  {{ memo.title }}
-                </NuxtLink>
-              </div>
-            </div>
-
-            <template #footer>
-              <div class="flex justify-end gap-2">
-                <AppButton
-                  color="neutral"
-                  variant="ghost"
-                  @click="closeDetailModal"
-                >
-                  Close
-                </AppButton>
-                <AppButton
-                  icon="carbon:launch"
-                  @click="openManagedFile(detail.id)"
-                >
-                  Open
-                </AppButton>
-              </div>
-            </template>
-          </UCard>
-        </template>
-      </UModal>
     </template>
   </NuxtLayout>
 </template>
@@ -450,14 +424,13 @@ const {
   activeTab,
   isLoading,
   isSubmitting,
-  isDetailLoading,
+  isEditDetailLoading,
   items,
   totalCount,
-  detail,
+  editDetail,
   isCreateModalOpen,
   isEditModalOpen,
   isLinkModalOpen,
-  isDetailModalOpen,
   inboxPanelRef,
   pendingFileId,
   pendingEditFileId,
@@ -465,7 +438,6 @@ const {
   memoSearchQuery,
   createForm,
   editForm,
-  detailNoteDraft,
   currentPage,
   searchQuery,
   showUnlinkedOnly,
@@ -486,15 +458,11 @@ const {
   createManagedLink,
   openEditModal,
   closeEditModal,
-  saveDisplayName,
+  saveEdit,
   openLinkModal,
   closeLinkModal,
-  closeDetailModal,
   onSelectMemoCommand,
   linkToMemo,
-  showDetail,
-  hasDetailNoteChanges,
-  saveDetailNote,
   removeRecord,
 } = useFilesPage({
   route,

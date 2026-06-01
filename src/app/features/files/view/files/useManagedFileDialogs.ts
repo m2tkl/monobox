@@ -26,19 +26,20 @@ export function useManagedFileDialogs(options: UseManagedFileDialogsOptions) {
   const isCreateModalOpen = ref(false);
   const isEditModalOpen = ref(false);
   const isLinkModalOpen = ref(false);
-  const isDetailModalOpen = ref(false);
   const pendingFileId = ref('');
   const pendingEditFileId = ref('');
   const selectedMemoSlug = ref('');
   const selectedMemoCommand = ref<unknown[]>([]);
   const memoSearchQuery = ref('');
-  const detailFileId = ref('');
   const createForm = ref({
     displayName: '',
     url: '',
   });
   const editForm = ref({
     displayName: '',
+    url: '',
+    note: '',
+    type: '' as ManagedFileListItem['type'] | '',
   });
 
   const memoCommandGroups = computed<MemoCommandGroup[]>(() => [{
@@ -72,12 +73,21 @@ export function useManagedFileDialogs(options: UseManagedFileDialogsOptions) {
   const openEditModal = (item: ManagedFileListItem) => {
     pendingEditFileId.value = item.id;
     editForm.value.displayName = item.display_name;
+    editForm.value.url = '';
+    editForm.value.note = '';
+    editForm.value.type = item.type;
+  };
+
+  const showEditModal = () => {
     isEditModalOpen.value = true;
   };
 
   const closeEditModal = () => {
     pendingEditFileId.value = '';
     editForm.value.displayName = '';
+    editForm.value.url = '';
+    editForm.value.note = '';
+    editForm.value.type = '';
     isEditModalOpen.value = false;
   };
 
@@ -106,38 +116,25 @@ export function useManagedFileDialogs(options: UseManagedFileDialogsOptions) {
     selectedMemoCommand.value = [];
   };
 
-  const openDetailModal = (fileId: string) => {
-    detailFileId.value = fileId;
-    isDetailModalOpen.value = true;
-  };
-
-  const closeDetailModal = () => {
-    isDetailModalOpen.value = false;
-    detailFileId.value = '';
-  };
-
   return {
     isCreateModalOpen,
     isEditModalOpen,
     isLinkModalOpen,
-    isDetailModalOpen,
     pendingFileId,
     pendingEditFileId,
     selectedMemoSlug,
     selectedMemoCommand,
     memoSearchQuery,
-    detailFileId,
     createForm,
     editForm,
     memoCommandGroups,
     pendingFileItem,
     selectedMemoTitle,
     openEditModal,
+    showEditModal,
     closeEditModal,
     openLinkModal,
     closeLinkModal,
     onSelectMemoCommand,
-    openDetailModal,
-    closeDetailModal,
   };
 }

@@ -348,6 +348,38 @@ impl FileRepository {
         Self::find_record(conn, file_id)?.ok_or_else(|| "File record was not found.".to_string())
     }
 
+    pub fn update_external_link(
+        conn: &Connection,
+        file_id: &str,
+        display_name: &str,
+        url: &str,
+    ) -> Result<ManagedFileRecord, String> {
+        let normalized_display_name = display_name.trim();
+        if normalized_display_name.is_empty() {
+            return Err("Display name is required.".to_string());
+        }
+
+        let normalized_url = url.trim();
+        if normalized_url.is_empty() {
+            return Err("URL is required.".to_string());
+        }
+
+        let updated = conn
+            .execute(
+                "UPDATE files
+                 SET display_name = ?, url = ?
+                 WHERE id = ? AND type = 'external_link'",
+                params![normalized_display_name, normalized_url, file_id],
+            )
+            .map_err(|e| e.to_string())?;
+
+        if updated == 0 {
+            return Err("External link record was not found.".to_string());
+        }
+
+        Self::find_record(conn, file_id)?.ok_or_else(|| "File record was not found.".to_string())
+    }
+
     pub fn update_note(
         conn: &Connection,
         file_id: &str,
