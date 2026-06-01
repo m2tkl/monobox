@@ -22,23 +22,19 @@
         </div>
 
         <template #footer>
-          <div class="h-8 w-full flex">
+          <div class="flex justify-end gap-2">
             <AppButton
-              form="set-link"
-              type="submit"
-              class="bg-slate-600"
-            >
-              Save
-            </AppButton>
-
-            <span class="flex-1" />
-
-            <AppButton
-              variant="solid"
-              class="bg-slate-600"
+              color="neutral"
+              variant="ghost"
               @click="cancel"
             >
               Cancel
+            </AppButton>
+            <AppButton
+              form="set-link"
+              type="submit"
+            >
+              Save
             </AppButton>
           </div>
         </template>

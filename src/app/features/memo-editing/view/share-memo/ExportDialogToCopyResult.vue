@@ -12,12 +12,20 @@
     </template>
 
     <template #footer>
-      <AppButton
-        class="bg-slate-600"
-        @click="$emit('copy', textToExport_)"
-      >
-        Copy
-      </AppButton>
+      <div class="flex justify-end gap-2">
+        <AppButton
+          color="neutral"
+          variant="ghost"
+          @click="modalOpen = false"
+        >
+          Close
+        </AppButton>
+        <AppButton
+          @click="$emit('copy', textToExport_)"
+        >
+          Copy
+        </AppButton>
+      </div>
     </template>
   </UModal>
 </template>

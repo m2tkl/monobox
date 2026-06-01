@@ -250,16 +250,17 @@
 
                       <div class="space-y-4">
                         <UFormField label="Name">
-                          <UInput v-model="externalFileForm.displayName" />
+                          <AppInput v-model="externalFileForm.displayName" />
                         </UFormField>
                         <UFormField label="URL">
-                          <UInput v-model="externalFileForm.url" />
+                          <AppInput v-model="externalFileForm.url" />
                         </UFormField>
                       </div>
 
                       <template #footer>
                         <div class="flex justify-end gap-2">
                           <AppButton
+                            color="neutral"
                             variant="ghost"
                             @click="isExternalFileModalOpen = false"
                           >
@@ -467,6 +468,7 @@ import type { LocationQueryRaw } from 'vue-router';
 import type { InboxFileItem, ManagedFileListItem } from '~/models/file';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
+import AppInput from '~/app/elements/AppInput.vue';
 import IconButton from '~/app/elements/IconButton.vue';
 import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent } from '~/app/features/editor';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';

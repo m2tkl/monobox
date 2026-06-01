@@ -32,6 +32,7 @@
       <div class="status-row status-row--create">
         <AppButton
           size="xs"
+          color="primary"
           icon="carbon:add"
           @click="openCreateDialog"
         >
@@ -53,6 +54,8 @@
         <div class="status-actions">
           <AppButton
             size="xs"
+            color="neutral"
+            variant="outline"
             icon="carbon:edit"
             @click="openEditDialog(status)"
           >
@@ -61,12 +64,16 @@
           <div class="status-order">
             <AppButton
               size="xs"
+              color="neutral"
+              variant="ghost"
               icon="carbon:chevron-up"
               :disabled="index === 0"
               @click="moveStatus(status.id, 'up')"
             />
             <AppButton
               size="xs"
+              color="neutral"
+              variant="ghost"
               icon="carbon:chevron-down"
               :disabled="index === statuses.length - 1"
               @click="moveStatus(status.id, 'down')"
@@ -75,6 +82,7 @@
           <AppButton
             size="xs"
             color="error"
+            variant="ghost"
             :loading="isDeleting(status.id)"
             @click="requestDeleteStatus(status.id)"
           >
@@ -115,7 +123,11 @@
           </div>
           <template #footer>
             <div class="flex justify-end gap-2">
-              <AppButton @click="createDialogOpen = false">
+              <AppButton
+                color="neutral"
+                variant="ghost"
+                @click="createDialogOpen = false"
+              >
                 Cancel
               </AppButton>
               <AppButton
@@ -159,7 +171,11 @@
           </div>
           <template #footer>
             <div class="flex justify-end gap-2">
-              <AppButton @click="editDialogOpen = false">
+              <AppButton
+                color="neutral"
+                variant="ghost"
+                @click="editDialogOpen = false"
+              >
                 Cancel
               </AppButton>
               <AppButton

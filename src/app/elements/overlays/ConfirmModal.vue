@@ -8,6 +8,8 @@
       <div class="flex justify-end gap-2">
         <AppButton
           type="button"
+          color="neutral"
+          variant="ghost"
           @click="cancel"
         >
           {{ cancelLabel }}

@@ -27,6 +27,8 @@
             <div class="kanban-toolbar-actions">
               <AppButton
                 size="sm"
+                color="neutral"
+                variant="outline"
                 :icon="iconKey.add"
                 @click="openCreateKanban"
               >
@@ -34,6 +36,7 @@
               </AppButton>
               <AppButton
                 size="sm"
+                color="neutral"
                 variant="outline"
                 :disabled="selectedKanbanId === null"
                 @click="openStatusManager"
@@ -42,7 +45,8 @@
               </AppButton>
               <AppButton
                 size="sm"
-                variant="outline"
+                color="error"
+                variant="ghost"
                 :disabled="selectedKanbanId === null"
                 @click="openDeleteKanban"
               >
@@ -50,6 +54,7 @@
               </AppButton>
               <AppButton
                 size="sm"
+                color="primary"
                 :icon="iconKey.add"
                 :disabled="disableAddButton"
                 @click="openAddModal"
@@ -211,7 +216,11 @@
               </div>
               <template #footer>
                 <div class="flex justify-end gap-2">
-                  <AppButton @click="isCreateKanbanOpen = false">
+                  <AppButton
+                    color="neutral"
+                    variant="ghost"
+                    @click="isCreateKanbanOpen = false"
+                  >
                     Cancel
                   </AppButton>
                   <AppButton

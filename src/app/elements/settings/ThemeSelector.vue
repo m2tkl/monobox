@@ -5,6 +5,7 @@
   >
     <AppButton
       variant="ghost"
+      color="neutral"
       :icon="currentTheme.config.icon"
       :label="currentTheme.config.name"
       trailing-icon="i-heroicons-chevron-down-20-solid"

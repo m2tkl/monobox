@@ -32,6 +32,14 @@ function isCommand(item: unknown): item is Command {
   return 'tag' in item;
 }
 
+function isShortcutHandled(event: KeyboardEvent) {
+  return (event as KeyboardEvent & { __monoboxSearchPaletteHandled?: boolean }).__monoboxSearchPaletteHandled === true;
+}
+
+function markShortcutHandled(event: KeyboardEvent) {
+  (event as KeyboardEvent & { __monoboxSearchPaletteHandled?: boolean }).__monoboxSearchPaletteHandled = true;
+}
+
 export type UseSearchPaletteOptions = {
   type: Ref<'search' | 'link'>;
   workspaceSlug: Ref<string>;
@@ -165,6 +173,11 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
 
   const handleKeydownShortcut = (event: KeyboardEvent) => {
     if (isCmdKey(event) && event.key === options.shortcutSymbol.value) {
+      if (isShortcutHandled(event)) {
+        return;
+      }
+
+      markShortcutHandled(event);
       event.preventDefault();
 
       const selectedText = options.editor?.value ? EditorQuery.getSelectedTextV2(options.editor.value.view) : '';

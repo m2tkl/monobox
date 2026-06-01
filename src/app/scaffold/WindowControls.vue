@@ -215,6 +215,7 @@ const toggleMaximize = async () => {
 .window-controls.windows .control-button {
   width: 46px;
   height: 100%;
+  align-self: stretch;
   color: var(--color-text-muted);
 }
 

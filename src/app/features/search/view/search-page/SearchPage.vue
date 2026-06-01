@@ -17,8 +17,8 @@
             />
             <AppButton
               v-if="hasQuery"
-              variant="subtle"
               color="neutral"
+              variant="ghost"
               size="sm"
               @click="clearQuery"
             >

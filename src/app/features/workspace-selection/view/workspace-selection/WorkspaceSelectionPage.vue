@@ -12,14 +12,13 @@
             </h2>
             <div class="flex items-center gap-2">
               <AppButton
+                color="neutral"
                 variant="ghost"
-                :style="{ color: 'var(--color-text-primary)' }"
                 @click="goToSettings"
               >
                 Settings
               </AppButton>
               <AppButton
-                style="background-color: var(--color-primary); color: white;"
                 @click="openNewWorkspaceModal"
               >
                 New
@@ -89,12 +88,18 @@
         </template>
 
         <template #footer>
-          <div class="h-8">
+          <div class="flex justify-end gap-2">
+            <AppButton
+              color="neutral"
+              variant="ghost"
+              @click="isCreateModalOpen = false"
+            >
+              Cancel
+            </AppButton>
             <AppButton
               form="create-workspace-form"
               type="submit"
               :loading="isCreatingWorkspace"
-              style="background-color: var(--color-primary); color: white;"
             >
               Create
             </AppButton>

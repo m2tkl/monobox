@@ -45,7 +45,7 @@ withDefaults(defineProps<{
 const attrs = useAttrs();
 const appInputUi = {
   root: 'w-full',
-  base: 'w-full rounded-[calc(var(--ui-radius)*1.5)] border-0 bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] ring ring-inset ring-[var(--color-border-light)] transition-colors focus:outline-none hover:ring-[var(--color-border-hover)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-75',
+  base: 'w-full rounded-[calc(var(--ui-radius)*1.5)] border border-[var(--color-border-light)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-text-muted)_18%,transparent)] transition-colors focus:outline-none hover:border-[var(--color-border-hover)] focus-visible:border-[var(--color-primary)] focus-visible:shadow-[inset_0_0_0_1px_var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-75',
   leading: 'absolute inset-y-0 start-0 flex items-center ps-2.5 pointer-events-none',
   trailing: 'absolute inset-y-0 end-0 flex items-center pe-2.5 pointer-events-none',
   leadingIcon: 'shrink-0 text-[var(--color-text-secondary)]',

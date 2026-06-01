@@ -20,12 +20,20 @@
     </template>
 
     <template #footer>
-      <AppButton
-        class="bg-slate-600"
-        @click="$emit('select', exportTargets.filter((link) => link.target))"
-      >
-        Export
-      </AppButton>
+      <div class="flex justify-end gap-2">
+        <AppButton
+          color="neutral"
+          variant="ghost"
+          @click="modalOpen = false"
+        >
+          Cancel
+        </AppButton>
+        <AppButton
+          @click="$emit('select', exportTargets.filter(link => link.target))"
+        >
+          Export
+        </AppButton>
+      </div>
     </template>
   </UModal>
 </template>

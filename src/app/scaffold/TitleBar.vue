@@ -251,6 +251,12 @@ async function goToNewMemo() {
   align-items: center;
   justify-content: flex-end;
   gap: 0.375rem;
+  height: 100%;
+}
+
+.titlebar-actions :deep(.window-controls.windows) {
+  margin-right: -1rem;
+  margin-left: 0.625rem;
 }
 
 .titlebar-search-text {

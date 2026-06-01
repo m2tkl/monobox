@@ -11,6 +11,7 @@
         <AppButton
           class="template-primary-button"
           size="sm"
+          color="primary"
           :icon="iconKey.add"
           :loading="isCreating"
           @click="createTemplate"
@@ -60,6 +61,8 @@
           <AppButton
             class="template-soft-button"
             size="xs"
+            color="neutral"
+            variant="ghost"
             :loading="defaultingSlug === template.slug_name"
             @click="toggleDefaultTemplate(template)"
           >
@@ -68,6 +71,8 @@
           <AppButton
             class="template-outline-button"
             size="xs"
+            color="neutral"
+            variant="ghost"
             :icon="iconKey.edit"
             @click="editTemplate(template.slug_name)"
           >
@@ -76,6 +81,8 @@
           <AppButton
             class="template-delete-button"
             size="xs"
+            color="error"
+            variant="ghost"
             :icon="iconKey.trash"
             square
             aria-label="Delete template"
@@ -281,9 +288,10 @@ function handleTemplateEditorOpenChange(next: boolean) {
 }
 
 :deep(.template-soft-button) {
-  background-color: var(--color-surface);
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 88%, var(--color-background));
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid color-mix(in srgb, var(--color-border-light) 72%, transparent);
+  box-shadow: none;
 }
 
 :deep(.template-soft-button:hover) {
@@ -293,7 +301,8 @@ function handleTemplateEditorOpenChange(next: boolean) {
 :deep(.template-outline-button) {
   background-color: transparent;
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid color-mix(in srgb, var(--color-border-light) 72%, transparent);
+  box-shadow: none;
 }
 
 :deep(.template-outline-button:hover) {
@@ -308,8 +317,17 @@ function handleTemplateEditorOpenChange(next: boolean) {
 
 :deep(.template-delete-button:hover) {
   background-color: var(--color-surface-hover);
-  border-color: var(--color-border-light);
+  border-color: color-mix(in srgb, var(--color-border-light) 72%, transparent);
   color: var(--color-text-primary);
+}
+
+.dark :deep(.template-soft-button),
+.dark :deep(.template-outline-button) {
+  border-color: var(--color-border-light);
+}
+
+.dark :deep(.template-soft-button) {
+  background-color: var(--color-surface);
 }
 
 :deep(.template-default-badge) {

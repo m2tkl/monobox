@@ -59,6 +59,8 @@
             <AppButton
               type="button"
               :disabled="isSaving"
+              color="neutral"
+              variant="outline"
               @click="showCustom"
             >
               Change paths
@@ -94,6 +96,8 @@
             </AppButton>
             <AppButton
               type="button"
+              color="neutral"
+              variant="outline"
               @click="showCustom"
             >
               Choose custom paths
@@ -197,6 +201,8 @@
             <AppButton
               type="button"
               :disabled="isSaving"
+              color="neutral"
+              variant="outline"
               @click="showCustom"
             >
               Choose custom paths
@@ -214,13 +220,15 @@
             description="Select the database file to use."
           >
             <div class="flex gap-2">
-              <UInput
+              <AppInput
                 v-model="formState.databasePath"
                 class="flex-1"
                 placeholder="/path/to/data.db"
               />
               <AppButton
                 type="button"
+                color="neutral"
+                variant="outline"
                 @click="selectDatabasePath"
               >
                 Browse
@@ -234,13 +242,15 @@
             description="Select the folder to store assets."
           >
             <div class="flex gap-2">
-              <UInput
+              <AppInput
                 v-model="formState.assetDirPath"
                 class="flex-1"
                 placeholder="/path/to/_assets"
               />
               <AppButton
                 type="button"
+                color="neutral"
+                variant="outline"
                 @click="selectAssetDir"
               >
                 Browse
@@ -254,13 +264,15 @@
             description="Select the folder where imported files will be stored."
           >
             <div class="flex gap-2">
-              <UInput
+              <AppInput
                 v-model="formState.filesStorageRoot"
                 class="flex-1"
                 placeholder="/path/to/managed-files"
               />
               <AppButton
                 type="button"
+                color="neutral"
+                variant="outline"
                 @click="selectFilesStorageRoot"
               >
                 Browse
@@ -275,6 +287,8 @@
             <AppButton
               type="button"
               size="xs"
+              color="neutral"
+              variant="outline"
               @click="applyRecommended"
             >
               Use default paths
@@ -295,6 +309,8 @@
           <AppButton
             type="button"
             :disabled="isSaving"
+            color="neutral"
+            variant="outline"
             @click="resetForm"
           >
             Reset
@@ -307,6 +323,8 @@
         >
           <AppButton
             type="button"
+            color="neutral"
+            variant="outline"
             @click="restartApp"
           >
             Restart now
@@ -345,6 +363,8 @@
       <template #footer>
         <div class="flex justify-end gap-2">
           <AppButton
+            color="neutral"
+            variant="ghost"
             @click="showMissingDialog = false"
           >
             Cancel
@@ -365,6 +385,7 @@
 import { storageConfigCommand } from '../../resource/command/storageConfig';
 
 import AppButton from '~/app/elements/AppButton.vue';
+import AppInput from '~/app/elements/AppInput.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { handleError } from '~/utils/error';
 

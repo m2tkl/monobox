@@ -86,8 +86,10 @@
                   <code class="settings-code">{{ mcpServerInfo.url }}</code>
                   <div class="settings-actions">
                     <AppButton
+                      class="settings-action-button"
                       size="sm"
-                      variant="subtle"
+                      color="neutral"
+                      variant="outline"
                       :icon="iconKey.copy"
                       @click="copyMcpServerUrl"
                     >
@@ -95,8 +97,10 @@
                     </AppButton>
 
                     <AppButton
+                      class="settings-action-button"
                       size="sm"
-                      variant="subtle"
+                      color="neutral"
+                      variant="outline"
                       :icon="iconKey.renew"
                       @click="regenerateMcpServerUrl"
                     >
@@ -184,7 +188,7 @@
                 <div class="settings-actions">
                   <AppButton
                     size="sm"
-                    variant="subtle"
+                    color="primary"
                     :icon="iconKey.save"
                     :loading="isGlobalShortcutSaving"
                     :disabled="!isGlobalShortcutDirty"
@@ -250,7 +254,7 @@
                   <div class="settings-actions">
                     <AppButton
                       size="sm"
-                      variant="subtle"
+                      color="primary"
                       :icon="iconKey.save"
                       :loading="isWindowOpacitySaving"
                       :disabled="!isWindowOpacityDirty"
@@ -631,7 +635,6 @@ await usePageLoader(async () => {
   display: flex;
   height: 100%;
   min-height: 0;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .settings-sidebar {
@@ -786,6 +789,33 @@ await usePageLoader(async () => {
   gap: 8px;
   margin-top: 10px;
   flex-wrap: wrap;
+}
+
+:deep(.settings-action-button) {
+  min-height: 2rem;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--color-border-light) 78%, transparent) !important;
+  border-radius: 0.375rem;
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 86%, var(--color-background)) !important;
+  box-shadow: none;
+  color: var(--color-text-primary) !important;
+}
+
+:deep(.settings-action-button:hover),
+:deep(.settings-action-button:focus-visible) {
+  border-color: color-mix(in srgb, var(--color-border-hover) 72%, var(--color-border-light)) !important;
+  background-color: var(--color-surface-hover) !important;
+}
+
+.dark :deep(.settings-action-button) {
+  border-color: color-mix(in srgb, var(--color-text-muted) 80%, var(--color-primary)) !important;
+  background-color: color-mix(in srgb, var(--color-surface-elevated) 72%, var(--color-background)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text-muted) 22%, transparent);
+}
+
+.dark :deep(.settings-action-button:hover),
+.dark :deep(.settings-action-button:focus-visible) {
+  border-color: color-mix(in srgb, var(--color-text-secondary) 82%, var(--color-primary)) !important;
 }
 
 .settings-control {

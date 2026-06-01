@@ -7,23 +7,20 @@
         </div>
 
         <template #footer>
-          <div class="flex h-8 w-full">
+          <div class="flex justify-end gap-2">
+            <AppButton
+              color="neutral"
+              variant="ghost"
+              @click="resolveConfirmation(false)"
+            >
+              Cancel
+            </AppButton>
             <AppButton
               type="submit"
               color="error"
               @click="resolveConfirmation(true)"
             >
               Delete
-            </AppButton>
-
-            <span class="flex-1" />
-
-            <AppButton
-              variant="solid"
-              color="neutral"
-              @click="resolveConfirmation(false)"
-            >
-              Cancel
             </AppButton>
           </div>
         </template>

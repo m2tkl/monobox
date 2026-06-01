@@ -10,7 +10,7 @@
         <AppButton
           :icon="iconKey.arrowLeft"
           color="neutral"
-          variant="soft"
+          variant="outline"
           @click="$router.go(-1)"
         >
           Exit

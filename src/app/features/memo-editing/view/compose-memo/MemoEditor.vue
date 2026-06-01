@@ -386,7 +386,15 @@ onBeforeUnmount(() => {
 }
 
 :deep(hr) {
-  border-color: var(--color-border-light) !important;
+  height: 1px !important;
+  border: 0 !important;
+  background-color: rgb(100 116 139 / 0.32) !important;
+  opacity: 1;
+}
+
+:global(.dark) :deep(hr) {
+  height: 2px !important;
+  background-color: rgb(148 163 184 / 0.78) !important;
 }
 
 .table-handle {
