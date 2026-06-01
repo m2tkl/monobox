@@ -9,7 +9,7 @@
             class="flex h-full items-center justify-center text-center"
             style="color: var(--color-text-secondary)"
           >
-            No recent memos
+            {{ emptyLabel }}
           </div>
 
           <template v-else>
@@ -20,7 +20,7 @@
                   class="mr-2"
                 />
                 <h2 class="font-bold sidebar-heading">
-                  Recent
+                  {{ headingLabel }}
                 </h2>
               </div>
             </div>
@@ -80,6 +80,8 @@ const {
   recentMemos,
   limitedRecentMemos,
   hasMoreRecentMemos,
+  headingLabel,
+  emptyLabel,
   loadMore,
 } = useMemoBrowsing();
 </script>

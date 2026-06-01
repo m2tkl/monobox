@@ -47,38 +47,49 @@
               </template>
 
               <template #context-menu>
-                <IconButton
-                  :icon="iconKey.kanban"
-                  :disabled="isKanbanLoading || !memoVM.data.memo"
-                  aria-label="Kanban"
-                  @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
-                />
-                <UTooltip text="Bookmark">
-                  <IconButton
-                    :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
-                    aria-label="Bookmark"
-                    @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
-                  />
-                </UTooltip>
-                <UTooltip text="Focus">
-                  <IconButton
-                    class="focus-action-button"
-                    :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
-                    :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
-                    aria-label="Focus"
-                    @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
-                  />
-                </UTooltip>
-
-                <UDropdownMenu
-                  :items="contextMenuItems"
-                >
-                  <div class="flex items-center">
-                    <UIcon
-                      :name="iconKey.dotMenuVertical"
+                <div class="memo-action-group">
+                  <UTooltip text="Bookmark">
+                    <IconButton
+                      :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+                      aria-label="Bookmark"
+                      @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
                     />
-                  </div>
-                </UDropdownMenu>
+                  </UTooltip>
+                </div>
+
+                <div class="memo-action-separator" />
+
+                <div class="memo-action-group">
+                  <IconButton
+                    :icon="iconKey.kanban"
+                    :disabled="isKanbanLoading || !memoVM.data.memo"
+                    aria-label="Status"
+                    @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
+                  />
+                  <UTooltip text="Focus">
+                    <IconButton
+                      class="focus-action-button"
+                      :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
+                      :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
+                      aria-label="Focus"
+                      @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
+                    />
+                  </UTooltip>
+                </div>
+
+                <div class="memo-action-separator" />
+
+                <div class="memo-action-group">
+                  <UDropdownMenu
+                    :items="contextMenuItems"
+                  >
+                    <div class="flex items-center">
+                      <UIcon
+                        :name="iconKey.dotMenuVertical"
+                      />
+                    </div>
+                  </UDropdownMenu>
+                </div>
               </template>
 
               <template #bubble-menu="{ editor: _editor }">
@@ -312,57 +323,15 @@
               </div>
             </div>
 
-            <UModal v-model:open="isKanbanModalOpen">
-              <template #content>
-                <UCard>
-                  <div class="kanban-assign-modal">
-                    <div class="kanban-assign-title">
-                      Kanban assignments
-                    </div>
-                    <div
-                      v-if="kanbans.length === 0"
-                      class="kanban-assign-empty"
-                    >
-                      No Kanban boards available.
-                    </div>
-                    <div
-                      v-else
-                      class="kanban-assign-list"
-                    >
-                      <div
-                        v-for="kanban in kanbans"
-                        :key="kanban.id"
-                        class="kanban-assign-row"
-                      >
-                        <div class="kanban-assign-info">
-                          <div class="kanban-assign-name">
-                            {{ kanban.name }}
-                          </div>
-                          <div
-                            v-if="kanbanEntryMap.get(kanban.id)"
-                            class="kanban-assign-meta"
-                          >
-                            {{ kanbanEntryMap.get(kanban.id)?.kanban_status_name || 'No status' }}
-                          </div>
-                        </div>
-                        <div class="kanban-assign-actions">
-                          <USelect
-                            v-model="kanbanSelections[kanban.id]"
-                            :items="getStatusOptions(kanban.id)"
-                            size="xs"
-                            variant="outline"
-                            label-key="label"
-                            value-key="value"
-                            :disabled="isKanbanUpdating(kanban.id)"
-                            @update:model-value="(value) => applyKanbanStatus(kanban.id, typeof value === 'string' ? Number(value) : value)"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </UCard>
-              </template>
-            </UModal>
+            <MemoStatusAssignmentDialog
+              v-model:open="isKanbanModalOpen"
+              :kanbans="kanbans"
+              :entry-map="kanbanEntryMap"
+              :selections="kanbanSelections"
+              :is-updating="isKanbanUpdating"
+              :get-statuses="getStatuses"
+              :apply-status="applyKanbanStatus"
+            />
 
             <!-- Related links -->
             <MemoLinkCardView
@@ -454,6 +423,7 @@ import { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
 import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
 import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
+import MemoStatusAssignmentDialog from './view/organize-memo/MemoStatusAssignmentDialog.vue';
 import ExportDialogToCopyResult from './view/share-memo/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
 import { useMemoExport } from './view/share-memo/memoExport';
@@ -501,7 +471,7 @@ const {
   isKanbanModalOpen,
   isKanbanUpdating,
   openKanbanModal,
-  getStatusOptions,
+  getStatuses,
   applyKanbanStatus,
   loadKanbanEntries,
 } = useMemoEditingKanban({
@@ -1315,61 +1285,6 @@ a.external-link {
   text-decoration-skip-ink: none;
 }
 
-.kanban-assign-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.kanban-assign-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.kanban-assign-empty {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.kanban-assign-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.kanban-assign-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-}
-
-.kanban-assign-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.kanban-assign-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.kanban-assign-meta {
-  font-size: 11px;
-  color: var(--color-text-secondary);
-}
-
-.kanban-assign-actions {
-  min-width: 180px;
-}
-
 .template-suggestion-shell {
   max-width: 820px;
   margin: 0 auto;
@@ -1412,6 +1327,19 @@ a.external-link {
 .focus-action-button--active {
   color: var(--color-primary);
   background-color: var(--color-primary-light);
+}
+
+.memo-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.memo-action-separator {
+  width: 1px;
+  height: 1.25rem;
+  margin: 0 0.25rem;
+  background-color: var(--color-border-light);
 }
 
 @media (max-width: 1100px) {

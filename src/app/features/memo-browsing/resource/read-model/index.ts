@@ -7,6 +7,9 @@ import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
 import { workspaceFocusMemosQuery } from '~/resources/focus-memo/queries';
+import { workspaceKanbansQuery } from '~/resources/kanban/queries';
+import { kanbanAssignmentItemsQuery } from '~/resources/kanban-assignment/queries';
+import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
 import { workspaceMemosQuery } from '~/resources/memo/queries';
 import { workspaceMemoLinkCountsQuery } from '~/resources/memo-link/queries';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -51,6 +54,37 @@ export type FocusMemoListReadModel = {
     items: FocusMemoListItem[];
     activeItems: FocusMemoListItem[];
     doneTodayItems: FocusMemoListItem[];
+  };
+  flags: {
+    isLoading: boolean;
+    isStale: boolean;
+    hasError: boolean;
+  };
+};
+
+export type GlobalStatusItem = {
+  id: number;
+  name: string;
+  color?: string | null;
+  count: number;
+  orderIndex: number;
+};
+
+export type GlobalStatusMemoListItem = MemoIndexItem & {
+  kanbanId: number;
+  kanbanStatusId: number | null;
+  linkCount: number;
+  orderIndex: number;
+  position: number | null;
+};
+
+export type GlobalStatusBoardReadModel = {
+  data: {
+    kanbanId: number | null;
+    statuses: GlobalStatusItem[];
+    nowItems: GlobalStatusMemoListItem[];
+    assignedItems: GlobalStatusMemoListItem[];
+    nowStatusId: number | null;
   };
   flags: {
     isLoading: boolean;
@@ -188,5 +222,100 @@ export function useFocusMemoListReadModel() {
       doneTodayItems: doneTodayItems.value,
     })),
     snapshots: [focusMemosSnap, memosSnap, memoLinkCountsSnap],
+  });
+}
+
+export function useGlobalStatusBoardReadModel() {
+  const route = useRoute();
+  const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+
+  const { snapshot: kanbansSnap } = useQuery(workspaceKanbansQuery, {
+    workspaceSlug,
+  });
+
+  const kanbanId = computed(() => kanbansSnap.value.current?.[0]?.id ?? 0);
+
+  const { snapshot: statusesSnap } = useQuery(workspaceKanbanStatusesQuery, {
+    workspaceSlug,
+    kanbanId,
+  });
+
+  const { snapshot: assignmentsSnap } = useQuery(kanbanAssignmentItemsQuery, {
+    workspaceSlug,
+    kanbanId,
+  });
+
+  const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, {
+    workspaceSlug,
+  });
+
+  const { snapshot: memoLinkCountsSnap } = useQuery(workspaceMemoLinkCountsQuery, {
+    workspaceSlug,
+  });
+
+  const counts = computed(() => {
+    const next = new Map<number, number>();
+    for (const item of assignmentsSnap.value.current ?? []) {
+      if (item.kanban_status_id == null) continue;
+      next.set(item.kanban_status_id, (next.get(item.kanban_status_id) ?? 0) + 1);
+    }
+    return next;
+  });
+
+  const statuses = computed<GlobalStatusItem[]>(() => {
+    return (statusesSnap.value.current ?? []).map(status => ({
+      id: status.id,
+      name: status.name,
+      color: status.color,
+      count: counts.value.get(status.id) ?? 0,
+      orderIndex: status.order_index,
+    }));
+  });
+
+  const nowStatusId = computed(() => statuses.value.find(status => status.name === 'Now')?.id ?? null);
+
+  const assignedItems = computed<GlobalStatusMemoListItem[]>(() => {
+    const memosById = new Map((memosSnap.value.current ?? []).map(memo => [memo.id, memo]));
+    const linkCounts = new Map(
+      (memoLinkCountsSnap.value.current ?? []).map(item => [
+        item.memo_id,
+        {
+          directLinkCount: item.direct_link_count,
+          backlinkCount: item.backlink_count,
+        },
+      ]),
+    );
+
+    return (assignmentsSnap.value.current ?? [])
+      .map((assignment, index) => {
+        const memo = memosById.get(assignment.memo_id);
+        if (!memo) return null;
+
+        return {
+          ...memo,
+          kanbanId: assignment.kanban_id,
+          kanbanStatusId: assignment.kanban_status_id,
+          linkCount: (linkCounts.get(memo.id)?.directLinkCount ?? 0) + (linkCounts.get(memo.id)?.backlinkCount ?? 0),
+          orderIndex: index,
+          position: assignment.position,
+        };
+      })
+      .filter((item): item is GlobalStatusMemoListItem => item !== null);
+  });
+
+  const nowItems = computed(() => {
+    if (nowStatusId.value === null) return [];
+    return assignedItems.value.filter(item => item.kanbanStatusId === nowStatusId.value);
+  });
+
+  return defineReadModel<GlobalStatusBoardReadModel['data']>({
+    data: computed(() => ({
+      kanbanId: kanbanId.value > 0 ? kanbanId.value : null,
+      statuses: statuses.value,
+      nowItems: nowItems.value,
+      assignedItems: assignedItems.value,
+      nowStatusId: nowStatusId.value,
+    })),
+    snapshots: [kanbansSnap, statusesSnap, assignmentsSnap, memosSnap, memoLinkCountsSnap],
   });
 }

@@ -12,6 +12,7 @@ export type ResourceRef =
   | { type: 'kanbanCollection'; workspaceSlug: string }
   | { type: 'kanbanStatusCollection'; workspaceSlug: string; kanbanId: number }
   | { type: 'kanbanEntryCollection'; workspaceSlug: string; memoSlug: string }
+  | { type: 'kanbanAssignmentCollection'; workspaceSlug: string; kanbanId: number }
   | { type: 'fileCollection'; workspaceSlug: string }
   | { type: 'file'; workspaceSlug: string; fileId: string }
   | { type: 'inboxFileCollection' };
@@ -30,6 +31,7 @@ export const resourceRefs = {
   kanbanCollection: (workspaceSlug: string): ResourceRef => ({ type: 'kanbanCollection', workspaceSlug }),
   kanbanStatusCollection: (workspaceSlug: string, kanbanId: number): ResourceRef => ({ type: 'kanbanStatusCollection', workspaceSlug, kanbanId }),
   kanbanEntryCollection: (workspaceSlug: string, memoSlug: string): ResourceRef => ({ type: 'kanbanEntryCollection', workspaceSlug, memoSlug }),
+  kanbanAssignmentCollection: (workspaceSlug: string, kanbanId: number): ResourceRef => ({ type: 'kanbanAssignmentCollection', workspaceSlug, kanbanId }),
   fileCollection: (workspaceSlug: string): ResourceRef => ({ type: 'fileCollection', workspaceSlug }),
   file: (workspaceSlug: string, fileId: string): ResourceRef => ({ type: 'file', workspaceSlug, fileId }),
   inboxFileCollection: (): ResourceRef => ({ type: 'inboxFileCollection' }),

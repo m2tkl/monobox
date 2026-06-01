@@ -62,6 +62,7 @@
             variant="ghost"
             color="neutral"
             :icon="iconKey.add"
+            :disabled="!canAssignNow"
             @click="isPickerOpen = true"
           >
             Add
@@ -76,16 +77,10 @@
 
       <div class="focus-drawer-body">
         <div
-          v-if="focusItems.length === 0"
+          v-if="activeItems.length === 0"
           class="focus-empty"
         >
-          No focus memos yet.
-        </div>
-        <div
-          v-else-if="activeItems.length === 0"
-          class="focus-empty"
-        >
-          All focus memos are done for today.
+          No memos in Now.
         </div>
         <ul
           v-else
@@ -106,47 +101,13 @@
             </NuxtLink>
             <div class="focus-card-actions">
               <IconButton
-                :icon="iconKey.success"
-                aria-label="Done for today"
-                @click="() => markDoneForToday(memo.slug_title)"
-              />
-              <IconButton
                 :icon="iconKey.close"
-                aria-label="Unfocus"
-                @click="() => removeFocusMemo(memo.slug_title)"
+                aria-label="Remove from Now"
+                @click="() => removeFromNow(memo.slug_title)"
               />
             </div>
           </li>
         </ul>
-
-        <details
-          v-if="doneTodayItems.length > 0"
-          class="focus-done"
-        >
-          <summary>Done for today ({{ doneTodayItems.length }})</summary>
-          <ul class="focus-done-list">
-            <li
-              v-for="memo in sortedDoneTodayItems"
-              :key="memo.id"
-              class="focus-done-row"
-            >
-              <NuxtLink
-                :to="`/${workspaceSlug}/${memo.slug_title}`"
-                class="min-w-0 flex-1 truncate"
-              >
-                {{ memo.title }}
-              </NuxtLink>
-              <AppButton
-                size="xs"
-                variant="ghost"
-                color="neutral"
-                @click="() => clearDoneForToday(memo.slug_title)"
-              >
-                Restore
-              </AppButton>
-            </li>
-          </ul>
-        </details>
       </div>
     </div>
   </div>
@@ -166,7 +127,7 @@
               class="text-xs"
               style="color: var(--color-text-secondary)"
             >
-              Select one or more memos for today.
+              Move one or more memos to Now.
             </p>
           </div>
           <IconButton
@@ -215,9 +176,9 @@
 </template>
 
 <script setup lang="ts">
-import type { FocusMemoListItem } from '~/app/features/memo-browsing/resource/read-model';
+import type { GlobalStatusMemoListItem } from '~/app/features/memo-browsing/resource/read-model';
 
-import { useFocusMemoListReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
+import { useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
 import MemoThumbnail from '~/app/features/memo-browsing/view/memo-browsing/MemoThumbnail.vue';
 import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
@@ -256,15 +217,16 @@ const sortMode = computed<FocusSortMode>({
   },
 });
 
-const focusMemoVM = useFocusMemoListReadModel();
+const globalStatusVM = useGlobalStatusBoardReadModel();
 const workspaceMemosVM = useWorkspaceMemosReadModel();
-const focusItems = computed(() => focusMemoVM.value.data.items);
-const activeItems = computed(() => focusMemoVM.value.data.activeItems);
-const doneTodayItems = computed(() => focusMemoVM.value.data.doneTodayItems);
-const focusedMemoSlugs = computed(() => new Set(focusItems.value.map(memo => memo.slug_title)));
+const activeItems = computed(() => globalStatusVM.value.data.nowItems);
+const focusedMemoSlugs = computed(() => new Set(activeItems.value.map(memo => memo.slug_title)));
+const globalKanbanId = computed(() => globalStatusVM.value.data.kanbanId);
+const nowStatusId = computed(() => globalStatusVM.value.data.nowStatusId);
+const canAssignNow = computed(() => globalKanbanId.value !== null && nowStatusId.value !== null);
 const workspaceMemos = computed(() => workspaceMemosVM.value.data.items);
 
-const sortFocusItems = (items: FocusMemoListItem[]) => {
+const sortFocusItems = (items: GlobalStatusMemoListItem[]) => {
   if (sortMode.value === 'focused') {
     return items;
   }
@@ -277,7 +239,6 @@ const sortFocusItems = (items: FocusMemoListItem[]) => {
 };
 
 const sortedActiveItems = computed(() => sortFocusItems(activeItems.value));
-const sortedDoneTodayItems = computed(() => sortFocusItems(doneTodayItems.value));
 
 const pickerMemos = computed(() => {
   const query = pickerQuery.value.trim().toLowerCase();
@@ -324,11 +285,18 @@ function togglePickerSelection(memoSlug: string) {
 
 async function addSelectedFocusMemos() {
   if (!workspaceSlug.value || selectedMemoSlugs.value.size === 0) return;
+  if (globalKanbanId.value === null || nowStatusId.value === null) return;
 
   isAdding.value = true;
   try {
     for (const memoSlug of selectedMemoSlugs.value) {
-      await command.focusMemo.add(workspaceSlug.value, memoSlug);
+      await command.kanbanAssignment.upsertStatus({
+        workspaceSlugName: workspaceSlug.value,
+        memoSlugTitle: memoSlug,
+        kanbanId: globalKanbanId.value,
+        kanbanStatusId: nowStatusId.value,
+        position: null,
+      });
     }
     isPickerOpen.value = false;
   }
@@ -337,19 +305,13 @@ async function addSelectedFocusMemos() {
   }
 }
 
-async function markDoneForToday(memoSlug: string) {
-  if (!workspaceSlug.value) return;
-  await command.focusMemo.markDoneForToday(workspaceSlug.value, memoSlug);
-}
-
-async function clearDoneForToday(memoSlug: string) {
-  if (!workspaceSlug.value) return;
-  await command.focusMemo.clearDoneForToday(workspaceSlug.value, memoSlug);
-}
-
-async function removeFocusMemo(memoSlug: string) {
-  if (!workspaceSlug.value) return;
-  await command.focusMemo.delete(workspaceSlug.value, memoSlug);
+async function removeFromNow(memoSlug: string) {
+  if (!workspaceSlug.value || globalKanbanId.value === null) return;
+  await command.kanbanAssignment.remove({
+    workspaceSlugName: workspaceSlug.value,
+    memoSlugTitle: memoSlug,
+    kanbanId: globalKanbanId.value,
+  });
 }
 </script>
 

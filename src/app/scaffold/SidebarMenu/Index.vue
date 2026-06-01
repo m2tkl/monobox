@@ -77,26 +77,45 @@
             <span class="sidebar-action-label">Files</span>
           </NuxtLink>
         </div>
-        <div
-          v-if="workspaceSlug"
-          class="pb-1"
+
+        <section
+          v-if="workspaceSlug && globalStatuses.length > 0"
+          class="sidebar-section"
         >
-          <NuxtLink
-            :to="`/${workspaceSlug}/_kanban`"
-            class="sidebar-action sidebar-link"
-          >
-            <UIcon
-              :name="iconKey.kanban"
-              class="shrink-0"
-            />
-            <span class="sidebar-action-label">Kanban</span>
-          </NuxtLink>
-        </div>
+          <div class="sticky top-0 z-10">
+            <div class="flex h-8 items-center px-2">
+              <h2 class="text-xs font-semibold uppercase tracking-wide sidebar-heading">
+                Status
+              </h2>
+            </div>
+          </div>
+          <ul class="flex flex-col">
+            <li>
+              <MemoLinkRow
+                :to="`/${workspaceSlug}/_kanban`"
+                memo-title="All"
+                :count="globalStatusTotalCount"
+                :active="isKanbanAllActive"
+              />
+            </li>
+            <li
+              v-for="status in globalStatuses"
+              :key="status.id"
+            >
+              <MemoLinkRow
+                :to="`/${workspaceSlug}?status=${encodeURIComponent(status.name)}`"
+                :memo-title="status.name"
+                :count="status.count"
+                :active="activeStatusName === status.name"
+              />
+            </li>
+          </ul>
+        </section>
 
         <!-- Bookmark section -->
         <section
           v-if="bookmarks.length > 0"
-          class="pb-1"
+          class="sidebar-section"
         >
           <div class="sticky top-0 z-10">
             <div class="flex h-8 items-center px-2">
@@ -126,6 +145,7 @@
                 :to="`/${workspaceSlug}/${memo.slug_title}`"
                 :memo-title="memo.title"
                 :count="memo.linkCount"
+                :active="activeMemoSlug === memo.slug_title"
               />
             </li>
           </ul>
@@ -157,10 +177,10 @@ import { ref } from 'vue';
 import MemoLinkRow from './MemoLinkRow.vue';
 import NewMemoActions from './NewMemoActions.vue';
 
-import { useBookmarkListReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
+import { useBookmarkListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
 import { SearchPalette } from '~/app/features/search';
 import { command } from '~/resources/command';
-import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
 
@@ -171,8 +191,19 @@ const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
 
 const bookmarkVM = useBookmarkListReadModel();
 const workspaceMemosVM = useWorkspaceMemosReadModel();
+const globalStatusVM = useGlobalStatusBoardReadModel();
 const bookmarks = computed(() => bookmarkVM.value.data.items);
 const workspaceMemos = computed(() => workspaceMemosVM.value.data.items);
+const globalStatuses = computed(() => globalStatusVM.value.data.statuses);
+const globalStatusTotalCount = computed(() => globalStatusVM.value.data.assignedItems.length);
+const activeMemoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
+const activeStatusName = computed(() => {
+  if (route.path !== `/${workspaceSlug.value}`) return '';
+  const raw = route.query.status;
+  if (Array.isArray(raw)) return raw[0] ?? '';
+  return typeof raw === 'string' ? raw : '';
+});
+const isKanbanAllActive = computed(() => route.path === `/${workspaceSlug.value}/_kanban`);
 const searchPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
 const draggedMemoId = ref<number | null>(null);
 const draggedMemoSlug = ref<string | null>(null);
@@ -295,6 +326,17 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 
 .bookmark-row.drop-after {
   border-bottom-color: var(--color-primary);
+}
+
+.sidebar-section {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.sidebar-section:first-of-type {
+  margin-top: 0.5rem;
 }
 
 .sidebar-action {

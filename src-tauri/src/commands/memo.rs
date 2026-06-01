@@ -1,7 +1,10 @@
 use crate::database::get_conn;
 use crate::models::memo::{CurrentMemoDetail, MemoDetail, MemoSearchItem};
 use crate::models::MemoIndexItem;
-use crate::repositories::{MemoRepository, MemoViewRepository, WorkspaceRepository};
+use crate::repositories::{
+    KanbanAssignmentRepository, KanbanRepository, KanbanStatusRepository, MemoRepository,
+    MemoViewRepository, WorkspaceRepository,
+};
 use serde::Deserialize;
 use tauri::command;
 
@@ -84,14 +87,37 @@ pub fn create_memo(args: CreateMemoArgs) -> Result<MemoDetail, String> {
             )
         })?;
 
-    MemoRepository::create(
+    let memo = MemoRepository::create(
         &conn,
         workspace.id,
         &args.slug_title,
         &args.title,
         &args.content,
     )
-    .map_err(|e| e.to_string())
+    .map_err(|e| e.to_string())?;
+
+    let kanban = KanbanRepository::ensure_global_status_board(&conn, workspace.id)
+        .map_err(|e| e.to_string())?;
+    let inbox_status = KanbanStatusRepository::find_by_name(
+        &conn,
+        workspace.id,
+        kanban.id,
+        KanbanRepository::global_status_names()[0],
+    )
+    .map_err(|e| e.to_string())?
+    .ok_or_else(|| "Inbox status not found".to_string())?;
+
+    KanbanAssignmentRepository::upsert_status(
+        &conn,
+        workspace.id,
+        memo.id,
+        kanban.id,
+        Some(inbox_status.id),
+        None,
+    )
+    .map_err(|e| e.to_string())?;
+
+    Ok(memo)
 }
 
 #[derive(Deserialize)]

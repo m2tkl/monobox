@@ -37,7 +37,7 @@ export function useWorkspaceSettings(options: UseWorkspaceSettingsOptions) {
     hasWorkspaceContext.value && currentWorkspaceReadModel.value.flags.isLoading,
   );
 
-  const activePanel = ref<'mcp-server' | 'global-shortcuts' | 'appearance' | 'storage-paths' | 'memo-templates' | 'danger-zone'>(
+  const activePanel = ref<'mcp-server' | 'global-shortcuts' | 'appearance' | 'storage-paths' | 'memo-templates' | 'statuses' | 'danger-zone'>(
     hasWorkspaceContext.value ? 'memo-templates' : 'mcp-server',
   );
   const isDeleteConfirmationOpen = ref(false);

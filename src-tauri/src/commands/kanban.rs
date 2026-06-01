@@ -17,7 +17,10 @@ pub fn list_kanbans(args: ListKanbansArgs) -> Result<Vec<Kanban>, String> {
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
 
-    KanbanRepository::list_by_workspace(&conn, workspace.id).map_err(|e| e.to_string())
+    let kanban = KanbanRepository::ensure_global_status_board(&conn, workspace.id)
+        .map_err(|e| e.to_string())?;
+
+    Ok(vec![kanban])
 }
 
 #[derive(Deserialize)]

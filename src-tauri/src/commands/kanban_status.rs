@@ -21,12 +21,9 @@ pub fn list_kanban_statuses(args: ListKanbanStatusesArgs) -> Result<Vec<KanbanSt
     let kanban_id = if let Some(id) = args.kanban_id {
         id
     } else {
-        let kanbans = crate::repositories::KanbanRepository::list_by_workspace(&conn, workspace.id)
+        let kanban = crate::repositories::KanbanRepository::ensure_global_status_board(&conn, workspace.id)
             .map_err(|e| e.to_string())?;
-        kanbans
-            .first()
-            .map(|k| k.id)
-            .ok_or_else(|| "Kanban not found".to_string())?
+        kanban.id
     };
 
     KanbanStatusRepository::list_by_kanban(&conn, workspace.id, kanban_id)
@@ -52,12 +49,9 @@ pub fn create_kanban_status(args: CreateKanbanStatusArgs) -> Result<KanbanStatus
     let kanban_id = if let Some(id) = args.kanban_id {
         id
     } else {
-        let kanbans = crate::repositories::KanbanRepository::list_by_workspace(&conn, workspace.id)
+        let kanban = crate::repositories::KanbanRepository::ensure_global_status_board(&conn, workspace.id)
             .map_err(|e| e.to_string())?;
-        kanbans
-            .first()
-            .map(|k| k.id)
-            .ok_or_else(|| "Kanban not found".to_string())?
+        kanban.id
     };
 
     KanbanStatusRepository::create(
