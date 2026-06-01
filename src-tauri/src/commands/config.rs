@@ -96,9 +96,15 @@ pub fn regenerate_mcp_server_token() -> Result<McpServerInfo, String> {
     save_config(&config, &config_path)?;
     Ok(McpServerInfo {
         enabled: false,
+        bind_host: config.mcp_bind_host.clone(),
+        url_host: config.mcp_url_host.clone(),
         port: config.mcp_port,
         token: config.mcp_token.clone(),
-        url: crate::mcp::build_server_url(config.mcp_port, &config.mcp_token),
+        url: crate::mcp::build_server_url(
+            &config.mcp_url_host,
+            config.mcp_port,
+            &config.mcp_token,
+        ),
         setup_complete: config.setup_complete,
     })
 }

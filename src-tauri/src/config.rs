@@ -21,6 +21,10 @@ pub struct AppConfig {
     pub new_memo_shortcut: String,
     #[serde(default = "default_mcp_port")]
     pub mcp_port: u16,
+    #[serde(default = "default_mcp_host")]
+    pub mcp_bind_host: String,
+    #[serde(default = "default_mcp_host")]
+    pub mcp_url_host: String,
     #[serde(default = "default_mcp_token")]
     pub mcp_token: String,
 }
@@ -31,6 +35,10 @@ fn default_setup_complete() -> bool {
 
 fn default_mcp_port() -> u16 {
     38453
+}
+
+fn default_mcp_host() -> String {
+    "127.0.0.1".to_string()
 }
 
 fn default_app_window_opacity() -> f64 {
@@ -61,6 +69,8 @@ impl Default for AppConfig {
             focus_app_shortcut: default_focus_app_shortcut(),
             new_memo_shortcut: default_new_memo_shortcut(),
             mcp_port: default_mcp_port(),
+            mcp_bind_host: default_mcp_host(),
+            mcp_url_host: default_mcp_host(),
             mcp_token: default_mcp_token(),
         }
     }

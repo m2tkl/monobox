@@ -14,6 +14,8 @@ export type AppConfigPayload = {
 
 export type McpServerInfo = {
   enabled: boolean;
+  bind_host: string;
+  url_host: string;
   port: number;
   token: string;
   url: string;

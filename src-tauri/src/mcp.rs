@@ -15,6 +15,8 @@ pub const MCP_PROTOCOL_VERSION: &str = "2024-11-05";
 #[derive(Debug, serde::Serialize, Clone)]
 pub struct McpServerInfo {
     pub enabled: bool,
+    pub bind_host: String,
+    pub url_host: String,
     pub port: u16,
     pub token: String,
     pub url: String,
@@ -53,26 +55,39 @@ struct ToolCallParams {
 
 pub fn build_server_info(config: &AppConfig) -> McpServerInfo {
     let token = config.mcp_token.clone();
+    let bind_host = normalize_host(&config.mcp_bind_host);
+    let url_host = normalize_host(&config.mcp_url_host);
     let port = config.mcp_port;
     McpServerInfo {
         enabled: true,
+        bind_host: bind_host.clone(),
+        url_host: url_host.clone(),
         port,
         token: token.clone(),
-        url: build_server_url(port, &token),
+        url: build_server_url(&url_host, port, &token),
         setup_complete: config.setup_complete,
     }
 }
 
-pub fn build_server_url(port: u16, token: &str) -> String {
-    format!("http://127.0.0.1:{}/mcp/{}", port, token)
+fn normalize_host(host: &str) -> String {
+    let trimmed = host.trim();
+    if trimmed.is_empty() {
+        "127.0.0.1".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+pub fn build_server_url(host: &str, port: u16, token: &str) -> String {
+    format!("http://{}:{}/mcp/{}", normalize_host(host), port, token)
 }
 
 pub fn spawn_http_server(config: AppConfig) -> Result<(), McpServerError> {
     let info = build_server_info(&config);
-    let listener = TcpListener::bind(("127.0.0.1", info.port)).map_err(|err| {
+    let listener = TcpListener::bind((info.bind_host.as_str(), info.port)).map_err(|err| {
         McpServerError::Bind(format!(
-            "Failed to bind monobox MCP server at {}: {}",
-            info.url, err
+            "Failed to bind monobox MCP server at {}:{}: {}",
+            info.bind_host, info.port, err
         ))
     })?;
 
@@ -1016,17 +1031,35 @@ fn shape_current_memo_context(
 #[cfg(test)]
 mod tests {
     use super::{
-        build_server_url, handle_json_rpc_request, shape_current_memo_context, tool_definitions,
-        RpcRequest,
+        build_server_info, build_server_url, handle_json_rpc_request, shape_current_memo_context,
+        tool_definitions, RpcRequest,
     };
+    use crate::config::AppConfig;
     use serde_json::json;
 
     #[test]
     fn build_server_url_uses_tokenized_path() {
         assert_eq!(
-            build_server_url(38453, "abc123"),
+            build_server_url("127.0.0.1", 38453, "abc123"),
             "http://127.0.0.1:38453/mcp/abc123"
         );
+    }
+
+    #[test]
+    fn build_server_info_uses_configured_hosts() {
+        let config = AppConfig {
+            mcp_bind_host: "0.0.0.0".to_string(),
+            mcp_url_host: "172.20.16.1".to_string(),
+            mcp_port: 38453,
+            mcp_token: "abc123".to_string(),
+            ..AppConfig::default()
+        };
+
+        let info = build_server_info(&config);
+
+        assert_eq!(info.bind_host, "0.0.0.0");
+        assert_eq!(info.url_host, "172.20.16.1");
+        assert_eq!(info.url, "http://172.20.16.1:38453/mcp/abc123");
     }
 
     #[test]

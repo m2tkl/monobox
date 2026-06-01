@@ -7,7 +7,7 @@
 
 ## MCP server
 
-`monobox` starts a read-only MCP server inside the Tauri app itself. The server listens on `127.0.0.1` and uses a tokenized URL path, so MCP clients can connect without launching a separate worker process.
+`monobox` starts a read-only MCP server inside the Tauri app itself. By default, the server listens on `127.0.0.1` and uses a tokenized URL path, so MCP clients can connect without launching a separate worker process.
 
 The app must be running before a client connects.
 
@@ -21,6 +21,17 @@ Example Codex config in `~/.codex/config.toml`:
 [mcp_servers.monobox]
 url = "http://127.0.0.1:38453/mcp/<token>"
 ```
+
+When monobox is running on Windows and the MCP client is running inside WSL, `127.0.0.1` from the client points at WSL, not Windows. Set the monobox app config on Windows like this, restart monobox, then use the displayed URL in the WSL-side client:
+
+```json
+{
+  "mcp_bind_host": "0.0.0.0",
+  "mcp_url_host": "<windows-host-ip>"
+}
+```
+
+You can usually find `<windows-host-ip>` from WSL with `awk '/nameserver/ { print $2; exit }' /etc/resolv.conf`. Windows Firewall must allow inbound TCP access to the configured MCP port, which defaults to `38453`.
 
 Available tools:
 
