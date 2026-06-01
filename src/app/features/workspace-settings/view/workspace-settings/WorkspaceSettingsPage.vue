@@ -408,6 +408,7 @@ import { MemoTemplateManager } from '~/app/features/memo-templates';
 import { StoragePathsForm } from '~/app/features/storage-settings';
 import KanbanStatusManager from '~/app/features/workspace-kanban/view/workspace-kanban/KanbanStatusManager.vue';
 import { command } from '~/external/tauri/command';
+import { loadGlobalStatusKanban } from '~/resources/kanban/globalStatus';
 import { iconKey } from '~/utils/icon';
 
 type SettingsPanelId =
@@ -654,7 +655,7 @@ const loadStatusBoard = async () => {
 
   try {
     isStatusBoardLoading.value = true;
-    const kanban = (await command.kanban.list({ slugName }))[0];
+    const kanban = await loadGlobalStatusKanban(slugName);
     statusKanbanId.value = kanban?.id ?? null;
   }
   catch (error) {

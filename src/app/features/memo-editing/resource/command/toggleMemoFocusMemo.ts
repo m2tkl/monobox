@@ -1,4 +1,5 @@
 import { command } from '~/resources/command';
+import { loadGlobalStatusKanban } from '~/resources/kanban/globalStatus';
 
 type ToggleMemoFocusMemoInput = {
   workspaceSlug: string;
@@ -8,7 +9,7 @@ type ToggleMemoFocusMemoInput = {
 
 export async function toggleMemoFocusMemo(input: ToggleMemoFocusMemoInput) {
   if (!input.isFocused) {
-    const kanban = (await command.kanban.list({ slugName: input.workspaceSlug }))[0];
+    const kanban = await loadGlobalStatusKanban(input.workspaceSlug);
     if (!kanban) return;
     const nowStatus = (await command.kanbanStatus.list({
       slugName: input.workspaceSlug,
@@ -26,7 +27,7 @@ export async function toggleMemoFocusMemo(input: ToggleMemoFocusMemoInput) {
     return;
   }
 
-  const kanban = (await command.kanban.list({ slugName: input.workspaceSlug }))[0];
+  const kanban = await loadGlobalStatusKanban(input.workspaceSlug);
   if (!kanban) return;
 
   await command.kanbanAssignment.remove({

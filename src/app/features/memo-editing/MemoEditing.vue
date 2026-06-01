@@ -323,62 +323,15 @@
               </div>
             </div>
 
-            <UModal v-model:open="isKanbanModalOpen">
-              <template #content>
-                <UCard>
-                  <div class="kanban-assign-modal">
-                    <div class="kanban-assign-title">
-                      Status
-                    </div>
-                    <div
-                      v-if="kanbans.length === 0"
-                      class="kanban-assign-empty"
-                    >
-                      No Kanban boards available.
-                    </div>
-                    <div
-                      v-else
-                      class="kanban-assign-list"
-                    >
-                      <div
-                        v-for="kanban in kanbans"
-                        :key="kanban.id"
-                        class="kanban-assign-row"
-                      >
-                        <div class="kanban-assign-actions">
-                          <div class="kanban-status-choice-list">
-                            <AppButton
-                              v-for="status in getStatuses(kanban.id)"
-                              :key="status.id"
-                              size="sm"
-                              :color="kanbanSelections[kanban.id] === status.id ? 'primary' : 'neutral'"
-                              :variant="kanbanSelections[kanban.id] === status.id ? 'solid' : 'outline'"
-                              :disabled="isKanbanUpdating(kanban.id)"
-                              class="kanban-status-choice"
-                              @click="applyKanbanStatus(kanban.id, status.id)"
-                            >
-                              {{ status.name }}
-                            </AppButton>
-                          </div>
-                          <div class="kanban-remove-action">
-                            <AppButton
-                              size="xs"
-                              color="error"
-                              variant="ghost"
-                              :icon="iconKey.close"
-                              :disabled="isKanbanUpdating(kanban.id) || !kanbanEntryMap.get(kanban.id)"
-                              @click="applyKanbanStatus(kanban.id, null)"
-                            >
-                              Remove status assignment
-                            </AppButton>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </UCard>
-              </template>
-            </UModal>
+            <MemoStatusAssignmentDialog
+              v-model:open="isKanbanModalOpen"
+              :kanbans="kanbans"
+              :entry-map="kanbanEntryMap"
+              :selections="kanbanSelections"
+              :is-updating="isKanbanUpdating"
+              :get-statuses="getStatuses"
+              :apply-status="applyKanbanStatus"
+            />
 
             <!-- Related links -->
             <MemoLinkCardView
@@ -470,6 +423,7 @@ import { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
 import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
 import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
+import MemoStatusAssignmentDialog from './view/organize-memo/MemoStatusAssignmentDialog.vue';
 import ExportDialogToCopyResult from './view/share-memo/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
 import { useMemoExport } from './view/share-memo/memoExport';
@@ -1329,60 +1283,6 @@ a.external-link {
   text-underline-offset: 0.2em;
   text-decoration-style: dashed;
   text-decoration-skip-ink: none;
-}
-
-.kanban-assign-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.kanban-assign-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.kanban-assign-empty {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.kanban-assign-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.kanban-assign-row {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.kanban-assign-actions {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.kanban-status-choice-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.kanban-status-choice {
-  width: 100%;
-  justify-content: flex-start;
-}
-
-.kanban-remove-action {
-  width: 100%;
-  border-top: 1px solid var(--color-border-light);
-  padding-top: 10px;
-  text-align: left;
 }
 
 .template-suggestion-shell {

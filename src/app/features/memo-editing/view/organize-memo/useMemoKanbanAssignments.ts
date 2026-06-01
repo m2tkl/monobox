@@ -87,14 +87,6 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
     }));
   };
 
-  const getStatusOptions = (kanbanId: number) => {
-    const items = kanbanStatusesById.value[kanbanId] ?? [];
-    return [
-      { label: 'Not in Kanban', value: null },
-      ...items.map(status => ({ label: status.name, value: status.id })),
-    ];
-  };
-
   const getStatuses = (kanbanId: number) => {
     return kanbanStatusesById.value[kanbanId] ?? [];
   };
@@ -178,7 +170,6 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
     syncKanbanSelections,
     loadKanbanEntries,
     loadKanbanStatuses,
-    getStatusOptions,
     getStatuses,
     applyKanbanStatus,
   };
