@@ -95,6 +95,10 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
     ];
   };
 
+  const getStatuses = (kanbanId: number) => {
+    return kanbanStatusesById.value[kanbanId] ?? [];
+  };
+
   const applyKanbanStatus = async (kanbanId: number, nextStatusId: number | null) => {
     if (!options.workspaceSlug.value || !options.memoSlug.value) return;
     if (isKanbanUpdating(kanbanId)) return;
@@ -175,6 +179,7 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
     loadKanbanEntries,
     loadKanbanStatuses,
     getStatusOptions,
+    getStatuses,
     applyKanbanStatus,
   };
 }

@@ -17,5 +17,12 @@ export async function createMemo(input: CreateMemoInput) {
     changeRefs.memoCreated(input.workspaceSlug, newMemo.slug_title),
   ]);
 
+  const kanban = (await command.kanban.list({ slugName: input.workspaceSlug }))[0];
+  if (kanban) {
+    void publishResourceChanges([
+      changeRefs.kanbanAssignmentCollectionChanged(input.workspaceSlug, kanban.id),
+    ]);
+  }
+
   return newMemo;
 }

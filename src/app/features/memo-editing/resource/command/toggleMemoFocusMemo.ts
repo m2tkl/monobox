@@ -8,9 +8,30 @@ type ToggleMemoFocusMemoInput = {
 
 export async function toggleMemoFocusMemo(input: ToggleMemoFocusMemoInput) {
   if (!input.isFocused) {
-    await command.focusMemo.add(input.workspaceSlug, input.memoSlug);
+    const kanban = (await command.kanban.list({ slugName: input.workspaceSlug }))[0];
+    if (!kanban) return;
+    const nowStatus = (await command.kanbanStatus.list({
+      slugName: input.workspaceSlug,
+      kanbanId: kanban.id,
+    })).find(status => status.name === 'Now');
+    if (!nowStatus) return;
+
+    await command.kanbanAssignment.upsertStatus({
+      workspaceSlugName: input.workspaceSlug,
+      memoSlugTitle: input.memoSlug,
+      kanbanId: kanban.id,
+      kanbanStatusId: nowStatus.id,
+      position: null,
+    });
     return;
   }
 
-  await command.focusMemo.delete(input.workspaceSlug, input.memoSlug);
+  const kanban = (await command.kanban.list({ slugName: input.workspaceSlug }))[0];
+  if (!kanban) return;
+
+  await command.kanbanAssignment.remove({
+    workspaceSlugName: input.workspaceSlug,
+    memoSlugTitle: input.memoSlug,
+    kanbanId: kanban.id,
+  });
 }

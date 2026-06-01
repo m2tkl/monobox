@@ -111,7 +111,7 @@
             >
               New status
             </div>
-            <UInput
+            <AppInput
               v-model="newName"
               placeholder="Status name"
               size="sm"
@@ -154,12 +154,12 @@
             >
               Edit status
             </div>
-            <UInput
+            <AppInput
               v-model="editName"
               placeholder="Status name"
               size="sm"
             />
-            <UInput
+            <AppInput
               v-model="editColor"
               placeholder="#3b82f6"
               size="sm"
@@ -207,6 +207,7 @@ import { useWorkspaceKanbanStatusCollectionReadModel } from '../../resource/read
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import AppButton from '~/app/elements/AppButton.vue';
+import AppInput from '~/app/elements/AppInput.vue';
 import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
@@ -467,5 +468,27 @@ const getLabelStyle = (color: string) => {
 
 .status-row--create {
   border-style: dashed;
+}
+
+.status-label {
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-actions,
+.status-order {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.status-actions {
+  flex-shrink: 0;
 }
 </style>

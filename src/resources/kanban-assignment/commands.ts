@@ -16,12 +16,14 @@ export const kanbanAssignmentCommand = {
     await tauriCommand.kanbanAssignment.upsertStatus(params);
     void publishResourceChanges([
       changeRefs.kanbanEntryCollectionChanged(params.workspaceSlugName, params.memoSlugTitle),
+      changeRefs.kanbanAssignmentCollectionChanged(params.workspaceSlugName, params.kanbanId),
     ]);
   },
   remove: async (params: { workspaceSlugName: string; memoSlugTitle: string; kanbanId: number }) => {
     await tauriCommand.kanbanAssignment.remove(params);
     void publishResourceChanges([
       changeRefs.kanbanEntryCollectionChanged(params.workspaceSlugName, params.memoSlugTitle),
+      changeRefs.kanbanAssignmentCollectionChanged(params.workspaceSlugName, params.kanbanId),
     ]);
   },
 } as const;

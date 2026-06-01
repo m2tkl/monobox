@@ -15,6 +15,7 @@ export type ChangeRef =
   | { type: 'kanbanCollectionChanged'; workspaceSlug: string }
   | { type: 'kanbanStatusCollectionChanged'; workspaceSlug: string; kanbanId: number }
   | { type: 'kanbanEntryCollectionChanged'; workspaceSlug: string; memoSlug: string }
+  | { type: 'kanbanAssignmentCollectionChanged'; workspaceSlug: string; kanbanId: number }
   | { type: 'fileCollectionChanged'; workspaceSlug: string }
   | { type: 'fileChanged'; workspaceSlug: string; fileId: string }
   | { type: 'inboxFileCollectionChanged' };
@@ -46,6 +47,7 @@ export const changeRefs = {
   kanbanCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'kanbanCollectionChanged', workspaceSlug }),
   kanbanStatusCollectionChanged: (workspaceSlug: string, kanbanId: number): ChangeRef => ({ type: 'kanbanStatusCollectionChanged', workspaceSlug, kanbanId }),
   kanbanEntryCollectionChanged: (workspaceSlug: string, memoSlug: string): ChangeRef => ({ type: 'kanbanEntryCollectionChanged', workspaceSlug, memoSlug }),
+  kanbanAssignmentCollectionChanged: (workspaceSlug: string, kanbanId: number): ChangeRef => ({ type: 'kanbanAssignmentCollectionChanged', workspaceSlug, kanbanId }),
   fileCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'fileCollectionChanged', workspaceSlug }),
   fileChanged: (workspaceSlug: string, fileId: string): ChangeRef => ({ type: 'fileChanged', workspaceSlug, fileId }),
   inboxFileCollectionChanged: (): ChangeRef => ({ type: 'inboxFileCollectionChanged' }),

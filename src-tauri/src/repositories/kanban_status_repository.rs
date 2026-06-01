@@ -1,5 +1,5 @@
 use crate::models::kanban_status::KanbanStatus;
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, OptionalExtension, Result};
 
 pub struct KanbanStatusRepository;
 
@@ -75,6 +75,36 @@ impl KanbanStatusRepository {
                 updated_at: row.get(7)?,
             })
         })?;
+
+        Ok(status)
+    }
+
+    pub fn find_by_name(
+        conn: &Connection,
+        workspace_id: i32,
+        kanban_id: i32,
+        name: &str,
+    ) -> Result<Option<KanbanStatus>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, workspace_id, kanban_id, name, color, order_index, created_at, updated_at
+            FROM kanban_status
+            WHERE workspace_id = ? AND kanban_id = ? AND name = ?",
+        )?;
+
+        let status = stmt
+            .query_row((workspace_id, kanban_id, name), |row| {
+                Ok(KanbanStatus {
+                    id: row.get(0)?,
+                    workspace_id: row.get(1)?,
+                    kanban_id: row.get(2)?,
+                    name: row.get(3)?,
+                    color: row.get(4)?,
+                    order_index: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            })
+            .optional()?;
 
         Ok(status)
     }

@@ -8,8 +8,10 @@ import { useRoute } from '#imports';
 import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
-import { workspaceFocusMemosQuery } from '~/resources/focus-memo/queries';
 import { memoFilesQuery } from '~/resources/file/queries';
+import { workspaceKanbansQuery } from '~/resources/kanban/queries';
+import { kanbanAssignmentItemsQuery } from '~/resources/kanban-assignment/queries';
+import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
 import { memoDetailQuery, workspaceMemosQuery } from '~/resources/memo/queries';
 import { memoLinksQuery } from '~/resources/memo-link/queries';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -58,8 +60,17 @@ export function useCurrentMemoReadModel() {
     workspaceSlug,
   });
 
-  const { snapshot: focusMemosSnap } = useQuery(workspaceFocusMemosQuery, {
+  const { snapshot: kanbansSnap } = useQuery(workspaceKanbansQuery, {
     workspaceSlug,
+  });
+  const kanbanId = computed(() => kanbansSnap.value.current?.[0]?.id ?? 0);
+  const { snapshot: statusesSnap } = useQuery(workspaceKanbanStatusesQuery, {
+    workspaceSlug,
+    kanbanId,
+  });
+  const { snapshot: assignmentsSnap } = useQuery(kanbanAssignmentItemsQuery, {
+    workspaceSlug,
+    kanbanId,
   });
 
   const memo = computed(() => memoSnap.value.current ?? null);
@@ -77,8 +88,11 @@ export function useCurrentMemoReadModel() {
   const isFocused = computed<boolean>(() => {
     const currentMemo = memo.value;
     if (!currentMemo) return false;
-    const focusMemos = focusMemosSnap.value.current ?? [];
-    return focusMemos.some(focusMemo => focusMemo.memo_id === currentMemo.id);
+    const nowStatusId = statusesSnap.value.current?.find(status => status.name === 'Now')?.id ?? null;
+    if (nowStatusId === null) return false;
+    return (assignmentsSnap.value.current ?? []).some(assignment =>
+      assignment.memo_id === currentMemo.id && assignment.kanban_status_id === nowStatusId,
+    );
   });
 
   return defineReadModel<CurrentMemoReadModel['data']>({
@@ -90,6 +104,6 @@ export function useCurrentMemoReadModel() {
       isBookmarked: isBookmarked.value,
       isFocused: isFocused.value,
     })),
-    snapshots: [memoSnap, linksSnap, filesSnap, workspaceMemosSnap, bookmarksSnap, focusMemosSnap],
+    snapshots: [memoSnap, linksSnap, filesSnap, workspaceMemosSnap, bookmarksSnap, kanbansSnap, statusesSnap, assignmentsSnap],
   });
 }

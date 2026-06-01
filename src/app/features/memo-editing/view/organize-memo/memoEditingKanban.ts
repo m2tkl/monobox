@@ -26,6 +26,7 @@ export function useMemoEditingKanban(options: UseMemoEditingKanbanOptions) {
     openKanbanModal,
     loadKanbanEntries,
     getStatusOptions,
+    getStatuses,
     applyKanbanStatus,
   } = useMemoKanbanAssignments({
     workspaceSlug: options.workspaceSlug,
@@ -45,6 +46,7 @@ export function useMemoEditingKanban(options: UseMemoEditingKanbanOptions) {
     openKanbanModal,
     loadKanbanEntries,
     getStatusOptions,
+    getStatuses,
     applyKanbanStatus,
   };
 }

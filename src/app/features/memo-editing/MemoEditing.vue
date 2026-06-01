@@ -47,38 +47,49 @@
               </template>
 
               <template #context-menu>
-                <IconButton
-                  :icon="iconKey.kanban"
-                  :disabled="isKanbanLoading || !memoVM.data.memo"
-                  aria-label="Kanban"
-                  @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
-                />
-                <UTooltip text="Bookmark">
-                  <IconButton
-                    :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
-                    aria-label="Bookmark"
-                    @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
-                  />
-                </UTooltip>
-                <UTooltip text="Focus">
-                  <IconButton
-                    class="focus-action-button"
-                    :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
-                    :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
-                    aria-label="Focus"
-                    @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
-                  />
-                </UTooltip>
-
-                <UDropdownMenu
-                  :items="contextMenuItems"
-                >
-                  <div class="flex items-center">
-                    <UIcon
-                      :name="iconKey.dotMenuVertical"
+                <div class="memo-action-group">
+                  <UTooltip text="Bookmark">
+                    <IconButton
+                      :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
+                      aria-label="Bookmark"
+                      @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
                     />
-                  </div>
-                </UDropdownMenu>
+                  </UTooltip>
+                </div>
+
+                <div class="memo-action-separator" />
+
+                <div class="memo-action-group">
+                  <IconButton
+                    :icon="iconKey.kanban"
+                    :disabled="isKanbanLoading || !memoVM.data.memo"
+                    aria-label="Status"
+                    @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
+                  />
+                  <UTooltip text="Focus">
+                    <IconButton
+                      class="focus-action-button"
+                      :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
+                      :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
+                      aria-label="Focus"
+                      @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
+                    />
+                  </UTooltip>
+                </div>
+
+                <div class="memo-action-separator" />
+
+                <div class="memo-action-group">
+                  <UDropdownMenu
+                    :items="contextMenuItems"
+                  >
+                    <div class="flex items-center">
+                      <UIcon
+                        :name="iconKey.dotMenuVertical"
+                      />
+                    </div>
+                  </UDropdownMenu>
+                </div>
               </template>
 
               <template #bubble-menu="{ editor: _editor }">
@@ -317,7 +328,7 @@
                 <UCard>
                   <div class="kanban-assign-modal">
                     <div class="kanban-assign-title">
-                      Kanban assignments
+                      Status
                     </div>
                     <div
                       v-if="kanbans.length === 0"
@@ -334,28 +345,33 @@
                         :key="kanban.id"
                         class="kanban-assign-row"
                       >
-                        <div class="kanban-assign-info">
-                          <div class="kanban-assign-name">
-                            {{ kanban.name }}
-                          </div>
-                          <div
-                            v-if="kanbanEntryMap.get(kanban.id)"
-                            class="kanban-assign-meta"
-                          >
-                            {{ kanbanEntryMap.get(kanban.id)?.kanban_status_name || 'No status' }}
-                          </div>
-                        </div>
                         <div class="kanban-assign-actions">
-                          <USelect
-                            v-model="kanbanSelections[kanban.id]"
-                            :items="getStatusOptions(kanban.id)"
-                            size="xs"
-                            variant="outline"
-                            label-key="label"
-                            value-key="value"
-                            :disabled="isKanbanUpdating(kanban.id)"
-                            @update:model-value="(value) => applyKanbanStatus(kanban.id, typeof value === 'string' ? Number(value) : value)"
-                          />
+                          <div class="kanban-status-choice-list">
+                            <AppButton
+                              v-for="status in getStatuses(kanban.id)"
+                              :key="status.id"
+                              size="sm"
+                              :color="kanbanSelections[kanban.id] === status.id ? 'primary' : 'neutral'"
+                              :variant="kanbanSelections[kanban.id] === status.id ? 'solid' : 'outline'"
+                              :disabled="isKanbanUpdating(kanban.id)"
+                              class="kanban-status-choice"
+                              @click="applyKanbanStatus(kanban.id, status.id)"
+                            >
+                              {{ status.name }}
+                            </AppButton>
+                          </div>
+                          <div class="kanban-remove-action">
+                            <AppButton
+                              size="xs"
+                              color="error"
+                              variant="ghost"
+                              :icon="iconKey.close"
+                              :disabled="isKanbanUpdating(kanban.id) || !kanbanEntryMap.get(kanban.id)"
+                              @click="applyKanbanStatus(kanban.id, null)"
+                            >
+                              Remove status assignment
+                            </AppButton>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -501,7 +517,7 @@ const {
   isKanbanModalOpen,
   isKanbanUpdating,
   openKanbanModal,
-  getStatusOptions,
+  getStatuses,
   applyKanbanStatus,
   loadKanbanEntries,
 } = useMemoEditingKanban({
@@ -1335,39 +1351,38 @@ a.external-link {
 .kanban-assign-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .kanban-assign-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-}
-
-.kanban-assign-info {
-  display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.kanban-assign-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.kanban-assign-meta {
-  font-size: 11px;
-  color: var(--color-text-secondary);
+  gap: 12px;
 }
 
 .kanban-assign-actions {
-  min-width: 180px;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kanban-status-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kanban-status-choice {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.kanban-remove-action {
+  width: 100%;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 10px;
+  text-align: left;
 }
 
 .template-suggestion-shell {
@@ -1412,6 +1427,19 @@ a.external-link {
 .focus-action-button--active {
   color: var(--color-primary);
   background-color: var(--color-primary-light);
+}
+
+.memo-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.memo-action-separator {
+  width: 1px;
+  height: 1.25rem;
+  margin: 0 0.25rem;
+  background-color: var(--color-border-light);
 }
 
 @media (max-width: 1100px) {

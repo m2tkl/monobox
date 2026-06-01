@@ -2,7 +2,7 @@
   <NuxtLink
     :to="to"
     class="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm sidebar-link"
-    active-class="is-active"
+    :active-class="active === undefined ? 'is-active' : ''"
     :class="{
       'sidebar-link': true,
       'is-active': active,

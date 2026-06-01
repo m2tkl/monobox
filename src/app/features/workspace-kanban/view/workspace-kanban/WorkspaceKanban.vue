@@ -11,47 +11,10 @@
           <div class="kanban-toolbar">
             <div class="kanban-toolbar-left">
               <div class="kanban-toolbar-title">
-                Kanban
+                Status
               </div>
-              <USelect
-                v-model="selectedKanbanModel"
-                :items="kanbanOptions"
-                size="xs"
-                variant="outline"
-                label-key="label"
-                value-key="value"
-                :disabled="kanbanOptions.length === 0"
-                placeholder="Select Kanban"
-              />
             </div>
             <div class="kanban-toolbar-actions">
-              <AppButton
-                size="sm"
-                color="neutral"
-                variant="outline"
-                :icon="iconKey.add"
-                @click="openCreateKanban"
-              >
-                New board
-              </AppButton>
-              <AppButton
-                size="sm"
-                color="neutral"
-                variant="outline"
-                :disabled="selectedKanbanId === null"
-                @click="openStatusManager"
-              >
-                Statuses
-              </AppButton>
-              <AppButton
-                size="sm"
-                color="error"
-                variant="ghost"
-                :disabled="selectedKanbanId === null"
-                @click="openDeleteKanban"
-              >
-                Delete board
-              </AppButton>
               <AppButton
                 size="sm"
                 color="primary"
@@ -59,7 +22,7 @@
                 :disabled="disableAddButton"
                 @click="openAddModal"
               >
-                Add cards ({{ unassignedTotalCount }})
+                Add memos ({{ unassignedTotalCount }})
               </AppButton>
             </div>
           </div>
@@ -69,13 +32,13 @@
               v-if="!hasKanban"
               class="kanban-empty-board"
             >
-              Create a Kanban to get started.
+              Preparing statuses.
             </div>
             <div
               v-else-if="statuses.length === 0"
               class="kanban-empty-board"
             >
-              Add statuses in Settings to show columns.
+              Add statuses to show columns.
             </div>
             <KanbanBoard
               v-else
@@ -143,9 +106,9 @@
               <div class="kanban-add-modal">
                 <div class="kanban-add-header">
                   <div class="kanban-add-title">
-                    Add cards to Kanban
+                    Add memos to Status
                   </div>
-                  <UInput
+                  <AppInput
                     v-model="addQuery"
                     size="sm"
                     placeholder="Search memos"
@@ -198,69 +161,6 @@
             </UCard>
           </template>
         </UModal>
-
-        <UModal v-model:open="isCreateKanbanOpen">
-          <template #content>
-            <UCard>
-              <div class="kanban-add-modal">
-                <div class="kanban-add-header">
-                  <div class="kanban-add-title">
-                    New Kanban board
-                  </div>
-                </div>
-                <UInput
-                  v-model="newKanbanName"
-                  size="sm"
-                  placeholder="Board name"
-                />
-              </div>
-              <template #footer>
-                <div class="flex justify-end gap-2">
-                  <AppButton
-                    color="neutral"
-                    variant="ghost"
-                    @click="isCreateKanbanOpen = false"
-                  >
-                    Cancel
-                  </AppButton>
-                  <AppButton
-                    color="primary"
-                    :loading="isCreatingKanban"
-                    :disabled="newKanbanName.trim().length === 0 || isCreatingKanban"
-                    @click="createKanban"
-                  >
-                    Create
-                  </AppButton>
-                </div>
-              </template>
-            </UCard>
-          </template>
-        </UModal>
-
-        <ConfirmModal
-          v-model:open="deleteKanbanOpen"
-          title="Delete Kanban?"
-          description="This removes the board and all its assignments."
-          confirm-label="Delete"
-          :loading="isDeletingKanban"
-          @confirm="deleteKanban"
-        />
-
-        <UModal v-model:open="isStatusManagerOpen">
-          <template #content>
-            <UCard>
-              <div class="kanban-add-modal">
-                <div class="kanban-add-title">
-                  Statuses
-                </div>
-                <KanbanStatusManager
-                  :workspace-slug="workspaceSlug"
-                  :kanban-id="activeKanbanId"
-                />
-              </div>
-            </UCard>
-          </template>
-        </UModal>
       </div>
     </template>
 
@@ -281,7 +181,6 @@
 import { KanbanBoard } from 'kanvan';
 import 'kanvan/dist/style.css';
 
-import KanbanStatusManager from './KanbanStatusManager.vue';
 import { useKanbanOrdering } from './useKanbanOrdering';
 import { useWorkspaceKanban } from './useWorkspaceKanban';
 import { buildKanbanColumnsFromEntries } from '../../kanbanUtils';
@@ -289,7 +188,7 @@ import { buildKanbanColumnsFromEntries } from '../../kanbanUtils';
 import type { DropdownMenuItem } from '@nuxt/ui';
 
 import AppButton from '~/app/elements/AppButton.vue';
-import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
+import AppInput from '~/app/elements/AppInput.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { SearchPalette } from '~/app/features/search';
 import { iconKey } from '~/utils/icon';
@@ -310,20 +209,9 @@ const toast = useToast();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const {
   memos,
-  kanbanOptions,
-  selectedKanbanId,
   activeKanbanId,
   hasKanban,
   entries,
-  isCreateKanbanOpen,
-  newKanbanName,
-  isCreatingKanban,
-  deleteKanbanOpen,
-  isDeletingKanban,
-  openCreateKanban,
-  createKanban,
-  openDeleteKanban,
-  deleteKanban,
   statuses,
   isLoading,
   loadInitialData,
@@ -335,7 +223,6 @@ const {
 const columns = ref<ReturnType<typeof buildKanbanColumnsFromEntries>>([]);
 const isAddModalOpen = ref(false);
 const addQuery = ref('');
-const isStatusManagerOpen = ref(false);
 
 const addListLimit = 100;
 
@@ -404,13 +291,6 @@ const disableAddButton = computed(() => {
   return !hasKanban.value || statuses.value.length === 0 || unassignedTotalCount.value === 0;
 });
 
-const selectedKanbanModel = computed<number | undefined>({
-  get: () => selectedKanbanId.value ?? undefined,
-  set: (value) => {
-    selectedKanbanId.value = value ?? null;
-  },
-});
-
 const filteredUnassignedItems = computed(() => {
   const query = addQuery.value.trim().toLowerCase();
   const items = query.length === 0
@@ -422,11 +302,6 @@ const filteredUnassignedItems = computed(() => {
       });
   return items.slice(0, addListLimit);
 });
-
-const openStatusManager = () => {
-  if (!hasKanban.value) return;
-  isStatusManagerOpen.value = true;
-};
 
 const getColumnDisplayCount = (column: { id: string; items: unknown[] }) => {
   return columns.value.find(item => item.id === column.id)?.meta?.displayCount ?? column.items.length;
@@ -473,7 +348,7 @@ const openMemo = (slug: string) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -493,8 +368,8 @@ const openMemo = (slug: string) => {
 }
 
 .kanban-toolbar-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--color-text-primary);
 }
 
@@ -522,15 +397,15 @@ const openMemo = (slug: string) => {
 
 :deep(.kanban) {
   height: 100%;
-  gap: 12px;
+  gap: 10px;
   background-color: var(--color-background);
 }
 
 :deep(.kanban-column) {
   background-color: var(--color-kanban-column-bg);
-  border-radius: 14px;
+  border-radius: 10px;
   box-shadow: none;
-  padding: 10px;
+  padding: 6px;
 }
 
 :deep(.kanban-column[data-drag-over="true"]) {
@@ -539,8 +414,8 @@ const openMemo = (slug: string) => {
 
 :deep(.kanban-column__header) {
   background-color: var(--color-kanban-column-bg);
-  border-radius: 12px;
-  margin: 6px 6px 0;
+  border-radius: 8px;
+  margin: 2px 2px 0;
 }
 
 .kanban-column-header {
@@ -548,11 +423,11 @@ const openMemo = (slug: string) => {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 6px 8px;
 }
 
 .kanban-column-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text-primary);
 }
@@ -566,8 +441,8 @@ const openMemo = (slug: string) => {
 }
 
 :deep(.kanban-column__list) {
-  padding: 6px 8px 8px;
-  gap: 8px;
+  padding: 4px 6px 6px;
+  gap: 6px;
 }
 
 :deep(.kanban-card--placeholder) {
@@ -578,9 +453,9 @@ const openMemo = (slug: string) => {
 .kanban-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
   background-color: var(--color-card-bg);
   color: var(--color-text-primary);
   cursor: pointer;
@@ -593,7 +468,7 @@ const openMemo = (slug: string) => {
 }
 
 .kanban-card-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   word-break: break-word;
 }
@@ -610,7 +485,7 @@ const openMemo = (slug: string) => {
 }
 
 .kanban-card-description {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-secondary);
   word-break: break-word;
 }
@@ -632,9 +507,9 @@ const openMemo = (slug: string) => {
 
 .kanban-add-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
 }
 
 .kanban-add-title {

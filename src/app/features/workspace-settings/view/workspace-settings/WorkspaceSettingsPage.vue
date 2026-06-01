@@ -301,6 +301,38 @@
               </div>
             </template>
 
+            <template v-else-if="activePanel === 'statuses'">
+              <template v-if="hasWorkspaceContext">
+                <LoadingSpinner v-if="isWorkspaceLoading || isStatusBoardLoading" />
+
+                <UCard
+                  v-else-if="currentWorkspace"
+                  class="card-themed"
+                >
+                  <template #header>
+                    <h4
+                      class="text-base font-semibold"
+                      style="color: var(--color-text-primary)"
+                    >
+                      Statuses
+                    </h4>
+                  </template>
+
+                  <KanbanStatusManager
+                    :workspace-slug="currentWorkspace.slug_name"
+                    :kanban-id="statusKanbanId"
+                  />
+                </UCard>
+              </template>
+
+              <div
+                v-else
+                class="settings-empty"
+              >
+                Open a workspace to manage workspace-specific settings.
+              </div>
+            </template>
+
             <template v-else-if="activePanel === 'danger-zone'">
               <template v-if="hasWorkspaceContext">
                 <LoadingSpinner v-if="isWorkspaceLoading" />
@@ -374,6 +406,7 @@ import ThemeSelector from '~/app/elements/settings/ThemeSelector.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { MemoTemplateManager } from '~/app/features/memo-templates';
 import { StoragePathsForm } from '~/app/features/storage-settings';
+import KanbanStatusManager from '~/app/features/workspace-kanban/view/workspace-kanban/KanbanStatusManager.vue';
 import { command } from '~/external/tauri/command';
 import { iconKey } from '~/utils/icon';
 
@@ -383,6 +416,7 @@ type SettingsPanelId =
   | 'appearance'
   | 'storage-paths'
   | 'memo-templates'
+  | 'statuses'
   | 'danger-zone';
 
 type SettingsNavItem = {
@@ -425,6 +459,8 @@ const savedNewMemoShortcut = ref('');
 const focusAppShortcut = ref('');
 const newMemoShortcut = ref('');
 const isGlobalShortcutSaving = ref(false);
+const statusKanbanId = ref<number | null>(null);
+const isStatusBoardLoading = ref(false);
 const mcpServerStatus = computed(() => {
   if (!mcpServerInfo.value) return 'Unavailable';
   if (mcpServerRestartRequired.value) return 'Pending restart';
@@ -448,6 +484,7 @@ const settingGroups = computed<SettingsNavGroup[]>(() => [
     icon: iconKey.database,
     items: [
       { id: 'memo-templates', label: 'Templates', disabled: !hasWorkspaceContext.value },
+      { id: 'statuses', label: 'Statuses', disabled: !hasWorkspaceContext.value },
       { id: 'danger-zone', label: 'Deletion', disabled: !hasWorkspaceContext.value },
     ],
   },
@@ -608,6 +645,32 @@ const saveGlobalShortcuts = async () => {
   }
 };
 
+const loadStatusBoard = async () => {
+  const slugName = currentWorkspace.value?.slug_name;
+  if (!slugName) {
+    statusKanbanId.value = null;
+    return;
+  }
+
+  try {
+    isStatusBoardLoading.value = true;
+    const kanban = (await command.kanban.list({ slugName }))[0];
+    statusKanbanId.value = kanban?.id ?? null;
+  }
+  catch (error) {
+    console.error(error);
+    statusKanbanId.value = null;
+    toast.add({
+      title: 'Failed to load statuses.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isStatusBoardLoading.value = false;
+  }
+};
+
 const shortcutErrorMessage = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   const [, detail] = message.split(':', 2);
@@ -620,6 +683,7 @@ await usePageLoader(async () => {
     loadMcpServerInfo(),
     loadAppAppearance(),
   ]);
+  await loadStatusBoard();
 });
 </script>
 
