@@ -89,7 +89,7 @@
               </h2>
             </div>
           </div>
-          <ul class="flex flex-col">
+          <ul class="sidebar-link-list sidebar-link-list--status">
             <li>
               <MemoLinkRow
                 :to="`/${workspaceSlug}/_kanban`"
@@ -124,7 +124,7 @@
             </div>
           </div>
 
-          <ul class="flex flex-col">
+          <ul class="sidebar-link-list sidebar-link-list--bookmarks">
             <li
               v-for="memo in bookmarks"
               :key="memo.id"
@@ -335,6 +335,19 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 
 .sidebar-section:first-of-type {
   margin-top: 0.5rem;
+}
+
+.sidebar-link-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-link-list--status {
+  gap: 0.125rem;
+}
+
+.sidebar-link-list--bookmarks {
+  gap: 0;
 }
 
 .sidebar-action {
