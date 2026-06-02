@@ -8,23 +8,30 @@ impl KanbanRepository {
     const GLOBAL_STATUS_NAMES: [&'static str; 6] = ["Inbox", "Now", "Next", "Later", "Waiting", "Done"];
 
     pub fn ensure_global_status_board(conn: &Connection, workspace_id: i32) -> Result<Kanban> {
-        let kanban = if let Some(existing) = Self::find_by_name(
+        let (kanban, should_seed_statuses) = if let Some(existing) = Self::find_by_name(
             conn,
             workspace_id,
             Self::GLOBAL_STATUS_BOARD_NAME,
         )? {
-            existing
+            let status_count: i32 = conn.query_row(
+                "SELECT COUNT(*) FROM kanban_status WHERE workspace_id = ? AND kanban_id = ?",
+                (workspace_id, existing.id),
+                |row| row.get(0),
+            )?;
+            (existing, status_count == 0)
         } else {
-            Self::create(conn, workspace_id, Self::GLOBAL_STATUS_BOARD_NAME)?
+            (Self::create(conn, workspace_id, Self::GLOBAL_STATUS_BOARD_NAME)?, true)
         };
 
-        for (order_index, name) in Self::GLOBAL_STATUS_NAMES.iter().enumerate() {
-            conn.execute(
-                "INSERT INTO kanban_status (workspace_id, kanban_id, name, order_index)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(kanban_id, name) DO NOTHING",
-                (workspace_id, kanban.id, name, order_index as i32),
-            )?;
+        if should_seed_statuses {
+            for (order_index, name) in Self::GLOBAL_STATUS_NAMES.iter().enumerate() {
+                conn.execute(
+                    "INSERT INTO kanban_status (workspace_id, kanban_id, name, order_index)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(kanban_id, name) DO NOTHING",
+                    (workspace_id, kanban.id, name, order_index as i32),
+                )?;
+            }
         }
 
         Ok(kanban)
@@ -112,5 +119,53 @@ impl KanbanRepository {
             .optional()?;
 
         Ok(item)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rusqlite::Connection;
+
+    use super::KanbanRepository;
+    use crate::migrations::apply_migrations;
+    use crate::repositories::{KanbanStatusRepository, WorkspaceRepository};
+
+    fn setup_conn() -> Connection {
+        let conn = Connection::open_in_memory().expect("in-memory DB should open");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
+        apply_migrations(&conn).expect("migrations should apply");
+        conn
+    }
+
+    #[test]
+    fn ensure_global_status_board_does_not_recreate_renamed_default_status() {
+        let conn = setup_conn();
+        let workspace = WorkspaceRepository::create(&conn, "test", "Test")
+            .expect("workspace should be created");
+
+        let kanban = KanbanRepository::ensure_global_status_board(&conn, workspace.id)
+            .expect("global status board should be created");
+        let statuses = KanbanStatusRepository::list_by_kanban(&conn, workspace.id, kanban.id)
+            .expect("statuses should load");
+        let inbox = statuses
+            .iter()
+            .find(|status| status.name == "Inbox")
+            .expect("Inbox should exist");
+
+        KanbanStatusRepository::update(&conn, workspace.id, inbox.id, "Triage", inbox.color.as_deref())
+            .expect("status should update");
+
+        KanbanRepository::ensure_global_status_board(&conn, workspace.id)
+            .expect("global status board should still load");
+
+        let statuses = KanbanStatusRepository::list_by_kanban(&conn, workspace.id, kanban.id)
+            .expect("statuses should load");
+        assert_eq!(statuses.len(), KanbanRepository::global_status_names().len());
+        assert!(statuses.iter().any(|status| status.name == "Triage"));
+        assert!(!statuses.iter().any(|status| status.name == "Inbox"));
     }
 }
