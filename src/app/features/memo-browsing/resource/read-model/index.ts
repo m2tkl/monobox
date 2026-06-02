@@ -233,6 +233,7 @@ export function useGlobalStatusBoardReadModel() {
     workspaceSlug,
   });
 
+  const kanban = computed(() => kanbansSnap.value.current?.[0] ?? null);
   const kanbanId = computed(() => kanbansSnap.value.current?.[0]?.id ?? 0);
 
   const { snapshot: statusesSnap } = useQuery(workspaceKanbanStatusesQuery, {
@@ -272,7 +273,7 @@ export function useGlobalStatusBoardReadModel() {
     }));
   });
 
-  const nowStatusId = computed(() => statuses.value.find(status => status.name === 'Now')?.id ?? null);
+  const focusStatusId = computed(() => kanban.value?.focus_status_id ?? null);
 
   const assignedItems = computed<GlobalStatusMemoListItem[]>(() => {
     const memosById = new Map((memosSnap.value.current ?? []).map(memo => [memo.id, memo]));
@@ -304,8 +305,8 @@ export function useGlobalStatusBoardReadModel() {
   });
 
   const nowItems = computed(() => {
-    if (nowStatusId.value === null) return [];
-    return assignedItems.value.filter(item => item.kanbanStatusId === nowStatusId.value);
+    if (focusStatusId.value === null) return [];
+    return assignedItems.value.filter(item => item.kanbanStatusId === focusStatusId.value);
   });
 
   return defineReadModel<GlobalStatusBoardReadModel['data']>({
@@ -314,7 +315,7 @@ export function useGlobalStatusBoardReadModel() {
       statuses: statuses.value,
       nowItems: nowItems.value,
       assignedItems: assignedItems.value,
-      nowStatusId: nowStatusId.value,
+      nowStatusId: focusStatusId.value,
     })),
     snapshots: [kanbansSnap, statusesSnap, assignmentsSnap, memosSnap, memoLinkCountsSnap],
   });

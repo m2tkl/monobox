@@ -9,6 +9,10 @@ export const kanbanCommand = {
     void publishResourceChanges([changeRefs.kanbanCollectionChanged(params.workspaceSlugName)]);
     return created;
   },
+  updateStatusRoles: async (params: { workspaceSlugName: string; id: number; defaultStatusId?: number | null; focusStatusId?: number | null }) => {
+    await tauriCommand.kanban.updateStatusRoles(params);
+    void publishResourceChanges([changeRefs.kanbanCollectionChanged(params.workspaceSlugName)]);
+  },
   delete: async (params: { workspaceSlugName: string; id: number }) => {
     await tauriCommand.kanban.delete(params);
     void publishResourceChanges([changeRefs.kanbanCollectionChanged(params.workspaceSlugName)]);

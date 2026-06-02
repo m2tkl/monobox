@@ -1,5 +1,5 @@
 use crate::models::kanban_status::KanbanStatus;
-use rusqlite::{Connection, OptionalExtension, Result};
+use rusqlite::{Connection, Result};
 
 pub struct KanbanStatusRepository;
 
@@ -79,36 +79,6 @@ impl KanbanStatusRepository {
         Ok(status)
     }
 
-    pub fn find_by_name(
-        conn: &Connection,
-        workspace_id: i32,
-        kanban_id: i32,
-        name: &str,
-    ) -> Result<Option<KanbanStatus>> {
-        let mut stmt = conn.prepare(
-            "SELECT id, workspace_id, kanban_id, name, color, order_index, created_at, updated_at
-            FROM kanban_status
-            WHERE workspace_id = ? AND kanban_id = ? AND name = ?",
-        )?;
-
-        let status = stmt
-            .query_row((workspace_id, kanban_id, name), |row| {
-                Ok(KanbanStatus {
-                    id: row.get(0)?,
-                    workspace_id: row.get(1)?,
-                    kanban_id: row.get(2)?,
-                    name: row.get(3)?,
-                    color: row.get(4)?,
-                    order_index: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
-                })
-            })
-            .optional()?;
-
-        Ok(status)
-    }
-
     pub fn update(
         conn: &Connection,
         workspace_id: i32,
@@ -127,6 +97,15 @@ impl KanbanStatusRepository {
     }
 
     pub fn delete(conn: &Connection, workspace_id: i32, status_id: i32) -> Result<bool> {
+        conn.execute(
+            "UPDATE kanban
+            SET
+              default_status_id = CASE WHEN default_status_id = ? THEN NULL ELSE default_status_id END,
+              focus_status_id = CASE WHEN focus_status_id = ? THEN NULL ELSE focus_status_id END
+            WHERE workspace_id = ?",
+            (status_id, status_id, workspace_id),
+        )?;
+
         let deleted = conn.execute(
             "DELETE FROM kanban_status
             WHERE id = ? AND workspace_id = ?",

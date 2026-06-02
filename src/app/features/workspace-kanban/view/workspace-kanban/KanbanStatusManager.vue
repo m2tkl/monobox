@@ -29,6 +29,32 @@
         No statuses yet. Add your first status.
       </div>
 
+      <div
+        v-if="statuses.length > 0"
+        class="status-role-panel"
+      >
+        <label class="status-role-field">
+          <span class="status-role-label">Default</span>
+          <AppSelect
+            :model-value="currentKanban?.default_status_id ?? null"
+            :items="statusRoleOptions"
+            placeholder="No default status"
+            :disabled="isSavingRoles"
+            @update:model-value="value => updateStatusRole('default', value)"
+          />
+        </label>
+        <label class="status-role-field">
+          <span class="status-role-label">Focus</span>
+          <AppSelect
+            :model-value="currentKanban?.focus_status_id ?? null"
+            :items="statusRoleOptions"
+            placeholder="No focus status"
+            :disabled="isSavingRoles"
+            @update:model-value="value => updateStatusRole('focus', value)"
+          />
+        </label>
+      </div>
+
       <div class="status-row status-row--create">
         <AppButton
           size="xs"
@@ -201,13 +227,15 @@ import {
   deleteKanbanStatus,
   reorderKanbanStatuses,
   updateKanbanStatus,
+  updateKanbanStatusRoles,
 } from '../../resource/command';
-import { useWorkspaceKanbanStatusCollectionReadModel } from '../../resource/read-model';
+import { useWorkspaceKanbanCollectionReadModel, useWorkspaceKanbanStatusCollectionReadModel } from '../../resource/read-model';
 
 import type { KanbanStatus } from '~/models/kanbanStatus';
 
 import AppButton from '~/app/elements/AppButton.vue';
 import AppInput from '~/app/elements/AppInput.vue';
+import AppSelect from '~/app/elements/AppSelect.vue';
 import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { iconKey } from '~/utils/icon';
@@ -226,10 +254,20 @@ const kanbanId = computed(() => props.kanbanId ?? null);
 const hasKanban = computed(() => kanbanId.value !== null);
 
 const vm = useWorkspaceKanbanStatusCollectionReadModel(workspaceSlug, kanbanId);
+const kanbanVM = useWorkspaceKanbanCollectionReadModel(workspaceSlug);
 const statuses = computed(() => vm.value.data.items);
+const currentKanban = computed(() => {
+  if (kanbanId.value === null) return null;
+  return kanbanVM.value.data.items.find(kanban => kanban.id === kanbanId.value) ?? null;
+});
+const statusRoleOptions = computed(() => statuses.value.map(status => ({
+  label: status.name,
+  value: status.id,
+})));
 
 const saving = reactive<Record<number, boolean>>({});
 const deleting = reactive<Record<number, boolean>>({});
+const isSavingRoles = ref(false);
 
 const newName = ref('');
 const newColor = ref('');
@@ -361,6 +399,60 @@ const confirmDeleteStatus = async () => {
   deleteTargetId.value = null;
 };
 
+const normalizeRoleValue = (value: string | number | null | undefined) => {
+  if (value === null || value === undefined || value === '') return null;
+  const id = typeof value === 'number' ? value : Number(value);
+  return Number.isNaN(id) ? null : id;
+};
+
+const updateStatusRole = async (role: 'default' | 'focus', value: string | number | null | undefined) => {
+  if (!workspaceSlug.value) return;
+  if (kanbanId.value === null) return;
+  if (!currentKanban.value) return;
+
+  const nextStatusId = normalizeRoleValue(value);
+  const defaultStatusId = role === 'default'
+    ? nextStatusId
+    : currentKanban.value.default_status_id ?? null;
+  const focusStatusId = role === 'focus'
+    ? nextStatusId
+    : currentKanban.value.focus_status_id ?? null;
+
+  if (
+    defaultStatusId === (currentKanban.value.default_status_id ?? null)
+    && focusStatusId === (currentKanban.value.focus_status_id ?? null)
+  ) {
+    return;
+  }
+
+  isSavingRoles.value = true;
+  try {
+    await updateKanbanStatusRoles({
+      workspaceSlug: workspaceSlug.value,
+      kanbanId: kanbanId.value,
+      defaultStatusId,
+      focusStatusId,
+    });
+    toast.add({
+      title: 'Status settings updated.',
+      duration: 1000,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to update status settings.',
+      description: 'Please try again.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isSavingRoles.value = false;
+  }
+};
+
 const createStatus = async () => {
   if (!workspaceSlug.value) return;
   if (kanbanId.value === null) return;
@@ -468,6 +560,31 @@ const getLabelStyle = (color: string) => {
 
 .status-row--create {
   border-style: dashed;
+}
+
+.status-role-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--color-card-bg) 74%, transparent);
+}
+
+.status-role-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status-role-label {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .status-label {

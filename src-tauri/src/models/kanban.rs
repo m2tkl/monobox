@@ -6,6 +6,8 @@ pub struct Kanban {
     pub workspace_id: i32,
     pub name: String,
     pub order_index: i32,
+    pub default_status_id: Option<i32>,
+    pub focus_status_id: Option<i32>,
     pub created_at: String,
     pub updated_at: String,
 }

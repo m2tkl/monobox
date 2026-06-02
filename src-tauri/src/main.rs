@@ -165,6 +165,7 @@ fn main() {
             // Kanban
             commands::kanban::list_kanbans,
             commands::kanban::create_kanban,
+            commands::kanban::update_kanban_status_roles,
             commands::kanban::delete_kanban,
             // Memo Kanban
             commands::kanban_assignment::list_kanban_assignment_items,

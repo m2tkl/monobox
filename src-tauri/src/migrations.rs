@@ -307,6 +307,33 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         ALTER TABLE memo_files RENAME COLUMN note_id TO memo_id;
         ",
     ),
+    (
+        "20260602_add_status_roles_to_kanban",
+        "
+        ALTER TABLE kanban ADD COLUMN default_status_id INTEGER;
+        ALTER TABLE kanban ADD COLUMN focus_status_id INTEGER;
+
+        UPDATE kanban
+        SET default_status_id = (
+            SELECT kanban_status.id
+            FROM kanban_status
+            WHERE kanban_status.kanban_id = kanban.id
+              AND kanban_status.name = 'Inbox'
+            LIMIT 1
+        )
+        WHERE default_status_id IS NULL;
+
+        UPDATE kanban
+        SET focus_status_id = (
+            SELECT kanban_status.id
+            FROM kanban_status
+            WHERE kanban_status.kanban_id = kanban.id
+              AND kanban_status.name = 'Now'
+            LIMIT 1
+        )
+        WHERE focus_status_id IS NULL;
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

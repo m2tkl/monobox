@@ -63,6 +63,7 @@ export function useCurrentMemoReadModel() {
   const { snapshot: kanbansSnap } = useQuery(workspaceKanbansQuery, {
     workspaceSlug,
   });
+  const kanban = computed(() => kanbansSnap.value.current?.[0] ?? null);
   const kanbanId = computed(() => kanbansSnap.value.current?.[0]?.id ?? 0);
   const { snapshot: statusesSnap } = useQuery(workspaceKanbanStatusesQuery, {
     workspaceSlug,
@@ -88,10 +89,10 @@ export function useCurrentMemoReadModel() {
   const isFocused = computed<boolean>(() => {
     const currentMemo = memo.value;
     if (!currentMemo) return false;
-    const nowStatusId = statusesSnap.value.current?.find(status => status.name === 'Now')?.id ?? null;
-    if (nowStatusId === null) return false;
+    const focusStatusId = kanban.value?.focus_status_id ?? null;
+    if (focusStatusId === null) return false;
     return (assignmentsSnap.value.current ?? []).some(assignment =>
-      assignment.memo_id === currentMemo.id && assignment.kanban_status_id === nowStatusId,
+      assignment.memo_id === currentMemo.id && assignment.kanban_status_id === focusStatusId,
     );
   });
 

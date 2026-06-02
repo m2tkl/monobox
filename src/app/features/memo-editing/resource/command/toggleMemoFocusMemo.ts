@@ -11,17 +11,13 @@ export async function toggleMemoFocusMemo(input: ToggleMemoFocusMemoInput) {
   if (!input.isFocused) {
     const kanban = await loadGlobalStatusKanban(input.workspaceSlug);
     if (!kanban) return;
-    const nowStatus = (await command.kanbanStatus.list({
-      slugName: input.workspaceSlug,
-      kanbanId: kanban.id,
-    })).find(status => status.name === 'Now');
-    if (!nowStatus) return;
+    if (!kanban.focus_status_id) return;
 
     await command.kanbanAssignment.upsertStatus({
       workspaceSlugName: input.workspaceSlug,
       memoSlugTitle: input.memoSlug,
       kanbanId: kanban.id,
-      kanbanStatusId: nowStatus.id,
+      kanbanStatusId: kanban.focus_status_id,
       position: null,
     });
     return;

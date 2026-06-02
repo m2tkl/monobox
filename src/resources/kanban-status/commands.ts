@@ -26,6 +26,7 @@ export const kanbanStatusCommand = {
   delete: async (params: { workspaceSlugName: string; kanbanId: number; id: number }) => {
     await tauriCommand.kanbanStatus.delete(params);
     void publishResourceChanges([
+      changeRefs.kanbanCollectionChanged(params.workspaceSlugName),
       changeRefs.kanbanStatusCollectionChanged(params.workspaceSlugName, params.kanbanId),
     ]);
   },

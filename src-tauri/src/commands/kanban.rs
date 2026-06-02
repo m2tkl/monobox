@@ -41,6 +41,38 @@ pub fn create_kanban(args: CreateKanbanArgs) -> Result<Kanban, String> {
 }
 
 #[derive(Deserialize)]
+pub struct UpdateKanbanStatusRolesArgs {
+    pub workspace_slug_name: String,
+    pub id: i32,
+    pub default_status_id: Option<i32>,
+    pub focus_status_id: Option<i32>,
+}
+
+#[command]
+pub fn update_kanban_status_roles(args: UpdateKanbanStatusRolesArgs) -> Result<(), String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+
+    let workspace = WorkspaceRepository::find_by_slug(&conn, &args.workspace_slug_name)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Workspace not found for slug: {}", args.workspace_slug_name))?;
+
+    let updated = KanbanRepository::update_status_roles(
+        &conn,
+        workspace.id,
+        args.id,
+        args.default_status_id,
+        args.focus_status_id,
+    )
+    .map_err(|e| e.to_string())?;
+
+    if !updated {
+        return Err(format!("Kanban not found: {}", args.id));
+    }
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
 pub struct DeleteKanbanArgs {
     pub workspace_slug_name: String,
     pub id: i32,
