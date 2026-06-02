@@ -57,7 +57,6 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
       case 'action/copy-selected-markdown':
       case 'action/copy-link-to-heading':
       case 'action/toggle-bookmark':
-      case 'action/toggle-focus-memo':
         toast.add({
           title: 'Failed to complete action.',
           description: 'Please try again',
@@ -78,8 +77,6 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
       switch (action.type) {
         case 'action/toggle-bookmark':
           return pageActions.toggleBookmark();
-        case 'action/toggle-focus-memo':
-          return pageActions.toggleFocusMemo();
         case 'action/open-slide-mode':
           return pageActions.openSlideMode();
         case 'action/copy-markdown':

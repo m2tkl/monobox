@@ -36,16 +36,6 @@
                     :disabled="isKanbanLoading || isKanbanUpdating(primaryKanban.id) || !memoVM.data.memo"
                     @update:model-value="value => applyKanbanStatus(primaryKanban.id, normalizeStatusSelection(value))"
                   />
-                  <UTooltip text="Focus">
-                    <IconButton
-                      class="focus-action-button"
-                      :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
-                      :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
-                      :disabled="!memoVM.data.memo"
-                      aria-label="Focus"
-                      @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
-                    />
-                  </UTooltip>
                   <AppButton
                     size="xs"
                     color="neutral"
@@ -593,7 +583,6 @@ const computeDirty = () => {
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 const hasMemo = computed(() => memoVM.value.data.memo != null);
 const isBookmarked = computed(() => memoVM.value.data.isBookmarked);
-const isFocused = computed(() => memoVM.value.data.isFocused);
 const contextViewWorkspaceSlug = ref('');
 const contextViewMemoSlug = ref('');
 const contextViewHash = ref('');
@@ -1203,7 +1192,6 @@ const { dispatchAction } = useMemoEditingActions({
     workspaceSlug,
     memoSlug,
     isBookmarked,
-    isFocused,
     hasMemo,
     router,
   },
@@ -1342,16 +1330,6 @@ a.external-link {
 
 .template-suggestion-scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-scrollbar-thumb-hover);
-}
-
-.focus-action-button--active {
-  color: var(--color-primary);
-  background-color: var(--color-primary-light);
-}
-
-.memo-status-control .focus-action-button {
-  min-width: 1.75rem;
-  min-height: 1.75rem;
 }
 
 .focus-list-button {
