@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <FocusMemoDrawer />
+    <FocusMemoDrawer :hide-tab="isMemoDetailRoute" />
     <slot name="actions" />
   </div>
 </template>
@@ -51,7 +51,9 @@ import { FocusMemoDrawer } from '~/app/features/focus-memo';
 import SidebarMenu from '~/app/scaffold/SidebarMenu/Index.vue';
 
 const { ui } = useUIState();
+const route = useRoute();
 const isFloatingSidebarVisible = ref(false);
+const isMemoDetailRoute = computed(() => route.matched.at(-1)?.path === '/:workspace/:memo');
 
 const openFloatingSidebar = () => {
   if (ui.value.isSidebarOpen) {

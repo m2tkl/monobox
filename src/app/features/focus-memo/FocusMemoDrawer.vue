@@ -8,6 +8,7 @@
     }"
   >
     <button
+      v-if="!hideTab"
       type="button"
       class="focus-drawer-tab"
       @click="isOpen = !isOpen"
@@ -206,6 +207,10 @@ import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 type FocusSortMode = 'focused' | 'updated';
 type FocusViewMode = 'active' | 'done';
+
+defineProps<{
+  hideTab?: boolean;
+}>();
 
 const route = useRoute();
 const { ui } = useUIState();

@@ -46,6 +46,17 @@
                       @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
                     />
                   </UTooltip>
+                  <AppButton
+                    size="xs"
+                    color="neutral"
+                    variant="soft"
+                    :icon="iconKey.focusFilled"
+                    class="focus-list-button"
+                    @click="toggleFocusPane"
+                  >
+                    Focus
+                    <span class="focus-list-count">{{ activeFocusCount }}</span>
+                  </AppButton>
                   <UBadge
                     :color="memoStatusBadge.color"
                     variant="soft"
@@ -431,6 +442,7 @@ import AppInput from '~/app/elements/AppInput.vue';
 import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
 import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent } from '~/app/features/editor';
+import { useFocusMemoListReadModel, useGlobalStatusBoardReadModel } from '~/app/features/memo-browsing';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
@@ -450,8 +462,16 @@ const extensions = buildExtensions({
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const { ui } = useUIState();
 const { workspaceSlug, memoSlug } = useMemoRouteTarget(route);
 const memoVM = useCurrentMemoReadModel();
+const globalStatusVM = useGlobalStatusBoardReadModel();
+const focusMemoVM = useFocusMemoListReadModel();
+const doneTodayMemoSlugs = computed(() => new Set(focusMemoVM.value.data.doneTodayItems.map(memo => memo.slug_title)));
+const activeFocusCount = computed(() => globalStatusVM.value.data.nowItems.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)).length);
+const toggleFocusPane = () => {
+  ui.value.isFocusPaneOpen = !ui.value.isFocusPaneOpen;
+};
 const { memoTitle } = useMemoTitleBackfill(computed(() => memoVM.value.data.memo));
 const {
   kanbans,
@@ -1332,6 +1352,20 @@ a.external-link {
 .memo-status-control .focus-action-button {
   min-width: 1.75rem;
   min-height: 1.75rem;
+}
+
+.focus-list-button {
+  min-height: 1.75rem;
+}
+
+.focus-list-count {
+  min-width: 1rem;
+  border-radius: 999px;
+  padding: 0 0.25rem;
+  font-size: 0.6875rem;
+  text-align: center;
+  color: white;
+  background: var(--color-primary);
 }
 
 .memo-status-control {
