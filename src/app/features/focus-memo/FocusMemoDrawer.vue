@@ -33,6 +33,23 @@
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
           <div
+            class="focus-view-control"
+            aria-label="Focus view"
+          >
+            <button
+              v-for="option in viewOptions"
+              :key="option.value"
+              type="button"
+              class="focus-view-button"
+              :class="{ 'focus-view-button--active': viewMode === option.value }"
+              :aria-pressed="viewMode === option.value"
+              @click="viewMode = option.value"
+            >
+              <span>{{ option.label }}</span>
+              <span class="focus-view-count">{{ option.count }}</span>
+            </button>
+          </div>
+          <div
             class="focus-sort-control"
             aria-label="Focus sort order"
           >
@@ -77,17 +94,17 @@
 
       <div class="focus-drawer-body">
         <div
-          v-if="activeItems.length === 0"
+          v-if="displayItems.length === 0"
           class="focus-empty"
         >
-          No focus memos.
+          {{ emptyMessage }}
         </div>
         <ul
           v-else
           class="focus-card-grid"
         >
           <li
-            v-for="memo in sortedActiveItems"
+            v-for="memo in sortedDisplayItems"
             :key="memo.id"
             class="focus-card"
           >
@@ -99,7 +116,10 @@
                 :thumbnail-image="memo.thumbnail_image"
               />
             </NuxtLink>
-            <div class="focus-card-actions">
+            <div
+              v-if="viewMode === 'active'"
+              class="focus-card-actions"
+            >
               <IconButton
                 :icon="iconKey.success"
                 aria-label="Done for today"
@@ -185,6 +205,7 @@ import { iconKey } from '~/utils/icon';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 type FocusSortMode = 'focused' | 'updated';
+type FocusViewMode = 'active' | 'done';
 
 const route = useRoute();
 const { ui } = useUIState();
@@ -193,6 +214,7 @@ const isPickerOpen = ref(false);
 const pickerQuery = ref('');
 const selectedMemoSlugs = ref(new Set<string>());
 const isAdding = ref(false);
+const viewMode = ref<FocusViewMode>('active');
 const sortOptions: { value: FocusSortMode; label: string; icon: string }[] = [
   { value: 'focused', label: 'Focused', icon: iconKey.focusFilled },
   { value: 'updated', label: 'Updated', icon: iconKey.recent },
@@ -221,12 +243,20 @@ const globalStatusVM = useGlobalStatusBoardReadModel();
 const focusMemoVM = useFocusMemoListReadModel();
 const workspaceMemosVM = useWorkspaceMemosReadModel();
 const doneTodayMemoSlugs = computed(() => new Set(focusMemoVM.value.data.doneTodayItems.map(memo => memo.slug_title)));
-const activeItems = computed(() => globalStatusVM.value.data.nowItems.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)));
-const focusedMemoSlugs = computed(() => new Set(activeItems.value.map(memo => memo.slug_title)));
+const focusItems = computed(() => globalStatusVM.value.data.nowItems);
+const activeItems = computed(() => focusItems.value.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)));
+const doneItems = computed(() => focusItems.value.filter(memo => doneTodayMemoSlugs.value.has(memo.slug_title)));
+const displayItems = computed(() => viewMode.value === 'done' ? doneItems.value : activeItems.value);
+const focusedMemoSlugs = computed(() => new Set(focusItems.value.map(memo => memo.slug_title)));
 const globalKanbanId = computed(() => globalStatusVM.value.data.kanbanId);
 const nowStatusId = computed(() => globalStatusVM.value.data.nowStatusId);
 const canAssignNow = computed(() => globalKanbanId.value !== null && nowStatusId.value !== null);
 const workspaceMemos = computed(() => workspaceMemosVM.value.data.items);
+const viewOptions = computed(() => [
+  { value: 'active' as const, label: 'Active', count: activeItems.value.length },
+  { value: 'done' as const, label: 'Done', count: doneItems.value.length },
+]);
+const emptyMessage = computed(() => viewMode.value === 'done' ? 'No memos done for today.' : 'No focus memos.');
 
 const sortFocusItems = (items: GlobalStatusMemoListItem[]) => {
   if (sortMode.value === 'focused') {
@@ -240,7 +270,7 @@ const sortFocusItems = (items: GlobalStatusMemoListItem[]) => {
   });
 };
 
-const sortedActiveItems = computed(() => sortFocusItems(activeItems.value));
+const sortedDisplayItems = computed(() => sortFocusItems(displayItems.value));
 
 const pickerMemos = computed(() => {
   const query = pickerQuery.value.trim().toLowerCase();
@@ -390,6 +420,7 @@ async function markDoneForToday(memoSlug: string) {
   padding: 0.375rem 0.75rem;
 }
 
+.focus-view-control,
 .focus-sort-control {
   display: inline-flex;
   min-width: 0;
@@ -399,6 +430,7 @@ async function markDoneForToday(memoSlug: string) {
   background: var(--color-surface);
 }
 
+.focus-view-button,
 .focus-sort-button {
   display: inline-flex;
   min-height: 1.75rem;
@@ -409,14 +441,26 @@ async function markDoneForToday(memoSlug: string) {
   color: var(--color-text-secondary);
 }
 
+.focus-view-button:hover,
+.focus-view-button--active,
 .focus-sort-button:hover,
 .focus-sort-button--active {
   color: var(--color-text-primary);
   background: var(--color-surface-hover);
 }
 
+.focus-view-button--active,
 .focus-sort-button--active {
   font-weight: 600;
+}
+
+.focus-view-count {
+  min-width: 1rem;
+  border-radius: 999px;
+  padding: 0 0.25rem;
+  font-size: 0.6875rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--color-text-secondary) 14%, transparent);
 }
 
 .focus-drawer-body {
@@ -489,33 +533,6 @@ async function markDoneForToday(memoSlug: string) {
   padding: 2rem;
   text-align: center;
   color: var(--color-text-secondary);
-}
-
-.focus-done {
-  margin-top: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
-.focus-done summary {
-  cursor: pointer;
-  font-size: 0.8125rem;
-}
-
-.focus-done-list {
-  margin-top: 0.375rem;
-}
-
-.focus-done-row {
-  display: flex;
-  min-height: 2rem;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
-}
-
-.focus-done-row:hover {
-  background: var(--color-surface-hover);
 }
 
 .focus-picker {
