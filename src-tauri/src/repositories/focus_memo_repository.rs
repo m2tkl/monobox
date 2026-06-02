@@ -61,11 +61,19 @@ impl FocusMemoRepository {
     }
 
     pub fn mark_done_for_today(conn: &Connection, workspace_id: i32, memo_id: i32) -> Result<()> {
+        let next_order_index: i32 = conn.query_row(
+            "SELECT COALESCE(MAX(order_index), -1) + 1 FROM focus_memo WHERE workspace_id = ?",
+            [workspace_id],
+            |row| row.get(0),
+        )?;
+
         conn.execute(
-            "UPDATE focus_memo
-             SET done_for_today_on = date('now', 'localtime'), updated_at = CURRENT_TIMESTAMP
-             WHERE workspace_id = ? AND memo_id = ?",
-            (workspace_id, memo_id),
+            "INSERT INTO focus_memo (workspace_id, memo_id, order_index, done_for_today_on)
+             VALUES (?, ?, ?, date('now', 'localtime'))
+             ON CONFLICT(workspace_id, memo_id) DO UPDATE SET
+               done_for_today_on = date('now', 'localtime'),
+               updated_at = CURRENT_TIMESTAMP",
+            (workspace_id, memo_id, next_order_index),
         )?;
         Ok(())
     }
@@ -78,5 +86,43 @@ impl FocusMemoRepository {
             (workspace_id, memo_id),
         )?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rusqlite::Connection;
+
+    use super::FocusMemoRepository;
+    use crate::migrations::apply_migrations;
+    use crate::repositories::{MemoRepository, WorkspaceRepository};
+
+    fn setup_conn() -> Connection {
+        let conn = Connection::open_in_memory().expect("in-memory DB should open");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
+        apply_migrations(&conn).expect("migrations should apply");
+        conn
+    }
+
+    #[test]
+    fn mark_done_for_today_creates_missing_focus_memo_row() {
+        let conn = setup_conn();
+        let workspace = WorkspaceRepository::create(&conn, "test", "Test")
+            .expect("workspace should be created");
+        let memo = MemoRepository::create(&conn, workspace.id, "memo", "Memo", r#"{"type":"doc"}"#)
+            .expect("memo should be created");
+
+        FocusMemoRepository::mark_done_for_today(&conn, workspace.id, memo.id)
+            .expect("focus memo should be marked done");
+
+        let items = FocusMemoRepository::list_by_workspace(&conn, workspace.id)
+            .expect("focus memos should load");
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].memo_id, memo.id);
+        assert!(items[0].done_for_today_on.is_some());
     }
 }

@@ -80,7 +80,7 @@
           v-if="activeItems.length === 0"
           class="focus-empty"
         >
-          No memos in Now.
+          No focus memos.
         </div>
         <ul
           v-else
@@ -102,8 +102,8 @@
             <div class="focus-card-actions">
               <IconButton
                 :icon="iconKey.close"
-                aria-label="Remove from Now"
-                @click="() => removeFromNow(memo.slug_title)"
+                aria-label="Done for today"
+                @click="() => markDoneForToday(memo.slug_title)"
               />
             </div>
           </li>
@@ -178,7 +178,7 @@
 <script setup lang="ts">
 import type { GlobalStatusMemoListItem } from '~/app/features/memo-browsing/resource/read-model';
 
-import { useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
+import { useFocusMemoListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
 import MemoThumbnail from '~/app/features/memo-browsing/view/memo-browsing/MemoThumbnail.vue';
 import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
@@ -218,8 +218,10 @@ const sortMode = computed<FocusSortMode>({
 });
 
 const globalStatusVM = useGlobalStatusBoardReadModel();
+const focusMemoVM = useFocusMemoListReadModel();
 const workspaceMemosVM = useWorkspaceMemosReadModel();
-const activeItems = computed(() => globalStatusVM.value.data.nowItems);
+const doneTodayMemoSlugs = computed(() => new Set(focusMemoVM.value.data.doneTodayItems.map(memo => memo.slug_title)));
+const activeItems = computed(() => globalStatusVM.value.data.nowItems.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)));
 const focusedMemoSlugs = computed(() => new Set(activeItems.value.map(memo => memo.slug_title)));
 const globalKanbanId = computed(() => globalStatusVM.value.data.kanbanId);
 const nowStatusId = computed(() => globalStatusVM.value.data.nowStatusId);
@@ -297,6 +299,7 @@ async function addSelectedFocusMemos() {
         kanbanStatusId: nowStatusId.value,
         position: null,
       });
+      await command.focusMemo.add(workspaceSlug.value, memoSlug);
     }
     isPickerOpen.value = false;
   }
@@ -305,13 +308,9 @@ async function addSelectedFocusMemos() {
   }
 }
 
-async function removeFromNow(memoSlug: string) {
-  if (!workspaceSlug.value || globalKanbanId.value === null) return;
-  await command.kanbanAssignment.remove({
-    workspaceSlugName: workspaceSlug.value,
-    memoSlugTitle: memoSlug,
-    kanbanId: globalKanbanId.value,
-  });
+async function markDoneForToday(memoSlug: string) {
+  if (!workspaceSlug.value) return;
+  await command.focusMemo.markDoneForToday(workspaceSlug.value, memoSlug);
 }
 </script>
 

@@ -20,6 +20,7 @@ export async function toggleMemoFocusMemo(input: ToggleMemoFocusMemoInput) {
       kanbanStatusId: kanban.focus_status_id,
       position: null,
     });
+    await command.focusMemo.add(input.workspaceSlug, input.memoSlug);
     return;
   }
 
@@ -31,4 +32,5 @@ export async function toggleMemoFocusMemo(input: ToggleMemoFocusMemoInput) {
     memoSlugTitle: input.memoSlug,
     kanbanId: kanban.id,
   });
+  await command.focusMemo.delete(input.workspaceSlug, input.memoSlug);
 }
