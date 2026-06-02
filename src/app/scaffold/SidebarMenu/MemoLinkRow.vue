@@ -22,7 +22,10 @@
         @{{ memoTitleWithContext.context }}
       </span>
     </span>
-    <span class="shrink-0 text-xs text-gray-500">{{ count }}</span>
+    <span
+      v-if="count !== undefined"
+      class="shrink-0 text-xs text-gray-500"
+    >{{ count }}</span>
   </NuxtLink>
 </template>
 

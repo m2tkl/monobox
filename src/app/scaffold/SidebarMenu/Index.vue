@@ -94,7 +94,6 @@
               <MemoLinkRow
                 :to="`/${workspaceSlug}/_kanban`"
                 memo-title="All"
-                :count="globalStatusTotalCount"
                 :active="isKanbanAllActive"
               />
             </li>
@@ -195,7 +194,6 @@ const globalStatusVM = useGlobalStatusBoardReadModel();
 const bookmarks = computed(() => bookmarkVM.value.data.items);
 const workspaceMemos = computed(() => workspaceMemosVM.value.data.items);
 const globalStatuses = computed(() => globalStatusVM.value.data.statuses);
-const globalStatusTotalCount = computed(() => globalStatusVM.value.data.assignedItems.length);
 const activeMemoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 const activeStatusName = computed(() => {
   if (route.path !== `/${workspaceSlug.value}`) return '';
