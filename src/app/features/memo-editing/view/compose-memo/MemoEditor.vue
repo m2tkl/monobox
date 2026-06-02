@@ -128,7 +128,7 @@
 
     <div
       v-if="slots.status"
-      class="pointer-events-none fixed right-4 bottom-12 z-[1210]"
+      class="pointer-events-none fixed right-4 bottom-3 z-[1210]"
     >
       <slot name="status" />
     </div>
