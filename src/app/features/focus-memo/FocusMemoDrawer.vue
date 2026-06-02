@@ -101,7 +101,7 @@
             </NuxtLink>
             <div class="focus-card-actions">
               <IconButton
-                :icon="iconKey.close"
+                :icon="iconKey.success"
                 aria-label="Done for today"
                 @click="() => markDoneForToday(memo.slug_title)"
               />
