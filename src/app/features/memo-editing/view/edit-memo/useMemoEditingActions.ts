@@ -76,8 +76,6 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
   const dispatchAction = async (action: MemoEditingAction): Promise<ActionResult> => {
     const result = await (async (): Promise<ActionResult> => {
       switch (action.type) {
-        case 'action/open-kanban-modal':
-          return pageActions.openKanbanModal();
         case 'action/toggle-bookmark':
           return pageActions.toggleBookmark();
         case 'action/toggle-focus-memo':

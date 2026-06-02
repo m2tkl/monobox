@@ -12,7 +12,6 @@ export type UseMemoEditingPageActionsDeps = {
   isFocused: Ref<boolean>;
   hasMemo: Ref<boolean>;
   router: Router;
-  openKanbanModal: () => void;
 };
 
 export function useMemoEditingPageActions(options: UseMemoEditingPageActionsDeps) {
@@ -61,13 +60,7 @@ export function useMemoEditingPageActions(options: UseMemoEditingPageActionsDeps
     }
   };
 
-  const openKanbanModal = (): ActionResult => {
-    options.openKanbanModal();
-    return { ok: true, data: undefined };
-  };
-
   return {
-    openKanbanModal,
     toggleBookmark,
     toggleFocusMemo,
     openSlideMode,

@@ -30,16 +30,10 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
   const resourceManager = useResourceManager();
   const kanbanSelections = reactive<Record<number, number | null>>({});
   const updatingKanbans = reactive<Record<number, boolean>>({});
-  const isKanbanModalOpen = ref(false);
   const kanbanEntries = ref<KanbanAssignmentEntry[]>([]);
   const isKanbanLoading = ref(false);
 
   const kanbanEntryMap = computed(() => new Map(kanbanEntries.value.map(entry => [entry.kanban_id, entry])));
-  const kanbanEntryCount = computed(() => kanbanEntries.value.length);
-  const kanbanIndicatorColor = computed(() => {
-    const color = kanbanEntries.value[0]?.kanban_status_color?.trim();
-    return color || 'var(--color-surface-muted)';
-  });
   const kanbanStatusesById = computed<Record<number, KanbanStatus[]>>(() => {
     const statusMap: Record<number, KanbanStatus[]> = {};
     for (const kanban of options.kanbans.value) {
@@ -135,38 +129,24 @@ export function useMemoKanbanAssignments(options: UseMemoKanbanAssignmentsOption
     }
   };
 
-  const openKanbanModal = () => {
-    isKanbanModalOpen.value = true;
-  };
-
-  watch(isKanbanModalOpen, async (open) => {
-    if (!open) return;
-    await loadKanbanStatuses();
-    syncKanbanSelections();
-  });
-
   watch(options.kanbans, () => {
     syncKanbanSelections();
-    if (isKanbanModalOpen.value) {
-      void loadKanbanStatuses();
-    }
+    void loadKanbanStatuses();
   });
 
   watch([options.workspaceSlug, options.memoSlug], async ([slug, memo]) => {
     if (!slug || !memo) return;
-    await loadKanbanEntries();
+    await Promise.all([
+      loadKanbanEntries(),
+      loadKanbanStatuses(),
+    ]);
   });
 
   return {
     kanbanEntries,
-    kanbanEntryMap,
-    kanbanEntryCount,
-    kanbanIndicatorColor,
     kanbanSelections,
     isKanbanLoading,
-    isKanbanModalOpen,
     isKanbanUpdating,
-    openKanbanModal,
     syncKanbanSelections,
     loadKanbanEntries,
     loadKanbanStatuses,

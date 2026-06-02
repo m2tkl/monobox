@@ -3,7 +3,6 @@ export type ActionResult<T = void> =
   | { ok: false; error?: unknown };
 
 export type MemoEditingAction =
-  | { type: 'action/open-kanban-modal' }
   | { type: 'action/toggle-bookmark' }
   | { type: 'action/toggle-focus-memo' }
   | { type: 'action/open-slide-mode' }

@@ -18,12 +18,9 @@ export function useMemoEditingKanban(options: UseMemoEditingKanbanOptions) {
   const kanbans = computed(() => kanbanReadModel.value.data.items);
 
   const {
-    kanbanEntryMap,
     kanbanSelections,
     isKanbanLoading,
-    isKanbanModalOpen,
     isKanbanUpdating,
-    openKanbanModal,
     loadKanbanEntries,
     getStatuses,
     applyKanbanStatus,
@@ -37,12 +34,9 @@ export function useMemoEditingKanban(options: UseMemoEditingKanbanOptions) {
   return {
     kanbanReadModel,
     kanbans,
-    kanbanEntryMap,
     kanbanSelections,
     isKanbanLoading,
-    isKanbanModalOpen,
     isKanbanUpdating,
-    openKanbanModal,
     loadKanbanEntries,
     getStatuses,
     applyKanbanStatus,

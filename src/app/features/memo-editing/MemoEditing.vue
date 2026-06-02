@@ -27,13 +27,23 @@
               :editor="editor"
             >
               <template #status>
-                <UBadge
-                  :color="memoStatusBadge.color"
-                  variant="soft"
-                  class="memo-status-badge"
-                >
-                  {{ memoStatusBadge.label }}
-                </UBadge>
+                <div class="memo-status-control">
+                  <AppSelect
+                    v-if="primaryKanban"
+                    :model-value="kanbanSelections[primaryKanban.id] ?? null"
+                    :items="primaryStatusOptions"
+                    placeholder="No status"
+                    :disabled="isKanbanLoading || isKanbanUpdating(primaryKanban.id) || !memoVM.data.memo"
+                    @update:model-value="value => applyKanbanStatus(primaryKanban.id, normalizeStatusSelection(value))"
+                  />
+                  <UBadge
+                    :color="memoStatusBadge.color"
+                    variant="soft"
+                    class="memo-status-badge"
+                  >
+                    {{ memoStatusBadge.label }}
+                  </UBadge>
+                </div>
               </template>
 
               <template #toolbar="{ editor: _editor }">
@@ -60,12 +70,6 @@
                 <div class="memo-action-separator" />
 
                 <div class="memo-action-group">
-                  <IconButton
-                    :icon="iconKey.kanban"
-                    :disabled="isKanbanLoading || !memoVM.data.memo"
-                    aria-label="Status"
-                    @click="() => void dispatchAction({ type: 'action/open-kanban-modal' })"
-                  />
                   <UTooltip text="Focus">
                     <IconButton
                       class="focus-action-button"
@@ -323,16 +327,6 @@
               </div>
             </div>
 
-            <MemoStatusAssignmentDialog
-              v-model:open="isKanbanModalOpen"
-              :kanbans="kanbans"
-              :entry-map="kanbanEntryMap"
-              :selections="kanbanSelections"
-              :is-updating="isKanbanUpdating"
-              :get-statuses="getStatuses"
-              :apply-status="applyKanbanStatus"
-            />
-
             <!-- Related links -->
             <MemoLinkCardView
               v-if="memoVM.data.memo"
@@ -423,7 +417,6 @@ import { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
 import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
 import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
-import MemoStatusAssignmentDialog from './view/organize-memo/MemoStatusAssignmentDialog.vue';
 import ExportDialogToCopyResult from './view/share-memo/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
 import { useMemoExport } from './view/share-memo/memoExport';
@@ -439,6 +432,7 @@ import type { InboxFileItem, ManagedFileListItem } from '~/models/file';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
 import AppInput from '~/app/elements/AppInput.vue';
+import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
 import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent } from '~/app/features/editor';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
@@ -465,12 +459,9 @@ const memoVM = useCurrentMemoReadModel();
 const { memoTitle } = useMemoTitleBackfill(computed(() => memoVM.value.data.memo));
 const {
   kanbans,
-  kanbanEntryMap,
   kanbanSelections,
   isKanbanLoading,
-  isKanbanModalOpen,
   isKanbanUpdating,
-  openKanbanModal,
   getStatuses,
   applyKanbanStatus,
   loadKanbanEntries,
@@ -478,6 +469,20 @@ const {
   workspaceSlug,
   memoSlug,
 });
+const primaryKanban = computed(() => kanbans.value[0] ?? null);
+const primaryStatusOptions = computed(() => {
+  const kanban = primaryKanban.value;
+  if (!kanban) return [];
+  return getStatuses(kanban.id).map(status => ({
+    label: status.name,
+    value: status.id,
+  }));
+});
+const normalizeStatusSelection = (value: string | number | null | undefined) => {
+  if (value === null || value === undefined || value === '') return null;
+  const id = typeof value === 'number' ? value : Number(value);
+  return Number.isNaN(id) ? null : id;
+};
 const availableTemplates = ref<MemoTemplateIndexItem[]>([]);
 const loadTemplates = async () => {
   availableTemplates.value = await loadMemoTemplates(workspaceSlug.value);
@@ -1185,7 +1190,6 @@ const { dispatchAction } = useMemoEditingActions({
     isFocused,
     hasMemo,
     router,
-    openKanbanModal,
   },
   export: {
     openExportTargetSelection: () => {
@@ -1327,6 +1331,29 @@ a.external-link {
 .focus-action-button--active {
   color: var(--color-primary);
   background-color: var(--color-primary-light);
+}
+
+.memo-status-control {
+  display: flex;
+  pointer-events: auto;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  background: var(--color-background);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.12);
+}
+
+.memo-status-control .app-select {
+  width: 10rem;
+  min-height: 1.75rem;
+  padding-left: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.memo-status-badge {
+  flex-shrink: 0;
 }
 
 .memo-action-group {
