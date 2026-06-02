@@ -36,6 +36,16 @@
                     :disabled="isKanbanLoading || isKanbanUpdating(primaryKanban.id) || !memoVM.data.memo"
                     @update:model-value="value => applyKanbanStatus(primaryKanban.id, normalizeStatusSelection(value))"
                   />
+                  <UTooltip text="Focus">
+                    <IconButton
+                      class="focus-action-button"
+                      :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
+                      :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
+                      :disabled="!memoVM.data.memo"
+                      aria-label="Focus"
+                      @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
+                    />
+                  </UTooltip>
                   <UBadge
                     :color="memoStatusBadge.color"
                     variant="soft"
@@ -63,20 +73,6 @@
                       :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
                       aria-label="Bookmark"
                       @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
-                    />
-                  </UTooltip>
-                </div>
-
-                <div class="memo-action-separator" />
-
-                <div class="memo-action-group">
-                  <UTooltip text="Focus">
-                    <IconButton
-                      class="focus-action-button"
-                      :class="{ 'focus-action-button--active': memoVM.data.isFocused }"
-                      :icon="memoVM.data.isFocused ? iconKey.focusFilled : iconKey.focus"
-                      aria-label="Focus"
-                      @click="() => void dispatchAction({ type: 'action/toggle-focus-memo' })"
                     />
                   </UTooltip>
                 </div>
@@ -1331,6 +1327,11 @@ a.external-link {
 .focus-action-button--active {
   color: var(--color-primary);
   background-color: var(--color-primary-light);
+}
+
+.memo-status-control .focus-action-button {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
 }
 
 .memo-status-control {
