@@ -8,7 +8,7 @@
               :name="iconKey.search"
               class="text-xl"
             />
-            <UInput
+            <AppInput
               ref="searchFieldRef"
               v-model="query"
               class="flex-1"

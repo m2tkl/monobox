@@ -13,7 +13,7 @@
               label="Alt"
               name="alt"
             >
-              <UInput
+              <AppInput
                 v-model="imageState.alt"
                 class="w-full"
               />

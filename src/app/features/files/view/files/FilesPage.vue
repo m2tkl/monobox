@@ -305,7 +305,7 @@
                 <AppInput v-model="editForm.url" />
               </UFormField>
               <UFormField label="Note">
-                <UTextarea
+                <AppTextarea
                   v-model="editForm.note"
                   class="w-full"
                   :rows="4"

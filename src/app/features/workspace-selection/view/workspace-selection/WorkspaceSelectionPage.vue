@@ -78,7 +78,7 @@
                 label="Name"
                 name="name"
               >
-                <UInput
+                <AppInput
                   v-model="form.state.name"
                   class="w-full"
                 />

@@ -55,21 +55,11 @@
         </label>
       </div>
 
-      <div class="status-row status-row--create">
-        <AppButton
-          size="xs"
-          color="primary"
-          icon="carbon:add"
-          @click="openCreateDialog"
-        >
-          Add status
-        </AppButton>
-      </div>
-
       <div
         v-for="(status, index) in statuses"
         :key="status.id"
         class="status-row"
+        :class="{ 'status-row--last': index === statuses.length - 1 }"
       >
         <span
           class="status-label"
@@ -115,6 +105,17 @@
             Delete
           </AppButton>
         </div>
+      </div>
+
+      <div class="status-create-action">
+        <AppButton
+          size="xs"
+          color="primary"
+          icon="carbon:add"
+          @click="openCreateDialog"
+        >
+          Add status
+        </AppButton>
       </div>
     </div>
 
@@ -544,7 +545,7 @@ const getLabelStyle = (color: string) => {
 .status-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .status-row {
@@ -552,24 +553,21 @@ const getLabelStyle = (color: string) => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px;
-  border: 1px solid var(--color-border-light);
-  border-radius: 10px;
-  background-color: var(--color-card-bg);
+  padding: 10px 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent);
 }
 
-.status-row--create {
-  border-style: dashed;
+.status-row--last {
+  border-bottom: 0;
 }
 
 .status-role-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--color-border-light);
-  border-radius: 10px;
-  background-color: color-mix(in srgb, var(--color-card-bg) 74%, transparent);
+  gap: 12px;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: color-mix(in srgb, var(--color-card-bg) 58%, transparent);
 }
 
 .status-role-field {
@@ -607,5 +605,11 @@ const getLabelStyle = (color: string) => {
 
 .status-actions {
   flex-shrink: 0;
+}
+
+.status-create-action {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
 }
 </style>

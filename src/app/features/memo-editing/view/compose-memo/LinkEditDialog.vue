@@ -13,7 +13,7 @@
               label="URL"
               name="url"
             >
-              <UInput
+              <AppInput
                 v-model="state.url"
                 class="w-full"
               />

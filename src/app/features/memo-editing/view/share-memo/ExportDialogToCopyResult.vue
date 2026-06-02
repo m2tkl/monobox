@@ -4,7 +4,7 @@
     title="Export result"
   >
     <template #body>
-      <UTextarea
+      <AppTextarea
         v-model="textToExport_"
         class="w-full h-64"
         :rows="12"

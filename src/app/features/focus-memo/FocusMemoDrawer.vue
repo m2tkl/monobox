@@ -157,7 +157,7 @@
             @click="isPickerOpen = false"
           />
         </div>
-        <UInput
+        <AppInput
           v-model="pickerQuery"
           :icon="iconKey.search"
           placeholder="Search memos"
@@ -168,7 +168,7 @@
             :key="memo.id"
             class="focus-picker-row"
           >
-            <UCheckbox
+            <AppCheckbox
               :model-value="selectedMemoSlugs.has(memo.slug_title)"
               @update:model-value="() => togglePickerSelection(memo.slug_title)"
             />

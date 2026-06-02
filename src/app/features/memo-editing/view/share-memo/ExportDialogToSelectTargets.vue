@@ -11,7 +11,7 @@
           :key="item.id"
           class="flex gap-1 items-center"
         >
-          <UCheckbox v-model="item.target" />
+          <AppCheckbox v-model="item.target" />
           <span>
             {{ item.title }}
           </span>

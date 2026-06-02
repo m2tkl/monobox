@@ -7,7 +7,7 @@
     >
       <!-- Editing: unified input; Display: split title and extension -->
       <template v-if="isEditing">
-        <UInput
+        <AppInput
           ref="unifiedInputRef"
           v-model="codeBlockName"
           size="xs"
