@@ -27,15 +27,17 @@
               :editor="editor"
             >
               <template #status>
-                <div class="memo-status-control">
-                  <AppSelect
-                    v-if="primaryKanban"
-                    :model-value="kanbanSelections[primaryKanban.id] ?? null"
-                    :items="primaryStatusOptions"
-                    placeholder="No status"
-                    :disabled="isKanbanLoading || isKanbanUpdating(primaryKanban.id) || !memoVM.data.memo"
-                    @update:model-value="value => applyKanbanStatus(primaryKanban.id, normalizeStatusSelection(value))"
-                  />
+                <div class="memo-floating-status">
+                  <UBadge
+                    :color="memoStatusBadge.color"
+                    variant="soft"
+                    class="memo-status-badge memo-status-badge--floating"
+                  >
+                    {{ memoStatusBadge.label }}
+                  </UBadge>
+                </div>
+
+                <div class="focus-status-control">
                   <AppButton
                     size="xs"
                     color="neutral"
@@ -47,13 +49,6 @@
                     Focus
                     <span class="focus-list-count">{{ activeFocusCount }}</span>
                   </AppButton>
-                  <UBadge
-                    :color="memoStatusBadge.color"
-                    variant="soft"
-                    class="memo-status-badge"
-                  >
-                    {{ memoStatusBadge.label }}
-                  </UBadge>
                 </div>
               </template>
 
@@ -68,6 +63,20 @@
               </template>
 
               <template #context-menu>
+                <div class="memo-action-group">
+                  <AppSelect
+                    v-if="primaryKanban"
+                    :model-value="kanbanSelections[primaryKanban.id] ?? null"
+                    :items="primaryStatusOptions"
+                    placeholder="No status"
+                    class="memo-toolbar-status-select"
+                    :disabled="isKanbanLoading || isKanbanUpdating(primaryKanban.id) || !memoVM.data.memo"
+                    @update:model-value="value => applyKanbanStatus(primaryKanban.id, normalizeStatusSelection(value))"
+                  />
+                </div>
+
+                <div class="memo-action-separator" />
+
                 <div class="memo-action-group">
                   <UTooltip text="Bookmark">
                     <IconButton
@@ -1346,11 +1355,10 @@ a.external-link {
   background: var(--color-primary);
 }
 
-.memo-status-control {
+.focus-status-control {
   display: flex;
   pointer-events: auto;
   align-items: center;
-  gap: 0.5rem;
   border: 1px solid var(--color-border-light);
   border-radius: 0.5rem;
   padding: 0.25rem;
@@ -1358,15 +1366,26 @@ a.external-link {
   box-shadow: 0 8px 24px rgb(15 23 42 / 0.12);
 }
 
-.memo-status-control .app-select {
+.memo-floating-status {
+  display: flex;
+  pointer-events: auto;
+  justify-content: flex-end;
+  margin-bottom: 0.375rem;
+}
+
+.memo-toolbar-status-select {
   width: 10rem;
-  min-height: 1.75rem;
+  min-height: 1.625rem;
   padding-left: 0.5rem;
   font-size: 0.8125rem;
 }
 
 .memo-status-badge {
   flex-shrink: 0;
+}
+
+.memo-status-badge--floating {
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.1);
 }
 
 .memo-action-group {
