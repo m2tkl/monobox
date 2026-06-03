@@ -58,6 +58,7 @@ const kanbanRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value
 const searchRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_search` : '/');
 const inboxRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_inbox` : '/');
 const filesRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_files` : '/');
+const calendarRoute = computed(() => workspaceSlug.value ? `/${workspaceSlug.value}/_calendar` : '/');
 const settingsRoute = computed(() => workspaceSlug.value ? `/_setting?workspace=${workspaceSlug.value}` : '/_setting');
 
 const defaultItems = computed<ActivityBarItemConfig[]>(() => ([
@@ -75,6 +76,7 @@ const defaultItems = computed<ActivityBarItemConfig[]>(() => ([
         kanbanRoute.value,
         inboxRoute.value,
         filesRoute.value,
+        calendarRoute.value,
       ],
     },
   },
@@ -94,6 +96,15 @@ const defaultItems = computed<ActivityBarItemConfig[]>(() => ([
     to: filesRoute.value,
     activeRule: {
       pathEquals: [filesRoute.value],
+    },
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    icon: iconKey.calendar,
+    to: calendarRoute.value,
+    activeRule: {
+      pathEquals: [calendarRoute.value],
     },
   },
   {

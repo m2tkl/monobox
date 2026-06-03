@@ -41,6 +41,7 @@ export const iconKey = {
   database: 'carbon:db2-database',
   folder: 'carbon:folder',
   documentAttachment: 'carbon:document-attachment',
+  calendar: 'carbon:calendar',
   renew: 'carbon:renew',
   chevronDown: 'carbon:chevron-down',
   home: 'carbon:home',

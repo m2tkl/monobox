@@ -1,4 +1,5 @@
 pub mod bookmark;
+pub mod calendar_day;
 pub mod file;
 pub mod focus_memo;
 pub mod kanban;

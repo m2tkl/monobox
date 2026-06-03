@@ -77,6 +77,21 @@
             <span class="sidebar-action-label">Files</span>
           </NuxtLink>
         </div>
+        <div
+          v-if="workspaceSlug"
+          class="pb-1"
+        >
+          <NuxtLink
+            :to="`/${workspaceSlug}/_calendar`"
+            class="sidebar-action sidebar-link"
+          >
+            <UIcon
+              :name="iconKey.calendar"
+              class="shrink-0"
+            />
+            <span class="sidebar-action-label">Calendar</span>
+          </NuxtLink>
+        </div>
 
         <section
           v-if="workspaceSlug && globalStatuses.length > 0"

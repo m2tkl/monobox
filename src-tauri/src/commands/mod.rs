@@ -1,5 +1,6 @@
 pub mod asset;
 pub mod bookmark;
+pub mod calendar_day;
 pub mod config;
 pub mod file;
 pub mod focus_memo;

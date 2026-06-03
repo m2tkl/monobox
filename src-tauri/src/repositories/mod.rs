@@ -1,4 +1,5 @@
 pub mod bookmark_repository;
+pub mod calendar_day_repository;
 pub mod file_repository;
 pub mod focus_memo_repository;
 pub mod kanban_assignment_repository;
@@ -11,6 +12,7 @@ pub mod memo_view_repository;
 pub mod workspace_repository;
 
 pub use bookmark_repository::BookmarkRepository;
+pub use calendar_day_repository::CalendarDayRepository;
 pub use file_repository::FileRepository;
 pub use focus_memo_repository::FocusMemoRepository;
 pub use kanban_assignment_repository::KanbanAssignmentRepository;

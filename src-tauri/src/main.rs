@@ -133,6 +133,11 @@ fn main() {
             commands::focus_memo::delete_focus_memo,
             commands::focus_memo::mark_focus_memo_done_for_today,
             commands::focus_memo::clear_focus_memo_done_for_today,
+            // Calendar
+            commands::calendar_day::list_calendar_days,
+            commands::calendar_day::update_calendar_day,
+            commands::calendar_day::add_calendar_day_memo,
+            commands::calendar_day::remove_calendar_day_memo,
             // Workspace
             commands::workspace::get_workspaces,
             commands::workspace::get_workspace,

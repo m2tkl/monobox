@@ -441,7 +441,8 @@ import AppInput from '~/app/elements/AppInput.vue';
 import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
 import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent } from '~/app/features/editor';
-import { useFocusMemoListReadModel, useGlobalStatusBoardReadModel } from '~/app/features/memo-browsing';
+import { mergeUniqueMemoItems } from '~/app/features/focus-memo/focusMemoUtils';
+import { useFocusMemoListReadModel, useGlobalStatusBoardReadModel, useTodayCalendarMemoListReadModel } from '~/app/features/memo-browsing';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
@@ -466,8 +467,15 @@ const { workspaceSlug, memoSlug } = useMemoRouteTarget(route);
 const memoVM = useCurrentMemoReadModel();
 const globalStatusVM = useGlobalStatusBoardReadModel();
 const focusMemoVM = useFocusMemoListReadModel();
+const todayCalendarMemoVM = useTodayCalendarMemoListReadModel();
 const doneTodayMemoSlugs = computed(() => new Set(focusMemoVM.value.data.doneTodayItems.map(memo => memo.slug_title)));
-const activeFocusCount = computed(() => globalStatusVM.value.data.nowItems.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)).length);
+const activeFocusCount = computed(() => {
+  const focusItems = mergeUniqueMemoItems(
+    globalStatusVM.value.data.nowItems,
+    todayCalendarMemoVM.value.data.items,
+  );
+  return focusItems.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)).length;
+});
 const toggleFocusPane = () => {
   ui.value.isFocusPaneOpen = !ui.value.isFocusPaneOpen;
 };

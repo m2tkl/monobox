@@ -1,4 +1,5 @@
 import { bookmarkCommand } from './commands/bookmark';
+import { calendarDayCommand } from './commands/calendarDay';
 import { configCommand } from './commands/config';
 import { fileCommand } from './commands/file';
 import { focusMemoCommand } from './commands/focusMemo';
@@ -22,4 +23,5 @@ export const command = {
   kanbanAssignment: kanbanAssignmentCommand,
   link: linkCommand,
   bookmark: bookmarkCommand,
+  calendarDay: calendarDayCommand,
 } as const;

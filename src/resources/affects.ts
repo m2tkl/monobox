@@ -51,6 +51,7 @@ const affectRules: ReadonlyArray<ChangeRule> = [
   defineAffects<Extract<ChangeRef, { type: 'memoDeleted' }>>('memoDeleted').resources([
     change => resourceRefs.memoCollection(change.workspaceSlug),
     change => resourceRefs.memoLinkCountCollection(change.workspaceSlug),
+    change => resourceRefs.calendarDayCollection(change.workspaceSlug),
   ]),
   // memo links changed -> linkCollection, memoLinkCountCollection
   defineAffects<Extract<ChangeRef, { type: 'memoLinksChanged' }>>('memoLinksChanged').resources([
@@ -86,6 +87,9 @@ const affectRules: ReadonlyArray<ChangeRule> = [
   ),
   defineAffects<Extract<ChangeRef, { type: 'focusMemoCollectionChanged' }>>('focusMemoCollectionChanged').resource(
     change => resourceRefs.focusMemoCollection(change.workspaceSlug),
+  ),
+  defineAffects<Extract<ChangeRef, { type: 'calendarDayCollectionChanged' }>>('calendarDayCollectionChanged').resource(
+    change => resourceRefs.calendarDayCollection(change.workspaceSlug),
   ),
   // kanban collection changed -> kanbanCollection
   defineAffects<Extract<ChangeRef, { type: 'kanbanCollectionChanged' }>>('kanbanCollectionChanged').resource(

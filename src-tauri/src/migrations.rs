@@ -334,6 +334,41 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         WHERE focus_status_id IS NULL;
         ",
     ),
+    (
+        "20260603_create_calendar_tables",
+        "CREATE TABLE IF NOT EXISTS calendar_day (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            date TEXT NOT NULL CHECK(date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+            note TEXT,
+            is_non_working INTEGER NOT NULL DEFAULT 0 CHECK(is_non_working IN (0, 1)),
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (workspace_id, date),
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_calendar_day_workspace_date
+        ON calendar_day(workspace_id, date);
+
+        CREATE TRIGGER IF NOT EXISTS trigger_calendar_day_updated_at AFTER UPDATE ON calendar_day
+        BEGIN
+            UPDATE calendar_day SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+
+        CREATE TABLE IF NOT EXISTS calendar_day_memo (
+            calendar_day_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (calendar_day_id, memo_id),
+            FOREIGN KEY (calendar_day_id) REFERENCES calendar_day(id) ON DELETE CASCADE,
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_calendar_day_memo_memo_id
+        ON calendar_day_memo(memo_id);
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {
