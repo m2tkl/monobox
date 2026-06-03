@@ -1,5 +1,6 @@
 pub mod asset;
 pub mod bookmark;
+pub mod calendar_day;
 pub mod config;
 pub mod file;
 pub mod focus_memo;
@@ -9,4 +10,5 @@ pub mod kanban_status;
 pub mod link;
 pub mod memo;
 pub mod memo_template;
+pub mod milestone;
 pub mod workspace;

@@ -123,6 +123,7 @@ export default defineNuxtConfig({
         'carbon:edit',
         'carbon:folder',
         'carbon:document-attachment',
+        'carbon:calendar',
         'carbon:renew',
         'carbon:filter',
         'carbon:launch',

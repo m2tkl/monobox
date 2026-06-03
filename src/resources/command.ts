@@ -1,4 +1,5 @@
 import { bookmarkCommand } from './bookmark/commands';
+import { calendarDayCommand } from './calendar-day/commands';
 import { fileCommand } from './file/commands';
 import { focusMemoCommand } from './focus-memo/commands';
 import { kanbanCommand } from './kanban/commands';
@@ -7,6 +8,7 @@ import { kanbanStatusCommand } from './kanban-status/commands';
 import { memoCommand } from './memo/commands';
 import { linkCommand } from './memo-link/commands';
 import { memoTemplateCommand } from './memo-template/commands';
+import { milestoneCommand } from './milestone/commands';
 import { workspaceCommand } from './workspace/commands';
 
 export const command = {
@@ -20,4 +22,6 @@ export const command = {
   kanban: kanbanCommand,
   kanbanStatus: kanbanStatusCommand,
   kanbanAssignment: kanbanAssignmentCommand,
+  calendarDay: calendarDayCommand,
+  milestone: milestoneCommand,
 } as const;

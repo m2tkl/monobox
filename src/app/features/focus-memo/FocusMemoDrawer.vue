@@ -117,6 +117,20 @@
                 :thumbnail-image="memo.thumbnail_image"
               />
             </NuxtLink>
+            <div class="focus-card-sources">
+              <span
+                v-if="memo.isNowFocus"
+                class="focus-card-source focus-card-source--now"
+              >
+                Now
+              </span>
+              <span
+                v-if="memo.isTodayFocus"
+                class="focus-card-source focus-card-source--today"
+              >
+                Today
+              </span>
+            </div>
             <div
               v-if="viewMode === 'active'"
               class="focus-card-actions"
@@ -197,9 +211,16 @@
 </template>
 
 <script setup lang="ts">
-import type { GlobalStatusMemoListItem } from '~/app/features/memo-browsing/resource/read-model';
+import { mergeUniqueMemoItems } from './focusMemoUtils';
 
-import { useFocusMemoListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
+import type { MemoIndexItem } from '~/models/memo';
+
+import {
+  useFocusMemoListReadModel,
+  useGlobalStatusBoardReadModel,
+  useTodayCalendarMemoListReadModel,
+  useWorkspaceMemosReadModel,
+} from '~/app/features/memo-browsing';
 import MemoThumbnail from '~/app/features/memo-browsing/view/memo-browsing/MemoThumbnail.vue';
 import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
@@ -207,6 +228,12 @@ import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 type FocusSortMode = 'focused' | 'updated';
 type FocusViewMode = 'active' | 'done';
+type FocusDisplayItem = MemoIndexItem & {
+  linkCount: number;
+  orderIndex: number;
+  isNowFocus: boolean;
+  isTodayFocus: boolean;
+};
 
 defineProps<{
   hideTab?: boolean;
@@ -246,9 +273,28 @@ const sortMode = computed<FocusSortMode>({
 
 const globalStatusVM = useGlobalStatusBoardReadModel();
 const focusMemoVM = useFocusMemoListReadModel();
+const todayCalendarMemoVM = useTodayCalendarMemoListReadModel();
 const workspaceMemosVM = useWorkspaceMemosReadModel();
 const doneTodayMemoSlugs = computed(() => new Set(focusMemoVM.value.data.doneTodayItems.map(memo => memo.slug_title)));
-const focusItems = computed(() => globalStatusVM.value.data.nowItems);
+const focusItems = computed<FocusDisplayItem[]>(() => {
+  const todayMemoSlugs = new Set(todayCalendarMemoVM.value.data.items.map(memo => memo.slug_title));
+  const nowMemoSlugs = new Set(globalStatusVM.value.data.nowItems.map(memo => memo.slug_title));
+  const statusItems = globalStatusVM.value.data.nowItems.map(memo => ({
+    ...memo,
+    isNowFocus: true,
+    isTodayFocus: todayMemoSlugs.has(memo.slug_title),
+  }));
+  const calendarItems = todayCalendarMemoVM.value.data.items
+    .filter(memo => !nowMemoSlugs.has(memo.slug_title))
+    .map(memo => ({
+      ...memo,
+      orderIndex: statusItems.length + memo.orderIndex,
+      isNowFocus: false,
+      isTodayFocus: true,
+    }));
+
+  return mergeUniqueMemoItems<FocusDisplayItem>(statusItems, calendarItems);
+});
 const activeItems = computed(() => focusItems.value.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)));
 const doneItems = computed(() => focusItems.value.filter(memo => doneTodayMemoSlugs.value.has(memo.slug_title)));
 const displayItems = computed(() => viewMode.value === 'done' ? doneItems.value : activeItems.value);
@@ -263,7 +309,7 @@ const viewOptions = computed(() => [
 ]);
 const emptyMessage = computed(() => viewMode.value === 'done' ? 'No memos done for today.' : 'No focus memos.');
 
-const sortFocusItems = (items: GlobalStatusMemoListItem[]) => {
+const sortFocusItems = (items: FocusDisplayItem[]) => {
   if (sortMode.value === 'focused') {
     return items;
   }
@@ -532,6 +578,36 @@ async function markDoneForToday(memoSlug: string) {
   padding: 0.125rem;
   background: var(--color-background);
   box-shadow: 0 8px 24px rgb(15 23 42 / 0.14);
+}
+
+.focus-card-sources {
+  position: absolute;
+  bottom: 0.375rem;
+  left: 0.375rem;
+  display: flex;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+.focus-card-source {
+  border: 1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent);
+  border-radius: 999px;
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-background) 88%, transparent);
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.08);
+  backdrop-filter: blur(4px);
+}
+
+.focus-card-source--now {
+  color: var(--color-primary);
+}
+
+.focus-card-source--today {
+  color: var(--color-text-secondary);
 }
 
 .focus-empty {

@@ -6,6 +6,7 @@ import { useRoute } from '#imports';
 import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
+import { workspaceCalendarDaysQuery } from '~/resources/calendar-day/queries';
 import { workspaceFocusMemosQuery } from '~/resources/focus-memo/queries';
 import { workspaceKanbansQuery } from '~/resources/kanban/queries';
 import { kanbanAssignmentItemsQuery } from '~/resources/kanban-assignment/queries';
@@ -54,6 +55,22 @@ export type FocusMemoListReadModel = {
     items: FocusMemoListItem[];
     activeItems: FocusMemoListItem[];
     doneTodayItems: FocusMemoListItem[];
+  };
+  flags: {
+    isLoading: boolean;
+    isStale: boolean;
+    hasError: boolean;
+  };
+};
+
+export type TodayCalendarMemoListItem = MemoIndexItem & {
+  linkCount: number;
+  orderIndex: number;
+};
+
+export type TodayCalendarMemoListReadModel = {
+  data: {
+    items: TodayCalendarMemoListItem[];
   };
   flags: {
     isLoading: boolean;
@@ -222,6 +239,59 @@ export function useFocusMemoListReadModel() {
       doneTodayItems: doneTodayItems.value,
     })),
     snapshots: [focusMemosSnap, memosSnap, memoLinkCountsSnap],
+  });
+}
+
+export function useTodayCalendarMemoListReadModel() {
+  const route = useRoute();
+  const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+  const today = new Date().toLocaleDateString('sv-SE');
+  const year = Number(today.slice(0, 4));
+
+  const { snapshot: calendarDaysSnap } = useQuery(workspaceCalendarDaysQuery, {
+    workspaceSlug,
+    year,
+  });
+
+  const { snapshot: memosSnap } = useQuery(workspaceMemosQuery, {
+    workspaceSlug,
+  });
+
+  const { snapshot: memoLinkCountsSnap } = useQuery(workspaceMemoLinkCountsQuery, {
+    workspaceSlug,
+  });
+
+  const items = computed<TodayCalendarMemoListItem[]>(() => {
+    const calendarDay = calendarDaysSnap.value.current?.find(day => day.date === today);
+    if (!calendarDay || calendarDay.memos.length === 0) return [];
+
+    const memosById = new Map((memosSnap.value.current ?? []).map(memo => [memo.id, memo]));
+    const linkCounts = new Map(
+      (memoLinkCountsSnap.value.current ?? []).map(item => [
+        item.memo_id,
+        item.direct_link_count + item.backlink_count,
+      ]),
+    );
+
+    return calendarDay.memos
+      .map((calendarMemo, index) => {
+        const memo = memosById.get(calendarMemo.id);
+        if (!memo) return null;
+
+        return {
+          ...memo,
+          linkCount: linkCounts.get(memo.id) ?? 0,
+          orderIndex: index,
+        };
+      })
+      .filter((memo): memo is TodayCalendarMemoListItem => memo !== null);
+  });
+
+  return defineReadModel<TodayCalendarMemoListReadModel['data']>({
+    data: computed(() => ({
+      items: items.value,
+    })),
+    snapshots: [calendarDaysSnap, memosSnap, memoLinkCountsSnap],
   });
 }
 
