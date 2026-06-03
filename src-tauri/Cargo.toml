@@ -1,6 +1,6 @@
 [package]
 name = "monobox"
-version = "0.9.2"
+version = "0.10.0"
 description = "Local note-taking app like scrapbox"
 authors = ["m2tkl"]
 edition = "2021"
