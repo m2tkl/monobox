@@ -48,3 +48,27 @@ export const buildCalendarMonths = (year: number): CalendarMonth[] => {
 
 export const getLocalDateString = (value = new Date()) =>
   formatDate(value.getFullYear(), value.getMonth() + 1, value.getDate());
+
+export const countWorkingDaysBetween = (
+  fromDate: string,
+  toDate: string,
+  nonWorkingDates: ReadonlySet<string>,
+): number => {
+  if (fromDate === toDate) return 0;
+
+  const direction = fromDate < toDate ? 1 : -1;
+  const start = direction > 0 ? fromDate : toDate;
+  const end = direction > 0 ? toDate : fromDate;
+  let count = 0;
+
+  const cursor = new Date(`${start}T00:00:00`);
+  cursor.setDate(cursor.getDate() + 1);
+  while (getLocalDateString(cursor) <= end) {
+    if (!nonWorkingDates.has(getLocalDateString(cursor))) {
+      count += 1;
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return count * direction;
+};

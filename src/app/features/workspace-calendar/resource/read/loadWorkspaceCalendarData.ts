@@ -2,6 +2,7 @@ import type { ComputedRef } from 'vue';
 
 import { workspaceCalendarDaysQuery } from '~/resources/calendar-day/queries';
 import { workspaceMemosQuery } from '~/resources/memo/queries';
+import { workspaceMilestonesQuery } from '~/resources/milestone/queries';
 
 type LoadWorkspaceCalendarDataOptions = {
   workspaceSlug: ComputedRef<string>;
@@ -20,6 +21,10 @@ export async function loadWorkspaceCalendarData(options: LoadWorkspaceCalendarDa
     }),
     workspaceMemosQuery.fetch({
       workspaceSlug: options.workspaceSlug.value,
+    }),
+    workspaceMilestonesQuery.fetch({
+      workspaceSlug: options.workspaceSlug.value,
+      year: options.year.value,
     }),
   ]);
 }

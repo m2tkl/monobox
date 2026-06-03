@@ -138,6 +138,14 @@ fn main() {
             commands::calendar_day::update_calendar_day,
             commands::calendar_day::add_calendar_day_memo,
             commands::calendar_day::remove_calendar_day_memo,
+            // Milestone
+            commands::milestone::list_milestones,
+            commands::milestone::create_milestone,
+            commands::milestone::update_milestone,
+            commands::milestone::add_milestone_memo,
+            commands::milestone::remove_milestone_memo,
+            commands::milestone::set_milestone_completed,
+            commands::milestone::delete_milestone,
             // Workspace
             commands::workspace::get_workspaces,
             commands::workspace::get_workspace,

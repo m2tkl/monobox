@@ -369,6 +369,40 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         ON calendar_day_memo(memo_id);
         ",
     ),
+    (
+        "20260604_create_milestone_tables",
+        "CREATE TABLE IF NOT EXISTS milestone (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            date TEXT NOT NULL CHECK(date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+            title VARCHAR(256) NOT NULL,
+            completed_at TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_milestone_workspace_date
+        ON milestone(workspace_id, date);
+
+        CREATE TRIGGER IF NOT EXISTS trigger_milestone_updated_at AFTER UPDATE ON milestone
+        BEGIN
+            UPDATE milestone SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+
+        CREATE TABLE IF NOT EXISTS milestone_memo (
+            milestone_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (milestone_id, memo_id),
+            FOREIGN KEY (milestone_id) REFERENCES milestone(id) ON DELETE CASCADE,
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_milestone_memo_memo_id
+        ON milestone_memo(memo_id);
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

@@ -8,6 +8,7 @@ import { kanbanStatusCommand } from './kanban-status/commands';
 import { memoCommand } from './memo/commands';
 import { linkCommand } from './memo-link/commands';
 import { memoTemplateCommand } from './memo-template/commands';
+import { milestoneCommand } from './milestone/commands';
 import { workspaceCommand } from './workspace/commands';
 
 export const command = {
@@ -22,4 +23,5 @@ export const command = {
   kanbanStatus: kanbanStatusCommand,
   kanbanAssignment: kanbanAssignmentCommand,
   calendarDay: calendarDayCommand,
+  milestone: milestoneCommand,
 } as const;

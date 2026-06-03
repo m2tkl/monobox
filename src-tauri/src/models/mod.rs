@@ -8,6 +8,7 @@ pub mod kanban_status;
 pub mod link;
 pub mod memo;
 pub mod memo_template;
+pub mod milestone;
 pub mod workspace;
 
 pub use link::{Link, LinkId, MemoLinkCount};

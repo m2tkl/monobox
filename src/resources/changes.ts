@@ -13,6 +13,7 @@ export type ChangeRef =
   | { type: 'bookmarkCollectionChanged'; workspaceSlug: string }
   | { type: 'focusMemoCollectionChanged'; workspaceSlug: string }
   | { type: 'calendarDayCollectionChanged'; workspaceSlug: string }
+  | { type: 'milestoneCollectionChanged'; workspaceSlug: string }
   | { type: 'kanbanCollectionChanged'; workspaceSlug: string }
   | { type: 'kanbanStatusCollectionChanged'; workspaceSlug: string; kanbanId: number }
   | { type: 'kanbanEntryCollectionChanged'; workspaceSlug: string; memoSlug: string }
@@ -46,6 +47,7 @@ export const changeRefs = {
   bookmarkCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'bookmarkCollectionChanged', workspaceSlug }),
   focusMemoCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'focusMemoCollectionChanged', workspaceSlug }),
   calendarDayCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'calendarDayCollectionChanged', workspaceSlug }),
+  milestoneCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'milestoneCollectionChanged', workspaceSlug }),
   kanbanCollectionChanged: (workspaceSlug: string): ChangeRef => ({ type: 'kanbanCollectionChanged', workspaceSlug }),
   kanbanStatusCollectionChanged: (workspaceSlug: string, kanbanId: number): ChangeRef => ({ type: 'kanbanStatusCollectionChanged', workspaceSlug, kanbanId }),
   kanbanEntryCollectionChanged: (workspaceSlug: string, memoSlug: string): ChangeRef => ({ type: 'kanbanEntryCollectionChanged', workspaceSlug, memoSlug }),

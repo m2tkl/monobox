@@ -11,15 +11,18 @@
               <template v-if="viewMode === 'working'">
                 {{ remainingWorkingDays }} working days remaining in {{ selectedYear }}.
               </template>
-              <template v-else>
+              <template v-else-if="viewMode === 'settings'">
                 Select the dates that should be excluded from the working days view.
+              </template>
+              <template v-else>
+                Create milestones, set dates, and link memos.
               </template>
             </p>
           </div>
 
           <div class="calendar-toolbar-actions">
             <AppButton
-              v-if="canToggleEarlierDates"
+              v-if="viewMode !== 'milestones' && canToggleEarlierDates"
               size="sm"
               color="neutral"
               variant="ghost"
@@ -45,6 +48,14 @@
                 Non-working day settings
               </AppButton>
             </div>
+            <AppButton
+              size="sm"
+              color="neutral"
+              :variant="viewMode === 'milestones' ? 'solid' : 'outline'"
+              @click="viewMode = 'milestones'"
+            >
+              Milestones
+            </AppButton>
             <AppButton
               color="neutral"
               variant="ghost"
@@ -75,7 +86,146 @@
           v-else
           class="calendar-year"
         >
-          <div class="calendar-table">
+          <div
+            v-if="viewMode === 'milestones'"
+            class="milestone-manager"
+          >
+            <div class="milestone-state-tabs">
+              <button
+                type="button"
+                class="milestone-state-tab"
+                :class="{ 'milestone-state-tab--active': milestoneStateFilter === 'open' }"
+                @click="milestoneStateFilter = 'open'"
+              >
+                Open
+                <span>{{ openMilestoneCount }}</span>
+              </button>
+              <button
+                type="button"
+                class="milestone-state-tab"
+                :class="{ 'milestone-state-tab--active': milestoneStateFilter === 'closed' }"
+                @click="milestoneStateFilter = 'closed'"
+              >
+                Closed
+                <span>{{ closedMilestoneCount }}</span>
+              </button>
+            </div>
+
+            <div class="milestone-create-card">
+              <input
+                v-model="newMilestoneTitle"
+                class="milestone-input milestone-input--title"
+                placeholder="Milestone title"
+              >
+              <input
+                v-model="newMilestoneDate"
+                class="milestone-input milestone-input--date"
+                type="date"
+              >
+              <AppButton
+                size="xs"
+                class="milestone-create-button"
+                :disabled="!newMilestoneTitle.trim() || !newMilestoneDate"
+                @click="createMilestone"
+              >
+                Add milestone
+              </AppButton>
+            </div>
+
+            <div
+              v-if="filteredMilestones.length === 0"
+              class="calendar-empty"
+            >
+              No {{ milestoneStateFilter }} milestones in {{ selectedYear }}.
+            </div>
+            <div
+              v-else
+              class="milestone-list"
+            >
+              <section
+                v-for="milestone in filteredMilestones"
+                :key="milestone.id"
+                class="milestone-card"
+                :class="{ 'milestone-card--closed': !!milestone.completed_at }"
+              >
+                <div class="milestone-card-main">
+                  <AppCheckbox
+                    :model-value="!!milestone.completed_at"
+                    :aria-label="`${milestone.completed_at ? 'Reopen' : 'Close'} ${milestone.title}`"
+                    @update:model-value="setMilestoneCompleted(milestone.id, $event === true)"
+                  />
+                  <input
+                    :value="milestone.title"
+                    class="milestone-input milestone-input--title"
+                    placeholder="Milestone title"
+                    @change="updateMilestoneTitle(milestone, $event)"
+                  >
+                  <input
+                    :value="milestone.date"
+                    class="milestone-input milestone-input--date"
+                    type="date"
+                    @change="updateMilestoneDate(milestone, $event)"
+                  >
+                  <div class="milestone-card-days">
+                    {{ getMilestoneDaysLabel(milestone.date, !!milestone.completed_at) }}
+                  </div>
+                  <AppButton
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    class="milestone-state-button"
+                    @click="setMilestoneCompleted(milestone.id, !milestone.completed_at)"
+                  >
+                    {{ milestone.completed_at ? 'Reopen' : 'Close' }}
+                  </AppButton>
+                  <IconButton
+                    :icon="iconKey.trash"
+                    :aria-label="`Delete ${milestone.title}`"
+                    @click="openDeleteMilestoneConfirmation(milestone)"
+                  />
+                </div>
+
+                <div class="milestone-memos">
+                  <NuxtLink
+                    v-for="memo in milestone.memos"
+                    :key="memo.slug_title"
+                    :to="`/${workspaceSlug}/${memo.slug_title}`"
+                    class="milestone-memo-chip"
+                  >
+                    <span>{{ memo.title }}</span>
+                    <IconButton
+                      :icon="iconKey.close"
+                      aria-label="Remove memo from milestone"
+                      @click.prevent="removeMilestoneMemo(milestone.id, memo.slug_title)"
+                    />
+                  </NuxtLink>
+                </div>
+
+                <div class="milestone-memo-add">
+                  <AppSelect
+                    :model-value="selectedMilestoneMemoSlugs[milestone.id] ?? null"
+                    :items="getMilestoneMemoOptions(milestone)"
+                    class="milestone-memo-select"
+                    placeholder="Add linked memo"
+                    @update:model-value="value => selectedMilestoneMemoSlugs[milestone.id] = value ?? null"
+                  />
+                  <AppButton
+                    size="xs"
+                    variant="subtle"
+                    :disabled="!selectedMilestoneMemoSlugs[milestone.id]"
+                    @click="addMilestoneMemo(milestone.id)"
+                  >
+                    Link
+                  </AppButton>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div
+            v-else
+            class="calendar-table"
+          >
             <div
               class="calendar-table-header"
               :class="{ 'calendar-table-header--settings': viewMode === 'settings' }"
@@ -86,6 +236,9 @@
                 <div>Non-working</div>
               </template>
               <div>Note</div>
+              <div v-if="viewMode === 'working'">
+                Milestones
+              </div>
               <div>Linked memos</div>
               <div v-if="viewMode === 'working'" />
             </div>
@@ -127,6 +280,22 @@
               >
                 {{ getDay(day.date).note || (viewMode === 'working' ? 'Add note' : '') }}
               </button>
+              <div
+                v-if="viewMode === 'working'"
+                class="calendar-milestones"
+              >
+                <button
+                  v-for="milestone in getMilestones(day.date)"
+                  :key="milestone.id"
+                  type="button"
+                  class="calendar-milestone"
+                  :class="{ 'calendar-milestone--completed': !!milestone.completed_at }"
+                  @click="openDay(day.date)"
+                >
+                  <span class="calendar-milestone-title">{{ milestone.title }}</span>
+                  <span class="calendar-milestone-days">{{ getMilestoneDaysLabel(milestone.date, !!milestone.completed_at) }}</span>
+                </button>
+              </div>
               <div class="calendar-memos">
                 <NuxtLink
                   v-for="memo in getDay(day.date).memos"
@@ -170,6 +339,15 @@
           @add-memo="addMemo"
           @remove-memo="removeMemo"
         />
+        <ConfirmModal
+          v-model:open="isDeleteMilestoneConfirmationOpen"
+          title="Delete milestone?"
+          :description="deleteMilestoneConfirmationDescription"
+          confirm-label="Delete"
+          :loading="isDeletingMilestone"
+          @confirm="confirmDeleteMilestone"
+          @cancel="clearDeleteMilestoneConfirmation"
+        />
       </div>
     </template>
 
@@ -187,16 +365,19 @@
 
 <script setup lang="ts">
 import CalendarDayDialog from './CalendarDayDialog.vue';
-import { buildCalendarMonths, getLocalDateString } from '../calendarUtils';
+import { buildCalendarMonths, countWorkingDaysBetween, getLocalDateString } from '../calendarUtils';
 import { loadWorkspaceCalendarData } from '../resource/read/loadWorkspaceCalendarData';
 import { useWorkspaceCalendarReadModel } from '../resource/read-model';
 
 import type { CalendarDateRow } from '../calendarUtils';
 import type { CalendarDay } from '~/models/calendarDay';
+import type { Milestone } from '~/models/milestone';
 
 import AppButton from '~/app/elements/AppButton.vue';
 import AppCheckbox from '~/app/elements/AppCheckbox.vue';
+import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
+import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { SearchPalette } from '~/app/features/search';
 import { command } from '~/resources/command';
@@ -229,21 +410,48 @@ const allDateRows = computed<CalendarDateRow[]>(() => months.value.flatMap(month
 const readModel = useWorkspaceCalendarReadModel(workspaceSlug, selectedYear);
 const days = computed(() => readModel.value.data.days);
 const memos = computed(() => readModel.value.data.memos);
+const milestones = computed(() => readModel.value.data.milestones);
 const isLoading = computed(() => readModel.value.flags.isLoading);
 const dayMap = computed(() => new Map(days.value.map(day => [day.date, day])));
-const viewMode = ref<'working' | 'settings'>('working');
+const milestoneMap = computed(() => {
+  const map = new Map<string, Milestone[]>();
+  for (const milestone of milestones.value) {
+    const items = map.get(milestone.date) ?? [];
+    items.push(milestone);
+    map.set(milestone.date, items);
+  }
+  return map;
+});
+const nonWorkingDates = computed(() => new Set(days.value.filter(day => day.is_non_working).map(day => day.date)));
+const viewMode = ref<'working' | 'settings' | 'milestones'>('working');
 const showEarlierDates = ref(false);
+const milestoneStateFilter = ref<'open' | 'closed'>('open');
+const newMilestoneTitle = ref('');
+const newMilestoneDate = ref(today);
+const selectedMilestoneMemoSlugs = ref<Record<number, string | number | null>>({});
+const openMilestoneCount = computed(() => milestones.value.filter(milestone => !milestone.completed_at).length);
+const closedMilestoneCount = computed(() => milestones.value.length - openMilestoneCount.value);
+const filteredMilestones = computed(() =>
+  milestones.value.filter(milestone =>
+    milestoneStateFilter.value === 'open' ? !milestone.completed_at : !!milestone.completed_at,
+  ),
+);
 const dateRowsFromDefaultStart = computed(() => {
   if (selectedYear.value !== currentYear || showEarlierDates.value) {
     return allDateRows.value;
   }
-  return allDateRows.value.filter(day => day.date >= oneWeekBeforeToday);
+  return allDateRows.value.filter(day =>
+    day.date >= oneWeekBeforeToday
+    || getMilestones(day.date).some(milestone => !milestone.completed_at),
+  );
 });
 const visibleDays = computed(() => {
   if (viewMode.value === 'settings') {
     return dateRowsFromDefaultStart.value;
   }
-  return dateRowsFromDefaultStart.value.filter(day => !getDay(day.date).is_non_working);
+  return dateRowsFromDefaultStart.value.filter(day =>
+    !getDay(day.date).is_non_working || getMilestones(day.date).length > 0,
+  );
 });
 const hiddenEarlierDateCount = computed(() => allDateRows.value.length - dateRowsFromDefaultStart.value.length);
 const canToggleEarlierDates = computed(() =>
@@ -256,7 +464,14 @@ const remainingWorkingDays = computed(() =>
 const selectedDate = ref(today);
 const isDialogOpen = ref(false);
 const isSaving = ref(false);
+const isDeleteMilestoneConfirmationOpen = ref(false);
+const isDeletingMilestone = ref(false);
+const pendingDeleteMilestone = ref<Milestone | null>(null);
 const selectedDay = computed(() => getDay(selectedDate.value));
+const deleteMilestoneConfirmationDescription = computed(() => {
+  const title = pendingDeleteMilestone.value?.title ?? 'This milestone';
+  return `${title} will be deleted permanently. Linked memos will not be deleted.`;
+});
 
 await usePageLoader(() => loadWorkspaceCalendarData({ workspaceSlug, year: selectedYear }));
 
@@ -265,7 +480,21 @@ watch(selectedYear, async () => {
   await loadWorkspaceCalendarData({ workspaceSlug, year: selectedYear });
 });
 
+watch(isDeleteMilestoneConfirmationOpen, (open) => {
+  if (!open && !isDeletingMilestone.value) {
+    clearDeleteMilestoneConfirmation();
+  }
+});
+
 const getDay = (date: string) => dayMap.value.get(date) ?? emptyDay(date);
+const getMilestones = (date: string) => milestoneMap.value.get(date) ?? [];
+const getMilestoneDaysLabel = (date: string, completed: boolean) => {
+  if (completed) return 'Done';
+  const daysRemaining = countWorkingDaysBetween(today, date, nonWorkingDates.value);
+  if (daysRemaining === 0) return 'Today';
+  if (daysRemaining > 0) return `${daysRemaining}d`;
+  return `${Math.abs(daysRemaining)}d overdue`;
+};
 
 const changeYear = (offset: number) => {
   selectedYearValue.value += offset;
@@ -350,6 +579,171 @@ const removeMemo = async (memoSlug: string) => {
     });
   }
 };
+
+const createMilestone = async () => {
+  const title = newMilestoneTitle.value.trim();
+  if (!title || !newMilestoneDate.value) return;
+  try {
+    await command.milestone.create({
+      workspaceSlugName: workspaceSlug.value,
+      date: newMilestoneDate.value,
+      title,
+    });
+    newMilestoneTitle.value = '';
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to create milestone.',
+      description: appError.message,
+      color: 'error',
+    });
+  }
+};
+
+const updateMilestone = async (milestone: Milestone, value: { date?: string; title?: string }) => {
+  const title = (value.title ?? milestone.title).trim();
+  const date = value.date ?? milestone.date;
+  if (!title || !date) return;
+  if (title === milestone.title && date === milestone.date) return;
+  try {
+    await command.milestone.update({
+      workspaceSlugName: workspaceSlug.value,
+      id: milestone.id,
+      date,
+      title,
+    });
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to update milestone.',
+      description: appError.message,
+      color: 'error',
+    });
+  }
+};
+
+const updateMilestoneTitle = async (milestone: Milestone, event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  await updateMilestone(milestone, { title: target?.value ?? '' });
+};
+
+const updateMilestoneDate = async (milestone: Milestone, event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  await updateMilestone(milestone, { date: target?.value ?? '' });
+};
+
+const getMilestoneMemoOptions = (milestone: Milestone) => {
+  const linkedSlugs = new Set(milestone.memos.map(memo => memo.slug_title));
+  return memos.value
+    .filter(memo => !linkedSlugs.has(memo.slug_title))
+    .map(memo => ({
+      label: memo.title,
+      value: memo.slug_title,
+    }));
+};
+
+const addMilestoneMemo = async (milestoneId: number) => {
+  const memoSlug = selectedMilestoneMemoSlugs.value[milestoneId];
+  if (typeof memoSlug !== 'string' || !memoSlug) return;
+  try {
+    await command.milestone.addMemo({
+      workspaceSlugName: workspaceSlug.value,
+      id: milestoneId,
+      memoSlugTitle: memoSlug,
+    });
+    selectedMilestoneMemoSlugs.value = {
+      ...selectedMilestoneMemoSlugs.value,
+      [milestoneId]: null,
+    };
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to link memo.',
+      description: appError.message,
+      color: 'error',
+    });
+  }
+};
+
+const removeMilestoneMemo = async (milestoneId: number, memoSlug: string) => {
+  try {
+    await command.milestone.removeMemo({
+      workspaceSlugName: workspaceSlug.value,
+      id: milestoneId,
+      memoSlugTitle: memoSlug,
+    });
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to unlink memo.',
+      description: appError.message,
+      color: 'error',
+    });
+  }
+};
+
+const setMilestoneCompleted = async (id: number, completed: boolean) => {
+  try {
+    await command.milestone.setCompleted({
+      workspaceSlugName: workspaceSlug.value,
+      id,
+      completed,
+    });
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to update milestone.',
+      description: appError.message,
+      color: 'error',
+    });
+  }
+};
+
+const openDeleteMilestoneConfirmation = (milestone: Milestone) => {
+  pendingDeleteMilestone.value = milestone;
+  isDeleteMilestoneConfirmationOpen.value = true;
+};
+
+const clearDeleteMilestoneConfirmation = () => {
+  pendingDeleteMilestone.value = null;
+};
+
+const confirmDeleteMilestone = async () => {
+  const milestone = pendingDeleteMilestone.value;
+  if (!milestone) {
+    isDeleteMilestoneConfirmationOpen.value = false;
+    return;
+  }
+  await deleteMilestone(milestone.id);
+};
+
+const deleteMilestone = async (id: number) => {
+  isDeletingMilestone.value = true;
+  try {
+    await command.milestone.delete({
+      workspaceSlugName: workspaceSlug.value,
+      id,
+    });
+    isDeleteMilestoneConfirmationOpen.value = false;
+    pendingDeleteMilestone.value = null;
+  }
+  catch (error) {
+    const appError = handleError(error);
+    toast.add({
+      title: 'Failed to delete milestone.',
+      description: appError.message,
+      color: 'error',
+    });
+  }
+  finally {
+    isDeletingMilestone.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -397,6 +791,177 @@ const removeMemo = async (memoSlug: string) => {
   min-width: 0;
 }
 
+.milestone-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 980px;
+}
+
+.milestone-state-tabs {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.milestone-state-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.milestone-state-tab:hover,
+.milestone-state-tab--active {
+  color: var(--color-text-primary);
+}
+
+.milestone-state-tab span {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.milestone-create-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 132px max-content;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.milestone-input {
+  min-width: 0;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: var(--color-text-primary);
+  background: transparent;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.milestone-input:hover {
+  border-color: var(--color-border-light);
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+}
+
+.milestone-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  background: var(--color-surface);
+}
+
+.milestone-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.milestone-input--title {
+  font-weight: 600;
+}
+
+.milestone-input--date {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.milestone-create-button {
+  white-space: nowrap;
+}
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.milestone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.milestone-card:hover {
+  background: color-mix(in srgb, var(--color-surface) 36%, transparent);
+}
+
+.milestone-card:last-child {
+  border-bottom: 0;
+}
+
+.milestone-card-main {
+  display: grid;
+  grid-template-columns: 22px minmax(260px, 1fr) 132px 54px 56px 26px;
+  gap: 6px;
+  align-items: center;
+}
+
+.milestone-card-days {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.milestone-card--closed .milestone-input--title {
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.milestone-state-button {
+  justify-content: center;
+}
+
+.milestone-memos,
+.milestone-memo-add {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding-left: 28px;
+}
+
+.milestone-memo-add {
+  display: flex;
+  align-items: center;
+}
+
+.milestone-memo-add > :first-child {
+  flex: 0 1 280px;
+}
+
+.milestone-memo-select {
+  min-height: 26px;
+  font-size: 12px;
+}
+
+.milestone-memo-chip {
+  display: inline-flex;
+  max-width: 260px;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  padding: 1px 4px 1px 7px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 999px;
+  color: var(--color-text-primary);
+  font-size: 11px;
+}
+
+.milestone-memo-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .calendar-table {
   min-width: 0;
   overflow-x: auto;
@@ -410,7 +975,7 @@ const removeMemo = async (memoSlug: string) => {
   top: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: 76px 48px minmax(180px, 1fr) minmax(220px, 1.2fr) 32px;
+  grid-template-columns: 76px 48px minmax(150px, 0.8fr) minmax(220px, 1.2fr) minmax(180px, 1fr) 32px;
   align-items: center;
   min-width: 680px;
   padding: 5px 8px;
@@ -428,7 +993,7 @@ const removeMemo = async (memoSlug: string) => {
 
 .calendar-row {
   display: grid;
-  grid-template-columns: 76px 48px minmax(180px, 1fr) minmax(220px, 1.2fr) 32px;
+  grid-template-columns: 76px 48px minmax(150px, 0.8fr) minmax(220px, 1.2fr) minmax(180px, 1fr) 32px;
   align-items: center;
   min-width: 680px;
   min-height: 30px;
@@ -515,6 +1080,44 @@ const removeMemo = async (memoSlug: string) => {
   gap: 3px;
 }
 
+.calendar-milestones {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.calendar-milestone {
+  display: inline-flex;
+  max-width: 220px;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, var(--color-border-light));
+  border-radius: 999px;
+  padding: 1px 6px;
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+  font-size: 11px;
+}
+
+.calendar-milestone--completed {
+  opacity: 0.55;
+}
+
+.calendar-milestone-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-milestone-days {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
 .calendar-memo-link {
   max-width: 180px;
   overflow: hidden;
@@ -551,6 +1154,17 @@ const removeMemo = async (memoSlug: string) => {
 
   .calendar-toolbar-actions {
     flex-wrap: wrap;
+  }
+
+  .milestone-create-card,
+  .milestone-card-main,
+  .milestone-memo-add {
+    grid-template-columns: 1fr;
+  }
+
+  .milestone-memos,
+  .milestone-memo-add {
+    padding-left: 0;
   }
 }
 </style>

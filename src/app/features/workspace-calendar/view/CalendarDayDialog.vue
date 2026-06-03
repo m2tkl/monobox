@@ -112,13 +112,6 @@ const props = defineProps<{
   saving: boolean;
 }>();
 
-defineEmits<{
-  'update:open': [value: boolean];
-  'save': [value: { note: string | null }];
-  'add-memo': [memoSlug: string];
-  'remove-memo': [memoSlug: string];
-}>();
-
 const draftNote = ref<string | null>(null);
 const memoQuery = ref('');
 
@@ -146,6 +139,13 @@ const filteredMemos = computed(() => {
     })
     .slice(0, 20);
 });
+
+defineEmits<{
+  'update:open': [value: boolean];
+  'save': [value: { note: string | null }];
+  'add-memo': [memoSlug: string];
+  'remove-memo': [memoSlug: string];
+}>();
 </script>
 
 <style scoped>
