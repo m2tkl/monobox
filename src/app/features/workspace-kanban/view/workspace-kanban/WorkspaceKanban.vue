@@ -42,7 +42,6 @@
             </div>
             <KanbanBoard
               v-else
-              v-model="columns"
               :columns="columns"
               @drag:drop="handleDrop"
             >
