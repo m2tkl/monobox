@@ -31,7 +31,9 @@ body {
 
 *, *::before, *::after {
   box-sizing: inherit;
-  overscroll-behavior: none;
+  /* Do not set overscroll-behavior globally here. Nested scroll surfaces
+     such as cards, drawers, and kanban columns need wheel events to chain
+     to their parent scroll containers. */
 }
 
 /* Global scrollbar customization */
