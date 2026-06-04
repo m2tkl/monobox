@@ -328,7 +328,7 @@ const openMemo = (slug: string) => {
 <style scoped>
 .kanban-page {
   height: 100%;
-  padding: 16px;
+  padding: var(--app-page-padding);
   background-color: var(--color-background);
   display: flex;
   flex-direction: column;

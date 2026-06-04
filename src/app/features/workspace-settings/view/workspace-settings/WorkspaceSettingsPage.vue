@@ -819,7 +819,7 @@ await usePageLoader(async () => {
   min-height: 0;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem 0.75rem;
+  padding: var(--app-page-padding) 0.75rem 1rem;
 }
 
 .settings-title {
@@ -881,7 +881,7 @@ await usePageLoader(async () => {
 
 .settings-main__inner {
   width: min(100%, 960px);
-  padding: 1rem 1.5rem max(var(--spacing-xl), env(safe-area-inset-bottom));
+  padding: var(--app-page-padding) 1.5rem max(var(--spacing-xl), env(safe-area-inset-bottom));
 }
 
 .settings-section-header {

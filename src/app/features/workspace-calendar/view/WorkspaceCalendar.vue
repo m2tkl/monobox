@@ -184,7 +184,7 @@ const {
 .calendar-page {
   min-width: 0;
   min-height: 100%;
-  padding: 24px;
+  padding: var(--app-page-padding);
 }
 
 .calendar-toolbar {

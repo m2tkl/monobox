@@ -1,9 +1,9 @@
 <template>
   <NuxtLayout name="workspace-entry">
-    <div>
+    <div class="workspace-selection-page">
       <UContainer>
         <div>
-          <div class="flex items-center justify-between space-x-3 pb-4 pt-2">
+          <div class="workspace-selection-header flex items-center justify-between space-x-3">
             <h2
               class="pl-1 text-2xl font-bold"
               style="color: var(--color-text-primary)"
@@ -165,6 +165,15 @@ const onSubmit = async () => {
 </script>
 
 <style scoped>
+.workspace-selection-page {
+  padding-top: var(--app-page-padding);
+  padding-bottom: var(--app-page-padding);
+}
+
+.workspace-selection-header {
+  padding-bottom: var(--spacing-md);
+}
+
 .workspace-item:not(:last-child) {
   border-bottom: 1px solid var(--color-border-light);
 }

@@ -1,7 +1,7 @@
 <template>
   <NuxtLayout name="default">
     <template #main>
-      <UContainer class="flex h-full flex-col overflow-hidden py-6">
+      <UContainer class="files-page flex h-full flex-col overflow-hidden">
         <div class="flex min-h-0 flex-1 flex-col gap-6">
           <div class="flex items-center gap-4">
             <h1 class="text-2xl font-bold">
@@ -472,6 +472,11 @@ const {
 </script>
 
 <style scoped>
+.files-page {
+  padding-top: var(--app-page-padding);
+  padding-bottom: var(--app-page-padding);
+}
+
 .settings-tabs {
   display: inline-flex;
   gap: 6px;
