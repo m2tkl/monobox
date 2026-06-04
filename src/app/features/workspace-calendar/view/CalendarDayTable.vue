@@ -67,7 +67,6 @@ defineEmits<{
 <style scoped>
 .calendar-table {
   min-width: 0;
-  overflow-x: auto;
   border: 1px solid var(--color-border-light);
   border-radius: 8px;
   background: var(--color-surface);
@@ -99,5 +98,11 @@ defineEmits<{
   color: var(--color-text-muted);
   font-size: 13px;
   text-align: center;
+}
+
+@media (max-width: 760px) {
+  .calendar-table {
+    overflow-x: auto;
+  }
 }
 </style>
