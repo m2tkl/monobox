@@ -1,40 +1,42 @@
 <template>
   <NuxtLayout name="default">
     <template #main>
-      <UContainer class="files-page flex h-full flex-col overflow-hidden">
-        <div class="flex min-h-0 flex-1 flex-col gap-6">
-          <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-bold">
-              Files
-            </h1>
-
-            <div
-              class="settings-tabs"
-              role="tablist"
-              aria-label="Managed and inbox tabs"
-            >
-              <button
-                type="button"
-                class="settings-tab"
-                :class="{ 'settings-tab--active': activeTab === 'files' }"
-                role="tab"
-                :aria-selected="activeTab === 'files'"
-                @click="setActiveTab('files')"
+      <AppPageFrame
+        contained
+        fill
+        inner-class="flex h-full flex-col overflow-hidden"
+      >
+        <div class="flex min-h-0 flex-1 flex-col">
+          <AppPageHeader title="Files">
+            <template #inline>
+              <div
+                class="settings-tabs"
+                role="tablist"
+                aria-label="Managed and inbox tabs"
               >
-                Managed
-              </button>
-              <button
-                type="button"
-                class="settings-tab"
-                :class="{ 'settings-tab--active': activeTab === 'inbox' }"
-                role="tab"
-                :aria-selected="activeTab === 'inbox'"
-                @click="setActiveTab('inbox')"
-              >
-                Inbox
-              </button>
-            </div>
-          </div>
+                <button
+                  type="button"
+                  class="settings-tab"
+                  :class="{ 'settings-tab--active': activeTab === 'files' }"
+                  role="tab"
+                  :aria-selected="activeTab === 'files'"
+                  @click="setActiveTab('files')"
+                >
+                  Managed
+                </button>
+                <button
+                  type="button"
+                  class="settings-tab"
+                  :class="{ 'settings-tab--active': activeTab === 'inbox' }"
+                  role="tab"
+                  :aria-selected="activeTab === 'inbox'"
+                  @click="setActiveTab('inbox')"
+                >
+                  Inbox
+                </button>
+              </div>
+            </template>
+          </AppPageHeader>
 
           <div class="min-h-0 flex-1">
             <InboxPanel
@@ -220,7 +222,7 @@
             </div>
           </div>
         </div>
-      </UContainer>
+      </AppPageFrame>
 
       <UModal v-model:open="isCreateModalOpen">
         <template #content>
@@ -394,6 +396,8 @@ import FileMemoTargetDialog from './FileMemoTargetDialog.vue';
 import InboxPanel from './InboxPanel.vue';
 import { useFilesPage } from './useFilesPage';
 
+import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
+import AppPageHeader from '~/app/elements/layout/AppPageHeader.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 
 const route = useRoute();
@@ -472,11 +476,6 @@ const {
 </script>
 
 <style scoped>
-.files-page {
-  padding-top: var(--app-page-padding);
-  padding-bottom: var(--app-page-padding);
-}
-
 .settings-tabs {
   display: inline-flex;
   gap: 6px;

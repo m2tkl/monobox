@@ -1,65 +1,53 @@
 <template>
   <NuxtLayout name="workspace-entry">
-    <div class="workspace-selection-page">
-      <UContainer>
-        <div>
-          <div class="workspace-selection-header flex items-center justify-between space-x-3">
-            <h2
-              class="pl-1 text-2xl font-bold"
-              style="color: var(--color-text-primary)"
-            >
-              Workspace
-            </h2>
-            <div class="flex items-center gap-2">
-              <AppButton
-                color="neutral"
-                variant="ghost"
-                @click="goToSettings"
-              >
-                Settings
-              </AppButton>
-              <AppButton
-                @click="openNewWorkspaceModal"
-              >
-                New
-              </AppButton>
-            </div>
-          </div>
+    <AppPageFrame contained>
+      <AppPageHeader title="Workspace">
+        <template #actions>
+          <AppButton
+            color="neutral"
+            variant="ghost"
+            @click="goToSettings"
+          >
+            Settings
+          </AppButton>
+          <AppButton @click="openNewWorkspaceModal">
+            New
+          </AppButton>
+        </template>
+      </AppPageHeader>
 
-          <div v-if="!workspacesReadModel.flags.isLoading">
-            <div
-              v-if="workspacesReadModel.data.items.length === 0"
-              class="flex items-center justify-center py-16 text-center"
-              style="color: var(--color-text-secondary)"
-            >
-              No workspace
-            </div>
-            <div v-else>
-              <ul
-                class="rounded-md border workspace-list"
-                style="border-color: var(--color-border-muted);"
-              >
-                <li
-                  v-for="workspace in workspacesReadModel.data.items"
-                  :key="workspace.id"
-                  class="workspace-item transition-colors duration-200"
-                >
-                  <NuxtLink :to="`/${workspace.slug_name}`">
-                    <div class="flex items-center justify-between px-4 py-2 hover:bg-[var(--color-surface-hover)]">
-                      <span
-                        class="font-bold"
-                        style="color: var(--color-text-primary)"
-                      >
-                        {{ workspace.name }}
-                      </span>
-                    </div>
-                  </NuxtLink>
-                </li>
-              </ul>
-            </div>
-          </div>
+      <div v-if="!workspacesReadModel.flags.isLoading">
+        <div
+          v-if="workspacesReadModel.data.items.length === 0"
+          class="flex items-center justify-center py-16 text-center"
+          style="color: var(--color-text-secondary)"
+        >
+          No workspace
         </div>
-      </UContainer>
+        <div v-else>
+          <ul
+            class="rounded-md border workspace-list"
+            style="border-color: var(--color-border-muted);"
+          >
+            <li
+              v-for="workspace in workspacesReadModel.data.items"
+              :key="workspace.id"
+              class="workspace-item transition-colors duration-200"
+            >
+              <NuxtLink :to="`/${workspace.slug_name}`">
+                <div class="flex items-center justify-between px-4 py-2 hover:bg-[var(--color-surface-hover)]">
+                  <span
+                    class="font-bold"
+                    style="color: var(--color-text-primary)"
+                  >
+                    {{ workspace.name }}
+                  </span>
+                </div>
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
+      </div>
 
       <UModal
         v-model:open="isCreateModalOpen"
@@ -106,13 +94,15 @@
           </div>
         </template>
       </UModal>
-    </div>
+    </AppPageFrame>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
 import { useWorkspaceSelection } from './useWorkspaceSelection';
 
+import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
+import AppPageHeader from '~/app/elements/layout/AppPageHeader.vue';
 import { workspaceCollectionQuery } from '~/resources/workspace/queries';
 import { iconKey } from '~/utils/icon';
 
@@ -165,15 +155,6 @@ const onSubmit = async () => {
 </script>
 
 <style scoped>
-.workspace-selection-page {
-  padding-top: var(--app-page-padding);
-  padding-bottom: var(--app-page-padding);
-}
-
-.workspace-selection-header {
-  padding-bottom: var(--spacing-md);
-}
-
 .workspace-item:not(:last-child) {
   border-bottom: 1px solid var(--color-border-light);
 }

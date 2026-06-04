@@ -9,6 +9,8 @@
   --app-titlebar-height: 3rem;
   --app-sidebar-width: 250px;
   --app-page-padding: var(--spacing-md);
+  --app-page-max-width: 96rem;
+  --app-page-section-gap: var(--spacing-md);
 
   /* Primary Colors */
   --color-primary: #3367D6;

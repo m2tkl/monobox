@@ -1,166 +1,168 @@
 <template>
   <NuxtLayout name="default">
     <template #main>
-      <div class="kanban-page">
-        <LoadingSpinner v-if="isLoading" />
+      <AppPageFrame
+        fill
+      >
+        <div class="kanban-page">
+          <LoadingSpinner v-if="isLoading" />
 
-        <div
-          v-else
-          class="kanban-content"
-        >
-          <div class="kanban-toolbar">
-            <div class="kanban-toolbar-left">
-              <div class="kanban-toolbar-title">
-                Status
-              </div>
-            </div>
-            <div class="kanban-toolbar-actions">
-              <AppButton
-                size="sm"
-                color="primary"
-                :icon="iconKey.add"
-                :disabled="disableAddButton"
-                @click="openAddModal"
-              >
-                Add memos ({{ unassignedTotalCount }})
-              </AppButton>
-            </div>
-          </div>
-
-          <div class="kanban-board-wrap">
-            <div
-              v-if="!hasKanban"
-              class="kanban-empty-board"
+          <div
+            v-else
+            class="kanban-content"
+          >
+            <AppPageHeader
+              title="Status"
+              :heading-level="2"
             >
-              Preparing statuses.
-            </div>
-            <div
-              v-else-if="statuses.length === 0"
-              class="kanban-empty-board"
-            >
-              Add statuses to show columns.
-            </div>
-            <KanbanBoard
-              v-else
-              :columns="columns"
-              @drag:drop="handleDrop"
-            >
-              <template #column-header="{ column }">
-                <div class="kanban-column-header">
-                  <h3 class="kanban-column-title">
-                    {{ column.title }}
-                  </h3>
-                  <span class="kanban-column-count">
-                    {{ getColumnDisplayCount(column) }}
-                  </span>
-                </div>
-              </template>
-
-              <template #empty-column="{ column }">
-                <div class="kanban-empty">
-                  No cards in {{ column.title }}
-                </div>
-              </template>
-
-              <template #card="{ item, isDragging }">
-                <div
-                  class="kanban-card"
-                  :class="{ 'kanban-card--dragging': isDragging }"
-                  @click="openMemo(getItemSlug(item))"
+              <template #actions>
+                <AppButton
+                  size="sm"
+                  color="primary"
+                  :icon="iconKey.add"
+                  :disabled="disableAddButton"
+                  @click="openAddModal"
                 >
-                  <div class="kanban-card-header">
+                  Add memos ({{ unassignedTotalCount }})
+                </AppButton>
+              </template>
+            </AppPageHeader>
+
+            <div class="kanban-board-wrap">
+              <div
+                v-if="!hasKanban"
+                class="kanban-empty-board"
+              >
+                Preparing statuses.
+              </div>
+              <div
+                v-else-if="statuses.length === 0"
+                class="kanban-empty-board"
+              >
+                Add statuses to show columns.
+              </div>
+              <KanbanBoard
+                v-else
+                :columns="columns"
+                @drag:drop="handleDrop"
+              >
+                <template #column-header="{ column }">
+                  <div class="kanban-column-header">
+                    <h3 class="kanban-column-title">
+                      {{ column.title }}
+                    </h3>
+                    <span class="kanban-column-count">
+                      {{ getColumnDisplayCount(column) }}
+                    </span>
+                  </div>
+                </template>
+
+                <template #empty-column="{ column }">
+                  <div class="kanban-empty">
+                    No cards in {{ column.title }}
+                  </div>
+                </template>
+
+                <template #card="{ item, isDragging }">
+                  <div
+                    class="kanban-card"
+                    :class="{ 'kanban-card--dragging': isDragging }"
+                    @click="openMemo(getItemSlug(item))"
+                  >
+                    <div class="kanban-card-header">
+                      <div class="kanban-card-title">
+                        {{ item.title }}
+                      </div>
+                    </div>
+                    <div
+                      v-if="item.description"
+                      class="kanban-card-description"
+                    >
+                      {{ item.description }}
+                    </div>
+                  </div>
+                </template>
+
+                <template #placeholder="{ item }">
+                  <div class="kanban-card kanban-card--placeholder-card">
                     <div class="kanban-card-title">
                       {{ item.title }}
                     </div>
-                  </div>
-                  <div
-                    v-if="item.description"
-                    class="kanban-card-description"
-                  >
-                    {{ item.description }}
-                  </div>
-                </div>
-              </template>
-
-              <template #placeholder="{ item }">
-                <div class="kanban-card kanban-card--placeholder-card">
-                  <div class="kanban-card-title">
-                    {{ item.title }}
-                  </div>
-                  <div
-                    v-if="item.description"
-                    class="kanban-card-description"
-                  >
-                    {{ item.description }}
-                  </div>
-                </div>
-              </template>
-            </KanbanBoard>
-          </div>
-        </div>
-
-        <UModal v-model:open="isAddModalOpen">
-          <template #content>
-            <UCard>
-              <div class="kanban-add-modal">
-                <div class="kanban-add-header">
-                  <div class="kanban-add-title">
-                    Add memos to Status
-                  </div>
-                  <AppInput
-                    v-model="addQuery"
-                    size="sm"
-                    placeholder="Search memos"
-                  />
-                </div>
-
-                <div class="kanban-add-meta">
-                  {{ filteredUnassignedItems.length }} / {{ unassignedTotalCount }} showing
-                </div>
-
-                <div
-                  v-if="filteredUnassignedItems.length === 0"
-                  class="kanban-add-empty"
-                >
-                  No unassigned memos.
-                </div>
-
-                <div
-                  v-else
-                  class="kanban-add-list"
-                >
-                  <div
-                    v-for="item in filteredUnassignedItems"
-                    :key="item.memoId"
-                    class="kanban-add-item"
-                  >
-                    <div class="kanban-add-item-body">
-                      <div class="kanban-add-item-title">
-                        {{ item.title }}
-                      </div>
-                      <div
-                        v-if="item.description"
-                        class="kanban-add-item-description"
-                      >
-                        {{ item.description }}
-                      </div>
+                    <div
+                      v-if="item.description"
+                      class="kanban-card-description"
+                    >
+                      {{ item.description }}
                     </div>
-                    <UDropdownMenu :items="getAssignMenuItems(item)">
-                      <AppButton
-                        size="xs"
-                        variant="outline"
-                        :disabled="isAssigning || statuses.length === 0"
-                      >
-                        Add
-                      </AppButton>
-                    </UDropdownMenu>
+                  </div>
+                </template>
+              </KanbanBoard>
+            </div>
+          </div>
+
+          <UModal v-model:open="isAddModalOpen">
+            <template #content>
+              <UCard>
+                <div class="kanban-add-modal">
+                  <div class="kanban-add-header">
+                    <div class="kanban-add-title">
+                      Add memos to Status
+                    </div>
+                    <AppInput
+                      v-model="addQuery"
+                      size="sm"
+                      placeholder="Search memos"
+                    />
+                  </div>
+
+                  <div class="kanban-add-meta">
+                    {{ filteredUnassignedItems.length }} / {{ unassignedTotalCount }} showing
+                  </div>
+
+                  <div
+                    v-if="filteredUnassignedItems.length === 0"
+                    class="kanban-add-empty"
+                  >
+                    No unassigned memos.
+                  </div>
+
+                  <div
+                    v-else
+                    class="kanban-add-list"
+                  >
+                    <div
+                      v-for="item in filteredUnassignedItems"
+                      :key="item.memoId"
+                      class="kanban-add-item"
+                    >
+                      <div class="kanban-add-item-body">
+                        <div class="kanban-add-item-title">
+                          {{ item.title }}
+                        </div>
+                        <div
+                          v-if="item.description"
+                          class="kanban-add-item-description"
+                        >
+                          {{ item.description }}
+                        </div>
+                      </div>
+                      <UDropdownMenu :items="getAssignMenuItems(item)">
+                        <AppButton
+                          size="xs"
+                          variant="outline"
+                          :disabled="isAssigning || statuses.length === 0"
+                        >
+                          Add
+                        </AppButton>
+                      </UDropdownMenu>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </UCard>
-          </template>
-        </UModal>
-      </div>
+              </UCard>
+            </template>
+          </UModal>
+        </div>
+      </AppPageFrame>
     </template>
 
     <template #actions>
@@ -188,6 +190,8 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 
 import AppButton from '~/app/elements/AppButton.vue';
 import AppInput from '~/app/elements/AppInput.vue';
+import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
+import AppPageHeader from '~/app/elements/layout/AppPageHeader.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { SearchPalette } from '~/app/features/search';
 import { iconKey } from '~/utils/icon';
@@ -328,7 +332,6 @@ const openMemo = (slug: string) => {
 <style scoped>
 .kanban-page {
   height: 100%;
-  padding: var(--app-page-padding);
   background-color: var(--color-background);
   display: flex;
   flex-direction: column;
@@ -340,36 +343,6 @@ const openMemo = (slug: string) => {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  gap: 12px;
-}
-
-.kanban-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.kanban-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.kanban-toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.kanban-toolbar-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text-primary);
 }
 
 .kanban-board-wrap {

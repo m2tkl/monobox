@@ -1,441 +1,446 @@
 <template>
   <div class="settings-page">
-    <div class="settings-shell">
-      <aside class="settings-sidebar border-right">
-        <div class="settings-sidebar__inner">
-          <h2 class="settings-title">
-            Settings
-          </h2>
+    <AppPageFrame
+      variant="split"
+      fill
+    >
+      <div class="settings-shell">
+        <aside class="settings-sidebar border-right">
+          <div class="settings-sidebar__inner">
+            <h2 class="settings-title">
+              Settings
+            </h2>
 
-          <nav
-            class="settings-nav"
-            aria-label="Settings"
-          >
-            <section
-              v-for="group in settingGroups"
-              :key="group.label"
-              class="settings-nav-group"
+            <nav
+              class="settings-nav"
+              aria-label="Settings"
             >
-              <div class="settings-nav-heading">
-                <UIcon
-                  :name="group.icon"
-                  class="shrink-0"
-                />
-                <span>{{ group.label }}</span>
-              </div>
-
-              <button
-                v-for="item in group.items"
-                :key="item.id"
-                type="button"
-                class="settings-nav-item sidebar-link"
-                :class="{ 'is-active': activePanel === item.id }"
-                :disabled="item.disabled"
-                @click="activePanel = item.id"
+              <section
+                v-for="group in settingGroups"
+                :key="group.label"
+                class="settings-nav-group"
               >
-                <span>{{ item.label }}</span>
-              </button>
-            </section>
-          </nav>
-        </div>
-      </aside>
-
-      <main class="settings-main">
-        <div class="settings-main__inner">
-          <header class="settings-section-header">
-            <h3 class="settings-section-title">
-              <span class="settings-section-group">{{ activePanelGroupLabel }}</span>
-              <span class="settings-section-separator">/</span>
-              <span>
-                {{ activePanelLabel }}
-              </span>
-            </h3>
-          </header>
-
-          <section class="settings-panel">
-            <UCard
-              v-if="activePanel === 'mcp-server'"
-              class="card-themed"
-            >
-              <template #header>
-                <h4
-                  class="text-base font-semibold"
-                  style="color: var(--color-text-primary)"
-                >
-                  Server info
-                </h4>
-              </template>
-
-              <div
-                v-if="mcpServerInfo"
-                class="space-y-4"
-              >
-                <div class="text-sm">
-                  <div style="color: var(--color-text-secondary);">
-                    Status
-                  </div>
-                  <div style="color: var(--color-text-primary);">
-                    {{ mcpServerStatus }}
-                  </div>
+                <div class="settings-nav-heading">
+                  <UIcon
+                    :name="group.icon"
+                    class="shrink-0"
+                  />
+                  <span>{{ group.label }}</span>
                 </div>
 
-                <div class="text-sm">
-                  <div style="color: var(--color-text-secondary);">
-                    URL
-                  </div>
-                  <code class="settings-code">{{ mcpServerInfo.url }}</code>
-                  <div class="settings-actions">
-                    <AppButton
-                      class="settings-action-button"
-                      size="sm"
-                      color="neutral"
-                      variant="outline"
-                      :icon="iconKey.copy"
-                      @click="copyMcpServerUrl"
-                    >
-                      Copy URL
-                    </AppButton>
+                <button
+                  v-for="item in group.items"
+                  :key="item.id"
+                  type="button"
+                  class="settings-nav-item sidebar-link"
+                  :class="{ 'is-active': activePanel === item.id }"
+                  :disabled="item.disabled"
+                  @click="activePanel = item.id"
+                >
+                  <span>{{ item.label }}</span>
+                </button>
+              </section>
+            </nav>
+          </div>
+        </aside>
 
-                    <AppButton
-                      class="settings-action-button"
-                      size="sm"
-                      color="neutral"
-                      variant="outline"
-                      :icon="iconKey.renew"
-                      @click="regenerateMcpServerUrl"
-                    >
-                      Regenerate URL
-                    </AppButton>
+        <main class="settings-main">
+          <div class="settings-main__inner">
+            <header class="settings-section-header">
+              <h3 class="settings-section-title">
+                <span class="settings-section-group">{{ activePanelGroupLabel }}</span>
+                <span class="settings-section-separator">/</span>
+                <span>
+                  {{ activePanelLabel }}
+                </span>
+              </h3>
+            </header>
+
+            <section class="settings-panel">
+              <UCard
+                v-if="activePanel === 'mcp-server'"
+                class="card-themed"
+              >
+                <template #header>
+                  <h4
+                    class="text-base font-semibold"
+                    style="color: var(--color-text-primary)"
+                  >
+                    Server info
+                  </h4>
+                </template>
+
+                <div
+                  v-if="mcpServerInfo"
+                  class="space-y-4"
+                >
+                  <div class="text-sm">
+                    <div style="color: var(--color-text-secondary);">
+                      Status
+                    </div>
+                    <div style="color: var(--color-text-primary);">
+                      {{ mcpServerStatus }}
+                    </div>
+                  </div>
+
+                  <div class="text-sm">
+                    <div style="color: var(--color-text-secondary);">
+                      URL
+                    </div>
+                    <code class="settings-code">{{ mcpServerInfo.url }}</code>
+                    <div class="settings-actions">
+                      <AppButton
+                        class="settings-action-button"
+                        size="sm"
+                        color="neutral"
+                        variant="outline"
+                        :icon="iconKey.copy"
+                        @click="copyMcpServerUrl"
+                      >
+                        Copy URL
+                      </AppButton>
+
+                      <AppButton
+                        class="settings-action-button"
+                        size="sm"
+                        color="neutral"
+                        variant="outline"
+                        :icon="iconKey.renew"
+                        @click="regenerateMcpServerUrl"
+                      >
+                        Regenerate URL
+                      </AppButton>
+                    </div>
+                  </div>
+
+                  <div
+                    v-if="mcpServerRestartRequired"
+                    class="text-sm"
+                    style="color: var(--color-text-secondary);"
+                  >
+                    Restart monobox before using the regenerated URL from Codex.
                   </div>
                 </div>
 
                 <div
-                  v-if="mcpServerRestartRequired"
+                  v-else
                   class="text-sm"
-                  style="color: var(--color-text-secondary);"
+                  style="color: var(--color-text-muted)"
                 >
-                  Restart monobox before using the regenerated URL from Codex.
+                  Failed to load MCP server info.
                 </div>
-              </div>
+              </UCard>
 
-              <div
-                v-else
-                class="text-sm"
-                style="color: var(--color-text-muted)"
+              <UCard
+                v-else-if="activePanel === 'global-shortcuts'"
+                class="card-themed"
               >
-                Failed to load MCP server info.
-              </div>
-            </UCard>
-
-            <UCard
-              v-else-if="activePanel === 'global-shortcuts'"
-              class="card-themed"
-            >
-              <template #header>
-                <h4
-                  class="text-base font-semibold"
-                  style="color: var(--color-text-primary)"
-                >
-                  Global shortcuts
-                </h4>
-              </template>
-
-              <div class="space-y-5">
-                <div class="settings-control">
-                  <div class="settings-control__label">
-                    <div
-                      class="text-sm font-medium"
-                      style="color: var(--color-text-primary)"
-                    >
-                      Focus app
-                    </div>
-                    <div
-                      class="text-xs"
-                      style="color: var(--color-text-muted)"
-                    >
-                      Bring monobox to the front
-                    </div>
-                  </div>
-                  <AppInput
-                    v-model="focusAppShortcut"
-                    placeholder="CommandOrControl+Shift+M"
-                    :disabled="isGlobalShortcutSaving"
-                  />
-                </div>
-
-                <div class="settings-control">
-                  <div class="settings-control__label">
-                    <div
-                      class="text-sm font-medium"
-                      style="color: var(--color-text-primary)"
-                    >
-                      New memo
-                    </div>
-                    <div
-                      class="text-xs"
-                      style="color: var(--color-text-muted)"
-                    >
-                      Create a memo in the active workspace
-                    </div>
-                  </div>
-                  <AppInput
-                    v-model="newMemoShortcut"
-                    placeholder="CommandOrControl+Shift+N"
-                    :disabled="isGlobalShortcutSaving"
-                  />
-                </div>
-
-                <div class="settings-actions">
-                  <AppButton
-                    size="sm"
-                    color="primary"
-                    :icon="iconKey.save"
-                    :loading="isGlobalShortcutSaving"
-                    :disabled="!isGlobalShortcutDirty"
-                    @click="saveGlobalShortcuts"
+                <template #header>
+                  <h4
+                    class="text-base font-semibold"
+                    style="color: var(--color-text-primary)"
                   >
-                    Save shortcuts
-                  </AppButton>
-                </div>
-              </div>
-            </UCard>
+                    Global shortcuts
+                  </h4>
+                </template>
 
-            <UCard
-              v-else-if="activePanel === 'appearance'"
-              class="card-themed"
-            >
-              <template #header>
-                <h4
-                  class="text-base font-semibold"
-                  style="color: var(--color-text-primary)"
-                >
-                  Theme and window
-                </h4>
-              </template>
-
-              <div class="space-y-6">
-                <div class="flex items-center gap-4">
-                  <ThemeSelector />
-                  <span
-                    class="text-sm"
-                    style="color: var(--color-text-secondary)"
-                  >
-                    Current: {{ currentTheme.config.name }} - {{ currentTheme.config.description }}
-                  </span>
-                </div>
-
-                <div class="settings-control">
-                  <div class="settings-control__label">
-                    <div
-                      class="text-sm font-medium"
-                      style="color: var(--color-text-primary)"
-                    >
-                      Background opacity
+                <div class="space-y-5">
+                  <div class="settings-control">
+                    <div class="settings-control__label">
+                      <div
+                        class="text-sm font-medium"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Focus app
+                      </div>
+                      <div
+                        class="text-xs"
+                        style="color: var(--color-text-muted)"
+                      >
+                        Bring monobox to the front
+                      </div>
                     </div>
-                    <div
-                      class="text-xs"
-                      style="color: var(--color-text-muted)"
-                    >
-                      {{ windowOpacityPercent }}%
-                    </div>
+                    <AppInput
+                      v-model="focusAppShortcut"
+                      placeholder="CommandOrControl+Shift+M"
+                      :disabled="isGlobalShortcutSaving"
+                    />
                   </div>
 
-                  <input
-                    v-model.number="windowOpacity"
-                    class="settings-range"
-                    type="range"
-                    min="0.2"
-                    max="1"
-                    step="0.05"
-                    :disabled="isWindowOpacitySaving"
-                    @input="applyWindowOpacity(windowOpacity)"
-                  >
+                  <div class="settings-control">
+                    <div class="settings-control__label">
+                      <div
+                        class="text-sm font-medium"
+                        style="color: var(--color-text-primary)"
+                      >
+                        New memo
+                      </div>
+                      <div
+                        class="text-xs"
+                        style="color: var(--color-text-muted)"
+                      >
+                        Create a memo in the active workspace
+                      </div>
+                    </div>
+                    <AppInput
+                      v-model="newMemoShortcut"
+                      placeholder="CommandOrControl+Shift+N"
+                      :disabled="isGlobalShortcutSaving"
+                    />
+                  </div>
 
                   <div class="settings-actions">
                     <AppButton
                       size="sm"
                       color="primary"
                       :icon="iconKey.save"
-                      :loading="isWindowOpacitySaving"
-                      :disabled="!isWindowOpacityDirty"
-                      @click="saveWindowOpacity"
+                      :loading="isGlobalShortcutSaving"
+                      :disabled="!isGlobalShortcutDirty"
+                      @click="saveGlobalShortcuts"
                     >
-                      Save background opacity
+                      Save shortcuts
                     </AppButton>
                   </div>
                 </div>
-              </div>
-            </UCard>
+              </UCard>
 
-            <UCard
-              v-else-if="activePanel === 'storage-paths'"
-              class="card-themed"
-            >
-              <template #header>
-                <h4
-                  class="text-base font-semibold"
-                  style="color: var(--color-text-primary)"
-                >
-                  Storage paths
-                </h4>
-              </template>
-
-              <StoragePathsForm mode="settings" />
-            </UCard>
-
-            <UCard
-              v-else-if="activePanel === 'files'"
-              class="card-themed"
-            >
-              <template #header>
-                <h4
-                  class="text-base font-semibold"
-                  style="color: var(--color-text-primary)"
-                >
-                  Files import
-                </h4>
-              </template>
-
-              <div class="space-y-5">
-                <div class="settings-control">
-                  <div class="settings-control__label">
-                    <div
-                      class="text-sm font-medium"
-                      style="color: var(--color-text-primary)"
-                    >
-                      Ignore file names
-                    </div>
-                    <div
-                      class="text-xs"
-                      style="color: var(--color-text-muted)"
-                    >
-                      One exact file name per line. Matching is case-insensitive.
-                    </div>
-                  </div>
-
-                  <AppTextarea
-                    v-model="inboxIgnoreFileNamesText"
-                    :rows="5"
-                    placeholder="desktop.ini"
-                    :disabled="isInboxIgnoreSaving"
-                  />
-
-                  <div class="settings-actions">
-                    <AppButton
-                      size="sm"
-                      color="primary"
-                      :icon="iconKey.save"
-                      :loading="isInboxIgnoreSaving"
-                      :disabled="!isInboxIgnoreDirty"
-                      @click="saveInboxIgnoreFileNames"
-                    >
-                      Save ignore list
-                    </AppButton>
-                  </div>
-                </div>
-              </div>
-            </UCard>
-
-            <template v-else-if="activePanel === 'memo-templates'">
-              <template v-if="hasWorkspaceContext">
-                <LoadingSpinner v-if="isWorkspaceLoading" />
-
-                <MemoTemplateManager
-                  v-else-if="currentWorkspace"
-                  :workspace-slug="currentWorkspace.slug_name"
-                />
-              </template>
-
-              <div
-                v-else
-                class="settings-empty"
+              <UCard
+                v-else-if="activePanel === 'appearance'"
+                class="card-themed"
               >
-                Open a workspace to manage workspace-specific settings.
-              </div>
-            </template>
+                <template #header>
+                  <h4
+                    class="text-base font-semibold"
+                    style="color: var(--color-text-primary)"
+                  >
+                    Theme and window
+                  </h4>
+                </template>
 
-            <template v-else-if="activePanel === 'statuses'">
-              <template v-if="hasWorkspaceContext">
-                <LoadingSpinner v-if="isWorkspaceLoading || isStatusBoardLoading" />
-
-                <UCard
-                  v-else-if="currentWorkspace"
-                  class="card-themed"
-                >
-                  <template #header>
-                    <h4
-                      class="text-base font-semibold"
-                      style="color: var(--color-text-primary)"
+                <div class="space-y-6">
+                  <div class="flex items-center gap-4">
+                    <ThemeSelector />
+                    <span
+                      class="text-sm"
+                      style="color: var(--color-text-secondary)"
                     >
-                      Statuses
-                    </h4>
-                  </template>
+                      Current: {{ currentTheme.config.name }} - {{ currentTheme.config.description }}
+                    </span>
+                  </div>
 
-                  <KanbanStatusManager
+                  <div class="settings-control">
+                    <div class="settings-control__label">
+                      <div
+                        class="text-sm font-medium"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Background opacity
+                      </div>
+                      <div
+                        class="text-xs"
+                        style="color: var(--color-text-muted)"
+                      >
+                        {{ windowOpacityPercent }}%
+                      </div>
+                    </div>
+
+                    <input
+                      v-model.number="windowOpacity"
+                      class="settings-range"
+                      type="range"
+                      min="0.2"
+                      max="1"
+                      step="0.05"
+                      :disabled="isWindowOpacitySaving"
+                      @input="applyWindowOpacity(windowOpacity)"
+                    >
+
+                    <div class="settings-actions">
+                      <AppButton
+                        size="sm"
+                        color="primary"
+                        :icon="iconKey.save"
+                        :loading="isWindowOpacitySaving"
+                        :disabled="!isWindowOpacityDirty"
+                        @click="saveWindowOpacity"
+                      >
+                        Save background opacity
+                      </AppButton>
+                    </div>
+                  </div>
+                </div>
+              </UCard>
+
+              <UCard
+                v-else-if="activePanel === 'storage-paths'"
+                class="card-themed"
+              >
+                <template #header>
+                  <h4
+                    class="text-base font-semibold"
+                    style="color: var(--color-text-primary)"
+                  >
+                    Storage paths
+                  </h4>
+                </template>
+
+                <StoragePathsForm mode="settings" />
+              </UCard>
+
+              <UCard
+                v-else-if="activePanel === 'files'"
+                class="card-themed"
+              >
+                <template #header>
+                  <h4
+                    class="text-base font-semibold"
+                    style="color: var(--color-text-primary)"
+                  >
+                    Files import
+                  </h4>
+                </template>
+
+                <div class="space-y-5">
+                  <div class="settings-control">
+                    <div class="settings-control__label">
+                      <div
+                        class="text-sm font-medium"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Ignore file names
+                      </div>
+                      <div
+                        class="text-xs"
+                        style="color: var(--color-text-muted)"
+                      >
+                        One exact file name per line. Matching is case-insensitive.
+                      </div>
+                    </div>
+
+                    <AppTextarea
+                      v-model="inboxIgnoreFileNamesText"
+                      :rows="5"
+                      placeholder="desktop.ini"
+                      :disabled="isInboxIgnoreSaving"
+                    />
+
+                    <div class="settings-actions">
+                      <AppButton
+                        size="sm"
+                        color="primary"
+                        :icon="iconKey.save"
+                        :loading="isInboxIgnoreSaving"
+                        :disabled="!isInboxIgnoreDirty"
+                        @click="saveInboxIgnoreFileNames"
+                      >
+                        Save ignore list
+                      </AppButton>
+                    </div>
+                  </div>
+                </div>
+              </UCard>
+
+              <template v-else-if="activePanel === 'memo-templates'">
+                <template v-if="hasWorkspaceContext">
+                  <LoadingSpinner v-if="isWorkspaceLoading" />
+
+                  <MemoTemplateManager
+                    v-else-if="currentWorkspace"
                     :workspace-slug="currentWorkspace.slug_name"
-                    :kanban-id="statusKanbanId"
                   />
-                </UCard>
-              </template>
+                </template>
 
-              <div
-                v-else
-                class="settings-empty"
-              >
-                Open a workspace to manage workspace-specific settings.
-              </div>
-            </template>
-
-            <template v-else-if="activePanel === 'danger-zone'">
-              <template v-if="hasWorkspaceContext">
-                <LoadingSpinner v-if="isWorkspaceLoading" />
-
-                <UCard
-                  v-else-if="currentWorkspace"
-                  class="card-themed"
+                <div
+                  v-else
+                  class="settings-empty"
                 >
-                  <template #header>
-                    <h4
-                      class="text-base font-semibold"
-                      style="color: var(--color-text-primary)"
-                    >
-                      Delete workspace
-                    </h4>
-                  </template>
-
-                  <AppButton
-                    color="error"
-                    variant="subtle"
-                    @click="openDeleteConfirmation"
-                  >
-                    Delete this workspace
-                  </AppButton>
-                </UCard>
+                  Open a workspace to manage workspace-specific settings.
+                </div>
               </template>
 
-              <div
-                v-else
-                class="settings-empty"
-              >
-                Open a workspace to manage workspace-specific settings.
-              </div>
-            </template>
+              <template v-else-if="activePanel === 'statuses'">
+                <template v-if="hasWorkspaceContext">
+                  <LoadingSpinner v-if="isWorkspaceLoading || isStatusBoardLoading" />
 
-            <UCard
-              v-else
-              class="card-themed"
-            >
-              <div
-                class="text-sm"
-                style="color: var(--color-text-muted)"
+                  <UCard
+                    v-else-if="currentWorkspace"
+                    class="card-themed"
+                  >
+                    <template #header>
+                      <h4
+                        class="text-base font-semibold"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Statuses
+                      </h4>
+                    </template>
+
+                    <KanbanStatusManager
+                      :workspace-slug="currentWorkspace.slug_name"
+                      :kanban-id="statusKanbanId"
+                    />
+                  </UCard>
+                </template>
+
+                <div
+                  v-else
+                  class="settings-empty"
+                >
+                  Open a workspace to manage workspace-specific settings.
+                </div>
+              </template>
+
+              <template v-else-if="activePanel === 'danger-zone'">
+                <template v-if="hasWorkspaceContext">
+                  <LoadingSpinner v-if="isWorkspaceLoading" />
+
+                  <UCard
+                    v-else-if="currentWorkspace"
+                    class="card-themed"
+                  >
+                    <template #header>
+                      <h4
+                        class="text-base font-semibold"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Delete workspace
+                      </h4>
+                    </template>
+
+                    <AppButton
+                      color="error"
+                      variant="subtle"
+                      @click="openDeleteConfirmation"
+                    >
+                      Delete this workspace
+                    </AppButton>
+                  </UCard>
+                </template>
+
+                <div
+                  v-else
+                  class="settings-empty"
+                >
+                  Open a workspace to manage workspace-specific settings.
+                </div>
+              </template>
+
+              <UCard
+                v-else
+                class="card-themed"
               >
-                Select a setting from the sidebar.
-              </div>
-            </UCard>
-          </section>
-        </div>
-      </main>
-    </div>
+                <div
+                  class="text-sm"
+                  style="color: var(--color-text-muted)"
+                >
+                  Select a setting from the sidebar.
+                </div>
+              </UCard>
+            </section>
+          </div>
+        </main>
+      </div>
+    </AppPageFrame>
 
     <ConfirmModal
       v-model:open="isDeleteConfirmationOpen"
@@ -455,6 +460,7 @@ import { useWorkspaceSettings } from './useWorkspaceSettings';
 import AppButton from '~/app/elements/AppButton.vue';
 import AppInput from '~/app/elements/AppInput.vue';
 import AppTextarea from '~/app/elements/AppTextarea.vue';
+import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
 import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
 import ThemeSelector from '~/app/elements/settings/ThemeSelector.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';

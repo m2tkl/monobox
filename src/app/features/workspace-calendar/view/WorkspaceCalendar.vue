@@ -1,13 +1,10 @@
 <template>
   <NuxtLayout name="default">
     <template #main>
-      <div class="calendar-page">
-        <div class="calendar-toolbar">
-          <div>
-            <h1 class="calendar-title">
-              Calendar
-            </h1>
-            <p class="calendar-subtitle">
+      <AppPageFrame>
+        <AppPageHeader title="Calendar">
+          <template #description>
+            <span>
               <template v-if="viewMode === 'working'">
                 {{ remainingWorkingDays }} working days remaining in {{ selectedYear }}.
               </template>
@@ -17,68 +14,70 @@
               <template v-else>
                 Create milestones, set dates, and link memos.
               </template>
-            </p>
-          </div>
+            </span>
+          </template>
 
-          <div class="calendar-toolbar-actions">
-            <AppButton
-              v-if="viewMode !== 'milestones' && canToggleEarlierDates"
-              size="sm"
-              color="neutral"
-              variant="ghost"
-              @click="showEarlierDates = !showEarlierDates"
-            >
-              {{ showEarlierDates ? 'Hide earlier dates' : `Show earlier dates (${hiddenEarlierDateCount})` }}
-            </AppButton>
-            <div class="calendar-view-switch">
+          <template #actions>
+            <div class="calendar-toolbar-actions">
+              <AppButton
+                v-if="viewMode !== 'milestones' && canToggleEarlierDates"
+                size="sm"
+                color="neutral"
+                variant="ghost"
+                @click="showEarlierDates = !showEarlierDates"
+              >
+                {{ showEarlierDates ? 'Hide earlier dates' : `Show earlier dates (${hiddenEarlierDateCount})` }}
+              </AppButton>
+              <div class="calendar-view-switch">
+                <AppButton
+                  size="sm"
+                  color="neutral"
+                  :variant="viewMode === 'working' ? 'solid' : 'ghost'"
+                  @click="viewMode = 'working'"
+                >
+                  Working days
+                </AppButton>
+                <AppButton
+                  size="sm"
+                  color="neutral"
+                  :variant="viewMode === 'settings' ? 'solid' : 'ghost'"
+                  @click="viewMode = 'settings'"
+                >
+                  Non-working day settings
+                </AppButton>
+              </div>
               <AppButton
                 size="sm"
                 color="neutral"
-                :variant="viewMode === 'working' ? 'solid' : 'ghost'"
-                @click="viewMode = 'working'"
+                :variant="viewMode === 'milestones' ? 'solid' : 'outline'"
+                @click="viewMode = 'milestones'"
               >
-                Working days
+                Milestones
               </AppButton>
               <AppButton
-                size="sm"
                 color="neutral"
-                :variant="viewMode === 'settings' ? 'solid' : 'ghost'"
-                @click="viewMode = 'settings'"
+                variant="ghost"
+                :icon="iconKey.arrowLeft"
+                aria-label="Previous year"
+                @click="changeYear(-1)"
+              />
+              <AppButton
+                color="neutral"
+                variant="outline"
+                @click="goToCurrentYear"
               >
-                Non-working day settings
+                {{ selectedYear }}
               </AppButton>
+              <AppButton
+                color="neutral"
+                variant="ghost"
+                :icon="iconKey.arrowRight"
+                aria-label="Next year"
+                @click="changeYear(1)"
+              />
             </div>
-            <AppButton
-              size="sm"
-              color="neutral"
-              :variant="viewMode === 'milestones' ? 'solid' : 'outline'"
-              @click="viewMode = 'milestones'"
-            >
-              Milestones
-            </AppButton>
-            <AppButton
-              color="neutral"
-              variant="ghost"
-              :icon="iconKey.arrowLeft"
-              aria-label="Previous year"
-              @click="changeYear(-1)"
-            />
-            <AppButton
-              color="neutral"
-              variant="outline"
-              @click="goToCurrentYear"
-            >
-              {{ selectedYear }}
-            </AppButton>
-            <AppButton
-              color="neutral"
-              variant="ghost"
-              :icon="iconKey.arrowRight"
-              aria-label="Next year"
-              @click="changeYear(1)"
-            />
-          </div>
-        </div>
+          </template>
+        </AppPageHeader>
 
         <LoadingSpinner v-if="isLoading" />
 
@@ -123,7 +122,7 @@
           @add-memo="addMemo"
           @remove-memo="removeMemo"
         />
-      </div>
+      </AppPageFrame>
     </template>
 
     <template #actions>
@@ -145,6 +144,8 @@ import MilestoneManager from './MilestoneManager.vue';
 import { useWorkspaceCalendarPage } from './useWorkspaceCalendarPage';
 
 import AppButton from '~/app/elements/AppButton.vue';
+import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
+import AppPageHeader from '~/app/elements/layout/AppPageHeader.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { SearchPalette } from '~/app/features/search';
 import { iconKey } from '~/utils/icon';
@@ -181,32 +182,6 @@ const {
 </script>
 
 <style scoped>
-.calendar-page {
-  min-width: 0;
-  min-height: 100%;
-  padding: var(--app-page-padding);
-}
-
-.calendar-toolbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.calendar-title {
-  color: var(--color-text-primary);
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.calendar-subtitle {
-  margin-top: 4px;
-  color: var(--color-text-muted);
-  font-size: 13px;
-}
-
 .calendar-toolbar-actions {
   display: flex;
   align-items: center;
@@ -227,10 +202,6 @@ const {
 }
 
 @media (max-width: 900px) {
-  .calendar-toolbar {
-    flex-direction: column;
-  }
-
   .calendar-toolbar-actions {
     flex-wrap: wrap;
   }
