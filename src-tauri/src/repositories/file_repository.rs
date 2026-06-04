@@ -19,6 +19,7 @@ impl FileRepository {
         downloads_dir: &Path,
         limit: i64,
         offset: i64,
+        ignored_file_names: &[String],
     ) -> Result<InboxFilePage, String> {
         if !downloads_dir.exists() {
             return Ok(InboxFilePage {
@@ -37,11 +38,7 @@ impl FileRepository {
             if !path.is_file() {
                 continue;
             }
-            if path
-                .file_name()
-                .and_then(|name| name.to_str())
-                .is_some_and(|name| name.starts_with('.'))
-            {
+            if should_ignore_inbox_file(&path, ignored_file_names) {
                 continue;
             }
 
@@ -746,13 +743,27 @@ fn build_physical_file_name(original_name: &str, file_id: &str) -> String {
     }
 }
 
+fn should_ignore_inbox_file(path: &Path, ignored_file_names: &[String]) -> bool {
+    let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+        return false;
+    };
+
+    if name.starts_with('.') {
+        return true;
+    }
+
+    ignored_file_names
+        .iter()
+        .any(|ignored_name| name.eq_ignore_ascii_case(ignored_name.trim()))
+}
+
 #[cfg(test)]
 mod tests {
     use rusqlite::{params, Connection};
 
     use super::{
         append_file_link_block, build_physical_file_name, collect_file_ids_from_content,
-        FileRepository,
+        should_ignore_inbox_file, FileRepository,
     };
     use crate::migrations::apply_migrations;
 
@@ -771,6 +782,30 @@ mod tests {
     fn build_physical_name_preserves_extension() {
         let file_name = build_physical_file_name("proposal.pdf", "FILE123");
         assert_eq!(file_name, "proposal__mb_FILE123.pdf");
+    }
+
+    #[test]
+    fn should_ignore_inbox_file_ignores_dotfiles() {
+        assert!(should_ignore_inbox_file(
+            std::path::Path::new(".DS_Store"),
+            &[]
+        ));
+    }
+
+    #[test]
+    fn should_ignore_inbox_file_matches_configured_names_case_insensitively() {
+        assert!(should_ignore_inbox_file(
+            std::path::Path::new("Desktop.ini"),
+            &["desktop.ini".to_string()]
+        ));
+    }
+
+    #[test]
+    fn should_ignore_inbox_file_keeps_unlisted_files() {
+        assert!(!should_ignore_inbox_file(
+            std::path::Path::new("proposal.pdf"),
+            &["desktop.ini".to_string()]
+        ));
     }
 
     #[test]

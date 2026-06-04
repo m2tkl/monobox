@@ -17,6 +17,7 @@ pub struct ConfigPayload {
     pub database_path: String,
     pub asset_dir_path: String,
     pub files_storage_root: String,
+    pub inbox_ignore_file_names: Vec<String>,
     pub setup_complete: bool,
     pub theme_preference: Option<String>,
     pub app_window_opacity: f64,
@@ -57,6 +58,11 @@ pub struct WindowOpacityArgs {
 }
 
 #[derive(serde::Deserialize)]
+pub struct InboxIgnoreFileNamesArgs {
+    pub file_names: Vec<String>,
+}
+
+#[derive(serde::Deserialize)]
 pub struct GlobalShortcutArgs {
     pub focus_app_shortcut: String,
     pub new_memo_shortcut: String,
@@ -68,17 +74,34 @@ pub fn get_app_config(mcp_server_info: State<McpServerInfo>) -> Result<ConfigPay
         .ok_or_else(|| "Failed to determine project directories".to_string())?;
     let config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
 
-    Ok(ConfigPayload {
+    Ok(build_config_payload(config, &mcp_server_info.url))
+}
+
+fn build_config_payload(config: crate::config::AppConfig, mcp_server_url: &str) -> ConfigPayload {
+    ConfigPayload {
         database_path: config.database_path,
         asset_dir_path: config.asset_dir_path,
         files_storage_root: config.files_storage_root,
+        inbox_ignore_file_names: config.inbox_ignore_file_names,
         setup_complete: config.setup_complete,
         theme_preference: config.theme_preference,
         app_window_opacity: config.app_window_opacity,
         focus_app_shortcut: config.focus_app_shortcut,
         new_memo_shortcut: config.new_memo_shortcut,
-        mcp_server_url: mcp_server_info.url.clone(),
-    })
+        mcp_server_url: mcp_server_url.to_string(),
+    }
+}
+
+fn normalize_inbox_ignore_file_names(file_names: &[String]) -> Vec<String> {
+    let mut names: Vec<String> = file_names
+        .iter()
+        .map(|name| name.trim())
+        .filter(|name| !name.is_empty())
+        .map(ToString::to_string)
+        .collect();
+    names.sort_by_key(|name| name.to_lowercase());
+    names.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
+    names
 }
 
 #[command]
@@ -100,11 +123,7 @@ pub fn regenerate_mcp_server_token() -> Result<McpServerInfo, String> {
         url_host: config.mcp_url_host.clone(),
         port: config.mcp_port,
         token: config.mcp_token.clone(),
-        url: crate::mcp::build_server_url(
-            &config.mcp_url_host,
-            config.mcp_port,
-            &config.mcp_token,
-        ),
+        url: crate::mcp::build_server_url(&config.mcp_url_host, config.mcp_port, &config.mcp_token),
         setup_complete: config.setup_complete,
     })
 }
@@ -177,17 +196,7 @@ pub fn save_app_config(
 
     save_config(&config, &config_path)?;
 
-    Ok(ConfigPayload {
-        database_path: args.database_path,
-        asset_dir_path: args.asset_dir_path,
-        files_storage_root: args.files_storage_root,
-        setup_complete: args.setup_complete,
-        theme_preference: config.theme_preference,
-        app_window_opacity: config.app_window_opacity,
-        focus_app_shortcut: config.focus_app_shortcut,
-        new_memo_shortcut: config.new_memo_shortcut,
-        mcp_server_url: mcp_server_info.url.clone(),
-    })
+    Ok(build_config_payload(config, &mcp_server_info.url))
 }
 
 fn validate_storage_paths(
@@ -297,17 +306,7 @@ pub fn set_theme_preference(
 
     save_config(&config, &config_path)?;
 
-    Ok(ConfigPayload {
-        database_path: config.database_path,
-        asset_dir_path: config.asset_dir_path,
-        files_storage_root: config.files_storage_root,
-        setup_complete: config.setup_complete,
-        theme_preference: config.theme_preference,
-        app_window_opacity: config.app_window_opacity,
-        focus_app_shortcut: config.focus_app_shortcut,
-        new_memo_shortcut: config.new_memo_shortcut,
-        mcp_server_url: mcp_server_info.url.clone(),
-    })
+    Ok(build_config_payload(config, &mcp_server_info.url))
 }
 
 #[command]
@@ -329,17 +328,23 @@ pub fn set_app_window_opacity(
 
     save_config(&config, &config_path)?;
 
-    Ok(ConfigPayload {
-        database_path: config.database_path,
-        asset_dir_path: config.asset_dir_path,
-        files_storage_root: config.files_storage_root,
-        setup_complete: config.setup_complete,
-        theme_preference: config.theme_preference,
-        app_window_opacity: config.app_window_opacity,
-        focus_app_shortcut: config.focus_app_shortcut,
-        new_memo_shortcut: config.new_memo_shortcut,
-        mcp_server_url: mcp_server_info.url.clone(),
-    })
+    Ok(build_config_payload(config, &mcp_server_info.url))
+}
+
+#[command]
+pub fn set_inbox_ignore_file_names(
+    args: InboxIgnoreFileNamesArgs,
+    mcp_server_info: State<McpServerInfo>,
+) -> Result<ConfigPayload, String> {
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config_path = proj_dirs.config_dir().join("config.json");
+
+    let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    config.inbox_ignore_file_names = normalize_inbox_ignore_file_names(&args.file_names);
+    save_config(&config, &config_path)?;
+
+    Ok(build_config_payload(config, &mcp_server_info.url))
 }
 
 #[command]
@@ -376,15 +381,5 @@ pub fn set_global_shortcuts(
     config.new_memo_shortcut = new_memo_shortcut;
     save_config(&config, &config_path)?;
 
-    Ok(ConfigPayload {
-        database_path: config.database_path,
-        asset_dir_path: config.asset_dir_path,
-        files_storage_root: config.files_storage_root,
-        setup_complete: config.setup_complete,
-        theme_preference: config.theme_preference,
-        app_window_opacity: config.app_window_opacity,
-        focus_app_shortcut: config.focus_app_shortcut,
-        new_memo_shortcut: config.new_memo_shortcut,
-        mcp_server_url: mcp_server_info.url.clone(),
-    })
+    Ok(build_config_payload(config, &mcp_server_info.url))
 }

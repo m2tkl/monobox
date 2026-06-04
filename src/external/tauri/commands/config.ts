@@ -4,6 +4,7 @@ export type AppConfigPayload = {
   database_path: string;
   asset_dir_path: string;
   files_storage_root: string;
+  inbox_ignore_file_names: string[];
   setup_complete: boolean;
   theme_preference?: string | null;
   app_window_opacity: number;
@@ -63,6 +64,12 @@ export const configCommand = {
 
   setAppWindowOpacity: async (opacity: number) => {
     return await invokeCommand<AppConfigPayload>('set_app_window_opacity', { opacity });
+  },
+
+  setInboxIgnoreFileNames: async (fileNames: string[]) => {
+    return await invokeCommand<AppConfigPayload>('set_inbox_ignore_file_names', {
+      file_names: fileNames,
+    });
   },
 
   setGlobalShortcuts: async (args: {

@@ -283,6 +283,59 @@
               <StoragePathsForm mode="settings" />
             </UCard>
 
+            <UCard
+              v-else-if="activePanel === 'files'"
+              class="card-themed"
+            >
+              <template #header>
+                <h4
+                  class="text-base font-semibold"
+                  style="color: var(--color-text-primary)"
+                >
+                  Files import
+                </h4>
+              </template>
+
+              <div class="space-y-5">
+                <div class="settings-control">
+                  <div class="settings-control__label">
+                    <div
+                      class="text-sm font-medium"
+                      style="color: var(--color-text-primary)"
+                    >
+                      Ignore file names
+                    </div>
+                    <div
+                      class="text-xs"
+                      style="color: var(--color-text-muted)"
+                    >
+                      One exact file name per line. Matching is case-insensitive.
+                    </div>
+                  </div>
+
+                  <AppTextarea
+                    v-model="inboxIgnoreFileNamesText"
+                    :rows="5"
+                    placeholder="desktop.ini"
+                    :disabled="isInboxIgnoreSaving"
+                  />
+
+                  <div class="settings-actions">
+                    <AppButton
+                      size="sm"
+                      color="primary"
+                      :icon="iconKey.save"
+                      :loading="isInboxIgnoreSaving"
+                      :disabled="!isInboxIgnoreDirty"
+                      @click="saveInboxIgnoreFileNames"
+                    >
+                      Save ignore list
+                    </AppButton>
+                  </div>
+                </div>
+              </div>
+            </UCard>
+
             <template v-else-if="activePanel === 'memo-templates'">
               <template v-if="hasWorkspaceContext">
                 <LoadingSpinner v-if="isWorkspaceLoading" />
@@ -401,6 +454,7 @@ import { useWorkspaceSettings } from './useWorkspaceSettings';
 
 import AppButton from '~/app/elements/AppButton.vue';
 import AppInput from '~/app/elements/AppInput.vue';
+import AppTextarea from '~/app/elements/AppTextarea.vue';
 import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
 import ThemeSelector from '~/app/elements/settings/ThemeSelector.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
@@ -408,6 +462,8 @@ import { MemoTemplateManager } from '~/app/features/memo-templates';
 import { StoragePathsForm } from '~/app/features/storage-settings';
 import KanbanStatusManager from '~/app/features/workspace-kanban/view/workspace-kanban/KanbanStatusManager.vue';
 import { command } from '~/external/tauri/command';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
+import { changeRefs } from '~/resources/changes';
 import { loadGlobalStatusKanban } from '~/resources/kanban/globalStatus';
 import { iconKey } from '~/utils/icon';
 
@@ -416,6 +472,7 @@ type SettingsPanelId =
   | 'global-shortcuts'
   | 'appearance'
   | 'storage-paths'
+  | 'files'
   | 'memo-templates'
   | 'statuses'
   | 'danger-zone';
@@ -460,6 +517,9 @@ const savedNewMemoShortcut = ref('');
 const focusAppShortcut = ref('');
 const newMemoShortcut = ref('');
 const isGlobalShortcutSaving = ref(false);
+const savedInboxIgnoreFileNames = ref<string[]>([]);
+const inboxIgnoreFileNamesText = ref('');
+const isInboxIgnoreSaving = ref(false);
 const statusKanbanId = ref<number | null>(null);
 const isStatusBoardLoading = ref(false);
 const mcpServerStatus = computed(() => {
@@ -478,6 +538,7 @@ const settingGroups = computed<SettingsNavGroup[]>(() => [
       { id: 'global-shortcuts', label: 'Shortcuts' },
       { id: 'appearance', label: 'Appearance' },
       { id: 'storage-paths', label: 'Storage' },
+      { id: 'files', label: 'Files' },
     ],
   },
   {
@@ -509,6 +570,10 @@ const isWindowOpacityDirty = computed(() => (
 const isGlobalShortcutDirty = computed(() => (
   focusAppShortcut.value.trim() !== savedFocusAppShortcut.value
   || newMemoShortcut.value.trim() !== savedNewMemoShortcut.value
+));
+const isInboxIgnoreDirty = computed(() => (
+  normalizeInboxIgnoreFileNames(inboxIgnoreFileNamesText.value).join('\n')
+  !== savedInboxIgnoreFileNames.value.join('\n')
 ));
 
 const applyWindowOpacity = (opacity: number) => {
@@ -577,6 +642,8 @@ const loadAppAppearance = async () => {
     focusAppShortcut.value = config.focus_app_shortcut;
     savedNewMemoShortcut.value = config.new_memo_shortcut;
     newMemoShortcut.value = config.new_memo_shortcut;
+    savedInboxIgnoreFileNames.value = normalizeInboxIgnoreFileNames(config.inbox_ignore_file_names);
+    inboxIgnoreFileNamesText.value = savedInboxIgnoreFileNames.value.join('\n');
     applyWindowOpacity(config.app_window_opacity);
   }
   catch (error) {
@@ -643,6 +710,42 @@ const saveGlobalShortcuts = async () => {
   }
   finally {
     isGlobalShortcutSaving.value = false;
+  }
+};
+
+const normalizeInboxIgnoreFileNames = (value: string | string[]) => {
+  const lines = Array.isArray(value) ? value : value.split('\n');
+  const names = lines
+    .map(name => name.trim())
+    .filter(Boolean);
+  return Array.from(new Map(names.map(name => [name.toLowerCase(), name])).values())
+    .sort((a, b) => a.localeCompare(b));
+};
+
+const saveInboxIgnoreFileNames = async () => {
+  try {
+    isInboxIgnoreSaving.value = true;
+    const fileNames = normalizeInboxIgnoreFileNames(inboxIgnoreFileNamesText.value);
+    const config = await command.config.setInboxIgnoreFileNames(fileNames);
+    savedInboxIgnoreFileNames.value = normalizeInboxIgnoreFileNames(config.inbox_ignore_file_names);
+    inboxIgnoreFileNamesText.value = savedInboxIgnoreFileNames.value.join('\n');
+    void publishResourceChanges([changeRefs.inboxFileCollectionChanged()]);
+    toast.add({
+      title: 'Saved file ignore list.',
+      duration: 1200,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to save file ignore list.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isInboxIgnoreSaving.value = false;
   }
 };
 

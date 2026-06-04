@@ -9,6 +9,8 @@ pub struct AppConfig {
     pub asset_dir_path: String,
     #[serde(default)]
     pub files_storage_root: String,
+    #[serde(default = "default_inbox_ignore_file_names")]
+    pub inbox_ignore_file_names: Vec<String>,
     #[serde(default = "default_setup_complete")]
     pub setup_complete: bool,
     #[serde(default)]
@@ -53,6 +55,10 @@ pub fn default_new_memo_shortcut() -> String {
     "CommandOrControl+Shift+N".to_string()
 }
 
+pub fn default_inbox_ignore_file_names() -> Vec<String> {
+    vec!["desktop.ini".to_string()]
+}
+
 fn default_mcp_token() -> String {
     String::new()
 }
@@ -63,6 +69,7 @@ impl Default for AppConfig {
             database_path: "${app_data_dir}/data.db".to_string(),
             asset_dir_path: "${app_data_dir}/_assets/".to_string(),
             files_storage_root: String::new(),
+            inbox_ignore_file_names: default_inbox_ignore_file_names(),
             setup_complete: false,
             theme_preference: None,
             app_window_opacity: default_app_window_opacity(),

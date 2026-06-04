@@ -111,6 +111,7 @@ fn main() {
             commands::config::regenerate_mcp_server_token,
             commands::config::set_theme_preference,
             commands::config::set_app_window_opacity,
+            commands::config::set_inbox_ignore_file_names,
             commands::config::set_global_shortcuts,
             // Files
             commands::file::list_inbox_files,

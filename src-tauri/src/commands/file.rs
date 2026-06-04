@@ -81,9 +81,17 @@ pub fn list_inbox_files(args: ListFilesArgs) -> Result<InboxFilePage, String> {
     let downloads_dir = user_dirs
         .download_dir()
         .ok_or_else(|| "Downloads folder could not be resolved.".to_string())?;
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
     let limit = args.limit.unwrap_or(20);
     let offset = args.offset.unwrap_or(0);
-    FileRepository::list_inbox_files(downloads_dir, limit, offset)
+    FileRepository::list_inbox_files(
+        downloads_dir,
+        limit,
+        offset,
+        &config.inbox_ignore_file_names,
+    )
 }
 
 #[command]
