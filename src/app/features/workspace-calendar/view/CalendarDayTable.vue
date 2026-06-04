@@ -66,7 +66,11 @@ defineEmits<{
 
 <style scoped>
 .calendar-table {
+  --calendar-table-columns: 64px 42px minmax(120px, 0.9fr) minmax(140px, 1fr) minmax(120px, 0.9fr) 28px;
+  --calendar-table-settings-columns: 64px 42px 88px minmax(140px, 1fr) minmax(120px, 1fr);
+
   min-width: 0;
+  max-width: 100%;
   border: 1px solid var(--color-border-light);
   border-radius: 8px;
   background: var(--color-surface);
@@ -77,9 +81,9 @@ defineEmits<{
   top: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: 76px 48px minmax(150px, 0.8fr) minmax(220px, 1.2fr) minmax(180px, 1fr) 32px;
+  grid-template-columns: var(--calendar-table-columns);
   align-items: center;
-  min-width: 680px;
+  min-width: 0;
   padding: 5px 8px;
   border-bottom: 1px solid var(--color-border-light);
   background: var(--color-surface);
@@ -90,7 +94,7 @@ defineEmits<{
 }
 
 .calendar-table-header--settings {
-  grid-template-columns: 76px 48px 100px minmax(180px, 1fr) minmax(220px, 1.2fr);
+  grid-template-columns: var(--calendar-table-settings-columns);
 }
 
 .calendar-empty {
@@ -100,9 +104,10 @@ defineEmits<{
   text-align: center;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .calendar-table {
-    overflow-x: auto;
+    --calendar-table-columns: 52px 38px minmax(100px, 1fr) minmax(110px, 1fr) minmax(100px, 0.8fr) 26px;
+    --calendar-table-settings-columns: 52px 38px 76px minmax(110px, 1fr) minmax(100px, 1fr);
   }
 }
 </style>

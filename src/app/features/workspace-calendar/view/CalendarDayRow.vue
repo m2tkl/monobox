@@ -103,16 +103,16 @@ defineEmits<{
 <style scoped>
 .calendar-row {
   display: grid;
-  grid-template-columns: 76px 48px minmax(150px, 0.8fr) minmax(220px, 1.2fr) minmax(180px, 1fr) 32px;
+  grid-template-columns: var(--calendar-table-columns);
   align-items: center;
-  min-width: 680px;
+  min-width: 0;
   min-height: 30px;
   padding: 1px 8px;
   border-bottom: 1px solid var(--color-border-light);
 }
 
 .calendar-row--settings {
-  grid-template-columns: 76px 48px 100px minmax(180px, 1fr) minmax(220px, 1.2fr);
+  grid-template-columns: var(--calendar-table-settings-columns);
 }
 
 .calendar-row:last-child {
@@ -148,7 +148,7 @@ defineEmits<{
 }
 
 .calendar-date-month {
-  width: 24px;
+  width: 22px;
   color: var(--color-text-muted);
   font-size: 10px;
   text-transform: uppercase;
@@ -199,7 +199,7 @@ defineEmits<{
 
 .calendar-milestone {
   display: inline-flex;
-  max-width: 220px;
+  max-width: 100%;
   align-items: center;
   gap: 5px;
   overflow: hidden;
@@ -229,7 +229,7 @@ defineEmits<{
 }
 
 .calendar-memo-link {
-  max-width: 180px;
+  max-width: 100%;
   overflow: hidden;
   padding: 1px 6px;
   border: 1px solid var(--color-border-light);
