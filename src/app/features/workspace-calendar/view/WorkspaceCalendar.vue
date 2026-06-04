@@ -96,109 +96,19 @@
             :non-working-dates="nonWorkingDates"
           />
 
-          <div
+          <CalendarDayTable
             v-else
-            class="calendar-table"
-          >
-            <div
-              class="calendar-table-header"
-              :class="{ 'calendar-table-header--settings': viewMode === 'settings' }"
-            >
-              <div>Date</div>
-              <div>Day</div>
-              <template v-if="viewMode === 'settings'">
-                <div>Non-working</div>
-              </template>
-              <div>Note</div>
-              <div v-if="viewMode === 'working'">
-                Milestones
-              </div>
-              <div>Linked memos</div>
-              <div v-if="viewMode === 'working'" />
-            </div>
-
-            <div
-              v-for="day in visibleDays"
-              :key="day.date"
-              class="calendar-row"
-              :class="{
-                'calendar-row--settings': viewMode === 'settings',
-                'calendar-row--today': day.date === today,
-                'calendar-row--non-working': getDay(day.date).is_non_working,
-                'calendar-row--month-start': day.dayOfMonth === 1,
-              }"
-            >
-              <div class="calendar-date">
-                <span class="calendar-date-month">{{ day.monthLabel }}</span>
-                <span>{{ day.dayOfMonth }}</span>
-              </div>
-              <div
-                class="calendar-weekday"
-                :class="{ 'calendar-weekday--weekend': day.isWeekend }"
-              >
-                {{ day.weekday }}
-              </div>
-              <div v-if="viewMode === 'settings'">
-                <AppCheckbox
-                  :model-value="getDay(day.date).is_non_working"
-                  :aria-label="`Toggle non-working day for ${day.date}`"
-                  @update:model-value="toggleNonWorking(day.date, $event)"
-                />
-              </div>
-              <button
-                type="button"
-                class="calendar-note"
-                :class="{ 'calendar-note--placeholder': !getDay(day.date).note && viewMode === 'working' }"
-                :disabled="viewMode === 'settings'"
-                @click="openDay(day.date)"
-              >
-                {{ getDay(day.date).note || (viewMode === 'working' ? 'Add note' : '') }}
-              </button>
-              <div
-                v-if="viewMode === 'working'"
-                class="calendar-milestones"
-              >
-                <button
-                  v-for="milestone in getMilestones(day.date)"
-                  :key="milestone.id"
-                  type="button"
-                  class="calendar-milestone"
-                  :class="{ 'calendar-milestone--completed': !!milestone.completed_at }"
-                  @click="openDay(day.date)"
-                >
-                  <span class="calendar-milestone-title">{{ milestone.title }}</span>
-                  <span class="calendar-milestone-days">{{ getMilestoneDaysLabel(milestone.date, !!milestone.completed_at) }}</span>
-                </button>
-              </div>
-              <div class="calendar-memos">
-                <NuxtLink
-                  v-for="memo in getDay(day.date).memos"
-                  :key="memo.slug_title"
-                  :to="`/${workspaceSlug}/${memo.slug_title}`"
-                  class="calendar-memo-link"
-                >
-                  {{ memo.title }}
-                </NuxtLink>
-              </div>
-              <div
-                v-if="viewMode === 'working'"
-                class="calendar-row-action"
-              >
-                <IconButton
-                  :icon="iconKey.edit"
-                  :aria-label="`Edit ${day.date}`"
-                  @click="openDay(day.date)"
-                />
-              </div>
-            </div>
-
-            <div
-              v-if="visibleDays.length === 0"
-              class="calendar-empty"
-            >
-              No working days in {{ selectedYear }}.
-            </div>
-          </div>
+            :visible-days="visibleDays"
+            :view-mode="viewMode"
+            :selected-year="selectedYear"
+            :today="today"
+            :workspace-slug="workspaceSlug"
+            :get-day="getDay"
+            :get-milestones="getMilestones"
+            :get-milestone-days-label="getMilestoneDaysLabel"
+            @toggle-non-working="toggleNonWorking"
+            @open-day="openDay"
+          />
         </div>
 
         <CalendarDayDialog
@@ -230,6 +140,7 @@
 
 <script setup lang="ts">
 import CalendarDayDialog from './CalendarDayDialog.vue';
+import CalendarDayTable from './CalendarDayTable.vue';
 import MilestoneManager from './MilestoneManager.vue';
 import { buildCalendarMonths, countWorkingDaysBetween, getLocalDateString } from '../calendarUtils';
 import { loadWorkspaceCalendarData } from '../resource/read/loadWorkspaceCalendarData';
@@ -240,8 +151,6 @@ import type { CalendarDay } from '~/models/calendarDay';
 import type { Milestone } from '~/models/milestone';
 
 import AppButton from '~/app/elements/AppButton.vue';
-import AppCheckbox from '~/app/elements/AppCheckbox.vue';
-import IconButton from '~/app/elements/IconButton.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { SearchPalette } from '~/app/features/search';
 import { command } from '~/resources/command';
@@ -464,191 +373,6 @@ const removeMemo = async (memoSlug: string) => {
 
 .calendar-year {
   min-width: 0;
-}
-
-.calendar-table {
-  min-width: 0;
-  overflow-x: auto;
-  border: 1px solid var(--color-border-light);
-  border-radius: 8px;
-  background: var(--color-surface);
-}
-
-.calendar-table-header {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: 76px 48px minmax(150px, 0.8fr) minmax(220px, 1.2fr) minmax(180px, 1fr) 32px;
-  align-items: center;
-  min-width: 680px;
-  padding: 5px 8px;
-  border-bottom: 1px solid var(--color-border-light);
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.calendar-table-header--settings {
-  grid-template-columns: 76px 48px 100px minmax(180px, 1fr) minmax(220px, 1.2fr);
-}
-
-.calendar-row {
-  display: grid;
-  grid-template-columns: 76px 48px minmax(150px, 0.8fr) minmax(220px, 1.2fr) minmax(180px, 1fr) 32px;
-  align-items: center;
-  min-width: 680px;
-  min-height: 30px;
-  padding: 1px 8px;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.calendar-row--settings {
-  grid-template-columns: 76px 48px 100px minmax(180px, 1fr) minmax(220px, 1.2fr);
-}
-
-.calendar-row:last-child {
-  border-bottom: 0;
-}
-
-.calendar-row:hover {
-  background: var(--color-surface-hover);
-}
-
-.calendar-row--today {
-  box-shadow: inset 3px 0 0 var(--color-primary);
-}
-
-.calendar-row--non-working {
-  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
-}
-
-.calendar-row--month-start:not(:first-child) {
-  border-top: 1px solid var(--color-border-hover);
-}
-
-.calendar-date,
-.calendar-weekday {
-  color: var(--color-text-primary);
-  font-size: 12px;
-}
-
-.calendar-date {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-}
-
-.calendar-date-month {
-  width: 24px;
-  color: var(--color-text-muted);
-  font-size: 10px;
-  text-transform: uppercase;
-}
-
-.calendar-weekday--weekend {
-  color: var(--color-text-secondary);
-}
-
-.calendar-note {
-  min-width: 0;
-  overflow: hidden;
-  padding-right: 12px;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.calendar-note:disabled {
-  cursor: default;
-}
-
-.calendar-note--placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.55;
-}
-
-.calendar-note:not(:disabled):empty,
-.calendar-note:hover {
-  color: var(--color-text-primary);
-}
-
-.calendar-memos {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-
-.calendar-milestones {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-
-.calendar-milestone {
-  display: inline-flex;
-  max-width: 220px;
-  align-items: center;
-  gap: 5px;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, var(--color-border-light));
-  border-radius: 999px;
-  padding: 1px 6px;
-  color: var(--color-text-primary);
-  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
-  font-size: 11px;
-}
-
-.calendar-milestone--completed {
-  opacity: 0.55;
-}
-
-.calendar-milestone-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.calendar-milestone-days {
-  flex-shrink: 0;
-  color: var(--color-primary);
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.calendar-memo-link {
-  max-width: 180px;
-  overflow: hidden;
-  padding: 1px 6px;
-  border: 1px solid var(--color-border-light);
-  border-radius: 999px;
-  color: var(--color-text-primary);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.calendar-memo-link:hover {
-  border-color: var(--color-border-hover);
-  background: var(--color-surface-hover);
-}
-
-.calendar-row-action {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.calendar-empty {
-  padding: 24px;
-  color: var(--color-text-muted);
-  font-size: 13px;
-  text-align: center;
 }
 
 @media (max-width: 900px) {
