@@ -6,6 +6,8 @@ import type { CalendarDateRow } from '../calendarUtils';
 import type { CalendarDay } from '~/models/calendarDay';
 import type { Milestone } from '~/models/milestone';
 
+import { useResourceManager } from '~/resource-runtime/infra/useResourceManager';
+import { workspaceCalendarDaysQuery } from '~/resources/calendar-day/queries';
 import { command } from '~/resources/command';
 import { handleError } from '~/utils/error';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -21,6 +23,7 @@ const emptyDay = (date: string): CalendarDay => ({
 export const useWorkspaceCalendarPage = async () => {
   const route = useRoute();
   const toast = useToast();
+  const resourceManager = useResourceManager();
   const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
   const currentYear = new Date().getFullYear();
   const selectedYearValue = ref(currentYear);
@@ -37,7 +40,7 @@ export const useWorkspaceCalendarPage = async () => {
   const days = computed(() => readModel.value.data.days);
   const memos = computed(() => readModel.value.data.memos);
   const milestones = computed(() => readModel.value.data.milestones);
-  const isLoading = computed(() => readModel.value.flags.isLoading);
+  const isLoading = computed(() => readModel.value.flags.isLoading && !readModel.value.flags.isStale);
   const dayMap = computed(() => new Map(days.value.map(day => [day.date, day])));
   const milestoneMap = computed(() => {
     const map = new Map<string, Milestone[]>();
@@ -105,7 +108,34 @@ export const useWorkspaceCalendarPage = async () => {
     isDialogOpen.value = true;
   };
 
+  const setCalendarDays = (nextDays: CalendarDay[]) => {
+    resourceManager.set(workspaceCalendarDaysQuery.key({
+      workspaceSlug: workspaceSlug.value,
+      year: selectedYear.value,
+    }), nextDays);
+  };
+
+  const patchCalendarDay = (date: string, value: Pick<CalendarDay, 'note' | 'is_non_working'>) => {
+    const nextDay: CalendarDay = {
+      ...getDay(date),
+      ...value,
+    };
+    const existingIndex = days.value.findIndex(day => day.date === date);
+    if (existingIndex === -1) {
+      setCalendarDays([...days.value, nextDay].sort((a, b) => a.date.localeCompare(b.date)));
+      return;
+    }
+
+    setCalendarDays(days.value.map(day => day.date === date ? nextDay : day));
+  };
+
   const updateDay = async (date: string, note: string | null | undefined, isNonWorking: boolean) => {
+    const previousDays = days.value;
+    patchCalendarDay(date, {
+      note,
+      is_non_working: isNonWorking,
+    });
+
     try {
       await command.calendarDay.update({
         workspaceSlugName: workspaceSlug.value,
@@ -115,6 +145,7 @@ export const useWorkspaceCalendarPage = async () => {
       });
     }
     catch (error) {
+      setCalendarDays(previousDays);
       const appError = handleError(error);
       toast.add({
         title: 'Failed to update calendar day.',
