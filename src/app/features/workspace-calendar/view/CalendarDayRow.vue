@@ -4,6 +4,7 @@
     :class="{
       'calendar-row--settings': viewMode === 'settings',
       'calendar-row--today': day.date === today,
+      'calendar-row--past': day.date < today,
       'calendar-row--non-working': calendarDay.is_non_working,
       'calendar-row--month-start': day.dayOfMonth === 1,
     }"
@@ -131,6 +132,14 @@ defineEmits<{
   background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
 }
 
+.calendar-row--past {
+  background: color-mix(in srgb, var(--color-text-muted) 7%, var(--color-surface));
+}
+
+.calendar-row--past:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 10%, var(--color-surface));
+}
+
 .calendar-row--month-start:not(:first-child) {
   border-top: 1px solid var(--color-border-hover);
 }
@@ -156,6 +165,17 @@ defineEmits<{
 
 .calendar-weekday--weekend {
   color: var(--color-text-secondary);
+}
+
+.calendar-row--past .calendar-date,
+.calendar-row--past .calendar-weekday,
+.calendar-row--past .calendar-note {
+  color: var(--color-text-muted);
+}
+
+.calendar-row--past .calendar-milestone,
+.calendar-row--past .calendar-memo-link {
+  opacity: 0.68;
 }
 
 .calendar-note {
