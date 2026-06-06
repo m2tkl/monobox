@@ -136,6 +136,7 @@ fn main() {
             commands::focus_memo::clear_focus_memo_done_for_today,
             // Calendar
             commands::calendar_day::list_calendar_days,
+            commands::calendar_day::list_calendar_memo_dates,
             commands::calendar_day::update_calendar_day,
             commands::calendar_day::add_calendar_day_memo,
             commands::calendar_day::remove_calendar_day_memo,

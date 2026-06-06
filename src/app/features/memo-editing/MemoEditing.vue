@@ -78,6 +78,27 @@
                 <div class="memo-action-separator" />
 
                 <div class="memo-action-group">
+                  <UTooltip text="Calendar dates">
+                    <span class="memo-calendar-button-wrap">
+                      <IconButton
+                        :icon="iconKey.calendar"
+                        :disabled="!memoVM.data.memo"
+                        aria-label="Calendar dates"
+                        @click="openMemoCalendarDialog"
+                      />
+                      <span
+                        v-if="currentMemoCalendarDates.length > 0"
+                        class="memo-calendar-count"
+                      >
+                        {{ currentMemoCalendarDates.length }}
+                      </span>
+                    </span>
+                  </UTooltip>
+                </div>
+
+                <div class="memo-action-separator" />
+
+                <div class="memo-action-group">
                   <UTooltip text="Bookmark">
                     <IconButton
                       :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
@@ -299,6 +320,77 @@
                     </UCard>
                   </template>
                 </UModal>
+
+                <UModal
+                  v-model:open="isMemoCalendarDialogOpen"
+                  :content="memoCalendarDialogContent"
+                  :ui="memoCalendarDialogModalUi"
+                >
+                  <template #content>
+                    <UCard
+                      class="memo-calendar-dialog"
+                      :ui="memoCalendarDialogCardUi"
+                    >
+                      <template #header>
+                        <div
+                          ref="memoCalendarInitialFocusEl"
+                          tabindex="-1"
+                        />
+                        <div class="text-sm font-semibold">
+                          Calendar dates
+                        </div>
+                      </template>
+
+                      <div class="memo-calendar-dialog-body">
+                        <div class="memo-calendar-add-row">
+                          <AppInput
+                            v-model="memoCalendarDate"
+                            type="date"
+                            size="sm"
+                            :disabled="isCalendarDateUpdating || !memoVM.data.memo"
+                          />
+                          <AppButton
+                            size="sm"
+                            variant="subtle"
+                            :loading="isCalendarDateUpdating"
+                            :disabled="!canAddMemoCalendarDate"
+                            @click="addMemoCalendarDate"
+                          >
+                            Add date
+                          </AppButton>
+                        </div>
+
+                        <div
+                          v-if="currentMemoCalendarDates.length === 0"
+                          class="memo-calendar-empty"
+                        >
+                          No dates linked to this memo.
+                        </div>
+                        <div
+                          v-else
+                          class="memo-calendar-date-list"
+                        >
+                          <div
+                            v-for="date in currentMemoCalendarDates"
+                            :key="date"
+                            class="memo-calendar-date-row"
+                          >
+                            <span>{{ date }}</span>
+                            <AppButton
+                              size="xs"
+                              color="neutral"
+                              variant="ghost"
+                              :disabled="isCalendarDateUpdating"
+                              @click="removeMemoCalendarDate(date)"
+                            >
+                              Remove
+                            </AppButton>
+                          </div>
+                        </div>
+                      </div>
+                    </UCard>
+                  </template>
+                </UModal>
               </template>
             </MemoEditor>
 
@@ -429,6 +521,7 @@ import { useMemoExport } from './view/share-memo/memoExport';
 import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
 import { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
 import { useTemplateStartIntent } from './view/start-memo-from-template/useTemplateStartIntent';
+import { getLocalDateString } from '../workspace-calendar/calendarUtils';
 
 import type { DeleteMemoDialogHandle } from './view/edit-memo/useMemoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
@@ -448,6 +541,7 @@ import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
 import { command } from '~/external/tauri/command';
 import { useQuery } from '~/resource-runtime/useQuery';
+import { calendarDayCommand } from '~/resources/calendar-day/commands';
 import { fileCommand } from '~/resources/file/commands';
 import { memoDetailQuery } from '~/resources/memo/queries';
 import { AppError } from '~/utils/error';
@@ -572,6 +666,120 @@ const resolvedCurrentMemo = computed(() => {
   }
   return memo;
 });
+const memoCalendarDate = ref(getLocalDateString());
+const isMemoCalendarDialogOpen = ref(false);
+const isCalendarDateUpdating = ref(false);
+const currentMemoCalendarDates = ref<string[]>([]);
+const memoCalendarInitialFocusEl = ref<HTMLDivElement | null>(null);
+const loadMemoCalendarDates = async () => {
+  const memo = memoVM.value.data.memo;
+  if (!memo) {
+    currentMemoCalendarDates.value = [];
+    return;
+  }
+
+  try {
+    currentMemoCalendarDates.value = await calendarDayCommand.listMemoDates({
+      workspaceSlugName: workspaceSlug.value,
+      memoSlugTitle: memo.slug_title,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to load memo dates.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+};
+const canAddMemoCalendarDate = computed(() =>
+  !!memoVM.value.data.memo
+  && /^\d{4}-\d{2}-\d{2}$/.test(String(memoCalendarDate.value))
+  && !currentMemoCalendarDates.value.includes(String(memoCalendarDate.value))
+  && !isCalendarDateUpdating.value,
+);
+
+const openMemoCalendarDialog = async () => {
+  isMemoCalendarDialogOpen.value = true;
+  await loadMemoCalendarDates();
+};
+
+const preventMemoCalendarAutoFocus = (event: Event) => {
+  event.preventDefault();
+  nextTick(() => {
+    memoCalendarInitialFocusEl.value?.focus();
+  });
+};
+
+const addMemoCalendarDate = async () => {
+  const memo = memoVM.value.data.memo;
+  if (!memo || !canAddMemoCalendarDate.value) return;
+
+  try {
+    isCalendarDateUpdating.value = true;
+    await calendarDayCommand.addMemo({
+      workspaceSlugName: workspaceSlug.value,
+      date: String(memoCalendarDate.value),
+      memoSlugTitle: memo.slug_title,
+    });
+    await loadMemoCalendarDates();
+    toast.add({
+      title: 'Added memo date.',
+      duration: 1200,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to add memo date.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isCalendarDateUpdating.value = false;
+  }
+};
+
+const removeMemoCalendarDate = async (date: string) => {
+  const memo = memoVM.value.data.memo;
+  if (!memo) return;
+
+  try {
+    isCalendarDateUpdating.value = true;
+    await calendarDayCommand.removeMemo({
+      workspaceSlugName: workspaceSlug.value,
+      date,
+      memoSlugTitle: memo.slug_title,
+    });
+    await loadMemoCalendarDates();
+    toast.add({
+      title: 'Removed memo date.',
+      duration: 1200,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to remove memo date.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isCalendarDateUpdating.value = false;
+  }
+};
+
+watch(() => memoVM.value.data.memo?.slug_title ?? null, () => {
+  memoCalendarDate.value = getLocalDateString();
+  void loadMemoCalendarDates();
+});
+
+await loadMemoCalendarDates();
 
 type MemoSnapshot = {
   title: string;
@@ -970,6 +1178,19 @@ const externalFileForm = reactive({
 const fileInsertModalCardUi = {
   header: 'px-4 py-3 sm:px-4',
   body: 'p-0 sm:p-0',
+} as const;
+
+const memoCalendarDialogCardUi = {
+  header: 'px-4 py-3 sm:px-4',
+  body: 'px-4 py-3 sm:px-4 sm:py-3',
+} as const;
+
+const memoCalendarDialogModalUi = {
+  content: 'w-auto max-w-[calc(100vw-1rem)] bg-transparent p-0 shadow-none ring-0',
+} as const;
+
+const memoCalendarDialogContent = {
+  onOpenAutoFocus: preventMemoCalendarAutoFocus,
 } as const;
 
 const fileInsertPaletteClass = 'max-h-[calc(60vh)] min-h-[calc(60vh)]';
@@ -1400,6 +1621,72 @@ a.external-link {
   display: inline-flex;
   align-items: center;
   gap: 0.125rem;
+}
+
+.memo-calendar-button-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.memo-calendar-count {
+  position: absolute;
+  right: -0.25rem;
+  bottom: -0.25rem;
+  min-width: 0.875rem;
+  border-radius: 999px;
+  padding: 0 0.25rem;
+  color: white;
+  background: var(--color-primary);
+  font-size: 0.625rem;
+  line-height: 0.875rem;
+  text-align: center;
+}
+
+.memo-calendar-dialog {
+  width: min(28rem, calc(100vw - 2rem));
+}
+
+.memo-calendar-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.memo-calendar-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 0.5rem;
+}
+
+.memo-calendar-empty {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.memo-calendar-date-list {
+  display: flex;
+  max-height: min(20rem, 50vh);
+  flex-direction: column;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.5rem;
+}
+
+.memo-calendar-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+}
+
+.memo-calendar-date-row:last-child {
+  border-bottom: 0;
 }
 
 .memo-action-separator {

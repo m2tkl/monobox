@@ -68,6 +68,25 @@ impl CalendarDayRepository {
         Ok(days)
     }
 
+    pub fn list_dates_by_memo(
+        conn: &Connection,
+        workspace_id: i32,
+        memo_id: i32,
+    ) -> Result<Vec<String>> {
+        let mut stmt = conn.prepare(
+            "SELECT calendar_day.date
+             FROM calendar_day_memo
+             JOIN calendar_day ON calendar_day_memo.calendar_day_id = calendar_day.id
+             WHERE calendar_day.workspace_id = ? AND calendar_day_memo.memo_id = ?
+             ORDER BY calendar_day.date ASC",
+        )?;
+
+        let dates = stmt
+            .query_map((workspace_id, memo_id), |row| row.get(0))?
+            .collect::<Result<Vec<_>>>()?;
+        Ok(dates)
+    }
+
     pub fn update_day(
         conn: &Connection,
         workspace_id: i32,
@@ -208,5 +227,23 @@ mod tests {
         let days = CalendarDayRepository::list_by_year(&conn, workspace.id, 2026)
             .expect("calendar days should load");
         assert!(days.is_empty());
+    }
+
+    #[test]
+    fn list_dates_by_memo_returns_all_linked_dates() {
+        let conn = setup_conn();
+        let workspace = WorkspaceRepository::create(&conn, "test", "Test")
+            .expect("workspace should be created");
+        let memo = MemoRepository::create(&conn, workspace.id, "memo", "Memo", r#"{"type":"doc"}"#)
+            .expect("memo should be created");
+
+        CalendarDayRepository::add_memo(&conn, workspace.id, "2026-06-03", memo.id)
+            .expect("first date should link");
+        CalendarDayRepository::add_memo(&conn, workspace.id, "2027-01-04", memo.id)
+            .expect("second date should link");
+
+        let dates = CalendarDayRepository::list_dates_by_memo(&conn, workspace.id, memo.id)
+            .expect("dates should load");
+        assert_eq!(dates, vec!["2026-06-03", "2027-01-04"]);
     }
 }

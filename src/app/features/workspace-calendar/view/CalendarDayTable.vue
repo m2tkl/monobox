@@ -14,7 +14,7 @@
         Milestones
       </div>
       <div>Linked memos</div>
-      <div v-if="viewMode === 'working'" />
+      <div />
     </div>
 
     <CalendarDayRow
@@ -67,7 +67,7 @@ defineEmits<{
 <style scoped>
 .calendar-table {
   --calendar-table-columns: 64px 42px minmax(120px, 0.9fr) minmax(140px, 1fr) minmax(120px, 0.9fr) 28px;
-  --calendar-table-settings-columns: 64px 42px 88px minmax(140px, 1fr) minmax(120px, 1fr);
+  --calendar-table-settings-columns: 64px 42px 88px minmax(140px, 1fr) minmax(120px, 1fr) 28px;
 
   min-width: 0;
   max-width: 100%;
@@ -107,7 +107,7 @@ defineEmits<{
 @media (max-width: 900px) {
   .calendar-table {
     --calendar-table-columns: 52px 38px minmax(100px, 1fr) minmax(110px, 1fr) minmax(100px, 0.8fr) 26px;
-    --calendar-table-settings-columns: 52px 38px 76px minmax(110px, 1fr) minmax(100px, 1fr);
+    --calendar-table-settings-columns: 52px 38px 76px minmax(110px, 1fr) minmax(100px, 1fr) 26px;
   }
 }
 </style>

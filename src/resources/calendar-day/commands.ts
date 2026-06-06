@@ -8,6 +8,8 @@ const publishCalendarChange = (workspaceSlug: string) => {
 
 export const calendarDayCommand = {
   list: (params: { workspaceSlugName: string; year: number }) => tauriCommand.calendarDay.list(params),
+  listMemoDates: (params: { workspaceSlugName: string; memoSlugTitle: string }) =>
+    tauriCommand.calendarDay.listMemoDates(params),
   update: async (params: {
     workspaceSlugName: string;
     date: string;

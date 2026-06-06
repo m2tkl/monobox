@@ -63,10 +63,7 @@
         {{ memo.title }}
       </NuxtLink>
     </div>
-    <div
-      v-if="viewMode === 'working'"
-      class="calendar-row-action"
-    >
+    <div class="calendar-row-action">
       <IconButton
         :icon="iconKey.edit"
         :aria-label="`Edit ${day.date}`"

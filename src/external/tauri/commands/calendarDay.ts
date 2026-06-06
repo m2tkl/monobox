@@ -10,6 +10,13 @@ export const calendarDayCommand = {
     });
   },
 
+  listMemoDates: async (params: { workspaceSlugName: string; memoSlugTitle: string }) => {
+    return await invokeCommand<string[]>('list_calendar_memo_dates', {
+      workspace_slug_name: params.workspaceSlugName,
+      memo_slug_title: params.memoSlugTitle,
+    });
+  },
+
   update: async (params: {
     workspaceSlugName: string;
     date: string;

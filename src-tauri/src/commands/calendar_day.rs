@@ -25,12 +25,30 @@ pub struct CalendarDayMemoArgs {
     pub memo_slug_title: String,
 }
 
+#[derive(Deserialize)]
+pub struct ListCalendarMemoDatesArgs {
+    pub workspace_slug_name: String,
+    pub memo_slug_title: String,
+}
+
 #[command]
 pub fn list_calendar_days(args: ListCalendarDaysArgs) -> Result<Vec<CalendarDay>, String> {
     let conn = get_conn().map_err(|e| e.to_string())?;
     let workspace = resolve_workspace(&conn, &args.workspace_slug_name)?;
 
     CalendarDayRepository::list_by_year(&conn, workspace.id, args.year).map_err(|e| e.to_string())
+}
+
+#[command]
+pub fn list_calendar_memo_dates(args: ListCalendarMemoDatesArgs) -> Result<Vec<String>, String> {
+    let conn = get_conn().map_err(|e| e.to_string())?;
+    let workspace = resolve_workspace(&conn, &args.workspace_slug_name)?;
+    let memo = MemoRepository::find_by_slug(&conn, workspace.id, &args.memo_slug_title)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Memo not found for slug: {}", args.memo_slug_title))?;
+
+    CalendarDayRepository::list_dates_by_memo(&conn, workspace.id, memo.id)
+        .map_err(|e| e.to_string())
 }
 
 #[command]
