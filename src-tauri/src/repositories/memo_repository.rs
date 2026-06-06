@@ -1,4 +1,4 @@
-use crate::models::memo::{MemoDetail, MemoIndexItem, MemoSearchItem};
+use crate::models::memo::{MemoDetail, MemoIndexItem, MemoSearchItem, ModifiedMemoItem};
 use crate::repositories::FileRepository;
 use rusqlite::{Connection, OptionalExtension, Result};
 use serde_json::Value;
@@ -353,6 +353,52 @@ impl MemoRepository {
         Ok(memos)
     }
 
+    pub fn list_modified_between(
+        conn: &Connection,
+        workspace_id: i32,
+        modified_from: &str,
+        modified_to: &str,
+        limit: i32,
+        offset: i32,
+        include_plain_text: bool,
+    ) -> Result<Vec<ModifiedMemoItem>, String> {
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, slug_title, title, description, content, created_at, updated_at, modified_at
+                FROM memo
+                WHERE workspace_id = ?
+                  AND modified_at >= datetime(?)
+                  AND modified_at < datetime(?)
+                ORDER BY modified_at DESC, id DESC
+                LIMIT ? OFFSET ?",
+            )
+            .map_err(|e| e.to_string())?;
+
+        let memos = stmt
+            .query_map(
+                (workspace_id, modified_from, modified_to, limit, offset),
+                |row| {
+                    let content: String = row.get(4)?;
+                    Ok(ModifiedMemoItem {
+                        id: row.get(0)?,
+                        slug_title: row.get(1)?,
+                        title: row.get(2)?,
+                        description: row.get(3)?,
+                        plain_text: include_plain_text
+                            .then(|| extract_plain_text_from_json_str(&content)),
+                        created_at: row.get(5)?,
+                        updated_at: row.get(6)?,
+                        modified_at: row.get(7)?,
+                    })
+                },
+            )
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
+
+        Ok(memos)
+    }
+
     pub fn rebuild_search_index(conn: &mut Connection) -> Result<(), String> {
         let tx = conn.transaction().map_err(|e| e.to_string())?;
         tx.execute("DELETE FROM memo_fts", [])
@@ -555,6 +601,62 @@ mod tests {
     use crate::migrations::apply_migrations;
     use rusqlite::Connection;
     use serde_json::Value;
+
+    #[test]
+    fn list_modified_between_filters_by_exclusive_period_and_plain_text_option() {
+        let conn = Connection::open_in_memory().expect("in-memory DB should open");
+        conn.execute(
+            "CREATE TABLE schema_migrations (version TEXT PRIMARY KEY)",
+            [],
+        )
+        .expect("schema_migrations should be creatable");
+        apply_migrations(&conn).expect("migrations should apply");
+
+        conn.execute(
+            "INSERT INTO workspace (id, slug_name, name) VALUES (1, 'sample-workspace', 'Sample')",
+            [],
+        )
+        .expect("workspace insert should succeed");
+
+        conn.execute(
+            "INSERT INTO memo (id, workspace_id, slug_title, title, content, body_text, modified_at)
+            VALUES
+              (1, 1, 'before', 'Before', '{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Before body\"}]}]}', 'Before body', '2026-05-31 23:59:59'),
+              (2, 1, 'inside', 'Inside', '{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Inside body\"}]}]}', 'Inside body', '2026-06-01 00:00:00'),
+              (3, 1, 'end', 'End', '{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"End body\"}]}]}', 'End body', '2026-06-08 00:00:00')",
+            [],
+        )
+        .expect("memo inserts should succeed");
+
+        let memos = MemoRepository::list_modified_between(
+            &conn,
+            1,
+            "2026-06-01",
+            "2026-06-08",
+            100,
+            0,
+            true,
+        )
+        .expect("modified memos should be listed");
+
+        assert_eq!(memos.len(), 1);
+        assert_eq!(memos[0].slug_title, "inside");
+        assert_eq!(memos[0].plain_text.as_deref(), Some("Inside body"));
+
+        let memos_without_plain_text = MemoRepository::list_modified_between(
+            &conn,
+            1,
+            "2026-06-01",
+            "2026-06-08",
+            100,
+            0,
+            false,
+        )
+        .expect("modified memos should be listed");
+
+        assert_eq!(memos_without_plain_text.len(), 1);
+        assert!(memos_without_plain_text[0].plain_text.is_none());
+    }
 
     #[test]
     fn update_link_and_text_if_text_unchanged_since_link_was_created() {

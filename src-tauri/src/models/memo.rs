@@ -40,6 +40,18 @@ pub struct MemoSearchItem {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct ModifiedMemoItem {
+    pub id: i32,
+    pub slug_title: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub plain_text: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub modified_at: String,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct CurrentMemoDetail {
     pub workspace_slug_name: String,
     pub memo_slug_title: String,

@@ -198,6 +198,40 @@ pub fn tool_definitions() -> Value {
             }
         },
         {
+            "name": "list_modified_memos",
+            "description": "List memos modified inside a time range. Useful for understanding work done during a week or other reporting period.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_slug_name": {
+                        "type": "string",
+                        "description": "Workspace slug."
+                    },
+                    "modified_from": {
+                        "type": "string",
+                        "description": "Inclusive range start accepted by SQLite datetime(), such as YYYY-MM-DD, YYYY-MM-DD HH:MM:SS, or ISO 8601 with timezone."
+                    },
+                    "modified_to": {
+                        "type": "string",
+                        "description": "Exclusive range end accepted by SQLite datetime(), such as YYYY-MM-DD, YYYY-MM-DD HH:MM:SS, or ISO 8601 with timezone."
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of memos. Defaults to 100 and is capped at 500."
+                    },
+                    "offset": {
+                        "type": "integer",
+                        "description": "Pagination offset. Defaults to 0."
+                    },
+                    "include_plain_text": {
+                        "type": "boolean",
+                        "description": "When true, include memo plain text so an MCP client can summarize the period. Defaults to true."
+                    }
+                },
+                "required": ["workspace_slug_name", "modified_from", "modified_to"]
+            }
+        },
+        {
             "name": "get_memo",
             "description": "Fetch one memo including its full content JSON.",
             "inputSchema": {
@@ -465,6 +499,45 @@ fn call_tool(name: &str, args: &Value) -> Result<Value, String> {
             let workspace = resolve_workspace(&conn, &workspace_slug_name)?;
             let memos = MemoRepository::list(&conn, workspace.id)?;
             Ok(json!(memos))
+        }
+        "list_modified_memos" => {
+            ensure_setup_complete()?;
+            let workspace_slug_name = required_string(args, "workspace_slug_name")?;
+            let modified_from = required_string(args, "modified_from")?;
+            let modified_to = required_string(args, "modified_to")?;
+            let limit = optional_i32(args, "limit").unwrap_or(100).clamp(1, 500);
+            let offset = optional_i32(args, "offset").unwrap_or(0).max(0);
+            let include_plain_text = optional_bool(args, "include_plain_text").unwrap_or(true);
+            let conn = get_conn().map_err(|err| err.to_string())?;
+            let workspace = resolve_workspace(&conn, &workspace_slug_name)?;
+            let parsed_modified_from =
+                parse_sqlite_datetime(&conn, "modified_from", &modified_from)?;
+            let parsed_modified_to = parse_sqlite_datetime(&conn, "modified_to", &modified_to)?;
+            if parsed_modified_from >= parsed_modified_to {
+                return Err("modified_from must be earlier than modified_to.".to_string());
+            }
+            let memos = MemoRepository::list_modified_between(
+                &conn,
+                workspace.id,
+                &modified_from,
+                &modified_to,
+                limit,
+                offset,
+                include_plain_text,
+            )?;
+            Ok(json!({
+                "workspace_slug_name": workspace_slug_name,
+                "modified_from": modified_from.clone(),
+                "modified_to": modified_to.clone(),
+                "range": {
+                    "start_inclusive": modified_from,
+                    "end_exclusive": modified_to
+                },
+                "limit": limit,
+                "offset": offset,
+                "include_plain_text": include_plain_text,
+                "items": memos
+            }))
         }
         "get_memo" => {
             ensure_setup_complete()?;
@@ -810,6 +883,23 @@ fn optional_bool(args: &Value, key: &str) -> Option<bool> {
     args.get(key).and_then(Value::as_bool)
 }
 
+fn parse_sqlite_datetime(
+    conn: &rusqlite::Connection,
+    key: &str,
+    value: &str,
+) -> Result<String, String> {
+    let parsed: Option<String> = conn
+        .query_row("SELECT datetime(?)", [value], |row| row.get(0))
+        .map_err(|err| err.to_string())?;
+
+    parsed.ok_or_else(|| {
+        format!(
+            "Invalid datetime for {}: {}. Use a value accepted by SQLite datetime(), such as YYYY-MM-DD or YYYY-MM-DD HH:MM:SS.",
+            key, value
+        )
+    })
+}
+
 fn build_memo_plain_text_value(
     workspace_slug_name: &str,
     memo_slug_title: &str,
@@ -1031,10 +1121,11 @@ fn shape_current_memo_context(
 #[cfg(test)]
 mod tests {
     use super::{
-        build_server_info, build_server_url, handle_json_rpc_request, shape_current_memo_context,
-        tool_definitions, RpcRequest,
+        build_server_info, build_server_url, handle_json_rpc_request, parse_sqlite_datetime,
+        shape_current_memo_context, tool_definitions, RpcRequest,
     };
     use crate::config::AppConfig;
+    use rusqlite::Connection;
     use serde_json::json;
 
     #[test]
@@ -1090,10 +1181,19 @@ mod tests {
 
         assert!(names.contains(&"list_workspaces".to_string()));
         assert!(names.contains(&"get_memo".to_string()));
+        assert!(names.contains(&"list_modified_memos".to_string()));
         assert!(names.contains(&"get_memo_plain_text".to_string()));
         assert!(names.contains(&"get_memo_context".to_string()));
         assert!(names.contains(&"get_current_memo_plain_text".to_string()));
         assert!(names.contains(&"get_file_detail".to_string()));
+    }
+
+    #[test]
+    fn validate_sqlite_datetime_rejects_invalid_values() {
+        let conn = Connection::open_in_memory().expect("in-memory DB should open");
+
+        assert!(parse_sqlite_datetime(&conn, "modified_from", "2026-06-01").is_ok());
+        assert!(parse_sqlite_datetime(&conn, "modified_from", "not-a-date").is_err());
     }
 
     #[test]
