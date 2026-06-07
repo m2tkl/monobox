@@ -790,6 +790,7 @@ const lastSavedSnapshot = ref<MemoSnapshot>({
   title: resolvedCurrentMemo.value.title,
   content: resolvedCurrentMemo.value.content,
 });
+const isApplyingExternalSnapshot = ref(false);
 
 const getCurrentSnapshot = (): MemoSnapshot => {
   const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : resolvedCurrentMemo.value.content;
@@ -921,7 +922,12 @@ const {
   updateActiveHeadingOnScroll,
 } = useMemoEditor(resolvedCurrentMemo.value.content, {
   extensions: extensions,
-  onChanged: (_reason) => { void dispatchMemoEvent({ type: 'memo/content-updated', payload: { dirty: computeDirty() } }); },
+  onChanged: (_reason) => {
+    if (isApplyingExternalSnapshot.value) {
+      return;
+    }
+    void dispatchMemoEvent({ type: 'memo/content-updated', payload: { dirty: computeDirty() } });
+  },
   onLinksChanged: (added, deleted) => { void dispatchMemoEvent({ type: 'memo/links-changed', payload: { added, deleted } }); },
   onOpenContext: openContextView,
   onOpenContextWindow: openContextWindowFromUrl,
@@ -961,7 +967,46 @@ const memoStatusBadge = computed(() => {
 });
 
 watch(memoTitle, () => {
+  if (isApplyingExternalSnapshot.value) {
+    return;
+  }
   void dispatchMemoEvent({ type: 'memo/title-updated', payload: { dirty: computeDirty() } });
+});
+
+watch(() => memoVM.value.data.memo, (memo) => {
+  if (!memo || memoState.value.type !== 'clean') {
+    return;
+  }
+
+  const nextSnapshot = {
+    title: memo.title,
+    content: memo.content,
+  };
+  if (
+    nextSnapshot.title === lastSavedSnapshot.value.title
+    && nextSnapshot.content === lastSavedSnapshot.value.content
+  ) {
+    return;
+  }
+
+  const currentEditor = editor.value;
+  if (!currentEditor) {
+    lastSavedSnapshot.value = nextSnapshot;
+    memoTitle.value = nextSnapshot.title;
+    return;
+  }
+
+  try {
+    isApplyingExternalSnapshot.value = true;
+    lastSavedSnapshot.value = nextSnapshot;
+    memoTitle.value = nextSnapshot.title;
+    currentEditor.commands.setContent(JSON.parse(nextSnapshot.content), false);
+  }
+  finally {
+    nextTick(() => {
+      isApplyingExternalSnapshot.value = false;
+    });
+  }
 });
 
 // Focus the title after mount/template-start timing settles.

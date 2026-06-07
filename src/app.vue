@@ -18,6 +18,8 @@ import type { UnlistenFn } from '@tauri-apps/api/event';
 import { ImagePreviewDialog } from '~/app/features/memo-editing';
 import TitleBar from '~/app/scaffold/TitleBar.vue';
 import { command } from '~/external/tauri/command';
+import { publishResourceChanges } from '~/resource-runtime/query-runtime';
+import { listenResourceChanges } from '~/resource-runtime/resource-events';
 import { handleError } from '~/utils/error';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
@@ -29,9 +31,15 @@ const toast = useToast();
 const colorMode = useColorMode();
 const isHandlingNewMemoShortcut = ref(false);
 let unlistenNewMemoShortcut: UnlistenFn | null = null;
+let unlistenResourceChanges: UnlistenFn | null = null;
 
 onMounted(async () => {
   try {
+    unlistenResourceChanges = await listenResourceChanges(async (changes) => {
+      // Apply changes from another window without echoing them back to every window.
+      await publishResourceChanges(changes, { notifyOtherWindows: false });
+    });
+
     const config = await command.config.get();
     if (config.theme_preference === 'light' || config.theme_preference === 'dark') {
       colorMode.preference = config.theme_preference;
@@ -60,6 +68,8 @@ onMounted(async () => {
 onUnmounted(() => {
   unlistenNewMemoShortcut?.();
   unlistenNewMemoShortcut = null;
+  unlistenResourceChanges?.();
+  unlistenResourceChanges = null;
 });
 
 const needsSetup = async (config: {

@@ -1,5 +1,8 @@
-import { resolveAffectedResources } from '~/resources/affects';
+import { broadcastResourceChanges } from './resource-events';
+
 import type { ChangeRef } from '~/resources/changes';
+
+import { resolveAffectedResources } from '~/resources/affects';
 import { serializeResourceRef, type ResourceRef } from '~/resources/refs';
 
 type ActiveQuery = {
@@ -43,7 +46,14 @@ export function registerActiveQuery(query: {
   };
 }
 
-export async function publishResourceChanges(changes: ReadonlyArray<ChangeRef>): Promise<void> {
+type PublishResourceChangesOptions = {
+  notifyOtherWindows?: boolean;
+};
+
+export async function publishResourceChanges(
+  changes: ReadonlyArray<ChangeRef>,
+  { notifyOtherWindows = true }: PublishResourceChangesOptions = {},
+): Promise<void> {
   const impactedResources = resolveAffectedResources(changes);
   const tasks: Array<Promise<unknown>> = [];
   const scheduled = new Set<ActiveQuery>();
@@ -64,4 +74,8 @@ export async function publishResourceChanges(changes: ReadonlyArray<ChangeRef>):
   }
 
   await Promise.allSettled(tasks);
+
+  if (notifyOtherWindows) {
+    await broadcastResourceChanges(changes);
+  }
 }
