@@ -68,9 +68,11 @@ defineEmits<{
 .calendar-table {
   --calendar-table-columns: 64px 42px minmax(120px, 0.9fr) minmax(140px, 1fr) minmax(120px, 0.9fr) 28px;
   --calendar-table-settings-columns: 64px 42px 88px minmax(140px, 1fr) minmax(120px, 1fr) 28px;
+  --calendar-table-min-width: 680px;
 
   min-width: 0;
   max-width: 100%;
+  overflow-x: auto;
   border: 1px solid var(--color-border-light);
   border-radius: 8px;
   background: var(--color-surface);
@@ -83,7 +85,7 @@ defineEmits<{
   display: grid;
   grid-template-columns: var(--calendar-table-columns);
   align-items: center;
-  min-width: 0;
+  min-width: var(--calendar-table-min-width);
   padding: 5px 8px;
   border-bottom: 1px solid var(--color-border-light);
   background: var(--color-surface);
@@ -108,6 +110,7 @@ defineEmits<{
   .calendar-table {
     --calendar-table-columns: 52px 38px minmax(100px, 1fr) minmax(110px, 1fr) minmax(100px, 0.8fr) 26px;
     --calendar-table-settings-columns: 52px 38px 76px minmax(110px, 1fr) minmax(100px, 1fr) 26px;
+    --calendar-table-min-width: 620px;
   }
 }
 </style>

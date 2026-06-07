@@ -103,7 +103,7 @@ defineEmits<{
   display: grid;
   grid-template-columns: var(--calendar-table-columns);
   align-items: center;
-  min-width: 0;
+  min-width: var(--calendar-table-min-width);
   min-height: 30px;
   padding: 1px 8px;
   border-bottom: 1px solid var(--color-border-light);

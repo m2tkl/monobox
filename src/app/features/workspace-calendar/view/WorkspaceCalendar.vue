@@ -2,7 +2,10 @@
   <NuxtLayout name="default">
     <template #main>
       <AppPageFrame>
-        <AppPageHeader title="Calendar">
+        <AppPageHeader
+          title="Calendar"
+          class="calendar-page-header"
+        >
           <template #description>
             <span>
               <template v-if="viewMode === 'working'">
@@ -24,6 +27,7 @@
                 size="sm"
                 color="neutral"
                 variant="ghost"
+                class="calendar-earlier-dates-button"
                 @click="showEarlierDates = !showEarlierDates"
               >
                 {{ showEarlierDates ? 'Hide earlier dates' : `Show earlier dates (${hiddenEarlierDateCount})` }}
@@ -54,27 +58,29 @@
               >
                 Milestones
               </AppButton>
-              <AppButton
-                color="neutral"
-                variant="ghost"
-                :icon="iconKey.arrowLeft"
-                aria-label="Previous year"
-                @click="changeYear(-1)"
-              />
-              <AppButton
-                color="neutral"
-                variant="outline"
-                @click="goToCurrentYear"
-              >
-                {{ selectedYear }}
-              </AppButton>
-              <AppButton
-                color="neutral"
-                variant="ghost"
-                :icon="iconKey.arrowRight"
-                aria-label="Next year"
-                @click="changeYear(1)"
-              />
+              <div class="calendar-year-controls">
+                <AppButton
+                  color="neutral"
+                  variant="ghost"
+                  :icon="iconKey.arrowLeft"
+                  aria-label="Previous year"
+                  @click="changeYear(-1)"
+                />
+                <AppButton
+                  color="neutral"
+                  variant="outline"
+                  @click="goToCurrentYear"
+                >
+                  {{ selectedYear }}
+                </AppButton>
+                <AppButton
+                  color="neutral"
+                  variant="ghost"
+                  :icon="iconKey.arrowRight"
+                  aria-label="Next year"
+                  @click="changeYear(1)"
+                />
+              </div>
             </div>
           </template>
         </AppPageHeader>
@@ -182,14 +188,21 @@ const {
 </script>
 
 <style scoped>
+.calendar-page-header {
+  min-width: 0;
+}
+
 .calendar-toolbar-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  min-width: 0;
 }
 
 .calendar-view-switch {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 2px;
   padding: 2px;
@@ -197,13 +210,51 @@ const {
   border-radius: 8px;
 }
 
+.calendar-year-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
 .calendar-year {
   min-width: 0;
+}
+
+@media (max-width: 1120px) {
+  .calendar-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-page-header :deep(.app-page-header__actions) {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .calendar-toolbar-actions {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 900px) {
   .calendar-toolbar-actions {
     flex-wrap: wrap;
+  }
+
+  .calendar-view-switch {
+    flex: 1 1 360px;
+  }
+}
+
+@media (max-width: 560px) {
+  .calendar-earlier-dates-button,
+  .calendar-view-switch {
+    width: 100%;
+  }
+
+  .calendar-view-switch :deep(button) {
+    flex: 1 1 0;
   }
 }
 </style>
