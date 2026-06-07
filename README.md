@@ -11,12 +11,11 @@ See [docs/mcp.md](docs/mcp.md).
 
 ## Release flow
 
-1. Update version files:
-   `npm run release:prepare`
-   or `npm run release:prepare -- 0.6.3`
-2. Review and commit the version bump
-3. Create a tag from the clean release commit: `npm run release:tag`
-4. Push the tag when ready: `npm run release:push-tag`
+1. Prepare the version bump, commit it, and create a local tag:
+   `npm run release`
+   or `npm run release -- 0.6.3`
+2. Push the tag when ready: `npm run release:push-tag`
 
 `release:prepare` shows recent tags when run without arguments so you can choose the next version while looking at release history.
 `release:tag` always uses `package.json` as the source of truth and refuses to tag a dirty worktree. This keeps "version bump" and "tag this commit" as separate steps.
+`release` runs `release:prepare`, commits the version files, and runs `release:tag`. It does not run `release:push-tag`, so pushing the selected tag remains a separate confirmation step.
