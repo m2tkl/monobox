@@ -16,6 +16,9 @@ vi.mock('~/resources/command', () => ({
     memo: {
       create: createMemo,
     },
+    kanban: {
+      list: vi.fn(async () => []),
+    },
   },
 }));
 
@@ -26,6 +29,7 @@ vi.mock('~/resource-runtime/query-runtime', () => ({
 vi.mock('~/resources/changes', () => ({
   changeRefs: {
     memoCreated: vi.fn((workspaceSlug: string, memoSlug: string) => ({ type: 'memoCreated', workspaceSlug, memoSlug })),
+    kanbanAssignmentCollectionChanged: vi.fn(),
   },
 }));
 
@@ -132,6 +136,52 @@ describe('useSearchPalette', () => {
     expect(publishResourceChanges).toHaveBeenCalledWith([
       { type: 'memoCreated', workspaceSlug: 'workspace', memoSlug: 'gamma' },
     ]);
+
+    wrapper.unmount();
+  });
+
+  it('does not select a command from an Enter keydown immediately after IME composition ends', async () => {
+    const { wrapper } = mountPalette([
+      makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
+    ], 'Alpha');
+    const compositionEnd = new CompositionEvent('compositionend', {
+      bubbles: true,
+      cancelable: true,
+    });
+    const enter = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+    });
+    const stopImmediatePropagation = vi.spyOn(enter, 'stopImmediatePropagation');
+
+    window.dispatchEvent(compositionEnd);
+    window.dispatchEvent(enter);
+
+    await Promise.resolve();
+
+    expect(enter.defaultPrevented).toBe(true);
+    expect(stopImmediatePropagation).toHaveBeenCalled();
+    expect(routerPush).not.toHaveBeenCalled();
+
+    wrapper.unmount();
+  });
+
+  it('skips model selection immediately after IME composition ends', async () => {
+    const { wrapper, palette } = mountPalette([
+      makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
+    ], 'Alpha');
+
+    window.dispatchEvent(new CompositionEvent('compositionend'));
+    await palette.onSearchPaletteSelect({
+      label: 'Alpha',
+      title: 'Alpha',
+      slug: 'alpha',
+      tag: 'existing',
+    });
+
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(palette.selected.value).toEqual([]);
 
     wrapper.unmount();
   });

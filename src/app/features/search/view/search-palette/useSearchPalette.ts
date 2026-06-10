@@ -7,6 +7,7 @@ import * as EditorAction from '~/app/features/editor/core/action';
 import * as EditorQuery from '~/app/features/editor/core/query';
 import { CREATED_QUERY_SOURCE_NAMED } from '~/app/features/memo-editing/createdQuery';
 import { createMemo } from '~/app/features/memo-editing/resource/command/createMemo';
+import { useImeCommitEnterGuard } from '~/composables/useImeCommitEnterGuard';
 import { isCmdKey } from '~/utils/event';
 import { useConsoleLogger } from '~/utils/logger';
 import { encodeForSlug } from '~/utils/slug';
@@ -55,6 +56,12 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
   const selected = ref<unknown[]>([]);
   const isSearchPaletteOpen = ref(false);
   const searchTerm = ref('');
+  const imeCommitEnterGuard = useImeCommitEnterGuard({
+    isActive: () => isSearchPaletteOpen.value,
+    onSuppress: () => {
+      selected.value = [];
+    },
+  });
 
   const commandPaletteItems = computed<Commands[]>(() => {
     if (!options.memos?.value) return [];
@@ -89,6 +96,12 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
 
   async function onSearchPaletteSelect(option: unknown) {
     logger.log('onSearchPaletteSelect() start.');
+
+    if (imeCommitEnterGuard.isComposing.value || imeCommitEnterGuard.isInsideCommitWindow()) {
+      selected.value = [];
+      logger.log('onSearchPaletteSelect() skipped during IME composition.');
+      return;
+    }
 
     if (!isCommand(option)) {
       logger.warn('Selected item is not a Command');
