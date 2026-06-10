@@ -6,12 +6,21 @@
           title="Calendar"
           class="calendar-page-header"
         >
-          <template #description>
+          <template #inline>
+            <span
+              v-if="viewMode === 'working'"
+              class="calendar-title-meta"
+            >
+              {{ remainingWorkingDays }} working days remaining in {{ selectedYear }}.
+            </span>
+          </template>
+
+          <template
+            v-if="viewMode !== 'working'"
+            #description
+          >
             <span>
-              <template v-if="viewMode === 'working'">
-                {{ remainingWorkingDays }} working days remaining in {{ selectedYear }}.
-              </template>
-              <template v-else-if="viewMode === 'settings'">
+              <template v-if="viewMode === 'settings'">
                 Select the dates that should be excluded from the working days view.
               </template>
               <template v-else>
@@ -19,71 +28,85 @@
               </template>
             </span>
           </template>
+        </AppPageHeader>
 
-          <template #actions>
-            <div class="calendar-toolbar-actions">
+        <div class="calendar-controls">
+          <div
+            class="calendar-view-tabs"
+            role="tablist"
+            aria-label="Calendar day view"
+          >
+            <button
+              type="button"
+              class="calendar-view-tab"
+              :class="{ 'calendar-view-tab--active': viewMode === 'working' }"
+              role="tab"
+              :aria-selected="viewMode === 'working'"
+              @click="viewMode = 'working'"
+            >
+              Working days
+            </button>
+            <button
+              type="button"
+              class="calendar-view-tab"
+              :class="{ 'calendar-view-tab--active': viewMode === 'settings' }"
+              role="tab"
+              :aria-selected="viewMode === 'settings'"
+              @click="viewMode = 'settings'"
+            >
+              Non-working days
+            </button>
+          </div>
+
+          <div class="calendar-control-actions">
+            <AppButton
+              size="sm"
+              color="neutral"
+              :variant="viewMode === 'milestones' ? 'solid' : 'outline'"
+              class="calendar-milestones-button"
+              @click="viewMode = 'milestones'"
+            >
+              Milestones
+            </AppButton>
+            <AppButton
+              v-if="viewMode !== 'milestones' && canToggleEarlierDates"
+              size="sm"
+              color="neutral"
+              variant="ghost"
+              class="calendar-earlier-dates-button"
+              @click="showEarlierDates = !showEarlierDates"
+            >
+              {{ showEarlierDates ? 'Hide earlier' : `Earlier (${hiddenEarlierDateCount})` }}
+            </AppButton>
+            <div class="calendar-year-controls">
               <AppButton
-                v-if="viewMode !== 'milestones' && canToggleEarlierDates"
-                size="sm"
                 color="neutral"
                 variant="ghost"
-                class="calendar-earlier-dates-button"
-                @click="showEarlierDates = !showEarlierDates"
-              >
-                {{ showEarlierDates ? 'Hide earlier dates' : `Show earlier dates (${hiddenEarlierDateCount})` }}
-              </AppButton>
-              <div class="calendar-view-switch">
-                <AppButton
-                  size="sm"
-                  color="neutral"
-                  :variant="viewMode === 'working' ? 'solid' : 'ghost'"
-                  @click="viewMode = 'working'"
-                >
-                  Working days
-                </AppButton>
-                <AppButton
-                  size="sm"
-                  color="neutral"
-                  :variant="viewMode === 'settings' ? 'solid' : 'ghost'"
-                  @click="viewMode = 'settings'"
-                >
-                  Non-working day settings
-                </AppButton>
-              </div>
-              <AppButton
                 size="sm"
+                :icon="iconKey.arrowLeft"
+                aria-label="Previous year"
+                @click="changeYear(-1)"
+              />
+              <AppButton
                 color="neutral"
-                :variant="viewMode === 'milestones' ? 'solid' : 'outline'"
-                @click="viewMode = 'milestones'"
+                variant="outline"
+                size="sm"
+                class="calendar-year-button"
+                @click="goToCurrentYear"
               >
-                Milestones
+                {{ selectedYear }}
               </AppButton>
-              <div class="calendar-year-controls">
-                <AppButton
-                  color="neutral"
-                  variant="ghost"
-                  :icon="iconKey.arrowLeft"
-                  aria-label="Previous year"
-                  @click="changeYear(-1)"
-                />
-                <AppButton
-                  color="neutral"
-                  variant="outline"
-                  @click="goToCurrentYear"
-                >
-                  {{ selectedYear }}
-                </AppButton>
-                <AppButton
-                  color="neutral"
-                  variant="ghost"
-                  :icon="iconKey.arrowRight"
-                  aria-label="Next year"
-                  @click="changeYear(1)"
-                />
-              </div>
+              <AppButton
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                :icon="iconKey.arrowRight"
+                aria-label="Next year"
+                @click="changeYear(1)"
+              />
             </div>
-          </template>
-        </AppPageHeader>
+          </div>
+        </div>
 
         <LoadingSpinner v-if="isLoading" />
 
@@ -192,69 +215,106 @@ const {
   min-width: 0;
 }
 
-.calendar-toolbar-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  min-width: 0;
+.calendar-title-meta {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
-.calendar-view-switch {
+.calendar-controls {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  margin-bottom: 0.625rem;
+}
+
+.calendar-view-tabs {
+  display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: 2px;
-  padding: 2px;
+  gap: 0.125rem;
+  padding: 0.125rem;
   border: 1px solid var(--color-border-light);
-  border-radius: 8px;
+  border-radius: 0.375rem;
+  background-color: var(--color-surface);
+}
+
+.calendar-view-tab {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  padding: 0 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.calendar-view-tab--active {
+  border-color: var(--color-border-light);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+}
+
+.calendar-control-actions {
+  display: flex;
+  min-width: 0;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.calendar-milestones-button,
+.calendar-earlier-dates-button,
+.calendar-year-button {
+  white-space: nowrap;
 }
 
 .calendar-year-controls {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 4px;
+  gap: 0.125rem;
 }
 
 .calendar-year {
   min-width: 0;
 }
 
-@media (max-width: 1120px) {
-  .calendar-page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .calendar-page-header :deep(.app-page-header__actions) {
-    justify-content: flex-start;
-    width: 100%;
-  }
-
-  .calendar-toolbar-actions {
-    justify-content: flex-start;
-  }
-}
-
 @media (max-width: 900px) {
-  .calendar-toolbar-actions {
-    flex-wrap: wrap;
+  .calendar-controls {
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .calendar-view-switch {
-    flex: 1 1 360px;
+  .calendar-control-actions {
+    justify-content: space-between;
   }
 }
 
 @media (max-width: 560px) {
-  .calendar-earlier-dates-button,
-  .calendar-view-switch {
+  .calendar-view-tabs {
     width: 100%;
   }
 
-  .calendar-view-switch :deep(button) {
+  .calendar-view-tab {
     flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .calendar-control-actions {
+    flex-wrap: wrap;
+  }
+
+  .calendar-earlier-dates-button {
+    flex: 1 1 auto;
   }
 }
 </style>

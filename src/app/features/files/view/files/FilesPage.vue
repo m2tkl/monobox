@@ -478,9 +478,10 @@ const {
 <style scoped>
 .settings-tabs {
   display: inline-flex;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 10px;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  border-radius: 0.375rem;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-light);
 }
@@ -488,11 +489,13 @@ const {
 .settings-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 8px;
+  justify-content: center;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 0.25rem;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.8125rem;
+  line-height: 1;
   background-color: transparent;
   border: 1px solid transparent;
 }

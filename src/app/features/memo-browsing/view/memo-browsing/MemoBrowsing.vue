@@ -2,7 +2,10 @@
   <NuxtLayout name="default">
     <template #main>
       <div class="size-full">
-        <div class="size-full overflow-y-auto px-4 pb-4">
+        <AppPageFrame
+          fill
+          inner-class="size-full overflow-y-auto pb-4"
+        >
           <LoadingSpinner v-if="memosReadModel.flags.isLoading" />
           <div
             v-else-if="recentMemos.length === 0"
@@ -13,16 +16,12 @@
           </div>
 
           <template v-else>
-            <div class="sticky top-0 z-10">
-              <div class="flex h-12 items-center">
-                <UIcon
-                  :name="iconKey.recent"
-                  class="mr-2"
-                />
-                <h2 class="font-bold sidebar-heading">
-                  {{ headingLabel }}
-                </h2>
-              </div>
+            <div class="memo-browsing-header">
+              <AppPageHeader
+                :title="headingLabel"
+                :icon="iconKey.recent"
+                :heading-level="2"
+              />
             </div>
 
             <MemoCards
@@ -44,7 +43,7 @@
               </AppButton>
             </div>
           </template>
-        </div>
+        </AppPageFrame>
       </div>
     </template>
 
@@ -65,6 +64,8 @@
 import MemoCards from './MemoCards.vue';
 import { useMemoBrowsing } from './useMemoBrowsing';
 
+import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
+import AppPageHeader from '~/app/elements/layout/AppPageHeader.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { SearchPalette } from '~/app/features/search';
 import { iconKey } from '~/utils/icon';
@@ -85,3 +86,12 @@ const {
   loadMore,
 } = useMemoBrowsing();
 </script>
+
+<style scoped>
+.memo-browsing-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--color-background);
+}
+</style>

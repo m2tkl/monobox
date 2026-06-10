@@ -56,7 +56,7 @@ const headingTag = computed(() => `h${props.headingLevel}`);
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: var(--app-page-section-gap);
+  margin-bottom: 0.375rem;
 }
 
 .app-page-header__title-group {
@@ -65,24 +65,24 @@ const headingTag = computed(() => `h${props.headingLevel}`);
 
 .app-page-header__title-row {
   display: flex;
-  min-height: 2.25rem;
+  min-height: 3rem;
   align-items: center;
   gap: 0.5rem;
 }
 
 .app-page-header__icon {
   flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1rem;
+  height: 1rem;
   color: var(--color-text-secondary);
 }
 
 .app-page-header__title {
   margin: 0;
-  color: var(--color-text-primary);
-  font-size: 1.5rem;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.5;
 }
 
 .app-page-header__description {
@@ -97,7 +97,7 @@ const headingTag = computed(() => `h${props.headingLevel}`);
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  min-height: 2.25rem;
+  min-height: 3rem;
   flex-wrap: wrap;
 }
 

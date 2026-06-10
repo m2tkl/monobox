@@ -37,7 +37,7 @@ withDefaults(defineProps<{
   box-sizing: border-box;
   min-width: 0;
   min-height: 100%;
-  padding: var(--app-page-padding);
+  padding: 0.375rem var(--app-page-padding) var(--app-page-padding);
 }
 
 .app-page-frame--fill {

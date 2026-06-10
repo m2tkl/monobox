@@ -824,15 +824,19 @@ await usePageLoader(async () => {
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  gap: 1rem;
-  padding: var(--app-page-padding) 0.75rem 1rem;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem 1rem;
 }
 
 .settings-title {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
   padding: 0 0.5rem;
-  color: var(--color-text-primary);
-  font-size: 1.25rem;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
   font-weight: 700;
+  line-height: 1.5;
 }
 
 .settings-nav {
@@ -887,16 +891,16 @@ await usePageLoader(async () => {
 
 .settings-main__inner {
   width: min(100%, 960px);
-  padding: var(--app-page-padding) 1.5rem max(var(--spacing-xl), env(safe-area-inset-bottom));
+  padding: 0.375rem 1.5rem max(var(--spacing-xl), env(safe-area-inset-bottom));
 }
 
 .settings-section-header {
   display: flex;
-  min-height: 1.875rem;
+  min-height: 3rem;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.375rem;
 }
 
 .settings-section-title {
@@ -904,8 +908,8 @@ await usePageLoader(async () => {
   align-items: baseline;
   gap: 0.5rem;
   margin: 0;
-  color: var(--color-text-primary);
-  font-size: 1.25rem;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.5;
 }
