@@ -10,10 +10,13 @@
             />
             <AppInput
               ref="searchFieldRef"
-              v-model="query"
+              :model-value="query"
               class="flex-1"
               placeholder="Search in memos"
               type="search"
+              @update:model-value="updateSearchQuery"
+              @compositionstart="startSearchComposition"
+              @compositionend="finishSearchComposition"
             />
             <AppButton
               v-if="hasQuery"
@@ -88,6 +91,29 @@ const {
 } = useSearchPage();
 
 const searchFieldRef = ref<{ $el?: Element } | null>(null);
+const isSearchComposing = ref(false);
+
+const normalizeSearchInput = (value: string | number | null | undefined) =>
+  value == null ? '' : String(value);
+
+const updateSearchQuery = (value: string | number | null | undefined) => {
+  const nextQuery = normalizeSearchInput(value);
+  // Some IME commits briefly emit an empty model update before compositionend.
+  // Keep the in-progress text and read the final input value in finishSearchComposition.
+  if (isSearchComposing.value && nextQuery === '') return;
+  query.value = nextQuery;
+};
+
+const startSearchComposition = () => {
+  isSearchComposing.value = true;
+};
+
+const finishSearchComposition = (event: CompositionEvent) => {
+  isSearchComposing.value = false;
+  if (event.target instanceof HTMLInputElement) {
+    query.value = event.target.value;
+  }
+};
 
 onMounted(async () => {
   await nextTick();
