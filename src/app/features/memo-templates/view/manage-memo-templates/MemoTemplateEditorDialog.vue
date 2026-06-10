@@ -76,13 +76,42 @@
               content-container-class="mx-auto w-full max-w-[960px]"
             >
               <template #toolbar="{ editor: toolbarEditor }">
-                <EditorToolbarButton
-                  v-for="item in getEditorToolbarActionItems(toolbarEditor)"
-                  :key="item.msg.type"
-                  :label="item.label"
-                  :icon="item.icon"
-                  @exec="dispatchEditorMsg(toolbarEditor, item.msg)"
-                />
+                <div class="memo-editor-toolbar-expanded-actions">
+                  <EditorToolbarButton
+                    v-for="(item, index) in getEditorToolbarActionItems(toolbarEditor)"
+                    :key="item.msg.type"
+                    :label="item.label"
+                    :icon="item.icon"
+                    :class="getEditorToolbarActionClass(index)"
+                    @exec="dispatchEditorMsg(toolbarEditor, item.msg)"
+                  />
+                </div>
+                <div class="memo-editor-toolbar-overflow-actions memo-editor-toolbar-overflow-actions--medium">
+                  <UDropdownMenu :items="getEditorToolbarOverflowMenuItems(toolbarEditor, 'medium')">
+                    <AppButton
+                      :icon="iconKey.dotMenuVertical"
+                      variant="ghost"
+                      color="neutral"
+                      square
+                      size="xs"
+                      aria-label="More formatting"
+                      title="More formatting"
+                    />
+                  </UDropdownMenu>
+                </div>
+                <div class="memo-editor-toolbar-overflow-actions memo-editor-toolbar-overflow-actions--narrow">
+                  <UDropdownMenu :items="getEditorToolbarOverflowMenuItems(toolbarEditor, 'narrow')">
+                    <AppButton
+                      :icon="iconKey.dotMenuVertical"
+                      variant="ghost"
+                      color="neutral"
+                      square
+                      size="xs"
+                      aria-label="More formatting"
+                      title="More formatting"
+                    />
+                  </UDropdownMenu>
+                </div>
               </template>
 
               <template #table-bubble-menu="{ editor: bubbleEditor, tableSelectionAxis }">
@@ -145,6 +174,7 @@ import { CellSelection, TableMap } from 'prosemirror-tables';
 
 import { saveTemplate as executeSaveTemplate } from '../../resource/command/saveTemplate';
 
+import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps, Editor as _Editor } from '@tiptap/vue-3';
 import type { EditorMsgType } from '~/app/features/editor';
 import type { MemoIndexItem } from '~/models/memo';
@@ -269,6 +299,62 @@ function getEditorToolbarActionItems(currentEditor?: unknown) {
   }
 
   return baseEditorToolbarActionItems;
+}
+
+type EditorToolbarOverflowMode = 'medium' | 'narrow';
+
+function getEditorToolbarActionClass(index: number) {
+  return {
+    'memo-editor-toolbar-action--medium-overflow': index >= 5,
+    'memo-editor-toolbar-action--narrow-overflow': index >= 3,
+  };
+}
+
+function getEditorToolbarOverflowMenuItems(
+  currentEditor?: Parameters<typeof dispatchEditorMsg>[0],
+  mode: EditorToolbarOverflowMode = 'medium',
+): DropdownMenuItem[][] {
+  const firstOverflowIndex = mode === 'narrow' ? 3 : 5;
+  return [
+    getEditorToolbarActionItems(currentEditor).slice(firstOverflowIndex).map(item => ({
+      label: getEditorToolbarMenuLabel(item),
+      icon: item.icon,
+      onSelect: () => {
+        if (currentEditor) {
+          dispatchEditorMsg(currentEditor, item.msg);
+        }
+      },
+    })),
+  ];
+}
+
+function getEditorToolbarMenuLabel(
+  item: (typeof baseEditorToolbarActionItems)[number],
+) {
+  if (item.label) return item.label;
+
+  switch (item.msg.type) {
+    case 'toggleStyle':
+      return {
+        bold: 'Bold',
+        italic: 'Italic',
+        strike: 'Strikethrough',
+      }[item.msg.style];
+    case 'toggleBulletList':
+      return 'Bullet list';
+    case 'toggleOrderedList':
+      return 'Numbered list';
+    case 'toggleBlockQuote':
+      return 'Quote';
+    case 'toggleCode':
+      return 'Inline code';
+    case 'insertTable':
+      return 'Insert table';
+    case 'clearFormat':
+      return 'Clear format';
+    default:
+      return item.msg.type;
+  }
 }
 
 function getTableBubbleMenuActionItems(

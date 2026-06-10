@@ -2,21 +2,27 @@
   <div>
     <!-- Toolbar -->
     <div
-      class="sticky h-8 left-0 top-0 z-50 border-b-1"
+      class="memo-editor-toolbar sticky left-0 top-0 z-50 border-b-1"
       style="border-color: var(--color-border-light); background-color: var(--color-surface)"
     >
       <div
-        :class="['h-8 flex items-center gap-0.5 overflow-auto px-2', toolbarContainerClass]"
+        :class="['memo-editor-toolbar-inner', toolbarContainerClass]"
       >
-        <slot
-          name="toolbar"
-          :editor="editor"
-        />
-        <div class="ml-auto" />
-        <slot
-          name="context-menu"
-          :editor="editor"
-        />
+        <div class="memo-editor-toolbar-actions">
+          <slot
+            name="toolbar"
+            :editor="editor"
+          />
+        </div>
+        <div
+          v-if="slots['context-menu']"
+          class="memo-editor-toolbar-context"
+        >
+          <slot
+            name="context-menu"
+            :editor="editor"
+          />
+        </div>
       </div>
     </div>
 
@@ -380,6 +386,76 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.memo-editor-toolbar {
+  min-height: 2rem;
+}
+
+.memo-editor-toolbar-inner {
+  display: flex;
+  min-height: 2rem;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  overflow: hidden;
+  padding: 0.125rem 0.5rem;
+}
+
+.memo-editor-toolbar-actions {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.125rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.memo-editor-toolbar-context {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.125rem;
+  white-space: nowrap;
+}
+
+:global(.memo-editor-toolbar-expanded-actions) {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+:global(.memo-editor-toolbar-overflow-actions) {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  :global(.memo-editor-toolbar-action--medium-overflow) {
+    display: none;
+  }
+
+  :global(.memo-editor-toolbar-overflow-actions--medium) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 430px) {
+  :global(.memo-editor-toolbar-action--narrow-overflow) {
+    display: none;
+  }
+
+  :global(.memo-editor-toolbar-overflow-actions--medium) {
+    display: none;
+  }
+
+  :global(.memo-editor-toolbar-overflow-actions--narrow) {
+    display: flex;
+    align-items: center;
+  }
+}
 /* Force separator color to match theme */
 :deep(.separator) {
   border-color: var(--color-border-light) !important;

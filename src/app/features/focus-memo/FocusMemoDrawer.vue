@@ -520,8 +520,6 @@ async function markDoneForToday(memoSlug: string) {
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0.75rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
 }
 
 .focus-drawer--expanded .focus-drawer-body {

@@ -37,6 +37,11 @@ body {
 }
 
 /* Global scrollbar customization */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+
 /* Webkit（Chrome, Edge, Safari etc...） */
 ::-webkit-scrollbar {
   /* For vertical scrollbar */

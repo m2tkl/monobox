@@ -4,10 +4,11 @@
     variant="ghost"
     color="neutral"
     size="xs"
-    :square="!label && !fullWidth"
+    :square="!fullWidth"
     :icon="icon"
     :disabled="disabled"
     :class="[
+      'shrink-0',
       fullWidth ? 'w-full justify-start px-2' : '',
     ]"
     @mousedown.prevent

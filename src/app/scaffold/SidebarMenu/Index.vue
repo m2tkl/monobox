@@ -314,6 +314,7 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
   transition: transform 0.3s ease;
   transform: translateX(-100%);
   overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .sidebar::-webkit-scrollbar {

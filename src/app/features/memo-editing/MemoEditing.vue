@@ -53,29 +53,48 @@
               </template>
 
               <template #toolbar="{ editor: _editor }">
-                <EditorToolbarButton
-                  v-for="(item) in getEditorToolbarActionItems(_editor)"
-                  :key="item.msg.type"
-                  :label="item.label"
-                  :icon="item.icon"
-                  @exec="dispatchEditorMsg(_editor, item.msg)"
-                />
+                <div class="memo-editor-toolbar-expanded-actions">
+                  <EditorToolbarButton
+                    v-for="(item, index) in getEditorToolbarActionItems(_editor)"
+                    :key="item.msg.type"
+                    :label="item.label"
+                    :icon="item.icon"
+                    :class="getEditorToolbarActionClass(index)"
+                    @exec="dispatchEditorMsg(_editor, item.msg)"
+                  />
+                </div>
+                <div class="memo-editor-toolbar-overflow-actions memo-editor-toolbar-overflow-actions--medium">
+                  <UDropdownMenu :items="getEditorToolbarOverflowMenuItems(_editor, 'medium')">
+                    <IconButton
+                      :icon="iconKey.dotMenuVertical"
+                      aria-label="More formatting"
+                      title="More formatting"
+                    />
+                  </UDropdownMenu>
+                </div>
+                <div class="memo-editor-toolbar-overflow-actions memo-editor-toolbar-overflow-actions--narrow">
+                  <UDropdownMenu :items="getEditorToolbarOverflowMenuItems(_editor, 'narrow')">
+                    <IconButton
+                      :icon="iconKey.dotMenuVertical"
+                      aria-label="More formatting"
+                      title="More formatting"
+                    />
+                  </UDropdownMenu>
+                </div>
               </template>
 
               <template #context-menu>
-                <div class="memo-action-group">
+                <div class="memo-action-group memo-action-group--status">
                   <AppSelect
                     v-if="primaryKanban"
                     :model-value="kanbanSelections[primaryKanban.id] ?? null"
                     :items="primaryStatusOptions"
                     placeholder="No status"
-                    class="memo-toolbar-status-select"
-                    :disabled="isKanbanLoading || isKanbanUpdating(primaryKanban.id) || !memoVM.data.memo"
+                    class="memo-toolbar-status-select memo-toolbar-status-select--expanded"
+                    :disabled="isPrimaryStatusControlDisabled"
                     @update:model-value="value => applyKanbanStatus(primaryKanban.id, normalizeStatusSelection(value))"
                   />
                 </div>
-
-                <div class="memo-action-separator" />
 
                 <div class="memo-action-group">
                   <UTooltip text="Calendar dates">
@@ -96,8 +115,6 @@
                   </UTooltip>
                 </div>
 
-                <div class="memo-action-separator" />
-
                 <div class="memo-action-group">
                   <UTooltip text="Bookmark">
                     <IconButton
@@ -107,8 +124,6 @@
                     />
                   </UTooltip>
                 </div>
-
-                <div class="memo-action-separator" />
 
                 <div class="memo-action-group">
                   <UDropdownMenu
@@ -594,6 +609,10 @@ const primaryStatusOptions = computed(() => {
     label: status.name,
     value: status.id,
   }));
+});
+const isPrimaryStatusControlDisabled = computed(() => {
+  const kanban = primaryKanban.value;
+  return !kanban || isKanbanLoading.value || isKanbanUpdating(kanban.id) || !memoVM.value.data.memo;
 });
 const normalizeStatusSelection = (value: string | number | null | undefined) => {
   if (value === null || value === undefined || value === '') return null;
@@ -1089,6 +1108,62 @@ const {
 } = useMemoEditorActions({
   editor,
 });
+
+type EditorToolbarOverflowMode = 'medium' | 'narrow';
+
+function getEditorToolbarActionClass(index: number) {
+  return {
+    'memo-editor-toolbar-action--medium-overflow': index >= 5,
+    'memo-editor-toolbar-action--narrow-overflow': index >= 3,
+  };
+}
+
+function getEditorToolbarOverflowMenuItems(
+  currentEditor?: Parameters<typeof getEditorToolbarActionItems>[0],
+  mode: EditorToolbarOverflowMode = 'medium',
+): DropdownMenuItem[][] {
+  const firstOverflowIndex = mode === 'narrow' ? 3 : 5;
+  return [
+    getEditorToolbarActionItems(currentEditor).slice(firstOverflowIndex).map(item => ({
+      label: getEditorToolbarMenuLabel(item),
+      icon: item.icon,
+      onSelect: () => {
+        if (currentEditor) {
+          dispatchEditorMsg(currentEditor, item.msg);
+        }
+      },
+    })),
+  ];
+}
+
+function getEditorToolbarMenuLabel(
+  item: ReturnType<typeof getEditorToolbarActionItems>[number],
+) {
+  if (item.label) return item.label;
+
+  switch (item.msg.type) {
+    case 'toggleStyle':
+      return {
+        bold: 'Bold',
+        italic: 'Italic',
+        strike: 'Strikethrough',
+      }[item.msg.style];
+    case 'toggleBulletList':
+      return 'Bullet list';
+    case 'toggleOrderedList':
+      return 'Numbered list';
+    case 'toggleBlockQuote':
+      return 'Quote';
+    case 'toggleCode':
+      return 'Inline code';
+    case 'insertTable':
+      return 'Insert table';
+    case 'clearFormat':
+      return 'Clear format';
+    default:
+      return item.msg.type;
+  }
+}
 
 onBeforeUnmount(() => {
   // Destroy editor
@@ -1594,25 +1669,6 @@ a.external-link {
   overflow-y: hidden;
   white-space: nowrap;
   padding-bottom: 0.25rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
-}
-
-.template-suggestion-scroll::-webkit-scrollbar {
-  height: 8px;
-}
-
-.template-suggestion-scroll::-webkit-scrollbar-track {
-  background: var(--color-scrollbar-track);
-}
-
-.template-suggestion-scroll::-webkit-scrollbar-thumb {
-  background-color: var(--color-scrollbar-thumb);
-  border-radius: var(--radius-sm);
-}
-
-.template-suggestion-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-scrollbar-thumb-hover);
 }
 
 .focus-list-button {
@@ -1647,13 +1703,6 @@ a.external-link {
   margin-bottom: 0.375rem;
 }
 
-.memo-toolbar-status-select {
-  width: 10rem;
-  min-height: 1.625rem;
-  padding-left: 0.5rem;
-  font-size: 0.8125rem;
-}
-
 .memo-status-badge {
   flex-shrink: 0;
 }
@@ -1662,10 +1711,21 @@ a.external-link {
   box-shadow: 0 8px 24px rgb(15 23 42 / 0.1);
 }
 
+.memo-toolbar-status-select {
+  width: 10rem;
+  min-height: 1.625rem;
+  padding-left: 0.5rem;
+  font-size: 0.8125rem;
+}
+
 .memo-action-group {
   display: inline-flex;
   align-items: center;
   gap: 0.125rem;
+}
+
+.memo-action-group--status {
+  margin-right: 0.25rem;
 }
 
 .memo-calendar-button-wrap {
@@ -1732,13 +1792,6 @@ a.external-link {
 
 .memo-calendar-date-row:last-child {
   border-bottom: 0;
-}
-
-.memo-action-separator {
-  width: 1px;
-  height: 1.25rem;
-  margin: 0 0.25rem;
-  background-color: var(--color-border-light);
 }
 
 @media (max-width: 1100px) {
