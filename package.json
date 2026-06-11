@@ -23,6 +23,9 @@
     "release:version": "npm run release:prepare --",
     "release:tag": "node scripts/release-tag.mjs",
     "release:push-tag": "node scripts/release-push-tag.mjs",
+    "action:workflow": "node scripts/run-github-workflow.mjs",
+    "action:build-test": "node scripts/run-github-workflow.mjs build-test",
+    "action:release": "node scripts/run-github-workflow.mjs release",
     "test": "vitest run ",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage"
