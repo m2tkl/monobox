@@ -16,6 +16,11 @@ export const useTheme = () => {
       icon: iconKey.sun,
       description: 'Clean and bright theme',
     },
+    mist: {
+      name: 'Mist',
+      icon: iconKey.palette,
+      description: 'Soft modern workspace theme',
+    },
     dark: {
       name: 'Dark',
       icon: iconKey.moon,

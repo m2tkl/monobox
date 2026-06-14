@@ -68,4 +68,5 @@ export const iconKey = {
 
   sun: 'carbon:sun',
   moon: 'carbon:moon',
+  palette: 'carbon:color-palette',
 };

@@ -115,6 +115,91 @@
   --focus-ring: 0 0 0 2px var(--color-primary-light);
 }
 
+/* Mist Theme */
+.mist {
+  /* Primary Colors */
+  --color-primary: #0f766e;
+  --color-primary-hover: #0d9488;
+  --color-primary-light: #99f6e4;
+
+  /* Surface Colors */
+  --color-background: rgb(236 241 239 / var(--app-window-opacity));
+  --color-surface: rgb(229 236 233 / var(--app-window-opacity));
+  --color-surface-rgb: 229, 236, 233;
+  --color-surface-elevated: rgb(250 252 251 / var(--app-window-opacity));
+  --color-surface-hover: rgb(218 230 226 / var(--app-window-opacity));
+  --color-surface-active: rgb(204 251 241 / var(--app-window-opacity));
+  --color-surface-muted: rgb(244 248 246 / var(--app-window-opacity));
+  --color-card-bg: rgb(250 252 251 / var(--app-window-opacity));
+  --color-kanban-column-bg: rgb(224 235 231 / var(--app-window-opacity));
+
+  /* Text Colors */
+  --color-text-primary: #17201d;
+  --color-text-secondary: #40534d;
+  --color-text-muted: #66756f;
+  --color-text-disabled: #96a39e;
+  --color-text-light: #c1cbc7;
+
+  /* Gray Scale */
+  --color-gray-100: #f6f8f7;
+  --color-gray-200: #e5ece9;
+  --color-gray-300: #cbd8d3;
+  --color-gray-400: #9daca6;
+  --color-gray-500: #66756f;
+  --color-gray-600: #40534d;
+  --color-gray-700: #2d3b36;
+  --color-gray-800: #17201d;
+  --color-gray-900: #0b1210;
+
+  /* Legacy gray values */
+  --color-gray-ccc: #cbd8d3;
+  --color-gray-999: #96a39e;
+  --color-gray-888: #7e8d87;
+  --color-gray-777: #66756f;
+  --color-gray-666: #53645e;
+  --color-gray-555: #40534d;
+
+  /* Border Colors */
+  --color-border-default: #7e8d87;
+  --color-border-muted: #96a39e;
+  --color-border-light: #c4d0cb;
+  --color-border-focus: #14b8a6;
+  --color-border-hover: #7e8d87;
+  --color-card-border: #d1ddd8;
+
+  /* State Colors */
+  --color-focus-bg: #d9eee8;
+  --color-hover-bg: #e2ebe8;
+  --color-active-bg: #ccfbf1;
+  --color-selected-bg: #96a39e;
+
+  /* Special Colors */
+  --color-modal-overlay: #dbe7e3bf;
+  --color-slate-75: #dbe7e3bf;
+
+  /* Code & Editor Colors */
+  --color-code-bg: #10201d;
+  --color-code-bg-focus: #08110f;
+  --color-code-inline-bg: #d9eee8;
+  --color-code-inline-text: #17201d;
+  --color-code-border: #23423c;
+  --color-code-text: #e8fffa;
+
+  /* Scrollbar Colors */
+  --color-scrollbar-thumb: rgba(64, 83, 77, 0.24);
+  --color-scrollbar-thumb-hover: rgba(64, 83, 77, 0.42);
+
+  /* Link Colors */
+  --color-link: #0f766e;
+  --color-link-hover: #0d9488;
+  --color-link-completed: rgba(15, 118, 110, 0.62);
+  --color-link-sidebar: #0f766e;
+  --color-link-sidebar-hover: #115e59;
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px color-mix(in srgb, var(--color-primary-light) 72%, transparent);
+}
+
 /* Dark Theme */
 .dark {
   /* Primary Colors */

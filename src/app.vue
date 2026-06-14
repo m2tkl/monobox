@@ -24,6 +24,7 @@ import { handleError } from '~/utils/error';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 const NEW_MEMO_SHORTCUT_EVENT = 'monobox:shortcut:global:new-memo';
+const APP_THEME_MODES = new Set(['light', 'dark', 'mist']);
 
 const router = useRouter();
 const route = useRoute();
@@ -41,7 +42,7 @@ onMounted(async () => {
     });
 
     const config = await command.config.get();
-    if (config.theme_preference === 'light' || config.theme_preference === 'dark') {
+    if (config.theme_preference && APP_THEME_MODES.has(config.theme_preference)) {
       colorMode.preference = config.theme_preference;
     }
     document.documentElement.style.setProperty(
