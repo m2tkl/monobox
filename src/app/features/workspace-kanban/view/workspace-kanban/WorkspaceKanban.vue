@@ -12,7 +12,7 @@
             class="kanban-content"
           >
             <AppPageHeader
-              title="Status"
+              title="Kanban"
               :heading-level="2"
             >
               <template #actions>
@@ -106,7 +106,7 @@
                 <div class="kanban-add-modal">
                   <div class="kanban-add-header">
                     <div class="kanban-add-title">
-                      Add memos to Status
+                      Add memos to Kanban
                     </div>
                     <AppInput
                       v-model="addQuery"

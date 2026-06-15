@@ -87,21 +87,26 @@
           v-if="workspaceSlug && globalStatuses.length > 0"
           class="sidebar-section"
         >
-          <div class="sticky top-0 z-10">
-            <div class="flex h-8 items-center px-2">
-              <h2 class="text-xs font-semibold uppercase tracking-wide sidebar-heading">
-                Status
-              </h2>
-            </div>
-          </div>
-          <ul class="sidebar-link-list sidebar-link-list--status">
-            <li>
-              <MemoLinkRow
-                :to="`/${workspaceSlug}/_kanban`"
-                memo-title="All"
-                :active="isKanbanAllActive"
+          <NuxtLink
+            :to="`/${workspaceSlug}/_kanban`"
+            class="sidebar-section-link"
+            active-class="sidebar-section-link--active"
+            exact-active-class="sidebar-section-link--active"
+            aria-label="Open Kanban view"
+          >
+            <span class="sidebar-section-link__label">
+              <UIcon
+                :name="iconKey.kanban"
+                class="sidebar-section-link__icon"
               />
-            </li>
+              <span>Kanban</span>
+            </span>
+            <UIcon
+              :name="iconKey.arrowRight"
+              class="sidebar-section-link__arrow"
+            />
+          </NuxtLink>
+          <ul class="sidebar-link-list sidebar-link-list--status">
             <li
               v-for="status in globalStatuses"
               :key="status.id"
@@ -206,7 +211,6 @@ const activeStatusName = computed(() => {
   if (Array.isArray(raw)) return raw[0] ?? '';
   return typeof raw === 'string' ? raw : '';
 });
-const isKanbanAllActive = computed(() => route.path === `/${workspaceSlug.value}/_kanban`);
 const searchPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
 const draggedMemoId = ref<number | null>(null);
 const draggedMemoSlug = ref<string | null>(null);
@@ -343,6 +347,48 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
   margin-top: 0;
 }
 
+.sidebar-section-link {
+  display: flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.sidebar-section-link:hover,
+.sidebar-section-link--active,
+.sidebar-section-link.router-link-active,
+.sidebar-section-link.router-link-exact-active {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.sidebar-section-link__label {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.sidebar-section-link__icon,
+.sidebar-section-link__arrow {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.sidebar-section-link__arrow {
+  opacity: 0.7;
+}
+
 .sidebar-link-list {
   display: flex;
   flex-direction: column;
@@ -350,6 +396,7 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 
 .sidebar-link-list--status {
   gap: 0.125rem;
+  margin-top: 0.125rem;
 }
 
 .sidebar-link-list--bookmarks {
