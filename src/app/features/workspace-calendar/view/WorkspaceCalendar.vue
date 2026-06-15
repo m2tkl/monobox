@@ -6,21 +6,12 @@
           title="Calendar"
           class="calendar-page-header"
         >
-          <template #inline>
-            <span
-              v-if="viewMode === 'working'"
-              class="calendar-title-meta"
-            >
-              {{ remainingWorkingDays }} working days remaining in {{ selectedYear }}.
-            </span>
-          </template>
-
-          <template
-            v-if="viewMode !== 'working'"
-            #description
-          >
+          <template #description>
             <span>
-              <template v-if="viewMode === 'settings'">
+              <template v-if="viewMode === 'working'">
+                {{ remainingWorkingDays }} working days remaining in {{ selectedYear }}.
+              </template>
+              <template v-else-if="viewMode === 'settings'">
                 Select the dates that should be excluded from the working days view.
               </template>
               <template v-else>
@@ -213,14 +204,6 @@ const {
 <style scoped>
 .calendar-page-header {
   min-width: 0;
-}
-
-.calendar-title-meta {
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.5;
-  white-space: nowrap;
 }
 
 .calendar-controls {
