@@ -2,6 +2,8 @@
 
 /* Editor-specific design tokens */
 .tiptap {
+  --heading-fold-gutter: 1.5rem;
+
   /* Syntax highlighting colors - organized by visual similarity */
   --editor-syntax-gray: #cccccc;
   /* Comments, quotes */
@@ -51,11 +53,77 @@
 .tiptap h4,
 .tiptap h5,
 .tiptap h6 {
+  position: relative;
   line-height: 1.1;
   margin-top: 2.0rem;
   margin-bottom: 1.0rem;
   text-wrap: pretty;
   color: var(--color-text-primary);
+}
+
+.tiptap .custom-heading-fold-button {
+  position: absolute;
+  left: calc(var(--heading-fold-gutter) / -2);
+  top: 0.55em;
+  display: grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.tiptap .custom-heading-fold-button::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 0.25rem solid transparent;
+  border-right: 0.25rem solid transparent;
+  border-top: 0.32rem solid currentColor;
+}
+
+.tiptap .custom-heading-fold-button[data-collapsed="true"]::before {
+  border-top: 0.25rem solid transparent;
+  border-bottom: 0.25rem solid transparent;
+  border-left: 0.32rem solid currentColor;
+  border-right: 0;
+}
+
+.tiptap h1:hover .custom-heading-fold-button,
+.tiptap h2:hover .custom-heading-fold-button,
+.tiptap h3:hover .custom-heading-fold-button,
+.tiptap h4:hover .custom-heading-fold-button,
+.tiptap h5:hover .custom-heading-fold-button,
+.tiptap h6:hover .custom-heading-fold-button,
+.tiptap .custom-heading-fold-button[data-collapsed="true"] {
+  opacity: 0.72;
+}
+
+.tiptap .custom-heading-fold-button:hover,
+.tiptap .custom-heading-fold-button:focus-visible {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  opacity: 1;
+}
+
+.tiptap .custom-heading-fold-button:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.tiptap .custom-heading-collapsed {
+  margin-bottom: 0.35rem;
+}
+
+.tiptap .heading-collapsed-hidden {
+  display: none;
 }
 
 .tiptap h1 {
