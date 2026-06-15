@@ -1,10 +1,32 @@
 import { Heading } from '@tiptap/extension-heading';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { Slice, Fragment } from 'prosemirror-model';
-import { Plugin } from 'prosemirror-state';
+import { Plugin, PluginKey } from 'prosemirror-state';
 
 import type { EditorView } from '@tiptap/pm/view';
 import type { Node as ProseMirrorNode } from 'prosemirror-model';
+import type { EditorState } from 'prosemirror-state';
+
+type FoldHeadingSectionsMeta =
+  | { type: 'toggle'; key: string }
+  | { type: 'reveal'; keys: string[] };
+
+type HeadingExtensionOptions = {
+  getFoldStorageKey?: () => string | undefined;
+};
+
+export const foldHeadingSectionsPluginKey = new PluginKey<ReadonlySet<string>>('foldHeadingSections');
+const headingFoldStateByStorageKey = new Map<string, Set<string>>();
+
+export function getHeadingFoldKey(node: ProseMirrorNode, pos: number) {
+  return typeof node.attrs.id === 'string' && node.attrs.id.length > 0
+    ? node.attrs.id
+    : `pos:${pos}`;
+}
+
+function getCollapsedHeadingKeys(state: EditorState) {
+  return foldHeadingSectionsPluginKey.getState(state) ?? new Set<string>();
+}
 
 function findHeadingAtSelection(doc: ProseMirrorNode, pos: number) {
   const $pos = doc.resolve(pos);
@@ -22,11 +44,19 @@ function findHeadingAtSelection(doc: ProseMirrorNode, pos: number) {
   return null;
 }
 
-function isCollapsedHeading(node: ProseMirrorNode) {
-  return node.type.name === 'heading' && node.attrs.collapsed === true;
+function pruneMissingHeadingKeys(doc: ProseMirrorNode, keys: ReadonlySet<string>) {
+  const availableKeys = new Set<string>();
+
+  doc.descendants((node, pos) => {
+    if (node.type.name === 'heading') {
+      availableKeys.add(getHeadingFoldKey(node, pos));
+    }
+  });
+
+  return new Set([...keys].filter(key => availableKeys.has(key)));
 }
 
-function createHeadingFoldButton(view: EditorView, pos: number, collapsed: boolean) {
+function createHeadingFoldButton(view: EditorView, pos: number, key: string, collapsed: boolean) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'custom-heading-fold-button';
@@ -44,10 +74,10 @@ function createHeadingFoldButton(view: EditorView, pos: number, collapsed: boole
     }
 
     view.dispatch(
-      view.state.tr.setNodeMarkup(pos, undefined, {
-        ...node.attrs,
-        collapsed: !node.attrs.collapsed,
-      }),
+      view.state.tr.setMeta(foldHeadingSectionsPluginKey, {
+        type: 'toggle',
+        key,
+      } satisfies FoldHeadingSectionsMeta),
     );
     view.focus();
   });
@@ -55,7 +85,46 @@ function createHeadingFoldButton(view: EditorView, pos: number, collapsed: boole
   return button;
 }
 
-export const foldHeadingSectionsPlugin = new Plugin({
+export const foldHeadingSectionsPlugin = (options: HeadingExtensionOptions = {}) => new Plugin({
+  key: foldHeadingSectionsPluginKey,
+  state: {
+    init() {
+      const storageKey = options.getFoldStorageKey?.();
+      return storageKey
+        ? new Set(headingFoldStateByStorageKey.get(storageKey) ?? [])
+        : new Set<string>();
+    },
+    apply(transaction, value, _oldState, newState) {
+      const meta = transaction.getMeta(foldHeadingSectionsPluginKey) as FoldHeadingSectionsMeta | undefined;
+      let nextValue = value;
+
+      if (meta?.type === 'toggle') {
+        nextValue = new Set(value);
+        if (nextValue.has(meta.key)) {
+          nextValue.delete(meta.key);
+        }
+        else {
+          nextValue.add(meta.key);
+        }
+      }
+
+      if (meta?.type === 'reveal') {
+        nextValue = new Set(value);
+        meta.keys.forEach(key => nextValue.delete(key));
+      }
+
+      const finalValue = transaction.docChanged
+        ? pruneMissingHeadingKeys(newState.doc, nextValue)
+        : nextValue;
+
+      const storageKey = options.getFoldStorageKey?.();
+      if (storageKey) {
+        headingFoldStateByStorageKey.set(storageKey, new Set(finalValue));
+      }
+
+      return finalValue;
+    },
+  },
   props: {
     handleKeyDown(view, event) {
       if (event.key !== 'Enter') {
@@ -63,26 +132,34 @@ export const foldHeadingSectionsPlugin = new Plugin({
       }
 
       const heading = findHeadingAtSelection(view.state.doc, view.state.selection.from);
-      if (!heading || !isCollapsedHeading(heading.node)) {
+      if (!heading) {
+        return false;
+      }
+
+      const key = getHeadingFoldKey(heading.node, heading.pos);
+      if (!getCollapsedHeadingKeys(view.state).has(key)) {
         return false;
       }
 
       event.preventDefault();
       view.dispatch(
-        view.state.tr.setNodeMarkup(heading.pos, undefined, {
-          ...heading.node.attrs,
-          collapsed: false,
-        }),
+        view.state.tr.setMeta(foldHeadingSectionsPluginKey, {
+          type: 'reveal',
+          keys: [key],
+        } satisfies FoldHeadingSectionsMeta),
       );
       return true;
     },
     decorations(state) {
       const decorations: Decoration[] = [];
       const collapsedStack: Array<{ level: number }> = [];
+      const collapsedHeadingKeys = getCollapsedHeadingKeys(state);
 
       state.doc.descendants((node, pos) => {
         if (node.type.name === 'heading') {
           const level = Number(node.attrs.level);
+          const key = getHeadingFoldKey(node, pos);
+          const collapsed = collapsedHeadingKeys.has(key);
           while (collapsedStack.length > 0 && collapsedStack[collapsedStack.length - 1]!.level >= level) {
             collapsedStack.pop();
           }
@@ -95,18 +172,17 @@ export const foldHeadingSectionsPlugin = new Plugin({
 
           decorations.push(Decoration.widget(
             pos + 1,
-            view => createHeadingFoldButton(view, pos, node.attrs.collapsed === true),
+            view => createHeadingFoldButton(view, pos, key, collapsed),
             {
-              key: `heading-fold-${node.attrs.id ?? pos}-${node.attrs.collapsed ? 'closed' : 'open'}`,
+              key: `heading-fold-${key}-${collapsed ? 'closed' : 'open'}`,
               side: -1,
             },
           ));
 
-          if (isCollapsedHeading(node)) {
+          if (collapsed) {
             collapsedStack.push({ level });
             decorations.push(Decoration.node(pos, pos + node.nodeSize, {
-              'class': 'custom-heading-collapsed',
-              'data-heading-collapsed': 'true',
+              class: 'custom-heading-collapsed',
             }));
           }
 
@@ -125,7 +201,7 @@ export const foldHeadingSectionsPlugin = new Plugin({
   },
 });
 
-export const headingExtension = () => {
+export const headingExtension = (options: HeadingExtensionOptions = {}) => {
   return Heading.extend({
     addAttributes() {
       return {
@@ -148,15 +224,6 @@ export const headingExtension = () => {
             };
           },
         },
-        collapsed: {
-          default: false,
-          parseHTML: element => element.getAttribute('data-heading-collapsed') === 'true',
-          renderHTML: (attributes) => {
-            return attributes.collapsed
-              ? { 'data-heading-collapsed': 'true' }
-              : {};
-          },
-        },
       };
     },
     renderHTML({ HTMLAttributes }) {
@@ -167,7 +234,6 @@ export const headingExtension = () => {
           class: [
             'custom-heading',
             `custom-heading-level-${HTMLAttributes.level}`,
-            HTMLAttributes.collapsed ? 'custom-heading-collapsed' : '',
           ].filter(Boolean).join(' '),
         },
         0,
@@ -176,7 +242,7 @@ export const headingExtension = () => {
     addProseMirrorPlugins() {
       return [
         ...(this.parent?.() ?? []),
-        foldHeadingSectionsPlugin,
+        foldHeadingSectionsPlugin(options),
       ];
     },
   });
@@ -196,7 +262,7 @@ export const removeHeadingIdOnPastePlugin = new Plugin({
           let newNode = node;
           if (node.type.name === 'heading') {
             // Reset the ID attribute
-            const newAttrs = { ...node.attrs, id: null, collapsed: false };
+            const newAttrs = { ...node.attrs, id: null };
             newNode = node.type.create(newAttrs, removeHeadingIdsFromFragment(node.content), node.marks);
           }
           else if (node.content && node.content.size > 0) {

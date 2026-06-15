@@ -3,7 +3,7 @@ import { Editor as VueEditor } from '@tiptap/vue-3';
 import { Fragment, Slice } from 'prosemirror-model';
 import { describe, it, expect } from 'vitest';
 
-import { headingExtension, removeHeadingIdOnPastePlugin } from './heading';
+import { foldHeadingSectionsPluginKey, headingExtension, removeHeadingIdOnPastePlugin } from './heading';
 
 describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
   const createEditor = () =>
@@ -56,12 +56,12 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
     editor.destroy();
   });
 
-  it('resets collapsed state from pasted heading nodes', () => {
+  it('does not persist collapsed state on pasted heading nodes', () => {
     const editor = createEditor();
     const { schema } = editor;
 
     const heading = schema.nodes.heading.create(
-      { id: 'abc', level: 2, collapsed: true },
+      { id: 'abc', level: 2 },
       schema.text('Title'),
     );
     const slice = new Slice(Fragment.fromArray([heading]), 0, 0);
@@ -71,7 +71,7 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
 
     const outNode = out.content.child(0);
     expect(outNode.attrs.id).toBeNull();
-    expect(outNode.attrs.collapsed).toBe(false);
+    expect(outNode.attrs.collapsed).toBeUndefined();
 
     editor.destroy();
   });
@@ -96,16 +96,50 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
     expect(button).not.toBeNull();
     button!.click();
 
-    expect(editor.state.doc.child(0).attrs.collapsed).toBe(true);
+    expect(foldHeadingSectionsPluginKey.getState(editor.state)?.has('a')).toBe(true);
+    expect(JSON.stringify(editor.getJSON())).not.toContain('collapsed');
     expect(editor.view.dom.querySelectorAll('.heading-collapsed-hidden')).toHaveLength(3);
     expect(editor.view.dom.querySelector('[id="c"]')?.classList.contains('heading-collapsed-hidden')).toBe(false);
 
     editor.view.dom.querySelector<HTMLButtonElement>('.custom-heading-fold-button')!.click();
 
-    expect(editor.state.doc.child(0).attrs.collapsed).toBe(false);
+    expect(foldHeadingSectionsPluginKey.getState(editor.state)?.has('a')).toBe(false);
     expect(editor.view.dom.querySelectorAll('.heading-collapsed-hidden')).toHaveLength(0);
 
     editor.destroy();
+  });
+
+  it('restores folded headings from frontend state without persisting them to JSON', () => {
+    const storageKey = `heading-spec-${crypto.randomUUID()}`;
+    const content = {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 1, id: 'a' }, content: [{ type: 'text', text: 'A' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'A body' }] },
+      ],
+    };
+    const createPersistentEditor = () => new VueEditor({
+      extensions: [
+        StarterKit.configure({ heading: false }),
+        headingExtension({ getFoldStorageKey: () => storageKey }),
+      ],
+      content,
+    });
+
+    const firstEditor = createPersistentEditor();
+    firstEditor.view.dom.querySelector<HTMLButtonElement>('.custom-heading-fold-button')!.click();
+
+    expect(foldHeadingSectionsPluginKey.getState(firstEditor.state)?.has('a')).toBe(true);
+    expect(JSON.stringify(firstEditor.getJSON())).not.toContain('collapsed');
+    firstEditor.destroy();
+
+    const secondEditor = createPersistentEditor();
+
+    expect(foldHeadingSectionsPluginKey.getState(secondEditor.state)?.has('a')).toBe(true);
+    expect(secondEditor.view.dom.querySelectorAll('.heading-collapsed-hidden')).toHaveLength(1);
+    expect(JSON.stringify(secondEditor.getJSON())).not.toContain('collapsed');
+
+    secondEditor.destroy();
   });
 
   it('expands a collapsed heading without inserting a new block when pressing Enter from the heading', () => {
@@ -116,7 +150,7 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
         content: [
           {
             type: 'heading',
-            attrs: { level: 1, id: 'a', collapsed: true },
+            attrs: { level: 1, id: 'a' },
             content: [{ type: 'text', text: 'A' }],
           },
           { type: 'paragraph', content: [{ type: 'text', text: 'A body' }] },
@@ -124,14 +158,21 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
       },
     });
 
+    editor.view.dispatch(
+      editor.state.tr.setMeta(foldHeadingSectionsPluginKey, {
+        type: 'toggle',
+        key: 'a',
+      }),
+    );
     editor.commands.setTextSelection(2);
     const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
     const handled = editor.view.someProp('handleKeyDown', handler => handler(editor.view, event));
 
     expect(handled).toBe(true);
     expect(event.defaultPrevented).toBe(true);
-    expect(editor.state.doc.child(0).attrs.collapsed).toBe(false);
+    expect(foldHeadingSectionsPluginKey.getState(editor.state)?.has('a')).toBe(false);
     expect(editor.state.doc.childCount).toBe(2);
+    expect(JSON.stringify(editor.getJSON())).not.toContain('collapsed');
     expect(editor.view.dom.querySelectorAll('.heading-collapsed-hidden')).toHaveLength(0);
 
     editor.destroy();

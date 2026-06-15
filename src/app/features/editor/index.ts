@@ -38,6 +38,7 @@ export { customMarkdownSerializer, convertToMarkdown } from './serializer/markdo
 type BuildExtensionsOptions = {
   CodeBlockComponent: Component<NodeViewProps>;
   TableComponent?: Component<NodeViewProps>;
+  getHeadingFoldStorageKey?: () => string | undefined;
 };
 
 /**
@@ -99,7 +100,9 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
     }),
     CustomExtension.fileLinkExtension(),
     CustomExtension.imageExtention(),
-    CustomExtension.headingExtension(),
+    CustomExtension.headingExtension({
+      getFoldStorageKey: options.getHeadingFoldStorageKey,
+    }),
     CustomExtension.listNormalizationExtension,
     CustomExtension.markdownPasteExtension,
     CustomExtension.codeBlockExtension(CodeBlockComponent),

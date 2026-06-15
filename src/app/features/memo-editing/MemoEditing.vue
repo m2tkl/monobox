@@ -563,16 +563,16 @@ import { AppError } from '~/utils/error';
 import { useConsoleLogger } from '~/utils/logger';
 import { buildMemoTitleFromSlug, encodeForSlug } from '~/utils/slug';
 
-const extensions = buildExtensions({
-  CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
-  TableComponent: TableComponent as Component<NodeViewProps>,
-});
-
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { ui } = useUIState();
 const { workspaceSlug, memoSlug } = useMemoRouteTarget(route);
+const extensions = buildExtensions({
+  CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
+  TableComponent: TableComponent as Component<NodeViewProps>,
+  getHeadingFoldStorageKey: () => `${workspaceSlug.value}/${memoSlug.value}`,
+});
 const memoVM = useCurrentMemoReadModel();
 const globalStatusVM = useGlobalStatusBoardReadModel();
 const focusMemoVM = useFocusMemoListReadModel();
