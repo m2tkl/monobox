@@ -1570,6 +1570,8 @@ const copyLinkToHeadingAction = (fullUrl: string, titleWithHeading: string) => {
 
 <style>
 .memo-editing-shell {
+  --memo-editor-toolbar-height: 2.5rem;
+
   display: flex;
   justify-content: center;
   width: 100%;
@@ -1711,9 +1713,10 @@ a.external-link {
   box-shadow: 0 8px 24px rgb(15 23 42 / 0.1);
 }
 
-.memo-toolbar-status-select {
+.memo-action-group .memo-toolbar-status-select.memo-toolbar-status-select {
   width: 10rem;
-  min-height: 1.625rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
   padding-left: 0.5rem;
   font-size: 0.8125rem;
 }

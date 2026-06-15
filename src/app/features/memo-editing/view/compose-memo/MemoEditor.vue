@@ -387,18 +387,21 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .memo-editor-toolbar {
-  min-height: 2rem;
+  height: var(--memo-editor-toolbar-height, 2.5rem);
+  min-height: var(--memo-editor-toolbar-height, 2.5rem);
+  overflow: hidden;
 }
 
 .memo-editor-toolbar-inner {
   display: flex;
-  min-height: 2rem;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
   align-items: center;
   flex-wrap: nowrap;
   gap: 0.25rem;
   overflow: hidden;
-  padding: 0.125rem 0.5rem;
+  padding: 0 0.5rem;
 }
 
 .memo-editor-toolbar-actions {

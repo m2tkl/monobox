@@ -184,3 +184,13 @@ const indentStyle: Record<number, string> = {
  */
 const indent = (level: number) => indentStyle[level] ?? '';
 </script>
+
+<style scoped>
+.outline-header {
+  box-sizing: border-box;
+  height: var(--memo-editor-toolbar-height, 2.5rem);
+  min-height: var(--memo-editor-toolbar-height, 2.5rem);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+</style>
