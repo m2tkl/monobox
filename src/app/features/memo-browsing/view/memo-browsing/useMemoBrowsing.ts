@@ -2,6 +2,8 @@ import { computed, ref } from 'vue';
 
 import { useBookmarkListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '../../resource/read-model';
 
+import { iconKey } from '~/utils/icon';
+
 const PAGE_LOAD_BASE_NUM = 64;
 
 export function useMemoBrowsing() {
@@ -13,6 +15,10 @@ export function useMemoBrowsing() {
 
   const memos = computed(() => memosReadModel.value.data.items);
   const bookmarkedMemoIds = computed(() => bookmarksReadModel.value.data.items.map(memo => memo.id));
+  const isBookmarkFilter = computed(() => {
+    const raw = route.query.bookmarked;
+    return Array.isArray(raw) ? raw[0] === 'true' : raw === 'true';
+  });
   const statusFilterName = computed(() => {
     const raw = route.query.status;
     if (Array.isArray(raw)) return raw[0] ?? '';
@@ -32,14 +38,24 @@ export function useMemoBrowsing() {
     );
   });
   const recentMemos = computed(() => {
+    if (isBookmarkFilter.value) return bookmarksReadModel.value.data.items;
     if (!statusFilterName.value) return memos.value;
     if (!statusFilter.value) return [];
     return memos.value.filter(memo => statusFilteredMemoIds.value.has(memo.id));
   });
   const limitedRecentMemos = computed(() => recentMemos.value.slice(0, recentMemosDisplayCount.value));
   const hasMoreRecentMemos = computed(() => recentMemos.value.length > recentMemosDisplayCount.value);
-  const headingLabel = computed(() => statusFilter.value?.name ?? 'Recent');
+  const headingLabel = computed(() => {
+    if (isBookmarkFilter.value) return 'Bookmarks';
+    return statusFilter.value?.name ?? 'Recent';
+  });
+  const headingIcon = computed(() => isBookmarkFilter.value ? iconKey.bookmarkFilled : iconKey.recent);
+  const isLoading = computed(() => {
+    return memosReadModel.value.flags.isLoading
+      || (isBookmarkFilter.value && bookmarksReadModel.value.flags.isLoading);
+  });
   const emptyLabel = computed(() => {
+    if (isBookmarkFilter.value) return 'No bookmarked memos';
     if (statusFilterName.value && !statusFilter.value) return 'Status not found';
     if (statusFilter.value) return `No memos in ${statusFilter.value.name}`;
     return 'No recent memos';
@@ -52,14 +68,17 @@ export function useMemoBrowsing() {
   return {
     memosReadModel,
     bookmarksReadModel,
+    isLoading,
     memos,
     bookmarkedMemoIds,
+    isBookmarkFilter,
     statusFilter,
     statusFilterName,
     recentMemos,
     limitedRecentMemos,
     hasMoreRecentMemos,
     headingLabel,
+    headingIcon,
     emptyLabel,
     loadMore,
   };

@@ -6,7 +6,7 @@
           fill
           inner-class="size-full overflow-y-auto pb-4"
         >
-          <LoadingSpinner v-if="memosReadModel.flags.isLoading" />
+          <LoadingSpinner v-if="isLoading" />
           <div
             v-else-if="recentMemos.length === 0"
             class="flex h-full items-center justify-center text-center"
@@ -19,7 +19,7 @@
             <div class="memo-browsing-header">
               <AppPageHeader
                 :title="headingLabel"
-                :icon="iconKey.recent"
+                :icon="headingIcon"
                 :heading-level="2"
               />
             </div>
@@ -68,20 +68,20 @@ import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
 import AppPageHeader from '~/app/elements/layout/AppPageHeader.vue';
 import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { SearchPalette } from '~/app/features/search';
-import { iconKey } from '~/utils/icon';
 import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 const route = useRoute();
 const workspaceSlug = getEncodedWorkspaceSlugFromPath(route)!;
 
 const {
-  memosReadModel,
   memos,
+  isLoading,
   bookmarkedMemoIds,
   recentMemos,
   limitedRecentMemos,
   hasMoreRecentMemos,
   headingLabel,
+  headingIcon,
   emptyLabel,
   loadMore,
 } = useMemoBrowsing();

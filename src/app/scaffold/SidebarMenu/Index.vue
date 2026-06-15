@@ -90,6 +90,7 @@
           <NuxtLink
             :to="`/${workspaceSlug}/_kanban`"
             class="sidebar-section-link"
+            :class="{ 'sidebar-section-link--active': isKanbanViewActive }"
             active-class="sidebar-section-link--active"
             exact-active-class="sidebar-section-link--active"
             aria-label="Open Kanban view"
@@ -126,13 +127,26 @@
           v-if="bookmarks.length > 0"
           class="sidebar-section"
         >
-          <div class="sticky top-0 z-10">
-            <div class="flex h-8 items-center px-2">
-              <h2 class="text-xs font-semibold uppercase tracking-wide sidebar-heading">
-                Bookmarks
-              </h2>
-            </div>
-          </div>
+          <NuxtLink
+            :to="{ path: `/${workspaceSlug}`, query: { bookmarked: 'true' } }"
+            class="sidebar-section-link"
+            :class="{ 'sidebar-section-link--active': isBookmarksViewActive }"
+            active-class=""
+            exact-active-class=""
+            aria-label="Open bookmarked memos"
+          >
+            <span class="sidebar-section-link__label">
+              <UIcon
+                :name="iconKey.bookmarkFilled"
+                class="sidebar-section-link__icon"
+              />
+              <span>Bookmarks</span>
+            </span>
+            <UIcon
+              :name="iconKey.arrowRight"
+              class="sidebar-section-link__arrow"
+            />
+          </NuxtLink>
 
           <ul class="sidebar-link-list sidebar-link-list--bookmarks">
             <li
@@ -210,6 +224,12 @@ const activeStatusName = computed(() => {
   const raw = route.query.status;
   if (Array.isArray(raw)) return raw[0] ?? '';
   return typeof raw === 'string' ? raw : '';
+});
+const isKanbanViewActive = computed(() => route.path === `/${workspaceSlug.value}/_kanban`);
+const isBookmarksViewActive = computed(() => {
+  if (route.path !== `/${workspaceSlug.value}`) return false;
+  const raw = route.query.bookmarked;
+  return Array.isArray(raw) ? raw[0] === 'true' : raw === 'true';
 });
 const searchPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
 const draggedMemoId = ref<number | null>(null);
@@ -364,9 +384,7 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 }
 
 .sidebar-section-link:hover,
-.sidebar-section-link--active,
-.sidebar-section-link.router-link-active,
-.sidebar-section-link.router-link-exact-active {
+.sidebar-section-link--active {
   background-color: var(--color-surface-hover);
   color: var(--color-text-primary);
 }
@@ -401,6 +419,7 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 
 .sidebar-link-list--bookmarks {
   gap: 0;
+  margin-top: 0.125rem;
 }
 
 .sidebar-action {
