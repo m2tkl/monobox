@@ -5,24 +5,26 @@
   >
     <div class="flex h-full flex-col px-3 py-2">
       <div class="min-h-0 flex-1 overflow-y-auto">
-        <div class="py-1.5">
+        <div class="sidebar-primary-action">
           <NewMemoActions />
         </div>
         <div
           v-if="workspaceSlug"
-          class="pb-1"
+          class="sidebar-action-grid"
         >
-          <button
-            type="button"
-            class="sidebar-action sidebar-link"
-            @click="openSearchPalette"
-          >
-            <UIcon
-              :name="iconKey.search"
-              class="shrink-0"
-            />
-            <span class="sidebar-action-label">Quick open</span>
-          </button>
+          <AppTooltip text="Quick open">
+            <button
+              type="button"
+              class="sidebar-icon-action sidebar-link"
+              aria-label="Quick open"
+              @click="openSearchPalette"
+            >
+              <UIcon
+                :name="iconKey.search"
+                class="sidebar-icon-action__icon"
+              />
+            </button>
+          </AppTooltip>
           <SearchPalette
             ref="searchPaletteRef"
             :workspace-slug="workspaceSlug"
@@ -30,67 +32,55 @@
             type="search"
             shortcut-symbol="k"
           />
-        </div>
-        <div
-          v-if="workspaceSlug"
-          class="pb-1"
-        >
-          <NuxtLink
-            :to="`/${workspaceSlug}/_search`"
-            class="sidebar-action sidebar-link"
-          >
-            <UIcon
-              :name="iconKey.fullSearch"
-              class="shrink-0"
-            />
-            <span class="sidebar-action-label">Full search</span>
-          </NuxtLink>
-        </div>
-        <div
-          v-if="workspaceSlug"
-          class="pb-1"
-        >
-          <button
-            type="button"
-            class="sidebar-action sidebar-link"
-            @click="showRandomMemo"
-          >
-            <UIcon
-              :name="iconKey.shuffle"
-              class="shrink-0"
-            />
-            <span class="sidebar-action-label">Random memo</span>
-          </button>
-        </div>
-        <div
-          v-if="workspaceSlug"
-          class="pb-1"
-        >
-          <NuxtLink
-            :to="`/${workspaceSlug}/_files`"
-            class="sidebar-action sidebar-link"
-          >
-            <UIcon
-              :name="iconKey.documentAttachment"
-              class="shrink-0"
-            />
-            <span class="sidebar-action-label">Files</span>
-          </NuxtLink>
-        </div>
-        <div
-          v-if="workspaceSlug"
-          class="pb-1"
-        >
-          <NuxtLink
-            :to="`/${workspaceSlug}/_calendar`"
-            class="sidebar-action sidebar-link"
-          >
-            <UIcon
-              :name="iconKey.calendar"
-              class="shrink-0"
-            />
-            <span class="sidebar-action-label">Calendar</span>
-          </NuxtLink>
+          <AppTooltip text="Full search">
+            <NuxtLink
+              :to="`/${workspaceSlug}/_search`"
+              class="sidebar-icon-action sidebar-link"
+              aria-label="Full search"
+            >
+              <UIcon
+                :name="iconKey.fullSearch"
+                class="sidebar-icon-action__icon"
+              />
+            </NuxtLink>
+          </AppTooltip>
+          <AppTooltip text="Random memo">
+            <button
+              type="button"
+              class="sidebar-icon-action sidebar-link"
+              aria-label="Random memo"
+              @click="showRandomMemo"
+            >
+              <UIcon
+                :name="iconKey.shuffle"
+                class="sidebar-icon-action__icon"
+              />
+            </button>
+          </AppTooltip>
+          <AppTooltip text="Files">
+            <NuxtLink
+              :to="`/${workspaceSlug}/_files`"
+              class="sidebar-icon-action sidebar-link"
+              aria-label="Files"
+            >
+              <UIcon
+                :name="iconKey.documentAttachment"
+                class="sidebar-icon-action__icon"
+              />
+            </NuxtLink>
+          </AppTooltip>
+          <AppTooltip text="Calendar">
+            <NuxtLink
+              :to="`/${workspaceSlug}/_calendar`"
+              class="sidebar-icon-action sidebar-link"
+              aria-label="Calendar"
+            >
+              <UIcon
+                :name="iconKey.calendar"
+                class="sidebar-icon-action__icon"
+              />
+            </NuxtLink>
+          </AppTooltip>
         </div>
 
         <section
@@ -350,7 +340,7 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 }
 
 .sidebar-section:first-of-type {
-  margin-top: 0.5rem;
+  margin-top: 0;
 }
 
 .sidebar-link-list {
@@ -379,5 +369,32 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 
 .sidebar-action-label {
   line-height: 1;
+}
+
+.sidebar-primary-action {
+  padding-top: 0.375rem;
+  padding-bottom: 0.5rem;
+}
+
+.sidebar-action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.sidebar-icon-action {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+}
+
+.sidebar-icon-action__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
 }
 </style>
