@@ -225,14 +225,14 @@ export function useInboxPanel(options: UseInboxPanelOptions) {
       }
 
       options.toast.add({
-        title: selectedMemoSlug.value ? 'File imported and linked.' : 'File imported.',
+        title: selectedMemoSlug.value ? 'Item imported and linked.' : 'Item imported.',
       });
       closeLinkModal();
     }
     catch (error) {
       const appError = handleError(error);
       options.toast.add({
-        title: selectedMemoSlug.value ? 'Failed to import and link file.' : 'Failed to import file.',
+        title: selectedMemoSlug.value ? 'Failed to import and link item.' : 'Failed to import item.',
         description: appError.message,
         color: 'error',
       });

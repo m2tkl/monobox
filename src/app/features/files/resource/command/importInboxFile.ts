@@ -8,7 +8,7 @@ type ImportInboxFileInput = {
 };
 
 export async function importInboxFile(input: ImportInboxFileInput) {
-  const file = await command.file.importInboxFile(input.sourcePath);
+  const file = await command.file.importInboxEntry(input.sourcePath);
 
   void publishResourceChanges([
     changeRefs.inboxFileCollectionChanged(),

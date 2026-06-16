@@ -1,9 +1,10 @@
-export type ManagedFileType = 'local_file' | 'external_link';
+export type ManagedFileType = 'local_file' | 'local_directory' | 'external_link';
 
 export type InboxFileItem = {
   path: string;
   display_name: string;
   kind: string;
+  entry_type: 'file' | 'directory';
   acquired_at: number;
 };
 

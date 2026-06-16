@@ -139,7 +139,7 @@
 
                   <template #type-cell="{ row }">
                     <span class="type-text">
-                      {{ row.original.type === 'external_link' ? 'Link' : 'File' }}
+                      {{ row.original.type === 'external_link' ? 'Link' : row.original.type === 'local_directory' ? 'Folder' : 'File' }}
                     </span>
                   </template>
 
@@ -269,7 +269,7 @@
           <UCard>
             <template #header>
               <div class="text-sm font-semibold">
-                {{ editForm.type === 'external_link' ? 'Edit shared link' : 'Edit file' }}
+                {{ editForm.type === 'external_link' ? 'Edit shared link' : editForm.type === 'local_directory' ? 'Edit folder' : 'Edit file' }}
               </div>
             </template>
 
@@ -296,7 +296,7 @@
                   <span class="font-semibold">Imported:</span> {{ editDetail.imported_at }}
                 </div>
                 <div v-if="editDetail.relative_path">
-                  <span class="font-semibold">File name:</span> {{ editDetail.relative_path.split('/').at(-1) }}
+                  <span class="font-semibold">{{ editDetail.type === 'local_directory' ? 'Folder name:' : 'File name:' }}</span> {{ editDetail.relative_path.split('/').at(-1) }}
                 </div>
               </div>
 

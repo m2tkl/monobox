@@ -35,7 +35,7 @@ impl FileRepository {
         for entry in fs::read_dir(downloads_dir).map_err(|e| e.to_string())? {
             let entry = entry.map_err(|e| e.to_string())?;
             let path = entry.path();
-            if !path.is_file() {
+            if !path.is_file() && !path.is_dir() {
                 continue;
             }
             if should_ignore_inbox_file(&path, ignored_file_names) {
@@ -55,17 +55,22 @@ impl FileRepository {
                 .file_name()
                 .map(|name| name.to_string_lossy().to_string())
                 .unwrap_or_else(|| path.to_string_lossy().to_string());
-            let kind = path
-                .extension()
-                .and_then(|ext| ext.to_str())
-                .map(|ext| ext.to_lowercase())
-                .filter(|ext| !ext.is_empty())
-                .unwrap_or_else(|| "file".to_string());
+            let entry_type = if path.is_dir() { "directory" } else { "file" }.to_string();
+            let kind = if path.is_dir() {
+                "folder".to_string()
+            } else {
+                path.extension()
+                    .and_then(|ext| ext.to_str())
+                    .map(|ext| ext.to_lowercase())
+                    .filter(|ext| !ext.is_empty())
+                    .unwrap_or_else(|| "file".to_string())
+            };
 
             items.push(InboxFileItem {
                 path: path.to_string_lossy().to_string(),
                 display_name,
                 kind,
+                entry_type,
                 acquired_at,
             });
         }
@@ -127,6 +132,79 @@ impl FileRepository {
             "INSERT INTO files (id, type, display_name, note, relative_path, url, imported_at)
              VALUES (?, 'local_file', ?, NULL, ?, NULL, CURRENT_TIMESTAMP)",
             params![&file_id, &display_name, &relative_path],
+        );
+
+        if let Err(err) = insert_result {
+            let _ = fs::rename(&destination_path, source_path);
+            return Err(err.to_string());
+        }
+
+        let record = tx
+            .query_row(
+                "SELECT id, type, display_name, note, relative_path, url, imported_at
+                 FROM files
+                 WHERE id = ?",
+                [&file_id],
+                |row| {
+                    Ok(ManagedFileRecord {
+                        id: row.get(0)?,
+                        file_type: row.get(1)?,
+                        display_name: row.get(2)?,
+                        note: row.get(3)?,
+                        relative_path: row.get(4)?,
+                        url: row.get(5)?,
+                        imported_at: row.get(6)?,
+                    })
+                },
+            )
+            .map_err(|e| e.to_string())?;
+
+        tx.commit().map_err(|e| e.to_string())?;
+        Ok(record)
+    }
+
+    pub fn import_local_entry(
+        conn: &mut Connection,
+        source_path: &Path,
+        storage_root: &Path,
+    ) -> Result<ManagedFileRecord, String> {
+        if source_path.is_file() {
+            return Self::import_local_file(conn, source_path, storage_root);
+        }
+        if !source_path.exists() {
+            return Err("Source path does not exist.".to_string());
+        }
+        if !source_path.is_dir() {
+            return Err("Source path is not a file or directory.".to_string());
+        }
+        if !storage_root.exists() {
+            return Err("Files storage folder does not exist.".to_string());
+        }
+        if !storage_root.is_dir() {
+            return Err("Files storage folder is not a directory.".to_string());
+        }
+
+        let source_display_name = source_path
+            .file_name()
+            .map(|name| name.to_string_lossy().to_string())
+            .ok_or_else(|| "Failed to resolve source folder name.".to_string())?;
+        let file_id = generate_file_id();
+        let physical_name = build_physical_file_name(&source_display_name, &file_id);
+        let destination_path = storage_root.join(&physical_name);
+        let relative_path = destination_path
+            .strip_prefix(storage_root)
+            .map_err(|e| e.to_string())?
+            .to_string_lossy()
+            .to_string();
+
+        fs::rename(source_path, &destination_path)
+            .map_err(|e| format!("Failed to move folder into storage: {}", e))?;
+
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
+        let insert_result = tx.execute(
+            "INSERT INTO files (id, type, display_name, note, relative_path, url, imported_at)
+             VALUES (?, 'local_directory', ?, NULL, ?, NULL, CURRENT_TIMESTAMP)",
+            params![&file_id, &source_display_name, &relative_path],
         );
 
         if let Err(err) = insert_result {
@@ -467,7 +545,7 @@ impl FileRepository {
                     value: url,
                 })
             }
-            "local_file" => {
+            "local_file" | "local_directory" => {
                 let relative_path = record
                     .relative_path
                     .clone()
@@ -759,11 +837,13 @@ fn should_ignore_inbox_file(path: &Path, ignored_file_names: &[String]) -> bool 
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use rusqlite::{params, Connection};
 
     use super::{
         append_file_link_block, build_physical_file_name, collect_file_ids_from_content,
-        should_ignore_inbox_file, FileRepository,
+        generate_file_id, should_ignore_inbox_file, FileRepository,
     };
     use crate::migrations::apply_migrations;
 
@@ -889,5 +969,32 @@ mod tests {
         let updated =
             FileRepository::update_note(&conn, "FILE123", "   ").expect("note should clear");
         assert_eq!(updated.note, None);
+    }
+
+    #[test]
+    fn import_local_entry_moves_directory_as_single_record() {
+        let mut conn = setup_conn();
+        let temp_root =
+            std::env::temp_dir().join(format!("monobox-file-test-{}", generate_file_id()));
+        let source_dir = temp_root.join("Downloads").join("Project");
+        let nested_dir = source_dir.join("notes");
+        let storage_root = temp_root.join("Storage");
+        fs::create_dir_all(&nested_dir).expect("source folders should be created");
+        fs::create_dir_all(&storage_root).expect("storage folder should be created");
+        fs::write(nested_dir.join("plan.md"), "# Plan").expect("nested file should be written");
+
+        let record = FileRepository::import_local_entry(&mut conn, &source_dir, &storage_root)
+            .expect("directory should import");
+
+        assert_eq!(record.file_type, "local_directory");
+        assert_eq!(record.display_name, "Project");
+        assert!(!source_dir.exists());
+
+        let stored_path =
+            storage_root.join(record.relative_path.expect("relative path should exist"));
+        assert!(stored_path.is_dir());
+        assert!(stored_path.join("notes").join("plan.md").is_file());
+
+        fs::remove_dir_all(temp_root).expect("temp folders should be removed");
     }
 }

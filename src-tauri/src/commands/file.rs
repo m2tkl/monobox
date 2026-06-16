@@ -110,6 +110,21 @@ pub fn import_inbox_file(args: ImportInboxFileArgs) -> Result<ManagedFileRecord,
 }
 
 #[command]
+pub fn import_inbox_entry(args: ImportInboxFileArgs) -> Result<ManagedFileRecord, String> {
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    if config.files_storage_root.trim().is_empty() {
+        return Err("Files storage folder is not configured.".to_string());
+    }
+
+    let mut conn = get_conn().map_err(|e| e.to_string())?;
+    let source_path = PathBuf::from(args.source_path);
+    let storage_root = PathBuf::from(config.files_storage_root);
+    FileRepository::import_local_entry(&mut conn, &source_path, &storage_root)
+}
+
+#[command]
 pub fn create_external_file_link(
     args: CreateExternalFileLinkArgs,
 ) -> Result<ManagedFileRecord, String> {

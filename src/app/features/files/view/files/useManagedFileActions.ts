@@ -20,7 +20,7 @@ type UseManagedFileActionsOptions = {
   pendingEditFileId: Ref<string>;
   selectedMemoSlug: Ref<string>;
   createForm: Ref<{ displayName: string; url: string }>;
-  editForm: Ref<{ displayName: string; url: string; note: string; type: 'local_file' | 'external_link' | '' }>;
+  editForm: Ref<{ displayName: string; url: string; note: string; type: 'local_file' | 'local_directory' | 'external_link' | '' }>;
   closeEditModal: () => void;
   closeLinkModal: () => void;
   toast: ReturnType<typeof useToast>;

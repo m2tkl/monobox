@@ -7,7 +7,7 @@
       class="rounded-lg border p-6 text-sm"
       style="border-color: var(--color-border-light); color: var(--color-text-muted)"
     >
-      No files available in Downloads.
+      No files or folders available in Downloads.
     </div>
 
     <div
@@ -18,7 +18,7 @@
         <AppInput
           v-model="searchQuery"
           class="table-search"
-          placeholder="Search files"
+          placeholder="Search items"
           size="sm"
           icon="carbon:search"
         />
@@ -58,6 +58,9 @@
             <div class="min-w-0">
               <div class="inbox-file-name truncate">
                 {{ row.original.display_name }}
+              </div>
+              <div class="inbox-kind-text">
+                {{ row.original.entry_type === 'directory' ? 'Folder' : row.original.kind }}
               </div>
             </div>
           </template>
@@ -134,8 +137,8 @@
       v-model:search-term="memoSearchQuery"
       v-model:selected-command="selectedMemoCommand"
       :open="isLinkModalOpen"
-      title="Import file"
-      description="Import a file from Inbox. Optionally select a memo to add a link at the end of it."
+      title="Import item"
+      description="Import a file or folder from Inbox. Optionally select a memo to add a link at the end of it."
       memo-label="Memo (optional)"
       action-label="Import"
       :action-disabled="!pendingInboxPath"
@@ -276,6 +279,13 @@ defineExpose({
   font-weight: 450;
   letter-spacing: -0.01em;
   color: var(--color-text-primary);
+}
+
+.inbox-kind-text {
+  margin-top: 0.1rem;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.1;
 }
 
 .inbox-date-text {

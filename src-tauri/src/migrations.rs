@@ -214,7 +214,7 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         "20260518_create_files_table",
         "CREATE TABLE IF NOT EXISTS files (
             id TEXT PRIMARY KEY,
-            type TEXT NOT NULL CHECK(type IN ('local_file', 'external_link')),
+            type TEXT NOT NULL CHECK(type IN ('local_file', 'local_directory', 'external_link')),
             display_name TEXT NOT NULL,
             relative_path TEXT,
             url TEXT,
@@ -248,6 +248,33 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         "20260531_rename_note_files_to_memo_files",
         "
         ALTER TABLE note_files RENAME TO memo_files;
+        ",
+    ),
+    (
+        "20260616_allow_local_directory_files",
+        "
+        PRAGMA foreign_keys = OFF;
+
+        CREATE TABLE files_new (
+            id TEXT PRIMARY KEY,
+            type TEXT NOT NULL CHECK(type IN ('local_file', 'local_directory', 'external_link')),
+            display_name TEXT NOT NULL,
+            relative_path TEXT,
+            url TEXT,
+            imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            note TEXT
+        );
+
+        INSERT INTO files_new (id, type, display_name, relative_path, url, imported_at, note)
+        SELECT id, type, display_name, relative_path, url, imported_at, note
+        FROM files;
+
+        DROP TABLE files;
+        ALTER TABLE files_new RENAME TO files;
+
+        CREATE INDEX IF NOT EXISTS idx_files_imported_at ON files(imported_at DESC);
+
+        PRAGMA foreign_keys = ON;
         ",
     ),
     (

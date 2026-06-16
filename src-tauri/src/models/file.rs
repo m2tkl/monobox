@@ -52,6 +52,7 @@ pub struct InboxFileItem {
     pub path: String,
     pub display_name: String,
     pub kind: String,
+    pub entry_type: String,
     pub acquired_at: i64,
 }
 

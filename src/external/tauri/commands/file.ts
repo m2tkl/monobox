@@ -23,6 +23,12 @@ export const fileCommand = {
     });
   },
 
+  importInboxEntry: async (sourcePath: string) => {
+    return await invokeCommand<ManagedFileRecord>('import_inbox_entry', {
+      source_path: sourcePath,
+    });
+  },
+
   createExternalLink: async (params: { displayName: string; url: string }) => {
     return await invokeCommand<ManagedFileRecord>('create_external_file_link', {
       display_name: params.displayName,

@@ -3,6 +3,7 @@ import { command as tauriCommand } from '~/external/tauri/command';
 export const fileCommand = {
   listInbox: (params?: { limit?: number; offset?: number }) => tauriCommand.file.listInbox(params),
   importInboxFile: (sourcePath: string) => tauriCommand.file.importInboxFile(sourcePath),
+  importInboxEntry: (sourcePath: string) => tauriCommand.file.importInboxEntry(sourcePath),
   createExternalLink: (params: { displayName: string; url: string }) => tauriCommand.file.createExternalLink(params),
   listFiles: (params?: { limit?: number; offset?: number; unlinkedOnly?: boolean }) => tauriCommand.file.listFiles(params),
   getFileDetail: (fileId: string) => tauriCommand.file.getFileDetail(fileId),

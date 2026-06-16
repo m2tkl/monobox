@@ -116,6 +116,7 @@ fn main() {
             // Files
             commands::file::list_inbox_files,
             commands::file::import_inbox_file,
+            commands::file::import_inbox_entry,
             commands::file::create_external_file_link,
             commands::file::list_files,
             commands::file::get_file_detail,
