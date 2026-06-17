@@ -39,7 +39,6 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
           toast.add({ title: 'Copied as markdown.', icon: iconKey.success, duration: 1000 });
           return;
         case 'action/copy-html':
-        case 'action/copy-exported-result':
           toast.add({ title: 'Copied as html.', icon: iconKey.success, duration: 1000 });
           return;
         case 'action/copy-link-to-heading':
@@ -53,7 +52,6 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
     switch (action.type) {
       case 'action/copy-markdown':
       case 'action/copy-html':
-      case 'action/copy-exported-result':
       case 'action/copy-selected-markdown':
       case 'action/copy-link-to-heading':
       case 'action/toggle-bookmark':
@@ -85,8 +83,6 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
           return clipboardActions.copyHtml();
         case 'action/export-with-linked-pages':
           return exportActions.openExportTargetSelection();
-        case 'action/copy-exported-result':
-          return exportActions.copyExportedResult(action.textToCopy);
         case 'action/start-image-alt-editing':
           return editorActions.startImageAltEditing();
         case 'action/open-selected-image-preview':

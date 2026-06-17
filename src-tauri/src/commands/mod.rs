@@ -4,6 +4,7 @@ pub mod calendar_day;
 pub mod config;
 pub mod file;
 pub mod focus_memo;
+pub mod html_export;
 pub mod kanban;
 pub mod kanban_assignment;
 pub mod kanban_status;

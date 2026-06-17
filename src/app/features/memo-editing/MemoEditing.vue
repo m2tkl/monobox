@@ -500,11 +500,6 @@
         :export-candidates="exportCandidates"
         @select="(targets) => exportPagesV2(targets)"
       />
-      <ExportDialogToCopyResult
-        v-model:open="isCopyingResult"
-        :text-to-export="htmlExport"
-        @copy="(textToCopy) => void dispatchAction({ type: 'action/copy-exported-result', textToCopy })"
-      />
     </template>
   </NuxtLayout>
 </template>
@@ -530,7 +525,6 @@ import { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
 import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
 import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
-import ExportDialogToCopyResult from './view/share-memo/ExportDialogToCopyResult.vue';
 import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
 import { useMemoExport } from './view/share-memo/memoExport';
 import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
@@ -1205,7 +1199,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
       onSelect: () => { void dispatchAction({ type: 'action/copy-html' }); },
     },
     {
-      label: 'Export with linked pages',
+      label: 'Export HTML',
       icon: iconKey.pageLink,
       onSelect: () => { void dispatchAction({ type: 'action/export-with-linked-pages' }); },
     },
@@ -1526,7 +1520,7 @@ const createExternalFileAndInsert = async () => {
 };
 
 /* --- Export with related pages (Step1: select targets) --- */
-const { exportMode, htmlExport, isSelectingTargets, isCopyingResult, exportCandidates, exportPagesV2 } = useMemoExport({
+const { exportMode, isSelectingTargets, exportCandidates, exportPagesV2 } = useMemoExport({
   workspaceSlug: () => workspaceSlug.value,
   links: computed(() => memoVM.value.data.links),
   editor,
@@ -1556,9 +1550,6 @@ const { dispatchAction } = useMemoEditingActions({
   export: {
     openExportTargetSelection: () => {
       exportMode.value = 'selectingTargets';
-    },
-    finishExportCopying: () => {
-      exportMode.value = 'idle';
     },
   },
 });

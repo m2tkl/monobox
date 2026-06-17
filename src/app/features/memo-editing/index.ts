@@ -36,7 +36,6 @@ export { default as MemoLinkCardView } from './view/navigate-memo/MemoLinkCardVi
 export { default as OutlinePanel } from './view/navigate-memo/OutlinePanel.vue';
 export { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
 export { buildUntitledMemoTitle } from './untitledMemoTitle';
-export { default as ExportDialogToCopyResult } from './view/share-memo/ExportDialogToCopyResult.vue';
 export { default as ExportDialogToSelectTargets } from './view/share-memo/ExportDialogToSelectTargets.vue';
 export { convertMemoToHtml } from './view/share-memo/converters';
 export { useMemoCopy } from './view/share-memo/memoCopy';

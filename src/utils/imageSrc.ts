@@ -1,3 +1,5 @@
+import { isWindows } from './platform';
+
 /**
  * NOTE: This function addresses the inconsistency in how `asset://` URLs are handled
  * across different operating systems (Windows and macOS).

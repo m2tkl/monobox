@@ -172,6 +172,8 @@ fn main() {
             commands::memo_template::delete_memo_template,
             commands::memo_template::set_default_memo_template,
             commands::memo_template::clear_default_memo_template,
+            // HTML Export
+            commands::html_export::save_html_export,
             // Memo Status
             commands::kanban_status::list_kanban_statuses,
             commands::kanban_status::create_kanban_status,
@@ -200,6 +202,7 @@ fn main() {
             commands::bookmark::reorder_bookmark,
             // Asset
             commands::asset::save_image,
+            commands::asset::read_image_as_data_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tauri application");

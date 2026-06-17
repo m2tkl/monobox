@@ -5,7 +5,14 @@
     description="Select export targets from related links."
   >
     <template #body>
-      <ul>
+      <p
+        v-if="exportTargets.length === 0"
+        class="text-sm"
+        style="color: var(--color-text-secondary)"
+      >
+        Current page will be exported. No linked pages available.
+      </p>
+      <ul v-else>
         <li
           v-for="item in exportTargets"
           :key="item.id"
@@ -31,7 +38,7 @@
         <AppButton
           @click="$emit('select', exportTargets.filter(link => link.target))"
         >
-          Export
+          Download
         </AppButton>
       </div>
     </template>
@@ -63,18 +70,28 @@ const modalOpen = defineModel<boolean>('open');
 const exportTargets = ref<TargetPage[]>([]);
 
 /* --- Setup / Cleanup --- */
-watch(modalOpen, (isOpen) => {
+watch([
+  modalOpen,
+  () => props.exportCandidates,
+], ([isOpen]) => {
   if (isOpen) {
-    onDialogOpen();
+    syncExportTargets();
   }
   else {
     onDialogClose();
   }
-});
+}, { deep: true });
 
-const onDialogOpen = () => {
+const syncExportTargets = () => {
+  const selectedIds = new Set(
+    exportTargets.value
+      .filter(link => link.target)
+      .map(link => link.id),
+  );
+  const hasExistingSelection = exportTargets.value.length > 0;
+
   exportTargets.value = props.exportCandidates.map(
-    link => ({ ...link, target: true }),
+    link => ({ ...link, target: hasExistingSelection ? selectedIds.has(link.id) : true }),
   );
 };
 

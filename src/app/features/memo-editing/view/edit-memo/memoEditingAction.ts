@@ -8,7 +8,6 @@ export type MemoEditingAction =
   | { type: 'action/copy-markdown' }
   | { type: 'action/copy-html' }
   | { type: 'action/export-with-linked-pages' }
-  | { type: 'action/copy-exported-result'; textToCopy: string }
   | { type: 'action/start-image-alt-editing' }
   | { type: 'action/open-selected-image-preview' }
   | { type: 'action/open-link-palette' }
