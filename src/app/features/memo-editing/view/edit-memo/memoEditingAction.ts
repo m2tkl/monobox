@@ -1,5 +1,5 @@
 export type ActionResult<T = void> =
-  | { ok: true; data: T }
+  | { ok: true; data: T; silent?: boolean }
   | { ok: false; error?: unknown };
 
 export type MemoEditingAction =

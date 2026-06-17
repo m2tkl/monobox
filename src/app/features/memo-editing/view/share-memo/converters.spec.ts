@@ -1,6 +1,13 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 
-import { buildStandaloneHtmlDocument, convertMemoToHtml, createHtmlLink, embedImagesAsDataUrls } from './converters';
+import {
+  buildStandaloneHtmlDocument,
+  convertMemoToHtml,
+  createHtmlLink,
+  embedEditorJsonImagesAsDataUrls,
+  embedImagesAsDataUrls,
+  exportEditorJsonImagesForMarkdown,
+} from './converters';
 
 import type { JSONContent } from '@tiptap/vue-3';
 
@@ -16,6 +23,9 @@ vi.mock('~/external/tauri/command', () => ({
   command: {
     asset: {
       readImageAsDataUrl: vi.fn(async () => 'data:image/png;base64,aW1hZ2UtYnl0ZXM='),
+    },
+    textExport: {
+      saveMarkdownAsset: vi.fn(async () => 'assets/image.png'),
     },
   },
 }));
@@ -48,6 +58,46 @@ describe('memo/export - converters', () => {
 
     expect(html).toContain('<img src="data:image/png;base64,aW1hZ2UtYnl0ZXM="');
     expect(html).toContain('alt="Image"');
+  });
+
+  it('embedEditorJsonImagesAsDataUrls replaces image node src with data urls', async () => {
+    const json: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: 'asset://localhost/monobox/image.png',
+            alt: 'Image',
+          },
+        },
+      ],
+    };
+
+    const converted = await embedEditorJsonImagesAsDataUrls(json);
+
+    expect(converted.content?.[0]?.attrs?.src).toBe('data:image/png;base64,aW1hZ2UtYnl0ZXM=');
+    expect(json.content?.[0]?.attrs?.src).toBe('asset://localhost/monobox/image.png');
+  });
+
+  it('exportEditorJsonImagesForMarkdown replaces image node src with relative asset paths', async () => {
+    const json: JSONContent = {
+      type: 'doc',
+      content: [
+        {
+          type: 'image',
+          attrs: {
+            src: 'asset://localhost/monobox/image.png',
+            alt: 'Image',
+          },
+        },
+      ],
+    };
+
+    const converted = await exportEditorJsonImagesForMarkdown(json, '/tmp/Memo');
+
+    expect(converted.content?.[0]?.attrs?.src).toBe('assets/image.png');
+    expect(json.content?.[0]?.attrs?.src).toBe('asset://localhost/monobox/image.png');
   });
 
   it('buildStandaloneHtmlDocument creates a distributable html document', () => {

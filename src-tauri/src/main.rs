@@ -174,6 +174,9 @@ fn main() {
             commands::memo_template::clear_default_memo_template,
             // HTML Export
             commands::html_export::save_html_export,
+            commands::html_export::save_text_export,
+            commands::html_export::save_markdown_export,
+            commands::html_export::save_markdown_asset,
             // Memo Status
             commands::kanban_status::list_kanban_statuses,
             commands::kanban_status::create_kanban_status,

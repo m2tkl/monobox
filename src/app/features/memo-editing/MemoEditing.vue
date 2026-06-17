@@ -1189,7 +1189,7 @@ const contextMenuItems: DropdownMenuItem[][] = [
       onSelect: () => { void dispatchAction({ type: 'action/open-slide-mode' }); },
     },
     {
-      label: 'Copy as markdown',
+      label: 'Export Markdown',
       icon: iconKey.copy,
       onSelect: () => { void dispatchAction({ type: 'action/copy-markdown' }); },
     },

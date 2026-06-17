@@ -32,11 +32,15 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
   const toast = useToast();
 
   const notifyActionResult = (action: MemoEditingAction, result: ActionResult) => {
+    if (result.ok && result.silent) {
+      return;
+    }
+
     if (result.ok) {
       switch (action.type) {
         case 'action/copy-markdown':
         case 'action/copy-selected-markdown':
-          toast.add({ title: 'Copied as markdown.', icon: iconKey.success, duration: 1000 });
+          toast.add({ title: 'Exported markdown.', icon: iconKey.success, duration: 1000 });
           return;
         case 'action/copy-html':
           toast.add({ title: 'Copied as html.', icon: iconKey.success, duration: 1000 });

@@ -67,6 +67,50 @@ export async function embedImagesAsDataUrls(html: string): Promise<string> {
   return doc.body.innerHTML;
 }
 
+export async function embedEditorJsonImagesAsDataUrls(json: JSONContent): Promise<JSONContent> {
+  const content = json.content
+    ? await Promise.all(json.content.map(child => embedEditorJsonImagesAsDataUrls(child)))
+    : undefined;
+  const next: JSONContent = {
+    ...json,
+    ...(content ? { content } : {}),
+  };
+
+  if (json.type === 'image' && typeof json.attrs?.src === 'string') {
+    next.attrs = {
+      ...json.attrs,
+      src: await imageSrcToDataUrl(json.attrs.src),
+    };
+  }
+
+  return next;
+}
+
+export async function exportEditorJsonImagesForMarkdown(
+  json: JSONContent,
+  directoryPath: string,
+): Promise<JSONContent> {
+  const content = json.content
+    ? await Promise.all(json.content.map(child => exportEditorJsonImagesForMarkdown(child, directoryPath)))
+    : undefined;
+  const next: JSONContent = {
+    ...json,
+    ...(content ? { content } : {}),
+  };
+
+  if (json.type === 'image' && typeof json.attrs?.src === 'string') {
+    next.attrs = {
+      ...json.attrs,
+      src: await command.textExport.saveMarkdownAsset({
+        directoryPath,
+        src: json.attrs.src,
+      }),
+    };
+  }
+
+  return next;
+}
+
 export function buildStandaloneHtmlDocument(bodyHtml: string, title: string): string {
   return `<!doctype html>
 <html lang="ja">

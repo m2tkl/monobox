@@ -1,9 +1,12 @@
-import { convertMemoToHtml, createHtmlLink } from './converters';
+import { save } from '@tauri-apps/plugin-dialog';
+
+import { convertMemoToHtml, createHtmlLink, exportEditorJsonImagesForMarkdown } from './converters';
 
 import type { Editor as _Editor } from '@tiptap/core';
 
 import { EditorQuery, convertToMarkdown } from '~/app/features/editor';
-import { writeHtml, writeText } from '~/external/tauri/clipboard';
+import { writeHtml } from '~/external/tauri/clipboard';
+import { command } from '~/external/tauri/command';
 
 /**
  * Frontend actions for copy operations used on the memo page.
@@ -13,8 +16,13 @@ export function useMemoCopy() {
 
   const copyPageAsMarkdown = async (editor: _Editor, title: string) => {
     try {
-      const markdown = convertToMarkdown(editor.state.doc, title);
-      await writeText(markdown);
+      const directoryPath = await selectMarkdownDirectory(sanitizeFileName(title || 'memo'));
+      if (!directoryPath) {
+        return { ok: true as const, data: undefined, silent: true };
+      }
+      const json = await exportEditorJsonImagesForMarkdown(editor.getJSON(), directoryPath);
+      const markdown = convertToMarkdown(editor.schema.nodeFromJSON(json), title);
+      await saveMarkdown(directoryPath, markdown);
       return { ok: true as const, data: undefined };
     }
     catch (error) {
@@ -37,9 +45,14 @@ export function useMemoCopy() {
 
   const copySelectedTextAsMarkdown = async (editor: _Editor) => {
     try {
+      const directoryPath = await selectMarkdownDirectory('selection');
+      if (!directoryPath) {
+        return { ok: true as const, data: undefined, silent: true };
+      }
       const selectedContent = EditorQuery.getSelectedNode(editor);
-      const markdown = convertToMarkdown(selectedContent);
-      await navigator.clipboard.writeText(markdown);
+      const json = await exportEditorJsonImagesForMarkdown(selectedContent.toJSON(), directoryPath);
+      const markdown = convertToMarkdown(editor.schema.nodeFromJSON(json));
+      await saveMarkdown(directoryPath, markdown);
       return { ok: true as const, data: undefined };
     }
     catch (error) {
@@ -66,4 +79,25 @@ export function useMemoCopy() {
     copySelectedTextAsMarkdown,
     copyLinkToHeading,
   };
+}
+
+async function selectMarkdownDirectory(defaultFolderName: string): Promise<string | null> {
+  return await save({
+    title: 'Export Markdown Folder',
+    defaultPath: defaultFolderName,
+  });
+}
+
+async function saveMarkdown(directoryPath: string, markdown: string) {
+  await command.textExport.saveMarkdown({ directoryPath, content: markdown });
+}
+
+function sanitizeFileName(name: string): string {
+  const sanitized = name
+    .trim()
+    .replaceAll(/[\\/:*?"<>|]/g, '-')
+    .replaceAll(/\s+/g, ' ')
+    .slice(0, 80);
+
+  return sanitized || 'memo';
 }
