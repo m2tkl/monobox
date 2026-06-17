@@ -1,30 +1,28 @@
 <template>
-  <UModal
+  <AppDialog
     v-model:open="modalOpen"
     title="Export pages as HTML"
     description="Select export targets from related links."
   >
-    <template #body>
-      <p
-        v-if="exportTargets.length === 0"
-        class="text-sm"
-        style="color: var(--color-text-secondary)"
+    <p
+      v-if="exportTargets.length === 0"
+      class="text-sm"
+      style="color: var(--color-text-secondary)"
+    >
+      Current page will be exported. No linked pages available.
+    </p>
+    <ul v-else>
+      <li
+        v-for="item in exportTargets"
+        :key="item.id"
+        class="flex gap-1 items-center"
       >
-        Current page will be exported. No linked pages available.
-      </p>
-      <ul v-else>
-        <li
-          v-for="item in exportTargets"
-          :key="item.id"
-          class="flex gap-1 items-center"
-        >
-          <AppCheckbox v-model="item.target" />
-          <span>
-            {{ item.title }}
-          </span>
-        </li>
-      </ul>
-    </template>
+        <AppCheckbox
+          v-model="item.target"
+          :label="item.title"
+        />
+      </li>
+    </ul>
 
     <template #footer>
       <div class="flex justify-end gap-2">
@@ -42,11 +40,13 @@
         </AppButton>
       </div>
     </template>
-  </UModal>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
 import type { Link } from '~/models/link';
+
+import AppDialog from '~/app/elements/overlays/AppDialog.vue';
 
 type TargetPage = Link & { target: boolean };
 
@@ -62,7 +62,7 @@ defineEmits<{
 /**
  * Dialog open/close state
  */
-const modalOpen = defineModel<boolean>('open');
+const modalOpen = defineModel<boolean>('open', { required: true });
 
 /**
  * Export targets
@@ -91,7 +91,7 @@ const syncExportTargets = () => {
   const hasExistingSelection = exportTargets.value.length > 0;
 
   exportTargets.value = props.exportCandidates.map(
-    link => ({ ...link, target: hasExistingSelection ? selectedIds.has(link.id) : true }),
+    link => ({ ...link, target: hasExistingSelection ? selectedIds.has(link.id) : false }),
   );
 };
 
