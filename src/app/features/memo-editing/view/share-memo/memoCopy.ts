@@ -1,6 +1,6 @@
 import { save } from '@tauri-apps/plugin-dialog';
 
-import { convertMemoToHtml, createHtmlLink, exportEditorJsonImagesForMarkdown } from './converters';
+import { createHtmlLink, exportEditorJsonImagesForMarkdown } from './converters';
 
 import type { Editor as _Editor } from '@tiptap/core';
 
@@ -23,18 +23,6 @@ export function useMemoCopy() {
       const json = await exportEditorJsonImagesForMarkdown(editor.getJSON(), directoryPath);
       const markdown = convertToMarkdown(editor.schema.nodeFromJSON(json), title);
       await saveMarkdown(directoryPath, markdown);
-      return { ok: true as const, data: undefined };
-    }
-    catch (error) {
-      logger.error(error);
-      return { ok: false as const, error };
-    }
-  };
-
-  const copyPageAsHtml = async (editor: _Editor, title: string) => {
-    try {
-      const html = convertMemoToHtml(editor.getJSON(), title);
-      await writeHtml(html);
       return { ok: true as const, data: undefined };
     }
     catch (error) {
@@ -75,7 +63,6 @@ export function useMemoCopy() {
 
   return {
     copyPageAsMarkdown,
-    copyPageAsHtml,
     copySelectedTextAsMarkdown,
     copyLinkToHeading,
   };

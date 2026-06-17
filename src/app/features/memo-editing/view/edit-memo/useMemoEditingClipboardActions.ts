@@ -12,27 +12,21 @@ export type UseMemoEditingClipboardActionsDeps = {
 export function useMemoEditingClipboardActions(options: UseMemoEditingClipboardActionsDeps) {
   const {
     copyPageAsMarkdown,
-    copyPageAsHtml,
     copySelectedTextAsMarkdown,
     copyLinkToHeading,
   } = useMemoCopy();
 
-  const copyMarkdown = (): Promise<ActionResult> | ActionResult => options.editor.value
+  const exportMarkdown = (): Promise<ActionResult> | ActionResult => options.editor.value
     ? copyPageAsMarkdown(options.editor.value, options.memoTitle.value)
     : { ok: false };
 
-  const copyHtml = (): Promise<ActionResult> | ActionResult => options.editor.value
-    ? copyPageAsHtml(options.editor.value, options.memoTitle.value)
-    : { ok: false };
-
-  const copySelectedMarkdown = (): Promise<ActionResult> | ActionResult => options.editor.value
+  const exportSelectedMarkdown = (): Promise<ActionResult> | ActionResult => options.editor.value
     ? copySelectedTextAsMarkdown(options.editor.value)
     : { ok: false };
 
   return {
-    copyMarkdown,
-    copyHtml,
-    copySelectedMarkdown,
+    exportMarkdown,
+    exportSelectedMarkdown,
     copyLinkToHeading,
   };
 }

@@ -1188,19 +1188,16 @@ const contextMenuItems: DropdownMenuItem[][] = [
       icon: iconKey.pageLink,
       onSelect: () => { void dispatchAction({ type: 'action/open-slide-mode' }); },
     },
+  ],
+  [
     {
       label: 'Export Markdown',
-      icon: iconKey.copy,
-      onSelect: () => { void dispatchAction({ type: 'action/copy-markdown' }); },
-    },
-    {
-      label: 'Copy as html',
-      icon: iconKey.html,
-      onSelect: () => { void dispatchAction({ type: 'action/copy-html' }); },
+      icon: iconKey.save,
+      onSelect: () => { void dispatchAction({ type: 'action/export-markdown' }); },
     },
     {
       label: 'Export HTML',
-      icon: iconKey.pageLink,
+      icon: iconKey.html,
       onSelect: () => { void dispatchAction({ type: 'action/export-with-linked-pages' }); },
     },
   ],
@@ -1255,8 +1252,8 @@ const bubbleMenuItems = [
   ],
   [
     {
-      icon: iconKey.copy,
-      action: () => { void dispatchAction({ type: 'action/copy-selected-markdown' }); },
+      icon: iconKey.save,
+      action: () => { void dispatchAction({ type: 'action/export-selected-markdown' }); },
     },
   ],
 ];
