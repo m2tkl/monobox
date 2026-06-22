@@ -3,7 +3,6 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { Slice, Fragment } from 'prosemirror-model';
 import { Plugin, PluginKey } from 'prosemirror-state';
 
-import type { EditorView } from '@tiptap/pm/view';
 import type { Node as ProseMirrorNode } from 'prosemirror-model';
 import type { EditorState } from 'prosemirror-state';
 
@@ -17,6 +16,7 @@ type HeadingExtensionOptions = {
 
 export const foldHeadingSectionsPluginKey = new PluginKey<ReadonlySet<string>>('foldHeadingSections');
 const headingFoldStateByStorageKey = new Map<string, Set<string>>();
+const headingSelector = 'h1, h2, h3, h4, h5, h6';
 
 export function getHeadingFoldKey(node: ProseMirrorNode, pos: number) {
   return typeof node.attrs.id === 'string' && node.attrs.id.length > 0
@@ -56,33 +56,39 @@ function pruneMissingHeadingKeys(doc: ProseMirrorNode, keys: ReadonlySet<string>
   return new Set([...keys].filter(key => availableKeys.has(key)));
 }
 
-function createHeadingFoldButton(view: EditorView, pos: number, key: string, collapsed: boolean) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'custom-heading-fold-button';
-  button.setAttribute('contenteditable', 'false');
-  button.setAttribute('aria-label', collapsed ? 'Expand section' : 'Collapse section');
-  button.dataset.collapsed = collapsed ? 'true' : 'false';
+function parseCssLength(value: string, fallbackPx: number) {
+  const trimmed = value.trim();
+  const numeric = Number.parseFloat(trimmed);
+  if (!Number.isFinite(numeric)) {
+    return fallbackPx;
+  }
 
-  button.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  if (trimmed.endsWith('rem')) {
+    const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+    return numeric * (Number.isFinite(rootFontSize) ? rootFontSize : 16);
+  }
 
-    const node = view.state.doc.nodeAt(pos);
-    if (!node || node.type.name !== 'heading') {
-      return;
-    }
+  if (trimmed.endsWith('em')) {
+    return numeric * fallbackPx;
+  }
 
-    view.dispatch(
-      view.state.tr.setMeta(foldHeadingSectionsPluginKey, {
-        type: 'toggle',
-        key,
-      } satisfies FoldHeadingSectionsMeta),
-    );
-    view.focus();
-  });
+  return numeric;
+}
 
-  return button;
+function isHeadingFoldControlClick(headingElement: HTMLElement, event: MouseEvent) {
+  const rect = headingElement.getBoundingClientRect();
+  const style = getComputedStyle(headingElement);
+  const fontSize = Number.parseFloat(style.fontSize);
+  const baseSize = Number.isFinite(fontSize) ? fontSize : 16;
+  const gutter = parseCssLength(style.getPropertyValue('--heading-fold-gutter'), baseSize * 1.5);
+  const controlSize = parseCssLength('1.1rem', baseSize * 1.1);
+  const centerX = rect.left - gutter / 2;
+  const centerY = rect.top + baseSize * 0.55;
+
+  return event.clientX >= centerX - controlSize / 2
+    && event.clientX <= centerX + controlSize / 2
+    && event.clientY >= centerY - controlSize / 2
+    && event.clientY <= centerY + controlSize / 2;
 }
 
 export const foldHeadingSectionsPlugin = (options: HeadingExtensionOptions = {}) => new Plugin({
@@ -126,6 +132,37 @@ export const foldHeadingSectionsPlugin = (options: HeadingExtensionOptions = {})
     },
   },
   props: {
+    handleDOMEvents: {
+      click(view, event) {
+        if (event.button !== 0 || !(event.target instanceof Element)) {
+          return false;
+        }
+
+        const headingElement = event.target.closest<HTMLElement>(headingSelector);
+        if (!headingElement || !view.dom.contains(headingElement)) {
+          return false;
+        }
+
+        if (!isHeadingFoldControlClick(headingElement, event)) {
+          return false;
+        }
+
+        const heading = findHeadingAtSelection(view.state.doc, view.posAtDOM(headingElement, 0));
+        if (!heading) {
+          return false;
+        }
+
+        event.preventDefault();
+        view.dispatch(
+          view.state.tr.setMeta(foldHeadingSectionsPluginKey, {
+            type: 'toggle',
+            key: getHeadingFoldKey(heading.node, heading.pos),
+          } satisfies FoldHeadingSectionsMeta),
+        );
+        view.focus();
+        return true;
+      },
+    },
     handleKeyDown(view, event) {
       if (event.key !== 'Enter') {
         return false;
@@ -170,14 +207,10 @@ export const foldHeadingSectionsPlugin = (options: HeadingExtensionOptions = {})
             }));
           }
 
-          decorations.push(Decoration.widget(
-            pos + 1,
-            view => createHeadingFoldButton(view, pos, key, collapsed),
-            {
-              key: `heading-fold-${key}-${collapsed ? 'closed' : 'open'}`,
-              side: -1,
-            },
-          ));
+          decorations.push(Decoration.node(pos, pos + node.nodeSize, {
+            'class': 'custom-heading-foldable',
+            'data-collapsed': collapsed ? 'true' : 'false',
+          }));
 
           if (collapsed) {
             collapsedStack.push({ level });

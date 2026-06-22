@@ -61,61 +61,62 @@
   color: var(--color-text-primary);
 }
 
-.tiptap .custom-heading-fold-button {
+.tiptap .custom-heading-foldable::before {
+  content: "";
   position: absolute;
   left: calc(var(--heading-fold-gutter) / -2);
   top: 0.55em;
-  display: grid;
-  place-items: center;
   width: 1.1rem;
   height: 1.1rem;
-  border: 0;
   border-radius: 3px;
   background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
   opacity: 0;
-  padding: 0;
   transform: translate(-50%, -50%);
   transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
 }
 
-.tiptap .custom-heading-fold-button::before {
+.tiptap .custom-heading-foldable::after {
   content: "";
+  position: absolute;
+  left: calc(var(--heading-fold-gutter) / -2);
+  top: 0.55em;
   width: 0;
   height: 0;
   border-left: 0.25rem solid transparent;
   border-right: 0.25rem solid transparent;
   border-top: 0.32rem solid currentColor;
+  color: var(--color-text-secondary);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -35%);
+  transition: opacity 120ms ease, color 120ms ease;
 }
 
-.tiptap .custom-heading-fold-button[data-collapsed="true"]::before {
+.tiptap .custom-heading-foldable[data-collapsed="true"]::after {
   border-top: 0.25rem solid transparent;
   border-bottom: 0.25rem solid transparent;
   border-left: 0.32rem solid currentColor;
   border-right: 0;
+  transform: translate(-35%, -50%);
 }
 
-.tiptap h1:hover .custom-heading-fold-button,
-.tiptap h2:hover .custom-heading-fold-button,
-.tiptap h3:hover .custom-heading-fold-button,
-.tiptap h4:hover .custom-heading-fold-button,
-.tiptap h5:hover .custom-heading-fold-button,
-.tiptap h6:hover .custom-heading-fold-button,
-.tiptap .custom-heading-fold-button[data-collapsed="true"] {
+.tiptap .custom-heading-foldable:hover::before,
+.tiptap .custom-heading-foldable:hover::after,
+.tiptap .custom-heading-foldable[data-collapsed="true"]::before,
+.tiptap .custom-heading-foldable[data-collapsed="true"]::after {
   opacity: 0.72;
 }
 
-.tiptap .custom-heading-fold-button:hover,
-.tiptap .custom-heading-fold-button:focus-visible {
+.tiptap .custom-heading-foldable:hover::before {
   background: var(--color-surface-hover);
-  color: var(--color-text-primary);
   opacity: 1;
 }
 
-.tiptap .custom-heading-fold-button:focus-visible {
-  outline: 2px solid var(--color-border-focus);
-  outline-offset: 2px;
+.tiptap .custom-heading-foldable:hover::after {
+  color: var(--color-text-primary);
+  opacity: 1;
 }
 
 .tiptap .custom-heading-collapsed {

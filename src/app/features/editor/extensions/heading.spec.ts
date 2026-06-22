@@ -12,6 +12,31 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
       content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'x' }] }] },
     });
 
+  function clickHeadingFoldControl(editor: VueEditor, id: string) {
+    const heading = editor.view.dom.querySelector<HTMLElement>(`[id="${id}"]`);
+    expect(heading).not.toBeNull();
+    heading!.getBoundingClientRect = () => ({
+      x: 100,
+      y: 40,
+      width: 200,
+      height: 24,
+      top: 40,
+      right: 300,
+      bottom: 64,
+      left: 100,
+      toJSON: () => ({}),
+    });
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      clientX: 88,
+      clientY: 49,
+    });
+    Object.defineProperty(event, 'target', { value: heading });
+    editor.view.someProp('handleDOMEvents', handlers => handlers.click?.(editor.view, event));
+  }
+
   it('removes id attribute from pasted heading nodes', () => {
     const editor = createEditor();
     const { schema } = editor;
@@ -92,19 +117,42 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
       },
     });
 
-    const button = editor.view.dom.querySelector<HTMLButtonElement>('.custom-heading-fold-button');
-    expect(button).not.toBeNull();
-    button!.click();
+    clickHeadingFoldControl(editor, 'a');
 
     expect(foldHeadingSectionsPluginKey.getState(editor.state)?.has('a')).toBe(true);
     expect(JSON.stringify(editor.getJSON())).not.toContain('collapsed');
     expect(editor.view.dom.querySelectorAll('.heading-collapsed-hidden')).toHaveLength(3);
     expect(editor.view.dom.querySelector('[id="c"]')?.classList.contains('heading-collapsed-hidden')).toBe(false);
 
-    editor.view.dom.querySelector<HTMLButtonElement>('.custom-heading-fold-button')!.click();
+    clickHeadingFoldControl(editor, 'a');
 
     expect(foldHeadingSectionsPluginKey.getState(editor.state)?.has('a')).toBe(false);
     expect(editor.view.dom.querySelectorAll('.heading-collapsed-hidden')).toHaveLength(0);
+
+    editor.destroy();
+  });
+
+  it('draws the fold control without inserting a widget into heading text positions', () => {
+    const editor = new VueEditor({
+      extensions: [StarterKit.configure({ heading: false }), headingExtension()],
+      content: {
+        type: 'doc',
+        content: [
+          { type: 'heading', attrs: { level: 1, id: 'a' }, content: [{ type: 'text', text: 'A' }] },
+          { type: 'paragraph', content: [{ type: 'text', text: 'A body' }] },
+        ],
+      },
+    });
+
+    const decorationSet = editor.view.someProp('decorations', decorations => decorations(editor.state));
+    const foldableHeadingDecoration = decorationSet
+      ?.find(0, 3)
+      .find(decoration => decoration.from === 0 && decoration.to === 3);
+
+    expect(foldableHeadingDecoration?.from).toBe(0);
+    expect(foldableHeadingDecoration?.to).toBe(3);
+    expect(editor.view.dom.querySelector('.custom-heading-fold-button')).toBeNull();
+    expect(editor.view.dom.querySelector('[id="a"]')?.classList.contains('custom-heading-foldable')).toBe(true);
 
     editor.destroy();
   });
@@ -127,7 +175,7 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
     });
 
     const firstEditor = createPersistentEditor();
-    firstEditor.view.dom.querySelector<HTMLButtonElement>('.custom-heading-fold-button')!.click();
+    clickHeadingFoldControl(firstEditor, 'a');
 
     expect(foldHeadingSectionsPluginKey.getState(firstEditor.state)?.has('a')).toBe(true);
     expect(JSON.stringify(firstEditor.getJSON())).not.toContain('collapsed');
