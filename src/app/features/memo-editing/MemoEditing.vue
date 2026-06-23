@@ -1643,7 +1643,6 @@ a.external-link {
 
 .template-suggestion-shell {
   max-width: 820px;
-  margin: 0 auto;
   padding: 0 1.5rem;
   background-color: var(--color-surface-elevated);
 }
