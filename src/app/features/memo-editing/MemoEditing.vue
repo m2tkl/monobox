@@ -1252,8 +1252,8 @@ const bubbleMenuItems = [
   ],
   [
     {
-      icon: iconKey.save,
-      action: () => { void dispatchAction({ type: 'action/export-selected-markdown' }); },
+      icon: iconKey.copy,
+      action: () => { void dispatchAction({ type: 'action/copy-selected-markdown' }); },
     },
   ],
 ];

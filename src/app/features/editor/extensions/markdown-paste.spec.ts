@@ -162,6 +162,7 @@ describe('editor/extensions/markdown-paste', () => {
     expect(slice.content.toJSON()).toEqual([
       {
         type: 'table',
+        attrs: { name: '' },
         content: [
           {
             type: 'tableRow',

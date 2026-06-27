@@ -20,13 +20,13 @@ export function useMemoEditingClipboardActions(options: UseMemoEditingClipboardA
     ? copyPageAsMarkdown(options.editor.value, options.memoTitle.value)
     : { ok: false };
 
-  const exportSelectedMarkdown = (): Promise<ActionResult> | ActionResult => options.editor.value
+  const copySelectedMarkdown = (): Promise<ActionResult> | ActionResult => options.editor.value
     ? copySelectedTextAsMarkdown(options.editor.value)
     : { ok: false };
 
   return {
     exportMarkdown,
-    exportSelectedMarkdown,
+    copySelectedMarkdown,
     copyLinkToHeading,
   };
 }

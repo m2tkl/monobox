@@ -5,6 +5,8 @@ import { describe, it, expect } from 'vitest';
 
 import { foldHeadingSectionsPluginKey, headingExtension, removeHeadingIdOnPastePlugin } from './heading';
 
+import type { DecorationSet } from '@tiptap/pm/view';
+
 describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
   const createEditor = () =>
     new VueEditor({
@@ -144,7 +146,10 @@ describe('editor/extensions/heading - removeHeadingIdOnPastePlugin', () => {
       },
     });
 
-    const decorationSet = editor.view.someProp('decorations', decorations => decorations(editor.state));
+    const decorationSet = editor.view.someProp(
+      'decorations',
+      decorations => decorations(editor.state) as DecorationSet,
+    );
     const foldableHeadingDecoration = decorationSet
       ?.find(0, 3)
       .find(decoration => decoration.from === 0 && decoration.to === 3);

@@ -52,7 +52,6 @@ describe('memo editing machine', () => {
     expect(result).toEqual({
       state: { type: 'clean' },
       effects: [
-        { type: 'effect/notify-save-succeeded' },
         { type: 'effect/snapshot-saved' },
         { type: 'effect/replace-memo-route', memoSlug: 'saved-slug' },
       ],
