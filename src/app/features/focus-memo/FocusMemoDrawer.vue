@@ -108,8 +108,13 @@
             v-for="memo in sortedDisplayItems"
             :key="memo.id"
             class="focus-card"
+            :class="{ 'focus-card--current': memo.slug_title === currentMemoSlug }"
           >
-            <NuxtLink :to="`/${workspaceSlug}/${memo.slug_title}`">
+            <NuxtLink
+              :to="`/${workspaceSlug}/${memo.slug_title}`"
+              class="focus-card-link"
+              :aria-current="memo.slug_title === currentMemoSlug ? 'page' : undefined"
+            >
               <MemoThumbnail
                 :title="extractMemoTitle(memo.title)"
                 :context="extractMemoContext(memo.title)"
@@ -224,7 +229,7 @@ import {
 import MemoThumbnail from '~/app/features/memo-browsing/view/memo-browsing/MemoThumbnail.vue';
 import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
-import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
+import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 type FocusSortMode = 'focused' | 'updated';
 type FocusViewMode = 'active' | 'done';
@@ -242,6 +247,7 @@ defineProps<{
 const route = useRoute();
 const { ui } = useUIState();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+const currentMemoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 const isPickerOpen = ref(false);
 const pickerQuery = ref('');
 const selectedMemoSlugs = ref(new Set<string>());
@@ -555,9 +561,37 @@ async function markDoneForToday(memoSlug: string) {
 
 .focus-card {
   position: relative;
+  z-index: 0;
   width: 10rem;
   height: 10rem;
   min-width: 10rem;
+  border-radius: 0.625rem;
+}
+
+.focus-card::before {
+  position: absolute;
+  inset: -0.25rem;
+  z-index: 0;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  content: '';
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.focus-card-link {
+  position: relative;
+  z-index: 0;
+  display: block;
+  border-radius: 0.625rem;
+}
+
+.focus-card--current::before {
+  border-color: color-mix(in srgb, var(--color-primary) 58%, transparent);
+  background: color-mix(in srgb, var(--color-primary-light) 42%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
 .focus-drawer--expanded .focus-card {
@@ -570,6 +604,7 @@ async function markDoneForToday(memoSlug: string) {
   position: absolute;
   right: 0.375rem;
   bottom: 0.375rem;
+  z-index: 1;
   display: flex;
   gap: 0.25rem;
   border-radius: 0.5rem;
@@ -582,6 +617,7 @@ async function markDoneForToday(memoSlug: string) {
   position: absolute;
   bottom: 0.375rem;
   left: 0.375rem;
+  z-index: 1;
   display: flex;
   gap: 0.25rem;
   pointer-events: none;
