@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { publishResourceChanges, registerActiveQuery } from './query-runtime';
+
 import { changeRefs } from '~/resources/changes';
 import { resourceRefs } from '~/resources/refs';
 

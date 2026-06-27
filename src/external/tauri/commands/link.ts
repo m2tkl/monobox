@@ -1,6 +1,7 @@
 import { invokeCommand } from '../core/invoker';
 
 import type { Link, MemoLinkCount } from '~/models/link';
+
 import { encodeForSlug } from '~/utils/slug';
 
 export const normalizeSlugSegment = (segment: string): string => {

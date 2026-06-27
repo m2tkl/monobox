@@ -8,31 +8,40 @@
 
 import withNuxt from './.nuxt/eslint.config.mjs';
 
-export default withNuxt({
-  rules: {
-    'import/order': [
-      'error',
-      {
-        'groups': [
-          'builtin',
-          'external',
-          'internal',
-          ['parent', 'sibling', 'index'],
-          'object',
-          'type',
-        ],
-        'newlines-between': 'always',
-        'alphabetize': {
-          order: 'asc',
-          caseInsensitive: true,
-        },
-      },
+export default withNuxt(
+  {
+    name: 'monobox/ignores',
+    ignores: [
+      'scripts/**',
+      'src-tauri/target/**',
     ],
-    'vue/no-multiple-template-root': 'off',
-    'vue/multi-word-component-names': 'off',
-    'vue/no-v-html': 'off',
   },
-});
+  {
+    rules: {
+      'import/order': [
+        'error',
+        {
+          'groups': [
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
+            'object',
+            'type',
+          ],
+          'newlines-between': 'always',
+          'alphabetize': {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+      'vue/no-multiple-template-root': 'off',
+      'vue/multi-word-component-names': 'off',
+      'vue/no-v-html': 'off',
+    },
+  },
+);
 // .append(
 //   pluginTailwindCss.configs['flat/recommended'],
 // ).append({
