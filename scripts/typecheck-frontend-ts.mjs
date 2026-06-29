@@ -35,7 +35,7 @@ const tempTsconfigPath = join(workspaceRoot, '.typecheck-frontend-ts.tmp.json');
 writeFileSync(
   tempTsconfigPath,
   `${JSON.stringify({
-    extends: resolve(workspaceRoot, '.nuxt/tsconfig.json'),
+    extends: resolve(workspaceRoot, 'tsconfig.json'),
     files,
   }, null, 2)}\n`,
 );
