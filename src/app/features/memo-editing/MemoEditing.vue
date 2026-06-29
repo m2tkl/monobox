@@ -542,7 +542,7 @@ import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 import AppInput from '~/app/elements/AppInput.vue';
 import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
-import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent } from '~/app/features/editor';
+import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent, type SelectionCopyFormat } from '~/app/features/editor';
 import { mergeUniqueMemoItems } from '~/app/features/focus-memo/focusMemoUtils';
 import { useFocusMemoListReadModel, useGlobalStatusBoardReadModel, useTodayCalendarMemoListReadModel } from '~/app/features/memo-browsing';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
@@ -562,10 +562,12 @@ const router = useRouter();
 const toast = useToast();
 const { ui } = useUIState();
 const { workspaceSlug, memoSlug } = useMemoRouteTarget(route);
+const selectionCopyFormat = ref<SelectionCopyFormat>('html');
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
   TableComponent: TableComponent as Component<NodeViewProps>,
   getHeadingFoldStorageKey: () => `${workspaceSlug.value}/${memoSlug.value}`,
+  getSelectionCopyFormat: () => selectionCopyFormat.value,
 });
 const memoVM = useCurrentMemoReadModel();
 const globalStatusVM = useGlobalStatusBoardReadModel();
@@ -629,6 +631,17 @@ const logger = useConsoleLogger('pages/memo');
 const isMemoNotFoundError = (error: unknown) =>
   error instanceof AppError && error.message.includes('Memo not found for slug:');
 
+const loadSelectionCopyFormat = async () => {
+  try {
+    const config = await command.config.get();
+    selectionCopyFormat.value = normalizeSelectionCopyFormat(config.selection_copy_format);
+  }
+  catch (error) {
+    logger.error(error);
+    selectionCopyFormat.value = 'html';
+  }
+};
+
 const ensureMemoExistsAndLoad = async () => {
   try {
     await loadMemoEditingData({
@@ -666,11 +679,20 @@ const ensureMemoExistsAndLoad = async () => {
   }
 };
 
-await usePageLoader(ensureMemoExistsAndLoad);
+await usePageLoader(async () => {
+  await Promise.all([
+    ensureMemoExistsAndLoad(),
+    loadSelectionCopyFormat(),
+  ]);
+});
 await command.memo.recordView({
   workspaceSlugName: workspaceSlug.value,
   memoSlugTitle: memoSlug.value,
 });
+
+function normalizeSelectionCopyFormat(value: string | null | undefined): SelectionCopyFormat {
+  return value === 'markdown' ? 'markdown' : 'html';
+}
 
 const resolvedCurrentMemo = computed(() => {
   const memo = memoVM.value.data.memo;

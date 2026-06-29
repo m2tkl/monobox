@@ -3,6 +3,7 @@ export * from './file-link.js';
 export * from './image.js';
 export * from './list-normalization.js';
 export * from './markdown-paste.js';
+export * from './selection-copy.js';
 export * from './codeblock.js';
 export * from './codeblock-nav.js';
 export * from './table.js';

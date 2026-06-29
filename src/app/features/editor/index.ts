@@ -39,6 +39,7 @@ type BuildExtensionsOptions = {
   CodeBlockComponent: Component<NodeViewProps>;
   TableComponent?: Component<NodeViewProps>;
   getHeadingFoldStorageKey?: () => string | undefined;
+  getSelectionCopyFormat?: () => CustomExtension.SelectionCopyFormat;
 };
 
 /**
@@ -105,6 +106,9 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
     }),
     CustomExtension.listNormalizationExtension,
     CustomExtension.markdownPasteExtension,
+    CustomExtension.selectionCopyExtension.configure({
+      getFormat: options.getSelectionCopyFormat ?? (() => 'html'),
+    }),
     CustomExtension.codeBlockExtension(CodeBlockComponent),
     CustomExtension.codeBlockNavExtension(),
     CustomExtension.tableExtension(TableComponent),

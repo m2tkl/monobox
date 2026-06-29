@@ -6,7 +6,7 @@ use directories::ProjectDirs;
 use tauri::{command, AppHandle, State};
 use uuid::Uuid;
 
-use crate::config::{load_config, save_config};
+use crate::config::{default_selection_copy_format, load_config, save_config};
 use crate::global_shortcuts::{
     normalize_shortcut, update_global_shortcuts, GlobalShortcutSettings,
 };
@@ -23,6 +23,7 @@ pub struct ConfigPayload {
     pub app_window_opacity: f64,
     pub focus_app_shortcut: String,
     pub new_memo_shortcut: String,
+    pub selection_copy_format: String,
     pub mcp_server_url: String,
 }
 
@@ -68,6 +69,11 @@ pub struct GlobalShortcutArgs {
     pub new_memo_shortcut: String,
 }
 
+#[derive(serde::Deserialize)]
+pub struct SelectionCopyFormatArgs {
+    pub format: String,
+}
+
 #[command]
 pub fn get_app_config(mcp_server_info: State<McpServerInfo>) -> Result<ConfigPayload, String> {
     let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
@@ -88,6 +94,7 @@ fn build_config_payload(config: crate::config::AppConfig, mcp_server_url: &str) 
         app_window_opacity: config.app_window_opacity,
         focus_app_shortcut: config.focus_app_shortcut,
         new_memo_shortcut: config.new_memo_shortcut,
+        selection_copy_format: normalize_selection_copy_format(&config.selection_copy_format),
         mcp_server_url: mcp_server_url.to_string(),
     }
 }
@@ -102,6 +109,14 @@ fn normalize_inbox_ignore_file_names(file_names: &[String]) -> Vec<String> {
     names.sort_by_key(|name| name.to_lowercase());
     names.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
     names
+}
+
+fn normalize_selection_copy_format(format: &str) -> String {
+    match format {
+        "markdown" => "markdown".to_string(),
+        "html" => "html".to_string(),
+        _ => default_selection_copy_format(),
+    }
 }
 
 #[command]
@@ -326,6 +341,23 @@ pub fn set_app_window_opacity(
     let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
     config.app_window_opacity = opacity;
 
+    save_config(&config, &config_path)?;
+
+    Ok(build_config_payload(config, &mcp_server_info.url))
+}
+
+#[command]
+pub fn set_selection_copy_format(
+    args: SelectionCopyFormatArgs,
+    mcp_server_info: State<McpServerInfo>,
+) -> Result<ConfigPayload, String> {
+    let format = normalize_selection_copy_format(&args.format);
+    let proj_dirs = ProjectDirs::from("com", "m2tkl", "monobox")
+        .ok_or_else(|| "Failed to determine project directories".to_string())?;
+    let config_path = proj_dirs.config_dir().join("config.json");
+
+    let mut config = load_config(proj_dirs.config_dir(), proj_dirs.data_dir())?;
+    config.selection_copy_format = format;
     save_config(&config, &config_path)?;
 
     Ok(build_config_payload(config, &mcp_server_info.url))

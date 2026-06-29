@@ -10,6 +10,7 @@ export type AppConfigPayload = {
   app_window_opacity: number;
   focus_app_shortcut: string;
   new_memo_shortcut: string;
+  selection_copy_format: string;
   mcp_server_url: string;
 };
 
@@ -64,6 +65,10 @@ export const configCommand = {
 
   setAppWindowOpacity: async (opacity: number) => {
     return await invokeCommand<AppConfigPayload>('set_app_window_opacity', { opacity });
+  },
+
+  setSelectionCopyFormat: async (format: string) => {
+    return await invokeCommand<AppConfigPayload>('set_selection_copy_format', { format });
   },
 
   setInboxIgnoreFileNames: async (fileNames: string[]) => {

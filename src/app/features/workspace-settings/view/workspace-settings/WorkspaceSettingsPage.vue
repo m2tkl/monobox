@@ -271,6 +271,58 @@
                 </div>
               </UCard>
 
+              <AppCard
+                v-else-if="activePanel === 'editor'"
+                class="card-themed"
+              >
+                <template #header>
+                  <h4
+                    class="text-base font-semibold"
+                    style="color: var(--color-text-primary)"
+                  >
+                    Editor
+                  </h4>
+                </template>
+
+                <div class="space-y-5">
+                  <div class="settings-control">
+                    <div class="settings-control__label">
+                      <div
+                        class="text-sm font-medium"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Selection copy format
+                      </div>
+                      <div
+                        class="text-xs"
+                        style="color: var(--color-text-muted)"
+                      >
+                        Format used when copying selected text with the system copy shortcut.
+                      </div>
+                    </div>
+
+                    <AppSelect
+                      v-model="selectionCopyFormat"
+                      :items="selectionCopyFormatOptions"
+                      :disabled="isSelectionCopyFormatSaving"
+                    />
+
+                    <div class="settings-actions">
+                      <AppButton
+                        size="sm"
+                        color="primary"
+                        :icon="iconKey.save"
+                        :loading="isSelectionCopyFormatSaving"
+                        :disabled="!isSelectionCopyFormatDirty"
+                        @click="saveSelectionCopyFormat"
+                      >
+                        Save copy format
+                      </AppButton>
+                    </div>
+                  </div>
+                </div>
+              </AppCard>
+
               <UCard
                 v-else-if="activePanel === 'storage-paths'"
                 class="card-themed"
@@ -458,6 +510,7 @@ import { computed, ref } from 'vue';
 import { useWorkspaceSettings } from './useWorkspaceSettings';
 
 import AppButton from '~/app/elements/AppButton.vue';
+import AppCard from '~/app/elements/AppCard.vue';
 import AppInput from '~/app/elements/AppInput.vue';
 import AppTextarea from '~/app/elements/AppTextarea.vue';
 import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
@@ -477,6 +530,7 @@ type SettingsPanelId =
   | 'mcp-server'
   | 'global-shortcuts'
   | 'appearance'
+  | 'editor'
   | 'storage-paths'
   | 'files'
   | 'memo-templates'
@@ -526,8 +580,15 @@ const isGlobalShortcutSaving = ref(false);
 const savedInboxIgnoreFileNames = ref<string[]>([]);
 const inboxIgnoreFileNamesText = ref('');
 const isInboxIgnoreSaving = ref(false);
+const savedSelectionCopyFormat = ref('html');
+const selectionCopyFormat = ref('html');
+const isSelectionCopyFormatSaving = ref(false);
 const statusKanbanId = ref<number | null>(null);
 const isStatusBoardLoading = ref(false);
+const selectionCopyFormatOptions = [
+  { label: 'HTML', value: 'html' },
+  { label: 'Markdown', value: 'markdown' },
+];
 const mcpServerStatus = computed(() => {
   if (!mcpServerInfo.value) return 'Unavailable';
   if (mcpServerRestartRequired.value) return 'Pending restart';
@@ -543,6 +604,7 @@ const settingGroups = computed<SettingsNavGroup[]>(() => [
       { id: 'mcp-server', label: 'MCP' },
       { id: 'global-shortcuts', label: 'Shortcuts' },
       { id: 'appearance', label: 'Appearance' },
+      { id: 'editor', label: 'Editor' },
       { id: 'storage-paths', label: 'Storage' },
       { id: 'files', label: 'Files' },
     ],
@@ -580,6 +642,9 @@ const isGlobalShortcutDirty = computed(() => (
 const isInboxIgnoreDirty = computed(() => (
   normalizeInboxIgnoreFileNames(inboxIgnoreFileNamesText.value).join('\n')
   !== savedInboxIgnoreFileNames.value.join('\n')
+));
+const isSelectionCopyFormatDirty = computed(() => (
+  normalizeSelectionCopyFormat(selectionCopyFormat.value) !== savedSelectionCopyFormat.value
 ));
 
 const applyWindowOpacity = (opacity: number) => {
@@ -650,6 +715,8 @@ const loadAppAppearance = async () => {
     newMemoShortcut.value = config.new_memo_shortcut;
     savedInboxIgnoreFileNames.value = normalizeInboxIgnoreFileNames(config.inbox_ignore_file_names);
     inboxIgnoreFileNamesText.value = savedInboxIgnoreFileNames.value.join('\n');
+    savedSelectionCopyFormat.value = normalizeSelectionCopyFormat(config.selection_copy_format);
+    selectionCopyFormat.value = savedSelectionCopyFormat.value;
     applyWindowOpacity(config.app_window_opacity);
   }
   catch (error) {
@@ -685,6 +752,36 @@ const saveWindowOpacity = async () => {
   }
   finally {
     isWindowOpacitySaving.value = false;
+  }
+};
+
+const normalizeSelectionCopyFormat = (value: string | number | null | undefined) => (
+  value === 'markdown' ? 'markdown' : 'html'
+);
+
+const saveSelectionCopyFormat = async () => {
+  try {
+    isSelectionCopyFormatSaving.value = true;
+    const format = normalizeSelectionCopyFormat(selectionCopyFormat.value);
+    const config = await command.config.setSelectionCopyFormat(format);
+    savedSelectionCopyFormat.value = normalizeSelectionCopyFormat(config.selection_copy_format);
+    selectionCopyFormat.value = savedSelectionCopyFormat.value;
+    toast.add({
+      title: 'Saved copy format.',
+      duration: 1200,
+      icon: iconKey.success,
+    });
+  }
+  catch (error) {
+    console.error(error);
+    toast.add({
+      title: 'Failed to save copy format.',
+      color: 'error',
+      icon: iconKey.failed,
+    });
+  }
+  finally {
+    isSelectionCopyFormatSaving.value = false;
   }
 };
 

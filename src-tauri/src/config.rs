@@ -21,6 +21,8 @@ pub struct AppConfig {
     pub focus_app_shortcut: String,
     #[serde(default = "default_new_memo_shortcut")]
     pub new_memo_shortcut: String,
+    #[serde(default = "default_selection_copy_format")]
+    pub selection_copy_format: String,
     #[serde(default = "default_mcp_port")]
     pub mcp_port: u16,
     #[serde(default = "default_mcp_host")]
@@ -59,6 +61,10 @@ pub fn default_inbox_ignore_file_names() -> Vec<String> {
     vec!["desktop.ini".to_string()]
 }
 
+pub fn default_selection_copy_format() -> String {
+    "html".to_string()
+}
+
 fn default_mcp_token() -> String {
     String::new()
 }
@@ -75,6 +81,7 @@ impl Default for AppConfig {
             app_window_opacity: default_app_window_opacity(),
             focus_app_shortcut: default_focus_app_shortcut(),
             new_memo_shortcut: default_new_memo_shortcut(),
+            selection_copy_format: default_selection_copy_format(),
             mcp_port: default_mcp_port(),
             mcp_bind_host: default_mcp_host(),
             mcp_url_host: default_mcp_host(),
