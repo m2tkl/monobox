@@ -50,11 +50,11 @@ fn default_app_window_opacity() -> f64 {
 }
 
 pub fn default_focus_app_shortcut() -> String {
-    "CommandOrControl+Shift+M".to_string()
+    "CommandOrControl+Alt+Shift+M".to_string()
 }
 
 pub fn default_new_memo_shortcut() -> String {
-    "CommandOrControl+Shift+N".to_string()
+    "CommandOrControl+Alt+Shift+N".to_string()
 }
 
 pub fn default_inbox_ignore_file_names() -> Vec<String> {
@@ -175,4 +175,19 @@ pub fn save_config(config: &AppConfig, config_path: &PathBuf) -> Result<(), Stri
         .map_err(|e| format!("Failed to replace config file: {}", e))?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{default_focus_app_shortcut, default_new_memo_shortcut, AppConfig};
+
+    #[test]
+    fn app_config_defaults_use_modifier_alt_shift_global_shortcuts() {
+        let config = AppConfig::default();
+
+        assert_eq!(config.focus_app_shortcut, "CommandOrControl+Alt+Shift+M");
+        assert_eq!(config.new_memo_shortcut, "CommandOrControl+Alt+Shift+N");
+        assert_eq!(default_focus_app_shortcut(), "CommandOrControl+Alt+Shift+M");
+        assert_eq!(default_new_memo_shortcut(), "CommandOrControl+Alt+Shift+N");
+    }
 }

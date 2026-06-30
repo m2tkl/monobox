@@ -145,7 +145,7 @@
                 </template>
 
                 <div class="space-y-5">
-                  <div class="settings-control">
+                  <div class="settings-control settings-control--shortcut">
                     <div class="settings-control__label">
                       <div
                         class="text-sm font-medium"
@@ -160,14 +160,13 @@
                         Bring monobox to the front
                       </div>
                     </div>
-                    <AppInput
+                    <ShortcutBuilder
                       v-model="focusAppShortcut"
-                      placeholder="CommandOrControl+Shift+M"
                       :disabled="isGlobalShortcutSaving"
                     />
                   </div>
 
-                  <div class="settings-control">
+                  <div class="settings-control settings-control--shortcut">
                     <div class="settings-control__label">
                       <div
                         class="text-sm font-medium"
@@ -182,9 +181,8 @@
                         Create a memo in the active workspace
                       </div>
                     </div>
-                    <AppInput
+                    <ShortcutBuilder
                       v-model="newMemoShortcut"
-                      placeholder="CommandOrControl+Shift+N"
                       :disabled="isGlobalShortcutSaving"
                     />
                   </div>
@@ -507,11 +505,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
+import ShortcutBuilder from './ShortcutBuilder.vue';
 import { useWorkspaceSettings } from './useWorkspaceSettings';
 
 import AppButton from '~/app/elements/AppButton.vue';
 import AppCard from '~/app/elements/AppCard.vue';
-import AppInput from '~/app/elements/AppInput.vue';
 import AppTextarea from '~/app/elements/AppTextarea.vue';
 import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
 import ConfirmModal from '~/app/elements/overlays/ConfirmModal.vue';
@@ -1095,6 +1093,10 @@ await usePageLoader(async () => {
 
 .settings-control {
   max-width: 360px;
+}
+
+.settings-control--shortcut {
+  max-width: 30rem;
 }
 
 .settings-control__label {
