@@ -21,8 +21,9 @@ pub fn list_kanban_statuses(args: ListKanbanStatusesArgs) -> Result<Vec<KanbanSt
     let kanban_id = if let Some(id) = args.kanban_id {
         id
     } else {
-        let kanban = crate::repositories::KanbanRepository::ensure_global_status_board(&conn, workspace.id)
-            .map_err(|e| e.to_string())?;
+        let kanban =
+            crate::repositories::KanbanRepository::ensure_global_status_board(&conn, workspace.id)
+                .map_err(|e| e.to_string())?;
         kanban.id
     };
 
@@ -49,8 +50,9 @@ pub fn create_kanban_status(args: CreateKanbanStatusArgs) -> Result<KanbanStatus
     let kanban_id = if let Some(id) = args.kanban_id {
         id
     } else {
-        let kanban = crate::repositories::KanbanRepository::ensure_global_status_board(&conn, workspace.id)
-            .map_err(|e| e.to_string())?;
+        let kanban =
+            crate::repositories::KanbanRepository::ensure_global_status_board(&conn, workspace.id)
+                .map_err(|e| e.to_string())?;
         kanban.id
     };
 
