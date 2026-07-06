@@ -2,6 +2,8 @@ export type ActionResult<T = void> =
   | { ok: true; data: T; silent?: boolean }
   | { ok: false; error?: unknown };
 
+export type SelectedTextCopyFormat = 'html' | 'markdown';
+
 export type MemoEditingAction =
   | { type: 'action/toggle-bookmark' }
   | { type: 'action/open-slide-mode' }
@@ -15,5 +17,5 @@ export type MemoEditingAction =
   | { type: 'action/toggle-editor-style'; style: 'bold' | 'italic' | 'strike' }
   | { type: 'action/toggle-inline-code' }
   | { type: 'action/reset-editor-style' }
-  | { type: 'action/copy-selected-markdown' }
+  | { type: 'action/copy-selected-text'; format: SelectedTextCopyFormat }
   | { type: 'action/copy-link-to-heading'; fullUrl: string; titleWithHeading: string };

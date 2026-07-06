@@ -2,9 +2,10 @@ import { save } from '@tauri-apps/plugin-dialog';
 
 import { createHtmlLink, embedEditorJsonImagesAsDataUrls, exportEditorJsonImagesForMarkdown } from './converters';
 
+import type { SelectedTextCopyFormat } from '../edit-memo/memoEditingAction';
 import type { Editor as _Editor } from '@tiptap/core';
 
-import { EditorQuery, convertToMarkdown } from '~/app/features/editor';
+import { EditorQuery, convertEditorJsonToHtml, convertToMarkdown } from '~/app/features/editor';
 import { writeHtml, writeText } from '~/external/tauri/clipboard';
 import { command } from '~/external/tauri/command';
 
@@ -45,6 +46,25 @@ export function useMemoCopy() {
     }
   };
 
+  const copySelectedTextAsHtml = async (editor: _Editor) => {
+    try {
+      const selectedContent = EditorQuery.getSelectedNode(editor);
+      const html = convertEditorJsonToHtml(selectedContent.toJSON());
+      await writeHtml(html);
+      return { ok: true as const, data: undefined };
+    }
+    catch (error) {
+      logger.error(error);
+      return { ok: false as const, error };
+    }
+  };
+
+  const copySelectedText = async (editor: _Editor, format: SelectedTextCopyFormat) => {
+    return format === 'markdown'
+      ? copySelectedTextAsMarkdown(editor)
+      : copySelectedTextAsHtml(editor);
+  };
+
   const copyLinkToHeading = async (fullUrl: string, titleWithHeading: string) => {
     try {
       const htmlLink = createHtmlLink(fullUrl, titleWithHeading);
@@ -59,6 +79,8 @@ export function useMemoCopy() {
 
   return {
     copyPageAsMarkdown,
+    copySelectedText,
+    copySelectedTextAsHtml,
     copySelectedTextAsMarkdown,
     copyLinkToHeading,
   };

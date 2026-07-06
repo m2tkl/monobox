@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   saveMarkdown: vi.fn(),
   saveMarkdownAsset: vi.fn(),
   getSelectedNode: vi.fn(),
+  convertEditorJsonToHtml: vi.fn(),
   convertToMarkdown: vi.fn(),
 }));
 
@@ -39,6 +40,7 @@ vi.mock('~/app/features/editor', () => ({
   EditorQuery: {
     getSelectedNode: mocks.getSelectedNode,
   },
+  convertEditorJsonToHtml: mocks.convertEditorJsonToHtml,
   convertToMarkdown: mocks.convertToMarkdown,
 }));
 
@@ -50,7 +52,7 @@ describe('memoCopy', () => {
     }));
   });
 
-  it('copies selected markdown to the clipboard without opening the markdown export dialog', async () => {
+  const setupSelectedText = () => {
     const selectedJson: JSONContent = {
       type: 'doc',
       content: [
@@ -66,6 +68,12 @@ describe('memoCopy', () => {
       },
     };
     mocks.getSelectedNode.mockReturnValue(selectedNode);
+
+    return { editor, selectedJson };
+  };
+
+  it('copies selected markdown to the clipboard without opening the markdown export dialog', async () => {
+    const { editor } = setupSelectedText();
     mocks.convertToMarkdown.mockReturnValue('Selection');
 
     const result = await useMemoCopy().copySelectedTextAsMarkdown(editor as never);
@@ -74,6 +82,29 @@ describe('memoCopy', () => {
     expect(mocks.dialogSave).not.toHaveBeenCalled();
     expect(mocks.saveMarkdown).not.toHaveBeenCalled();
     expect(mocks.writeText).toHaveBeenCalledWith('Selection');
+  });
+
+  it('copies selected HTML to the clipboard', async () => {
+    const { editor, selectedJson } = setupSelectedText();
+    mocks.convertEditorJsonToHtml.mockReturnValue('<p>Selection</p>');
+
+    const result = await useMemoCopy().copySelectedTextAsHtml(editor as never);
+
+    expect(result).toEqual({ ok: true, data: undefined });
+    expect(mocks.convertEditorJsonToHtml).toHaveBeenCalledWith(selectedJson);
+    expect(mocks.writeHtml).toHaveBeenCalledWith('<p>Selection</p>');
+  });
+
+  it('copies selected text using the requested format', async () => {
+    const { editor } = setupSelectedText();
+    mocks.convertToMarkdown.mockReturnValue('Selection');
+    mocks.convertEditorJsonToHtml.mockReturnValue('<p>Selection</p>');
+
+    await useMemoCopy().copySelectedText(editor as never, 'markdown');
+    await useMemoCopy().copySelectedText(editor as never, 'html');
+
+    expect(mocks.writeText).toHaveBeenCalledWith('Selection');
+    expect(mocks.writeHtml).toHaveBeenCalledWith('<p>Selection</p>');
   });
 
   it('copies heading links with the same page hash intact', async () => {

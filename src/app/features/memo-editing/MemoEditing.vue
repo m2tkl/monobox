@@ -565,6 +565,9 @@ const toast = useToast();
 const { ui } = useUIState();
 const { workspaceSlug, memoSlug } = useMemoRouteTarget(route);
 const selectionCopyFormat = ref<SelectionCopyFormat>('html');
+const buttonSelectionCopyFormat = computed<SelectionCopyFormat>(() =>
+  selectionCopyFormat.value === 'markdown' ? 'html' : 'markdown',
+);
 const extensions = buildExtensions({
   CodeBlockComponent: CodeBlockComponent as Component<NodeViewProps>,
   TableComponent: TableComponent as Component<NodeViewProps>,
@@ -1277,7 +1280,7 @@ const bubbleMenuItems = [
   [
     {
       icon: iconKey.copy,
-      action: () => { void dispatchAction({ type: 'action/copy-selected-markdown' }); },
+      action: () => { void dispatchAction({ type: 'action/copy-selected-text', format: buttonSelectionCopyFormat.value }); },
     },
   ],
 ];

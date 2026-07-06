@@ -41,8 +41,8 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
         case 'action/export-markdown':
           toast.add({ title: 'Exported markdown.', icon: iconKey.success, duration: 1000 });
           return;
-        case 'action/copy-selected-markdown':
-          toast.add({ title: 'Copied markdown.', icon: iconKey.success, duration: 1000 });
+        case 'action/copy-selected-text':
+          toast.add({ title: action.format === 'markdown' ? 'Copied markdown.' : 'Copied HTML.', icon: iconKey.success, duration: 1000 });
           return;
         case 'action/copy-link-to-heading':
           toast.add({ title: 'Copied link to heading.', icon: iconKey.success, duration: 1000 });
@@ -54,7 +54,7 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
 
     switch (action.type) {
       case 'action/export-markdown':
-      case 'action/copy-selected-markdown':
+      case 'action/copy-selected-text':
       case 'action/copy-link-to-heading':
       case 'action/toggle-bookmark':
         toast.add({
@@ -99,8 +99,8 @@ export function useMemoEditingActions(options: UseMemoEditingActionsDeps) {
           return editorActions.toggleInlineCode();
         case 'action/reset-editor-style':
           return editorActions.resetEditorStyle();
-        case 'action/copy-selected-markdown':
-          return clipboardActions.copySelectedMarkdown();
+        case 'action/copy-selected-text':
+          return clipboardActions.copySelected(action.format);
         case 'action/copy-link-to-heading':
           return clipboardActions.copyLinkToHeading(action.fullUrl, action.titleWithHeading);
       }
