@@ -34,6 +34,7 @@
 import type { JSONContent } from '@tiptap/vue-3';
 
 import { convertEditorJsonToHtml } from '~/app/features/editor';
+import { decodeHeadingHash } from '~/app/features/memo-editing/view/navigate-memo/headingLink';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { memoDetailQuery } from '~/resources/memo/queries';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
@@ -72,7 +73,7 @@ const scrollToTargetHash = async () => {
 
   await nextTick();
 
-  const targetId = route.hash.replace(/^#/, '');
+  const targetId = decodeHeadingHash(route.hash);
   const target = scrollContainer.value?.querySelector<HTMLElement>(`#${CSS.escape(targetId)}`);
   target?.scrollIntoView({ block: 'start' });
 };

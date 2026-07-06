@@ -19,7 +19,7 @@ export function convertMemoToHtml(content: JSONContent, title: string): string {
 }
 
 export function createHtmlLink(href: string, text: string): string {
-  return `<a href="${href}">${text}</a>`;
+  return `<a href="${escapeHtml(href)}">${escapeHtml(text)}</a>`;
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {

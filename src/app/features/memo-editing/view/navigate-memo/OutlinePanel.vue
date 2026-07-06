@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+import { buildHeadingHref, buildHeadingLinkText } from './headingLink';
 import OutlineView from './OutlineView.vue';
 
 type Heading = { id: string; level: number; text: string; checked?: number; total?: number };
@@ -38,8 +39,8 @@ const onClickHeading = (id: string) => {
 };
 
 const onCopyLink = (id: string, text: string) => {
-  const fullUrl = `${props.routePath}#${id}`;
-  const titleWithHeading = `${props.routePath}#${text}`;
+  const fullUrl = buildHeadingHref(props.routePath, id);
+  const titleWithHeading = buildHeadingLinkText(props.routePath, text);
   props.copyLinkToHeading(fullUrl, titleWithHeading);
 };
 </script>

@@ -17,6 +17,7 @@ import {
   EditorSelector,
 } from '~/app/features/editor';
 import { getMemoLinkOpenIntent } from '~/app/features/memo-editing/memoLinkOpenIntent';
+import { decodeHeadingHash } from '~/app/features/memo-editing/view/navigate-memo/headingLink';
 import { fileCommand } from '~/resources/file/commands';
 import { isInternalLink } from '~/utils/link';
 
@@ -458,7 +459,7 @@ export function useMemoEditor(
         }
 
         const targetPath = resolvedUrl.pathname;
-        const targetHash = resolvedUrl.hash.replace(/^#/, '');
+        const targetHash = decodeHeadingHash(resolvedUrl.hash);
 
         if (isInternalLink(url)) {
           const intent = getMemoLinkOpenIntent(event);
@@ -503,7 +504,7 @@ export function useMemoEditor(
 
       // Focus if a hash is specified when entring the memo
       if (options.route.hash) {
-        const id = options.route.hash.replace(/^#/, '');
+        const id = decodeHeadingHash(options.route.hash);
         activeHeadingId.value = id;
         // Delay to allow editor UI to settle before focusing.
         setTimeout(() => {

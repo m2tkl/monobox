@@ -64,6 +64,7 @@ import type { MemoDetail } from '~/models/memo';
 
 import IconButton from '~/app/elements/IconButton.vue';
 import { convertEditorJsonToHtml } from '~/app/features/editor';
+import { decodeHeadingHash } from '~/app/features/memo-editing/view/navigate-memo/headingLink';
 
 const props = defineProps<{
   memo: MemoDetail | null;
@@ -99,7 +100,7 @@ const scrollToTargetHash = async () => {
 
   await nextTick();
 
-  const targetId = props.targetHash.replace(/^#/, '');
+  const targetId = decodeHeadingHash(props.targetHash);
   const target = scrollContainer.value?.querySelector<HTMLElement>(`#${CSS.escape(targetId)}`);
   target?.scrollIntoView({ block: 'start' });
 };

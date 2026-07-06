@@ -477,6 +477,7 @@
           ref="linkPaletteRef"
           :workspace-slug="workspaceSlug"
           :memos="memoVM.data.workspaceMemos"
+          :current-memo-slug="memoSlug"
           :current-memo-title="memoVM.data.memo.title"
           type="link"
           shortcut-symbol="i"
@@ -485,6 +486,7 @@
         <SearchPalette
           :workspace-slug="workspaceSlug"
           :memos="memoVM.data.workspaceMemos"
+          :current-memo-slug="memoSlug"
           :current-memo-title="memoVM.data.memo.title"
           type="search"
           shortcut-symbol="k"

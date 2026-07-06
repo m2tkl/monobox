@@ -6,6 +6,8 @@ import { useSearchPalette } from './useSearchPalette';
 
 import type { MemoIndexItem } from '~/models/memo';
 
+import * as EditorAction from '~/app/features/editor/core/action';
+
 const { createMemo, publishResourceChanges } = vi.hoisted(() => ({
   createMemo: vi.fn(),
   publishResourceChanges: vi.fn(),
@@ -68,7 +70,13 @@ describe('useSearchPalette', () => {
     vi.unstubAllGlobals();
   });
 
-  const mountPalette = (memos: MemoIndexItem[], initialTerm: string) => {
+  const insertLinkToMemo = vi.spyOn(EditorAction, 'insertLinkToMemo').mockImplementation(() => {});
+
+  const mountPalette = (
+    memos: MemoIndexItem[],
+    initialTerm: string,
+    overrides: Partial<Parameters<typeof useSearchPalette>[0]> = {},
+  ) => {
     let palette!: PaletteState;
     const shortcutSymbol = ref('k');
 
@@ -79,6 +87,7 @@ describe('useSearchPalette', () => {
           workspaceSlug: ref('workspace'),
           memos: ref(memos),
           shortcutSymbol: shortcutSymbol as Ref<string>,
+          ...overrides,
         });
 
         return palette;
@@ -112,6 +121,68 @@ describe('useSearchPalette', () => {
     ], 'Alpha');
 
     expect(palette.commandPaletteItems.value.map(group => group.id)).toEqual(['existing-memos']);
+
+    wrapper.unmount();
+  });
+
+  it('does not show the current memo in link mode', () => {
+    const { wrapper, palette } = mountPalette([
+      makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
+      makeMemo({ id: 2, title: 'Beta', slug_title: 'beta' }),
+    ], '', {
+      type: ref<'search' | 'link'>('link'),
+      currentMemoSlug: ref('alpha'),
+    });
+
+    expect(palette.commandPaletteItems.value[0]?.items.map(item => item.slug)).toEqual(['beta']);
+
+    wrapper.unmount();
+  });
+
+  it('does not insert a link to the current memo', async () => {
+    const { wrapper, palette } = mountPalette([
+      makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
+    ], 'Alpha', {
+      type: ref<'search' | 'link'>('link'),
+      currentMemoSlug: ref('alpha'),
+      editor: ref({ commands: { focus: vi.fn() } } as never),
+    });
+
+    await palette.onSearchPaletteSelect({
+      label: 'Alpha',
+      title: 'Alpha',
+      slug: 'alpha',
+      tag: 'existing',
+    });
+
+    expect(insertLinkToMemo).not.toHaveBeenCalled();
+    expect(routerPush).not.toHaveBeenCalled();
+
+    wrapper.unmount();
+  });
+
+  it('inserts a link to a heading in the current memo', async () => {
+    const { wrapper, palette } = mountPalette([
+      makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
+    ], 'Section', {
+      type: ref<'search' | 'link'>('link'),
+      currentMemoSlug: ref('alpha'),
+      editor: ref({ commands: { focus: vi.fn() } } as never),
+    });
+
+    await palette.onSearchPaletteSelect({
+      label: 'Section',
+      title: 'Section',
+      slug: 'alpha#section',
+      tag: 'existing',
+    });
+
+    expect(insertLinkToMemo).toHaveBeenCalledWith(
+      expect.anything(),
+      'Section',
+      '/workspace/alpha#section',
+    );
+    expect(routerPush).not.toHaveBeenCalled();
 
     wrapper.unmount();
   });

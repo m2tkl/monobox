@@ -45,6 +45,7 @@ export type UseSearchPaletteOptions = {
   type: Ref<'search' | 'link'>;
   workspaceSlug: Ref<string>;
   memos: Ref<MemoIndexItem[]>;
+  currentMemoSlug?: Ref<string | undefined>;
   currentMemoTitle?: Ref<string | undefined>;
   editor?: Ref<Editor | undefined>;
   shortcutSymbol: Ref<string>;
@@ -63,11 +64,17 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     },
   });
 
+  const isCurrentMemoPageLink = (slug: string | undefined) =>
+    options.type.value === 'link'
+    && slug != null
+    && slug === options.currentMemoSlug?.value;
+
   const commandPaletteItems = computed<Commands[]>(() => {
     if (!options.memos?.value) return [];
 
     const existingMemos = options.memos.value
       .toSorted()
+      .filter(memo => !isCurrentMemoPageLink(memo.slug_title))
       .map(memo => ({ ...memo, label: memo.title }));
 
     const linkPaletteCommands: Commands[] = [{
@@ -120,6 +127,12 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
 
     let linkMemoSlug = option.slug || encodeForSlug(option.label);
     let linkMemoTitle = option.label;
+
+    if (isCurrentMemoPageLink(linkMemoSlug)) {
+      closeCommandPalette([isSearchPaletteOpen]);
+      logger.log('onSearchPaletteSelect() skipped current memo link.');
+      return;
+    }
 
     if (option.tag === 'new') {
       const newMemo = await createMemo({

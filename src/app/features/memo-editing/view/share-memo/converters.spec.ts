@@ -53,6 +53,11 @@ describe('memo/export - converters', () => {
     expect(a).toBe('<a href="/path">Text</a>');
   });
 
+  it('createHtmlLink escapes href and text while preserving encoded hashes', () => {
+    const a = createHtmlLink('/path#%E6%97%A5%E6%9C%AC%E8%AA%9E&x=1', '日本語 <Heading>');
+    expect(a).toBe('<a href="/path#%E6%97%A5%E6%9C%AC%E8%AA%9E&amp;x=1">日本語 &lt;Heading&gt;</a>');
+  });
+
   it('embedImagesAsDataUrls replaces image src with data urls', async () => {
     const html = await embedImagesAsDataUrls('<p>Body</p><img src="asset://localhost/monobox/image.png" alt="Image">');
 

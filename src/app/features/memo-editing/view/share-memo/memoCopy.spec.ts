@@ -75,4 +75,11 @@ describe('memoCopy', () => {
     expect(mocks.saveMarkdown).not.toHaveBeenCalled();
     expect(mocks.writeText).toHaveBeenCalledWith('Selection');
   });
+
+  it('copies heading links with the same page hash intact', async () => {
+    const result = await useMemoCopy().copyLinkToHeading('/workspace/alpha#section', '/workspace/alpha#Section');
+
+    expect(result).toEqual({ ok: true, data: undefined });
+    expect(mocks.writeHtml).toHaveBeenCalledWith('<a href="/workspace/alpha#section">/workspace/alpha#Section</a>');
+  });
 });

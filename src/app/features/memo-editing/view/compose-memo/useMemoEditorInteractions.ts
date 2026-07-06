@@ -3,6 +3,7 @@ import type { Editor as TiptapEditor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
+import { buildHeadingHref, decodeHeadingHash } from '~/app/features/memo-editing/view/navigate-memo/headingLink';
 import { isCmdKey } from '~/utils/event';
 
 type UseMemoEditorInteractionsOptions = {
@@ -31,7 +32,7 @@ export function useMemoEditorInteractions(options: UseMemoEditorInteractionsOpti
   };
 
   const navigateToHeading = (id: string) => {
-    options.router.push(`${options.route.path}#${id}`);
+    options.router.push(buildHeadingHref(options.route.path, id));
   };
 
   watch(() => options.route.hash, () => {
@@ -40,7 +41,7 @@ export function useMemoEditorInteractions(options: UseMemoEditorInteractionsOpti
     }
 
     if (options.route.hash) {
-      const id = options.route.hash.replace(/^#/, '');
+      const id = decodeHeadingHash(options.route.hash);
       options.focusHeading(options.editor.value, id);
     }
   });

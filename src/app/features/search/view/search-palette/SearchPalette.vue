@@ -45,6 +45,7 @@ const props = defineProps<{
   type: 'search' | 'link';
   workspaceSlug: string;
   memos: MemoIndexItem[];
+  currentMemoSlug?: string;
   currentMemoTitle?: string;
   editor?: Editor;
   shortcutSymbol: string;
