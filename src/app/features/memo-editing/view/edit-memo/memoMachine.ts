@@ -4,14 +4,16 @@ export type MemoEditableState =
 
 export type MemoState =
   | MemoEditableState
-  | { type: 'saving'; mode: 'explicit' | 'auto' }
+  | { type: 'saving'; mode: MemoSaveMode }
   | { type: 'deleting'; returnState: MemoEditableState };
+
+export type MemoSaveMode = 'explicit' | 'auto' | 'navigation';
 
 export type MemoEvent =
   | { type: 'memo/content-updated'; payload: { dirty: boolean } }
   | { type: 'memo/title-updated'; payload: { dirty: boolean } }
   | { type: 'memo/links-changed'; payload: { added: string[]; deleted: string[] } }
-  | { type: 'memo/save-requested'; payload: { mode: 'explicit' | 'auto' } }
+  | { type: 'memo/save-requested'; payload: { mode: MemoSaveMode } }
   | { type: 'memo/save-succeeded'; payload: { memoSlug: string } }
   | { type: 'memo/save-failed'; payload: { error?: unknown } }
   | { type: 'memo/delete-requested' }
@@ -20,7 +22,7 @@ export type MemoEvent =
   | { type: 'memo/delete-failed'; payload: { error?: unknown } };
 
 export type MemoEffect =
-  | { type: 'effect/save-memo'; mode: 'explicit' | 'auto' }
+  | { type: 'effect/save-memo'; mode: MemoSaveMode }
   | { type: 'effect/sync-links'; added: string[]; deleted: string[] }
   | { type: 'effect/snapshot-saved' }
   | { type: 'effect/notify-save-failed' }
@@ -135,16 +137,23 @@ const transitions: TransitionMap = {
     },
   },
   saving: {
-    'memo/save-succeeded': ({ event }) => ({
-      state: cleanState,
-      effects: [
+    'memo/save-succeeded': ({ state, event }) => {
+      const effects: MemoEffect[] = [
         { type: 'effect/snapshot-saved' },
-        { type: 'effect/replace-memo-route', memoSlug: event.payload.memoSlug },
-      ],
-    }),
+      ];
+
+      if (state.mode !== 'navigation') {
+        effects.push({ type: 'effect/replace-memo-route', memoSlug: event.payload.memoSlug });
+      }
+
+      return {
+        state: cleanState,
+        effects,
+      };
+    },
     'memo/save-failed': ({ state }) => ({
       state: dirtyState,
-      effects: state.mode === 'explicit' ? [{ type: 'effect/notify-save-failed' }] : [],
+      effects: state.mode !== 'auto' ? [{ type: 'effect/notify-save-failed' }] : [],
     }),
   },
   deleting: {

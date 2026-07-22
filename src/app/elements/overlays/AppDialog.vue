@@ -6,7 +6,7 @@
     <template #content>
       <UCard
         :class="cardClass"
-        :ui="cardUi"
+        :ui="resolvedCardUi"
       >
         <template
           v-if="$slots.header || title || description"
@@ -32,7 +32,7 @@
           </slot>
         </template>
 
-        <slot />
+        <slot v-if="hasDefaultSlot" />
 
         <template
           v-if="$slots.footer"
@@ -62,5 +62,18 @@ const emit = defineEmits<{
 const openModel = computed({
   get: () => props.open,
   set: value => emit('update:open', value),
+});
+
+const slots = useSlots();
+const hasDefaultSlot = computed(() => !!slots.default);
+const resolvedCardUi = computed(() => {
+  if (hasDefaultSlot.value) {
+    return props.cardUi;
+  }
+
+  return {
+    ...props.cardUi,
+    body: [props.cardUi?.body, 'hidden p-0 sm:p-0'].filter(Boolean).join(' '),
+  };
 });
 </script>

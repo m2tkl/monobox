@@ -57,4 +57,18 @@ describe('memo editing machine', () => {
       ],
     });
   });
+
+  it('does not replace the current route after navigation save succeeds', () => {
+    const result = apply(
+      { type: 'saving', mode: 'navigation' },
+      { type: 'memo/save-succeeded', payload: { memoSlug: 'saved-slug' } },
+    );
+
+    expect(result).toEqual({
+      state: { type: 'clean' },
+      effects: [
+        { type: 'effect/snapshot-saved' },
+      ],
+    });
+  });
 });

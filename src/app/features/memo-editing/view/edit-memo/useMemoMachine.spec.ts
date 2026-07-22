@@ -156,6 +156,48 @@ describe('useMemoMachine', () => {
     wrapper.unmount();
   });
 
+  it('saves for navigation without replacing the current memo route', async () => {
+    saveMemo.mockResolvedValue({ memoSlug: 'saved-memo' });
+
+    const { wrapper, machine, onSnapshotSaved } = mountMachine({ initialState: 'dirty' });
+
+    await machine.dispatch({
+      type: 'memo/save-requested',
+      payload: { mode: 'navigation' },
+    });
+
+    expect(machine.state.value).toEqual({ type: 'clean' });
+    expect(onSnapshotSaved).toHaveBeenCalledWith({
+      title: 'Memo title',
+      content: JSON.stringify({ type: 'doc' }),
+    });
+    expect(routerReplace).not.toHaveBeenCalled();
+    expect(toastAdd).not.toHaveBeenCalled();
+
+    wrapper.unmount();
+  });
+
+  it('shows the save failure toast when navigation save fails', async () => {
+    saveMemo.mockRejectedValue(new Error('failed'));
+
+    const { wrapper, machine } = mountMachine({ initialState: 'dirty' });
+
+    await machine.dispatch({
+      type: 'memo/save-requested',
+      payload: { mode: 'navigation' },
+    });
+
+    expect(machine.state.value).toEqual({ type: 'dirty' });
+    expect(toastAdd).toHaveBeenCalledWith({
+      title: 'Failed to save',
+      description: 'Please try again',
+      color: 'error',
+      icon: 'failed',
+    });
+
+    wrapper.unmount();
+  });
+
   it('redispatches the delete confirmation result and completes deletion', async () => {
     deleteMemo.mockResolvedValue(undefined);
 

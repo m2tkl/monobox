@@ -502,6 +502,40 @@
         :export-candidates="exportCandidates"
         @select="(targets) => exportPagesV2(targets)"
       />
+
+      <AppDialog
+        :open="isUnsavedNavigationDialogOpen"
+        title="Unsaved changes"
+        description="This memo has unsaved changes. What do you want to do before leaving?"
+        @update:open="handleUnsavedNavigationDialogOpen"
+      >
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <AppButton
+              color="neutral"
+              variant="ghost"
+              :disabled="isSavingBeforeNavigation"
+              @click="resolveUnsavedNavigationChoice('cancel')"
+            >
+              Cancel
+            </AppButton>
+            <AppButton
+              color="warning"
+              variant="subtle"
+              :disabled="isSavingBeforeNavigation"
+              @click="resolveUnsavedNavigationChoice('discard')"
+            >
+              Discard Changes
+            </AppButton>
+            <AppButton
+              :loading="isSavingBeforeNavigation"
+              @click="resolveUnsavedNavigationChoice('save')"
+            >
+              Save and leave
+            </AppButton>
+          </div>
+        </template>
+      </AppDialog>
     </template>
   </NuxtLayout>
 </template>
@@ -541,6 +575,7 @@ import type { LocationQueryRaw } from 'vue-router';
 import type { InboxFileItem, ManagedFileListItem } from '~/models/file';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
+import AppDialog from '~/app/elements/overlays/AppDialog.vue';
 import AppInput from '~/app/elements/AppInput.vue';
 import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
@@ -991,6 +1026,75 @@ const { state: memoState, dispatch: dispatchMemoEvent } = useMemoMachine({
   },
   logger,
 });
+
+type UnsavedNavigationChoice = 'save' | 'discard' | 'cancel';
+
+const isUnsavedNavigationDialogOpen = ref(false);
+const isSavingBeforeNavigation = ref(false);
+const pendingUnsavedNavigationChoice = ref<((choice: UnsavedNavigationChoice) => void) | null>(null);
+
+const closeUnsavedNavigationDialog = () => {
+  isUnsavedNavigationDialogOpen.value = false;
+  pendingUnsavedNavigationChoice.value = null;
+};
+
+const requestUnsavedNavigationChoice = () =>
+  new Promise<UnsavedNavigationChoice>((resolve) => {
+    pendingUnsavedNavigationChoice.value = resolve;
+    isUnsavedNavigationDialogOpen.value = true;
+  });
+
+const resolveUnsavedNavigationChoice = (choice: UnsavedNavigationChoice) => {
+  const resolve = pendingUnsavedNavigationChoice.value;
+  pendingUnsavedNavigationChoice.value = null;
+  resolve?.(choice);
+
+  if (choice !== 'save') {
+    closeUnsavedNavigationDialog();
+  }
+};
+
+const handleUnsavedNavigationDialogOpen = (open: boolean) => {
+  if (open) {
+    isUnsavedNavigationDialogOpen.value = true;
+    return;
+  }
+  if (isSavingBeforeNavigation.value) {
+    isUnsavedNavigationDialogOpen.value = true;
+    return;
+  }
+
+  resolveUnsavedNavigationChoice('cancel');
+};
+
+const confirmUnsavedNavigation = async (to: { path: string }, from: { path: string }) => {
+  if (to.path === from.path || memoState.value.type !== 'dirty') {
+    return true;
+  }
+
+  const choice = await requestUnsavedNavigationChoice();
+
+  if (choice === 'discard') {
+    return true;
+  }
+  if (choice === 'cancel') {
+    return false;
+  }
+
+  isSavingBeforeNavigation.value = true;
+  try {
+    await dispatchMemoEvent({ type: 'memo/save-requested', payload: { mode: 'navigation' } });
+    const saved = memoState.value.type === 'clean';
+    closeUnsavedNavigationDialog();
+    return saved;
+  }
+  finally {
+    isSavingBeforeNavigation.value = false;
+  }
+};
+
+onBeforeRouteLeave(confirmUnsavedNavigation);
+onBeforeRouteUpdate(confirmUnsavedNavigation);
 
 const memoStatusBadge = computed(() => {
   switch (memoState.value.type) {

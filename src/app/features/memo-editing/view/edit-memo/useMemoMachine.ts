@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 
-import { apply, type MemoEffect, type MemoEvent, type MemoState } from './memoMachine';
+import { apply, type MemoEffect, type MemoEvent, type MemoSaveMode, type MemoState } from './memoMachine';
 import { deleteMemo as executeDeleteMemo } from '../../resource/command/deleteMemo';
 import { saveMemo as executeSaveMemo } from '../../resource/command/saveMemo';
 import { syncMemoLinks } from '../../resource/command/syncMemoLinks';
@@ -92,19 +92,19 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
     }
   };
 
-  const saveMemo = async (mode: 'explicit' | 'auto'): Promise<Result<{ memoSlug: string }>> => {
+  const saveMemo = async (mode: MemoSaveMode): Promise<Result<{ memoSlug: string }>> => {
     const editor = options.editor.value;
 
     try {
       if (!editor) {
-        if (mode === 'explicit') {
+        if (mode !== 'auto') {
           throw new Error('Editor instance not set.');
         }
         return { ok: false };
       }
 
       if (!options.memoTitle.value) {
-        if (mode === 'explicit') {
+        if (mode !== 'auto') {
           window.alert('Please set title.');
         }
         return { ok: false };
@@ -124,7 +124,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
       return { ok: true, data: { memoSlug: saved.memoSlug } };
     }
     catch (error) {
-      if (mode === 'explicit') {
+      if (mode !== 'auto') {
         logger.error(error);
       }
       return { ok: false, error };
