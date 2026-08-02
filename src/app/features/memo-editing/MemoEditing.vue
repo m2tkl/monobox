@@ -37,19 +37,6 @@
                   </UBadge>
                 </div>
 
-                <div class="focus-status-control">
-                  <AppButton
-                    size="xs"
-                    color="neutral"
-                    variant="soft"
-                    :icon="iconKey.focusFilled"
-                    class="focus-list-button"
-                    @click="toggleFocusPane"
-                  >
-                    Focus
-                    <span class="focus-list-count">{{ activeFocusCount }}</span>
-                  </AppButton>
-                </div>
               </template>
 
               <template #toolbar="{ editor: _editor }">
@@ -580,8 +567,6 @@ import AppInput from '~/app/elements/AppInput.vue';
 import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
 import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent, type SelectionCopyFormat } from '~/app/features/editor';
-import { mergeUniqueMemoItems } from '~/app/features/focus-memo/focusMemoUtils';
-import { useFocusMemoListReadModel, useGlobalStatusBoardReadModel, useTodayCalendarMemoListReadModel } from '~/app/features/memo-browsing';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
@@ -610,20 +595,6 @@ const extensions = buildExtensions({
   getSelectionCopyFormat: () => selectionCopyFormat.value,
 });
 const memoVM = useCurrentMemoReadModel();
-const globalStatusVM = useGlobalStatusBoardReadModel();
-const focusMemoVM = useFocusMemoListReadModel();
-const todayCalendarMemoVM = useTodayCalendarMemoListReadModel();
-const doneTodayMemoSlugs = computed(() => new Set(focusMemoVM.value.data.doneTodayItems.map(memo => memo.slug_title)));
-const activeFocusCount = computed(() => {
-  const focusItems = mergeUniqueMemoItems(
-    globalStatusVM.value.data.nowItems,
-    todayCalendarMemoVM.value.data.items,
-  );
-  return focusItems.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)).length;
-});
-const toggleFocusPane = () => {
-  ui.value.isFocusPaneOpen = !ui.value.isFocusPaneOpen;
-};
 const { memoTitle } = useMemoTitleBackfill(computed(() => memoVM.value.data.memo));
 const {
   kanbans,
@@ -1789,31 +1760,6 @@ a.external-link {
   overflow-y: hidden;
   white-space: nowrap;
   padding-bottom: 0.25rem;
-}
-
-.focus-list-button {
-  min-height: 1.75rem;
-}
-
-.focus-list-count {
-  min-width: 1rem;
-  border-radius: 999px;
-  padding: 0 0.25rem;
-  font-size: 0.6875rem;
-  text-align: center;
-  color: white;
-  background: var(--color-primary);
-}
-
-.focus-status-control {
-  display: flex;
-  pointer-events: auto;
-  align-items: center;
-  border: 1px solid var(--color-border-light);
-  border-radius: 0.5rem;
-  padding: 0.25rem;
-  background: var(--color-background);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 0.12);
 }
 
 .memo-floating-status {
