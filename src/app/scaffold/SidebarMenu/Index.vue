@@ -111,6 +111,11 @@
             <li
               v-for="status in globalStatuses"
               :key="status.id"
+              class="kanban-status-preview-anchor"
+              @mouseenter="showStatusPreview($event, status.id)"
+              @focusin="showStatusPreview($event, status.id)"
+              @mouseleave="scheduleStatusPreviewHide(status.id)"
+              @focusout="scheduleStatusPreviewHide(status.id)"
             >
               <MemoLinkRow
                 :to="`/${workspaceSlug}?status=${encodeURIComponent(status.name)}`"
@@ -192,13 +197,64 @@
       </div>
     </div>
   </div>
+
+  <Teleport to="body">
+    <div
+      v-if="activeStatusPreview"
+      class="kanban-status-preview"
+      :style="{
+        left: `${previewLeft}px`,
+        top: `${previewTop}px`,
+      }"
+      @mouseenter="clearStatusPreviewHideTimer"
+      @mouseleave="scheduleStatusPreviewHide(activeStatusPreview.id)"
+      @focusin="clearStatusPreviewHideTimer"
+      @focusout="scheduleStatusPreviewHide(activeStatusPreview.id)"
+    >
+      <div class="kanban-status-preview__header">
+        <span class="kanban-status-preview__title">{{ activeStatusPreview.name }}</span>
+        <span class="kanban-status-preview__count">{{ activeStatusPreview.count }}</span>
+      </div>
+      <ul
+        v-if="getStatusPreviewItems(activeStatusPreview.id).length > 0"
+        class="kanban-status-preview__list"
+      >
+        <li
+          v-for="item in getStatusPreviewItems(activeStatusPreview.id)"
+          :key="item.id"
+        >
+          <MemoLinkRow
+            :to="`/${workspaceSlug}/${item.slug_title}`"
+            :memo-title="item.title"
+            :count="item.linkCount"
+            :active="activeMemoSlug === item.slug_title"
+          />
+        </li>
+      </ul>
+      <p
+        v-else
+        class="kanban-status-preview__empty"
+      >
+        No memos
+      </p>
+      <NuxtLink
+        v-if="activeStatusPreview.count > statusPreviewLimit"
+        :to="`/${workspaceSlug}?status=${encodeURIComponent(activeStatusPreview.name)}`"
+        class="kanban-status-preview__more sidebar-link"
+      >
+        Show all {{ activeStatusPreview.count }}
+      </NuxtLink>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import MemoLinkRow from './MemoLinkRow.vue';
 import NewMemoActions from './NewMemoActions.vue';
+
+import type { GlobalStatusMemoListItem } from '~/app/features/memo-browsing/resource/read-model';
 
 import { useBookmarkListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
 import { SearchPalette } from '~/app/features/search';
@@ -218,6 +274,7 @@ const globalStatusVM = useGlobalStatusBoardReadModel();
 const bookmarks = computed(() => bookmarkVM.value.data.items);
 const workspaceMemos = computed(() => workspaceMemosVM.value.data.items);
 const globalStatuses = computed(() => globalStatusVM.value.data.statuses);
+const globalStatusItems = computed(() => globalStatusVM.value.data.assignedItems);
 const activeMemoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
 const activeStatusName = computed(() => {
   if (route.path !== `/${workspaceSlug.value}`) return '';
@@ -237,6 +294,38 @@ const draggedMemoSlug = ref<string | null>(null);
 const dropMemoId = ref<number | null>(null);
 const dropPosition = ref<'before' | 'after' | null>(null);
 const isReordering = ref(false);
+const hoveredStatusId = ref<number | null>(null);
+const previewTop = ref(0);
+const previewLeft = ref(0);
+const statusPreviewLimit = 8;
+let statusPreviewHideTimer: number | null = null;
+
+const activeStatusPreview = computed(() => {
+  if (hoveredStatusId.value === null) return null;
+  return globalStatuses.value.find(status => status.id === hoveredStatusId.value) ?? null;
+});
+
+const statusPreviewItemsById = computed(() => {
+  const itemsByStatusId = new Map<number, GlobalStatusMemoListItem[]>();
+
+  for (const item of globalStatusItems.value) {
+    if (item.kanbanStatusId === null) continue;
+    const items = itemsByStatusId.get(item.kanbanStatusId) ?? [];
+    items.push(item);
+    itemsByStatusId.set(item.kanbanStatusId, items);
+  }
+
+  for (const items of itemsByStatusId.values()) {
+    items.sort((a, b) => {
+      const positionA = a.position ?? Number.POSITIVE_INFINITY;
+      const positionB = b.position ?? Number.POSITIVE_INFINITY;
+      if (positionA !== positionB) return positionA - positionB;
+      return a.orderIndex - b.orderIndex;
+    });
+  }
+
+  return itemsByStatusId;
+});
 
 const clearDragState = () => {
   draggedMemoId.value = null;
@@ -248,6 +337,48 @@ const clearDragState = () => {
 const openSearchPalette = () => {
   searchPaletteRef.value?.openCommandPalette();
 };
+
+const getStatusPreviewItems = (statusId: number) => {
+  return statusPreviewItemsById.value.get(statusId)?.slice(0, statusPreviewLimit) ?? [];
+};
+
+const showStatusPreview = (event: MouseEvent | FocusEvent, statusId: number) => {
+  clearStatusPreviewHideTimer();
+  const target = event.currentTarget;
+  if (!(target instanceof HTMLElement)) {
+    hoveredStatusId.value = statusId;
+    return;
+  }
+
+  const rect = target.getBoundingClientRect();
+  const preferredTop = rect.top - 0.5 * 16;
+  const maxTop = window.innerHeight - 24 * 16;
+  previewTop.value = Math.max(0.75 * 16, Math.min(preferredTop, maxTop));
+  previewLeft.value = rect.right + 8;
+  hoveredStatusId.value = statusId;
+};
+
+const clearStatusPreviewHideTimer = () => {
+  if (statusPreviewHideTimer !== null) {
+    window.clearTimeout(statusPreviewHideTimer);
+    statusPreviewHideTimer = null;
+  }
+};
+
+const scheduleStatusPreviewHide = (statusId: number) => {
+  clearStatusPreviewHideTimer();
+  statusPreviewHideTimer = window.setTimeout(() => {
+    if (hoveredStatusId.value === statusId) {
+      hoveredStatusId.value = null;
+    }
+    statusPreviewHideTimer = null;
+  }, 120);
+};
+
+watch(() => route.fullPath, () => {
+  clearStatusPreviewHideTimer();
+  hoveredStatusId.value = null;
+});
 
 const showRandomMemo = async () => {
   if (!workspaceSlug.value || workspaceMemos.value.length === 0) {
@@ -415,6 +546,74 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
 .sidebar-link-list--status {
   gap: 0.125rem;
   margin-top: 0.125rem;
+}
+
+.kanban-status-preview-anchor {
+  position: relative;
+}
+
+.kanban-status-preview {
+  position: fixed;
+  z-index: 1300;
+  width: min(22rem, calc(100vw - var(--app-sidebar-width) - 1rem));
+  max-height: min(23rem, calc(100vh - 1.5rem));
+  overflow-y: auto;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.5rem;
+  background-color: var(--color-background);
+  box-shadow: 0 18px 42px rgb(15 23 42 / 0.18);
+  padding: 0.5rem;
+}
+
+.kanban-status-preview__header {
+  display: flex;
+  min-height: 1.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 0.25rem 0.375rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.kanban-status-preview__title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-status-preview__count {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.kanban-status-preview__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-top: 0.375rem;
+}
+
+.kanban-status-preview__empty {
+  margin: 0;
+  padding: 0.75rem 0.25rem 0.375rem;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.kanban-status-preview__more {
+  display: block;
+  margin-top: 0.375rem;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 .sidebar-link-list--bookmarks {
