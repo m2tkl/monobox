@@ -1,1 +1,1 @@
-export { default as FocusMemoDrawer } from './FocusMemoDrawer.vue';
+export { default as FocusSidebar } from './FocusSidebar.vue';

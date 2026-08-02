@@ -39,21 +39,25 @@
           </main>
         </div>
       </div>
+
+      <FocusSidebar
+        :is-open="ui.isFocusSidebarOpen"
+        @close="ui.isFocusSidebarOpen = false"
+      />
     </div>
 
-    <FocusMemoDrawer :hide-tab="isMemoDetailRoute" />
     <slot name="actions" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { FocusMemoDrawer } from '~/app/features/focus-memo';
+import { FocusSidebar } from '~/app/features/focus-memo';
 import SidebarMenu from '~/app/scaffold/SidebarMenu/Index.vue';
 
 const { ui } = useUIState();
-const route = useRoute();
 const isFloatingSidebarVisible = ref(false);
-const isMemoDetailRoute = computed(() => route.matched.at(-1)?.path === '/:workspace/:memo');
+let rightFocusSidebarMediaQuery: MediaQueryList | null = null;
+let didInitializeRightFocusSidebar = false;
 
 const openFloatingSidebar = () => {
   if (ui.value.isSidebarOpen) {
@@ -66,6 +70,25 @@ const openFloatingSidebar = () => {
 const closeFloatingSidebar = () => {
   isFloatingSidebarVisible.value = false;
 };
+
+const syncRightFocusSidebarVisibility = () => {
+  if (didInitializeRightFocusSidebar) {
+    return;
+  }
+  if (rightFocusSidebarMediaQuery?.matches) {
+    ui.value.isFocusSidebarOpen = true;
+  }
+  didInitializeRightFocusSidebar = true;
+};
+
+onMounted(() => {
+  rightFocusSidebarMediaQuery = window.matchMedia('(min-width: 1280px)');
+  syncRightFocusSidebarVisibility();
+});
+
+onUnmounted(() => {
+  rightFocusSidebarMediaQuery = null;
+});
 </script>
 
 <style scoped>

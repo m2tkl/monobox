@@ -1,17 +1,20 @@
 const ui = reactive({
   isSidebarOpen: true,
-  isFocusPaneOpen: false,
-  isFocusPaneExpanded: false,
-  focusPaneSortMode: 'focused' as 'focused' | 'updated',
+  isFocusSidebarOpen: false,
 });
 
 const toggleSidebar = () => {
   ui.isSidebarOpen = !ui.isSidebarOpen;
 };
 
+const toggleFocusSidebar = () => {
+  ui.isFocusSidebarOpen = !ui.isFocusSidebarOpen;
+};
+
 export const useUIState = () => {
   return {
     ui: computed(() => ui),
     toggleSidebar,
+    toggleFocusSidebar,
   };
 };

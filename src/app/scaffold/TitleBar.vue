@@ -101,6 +101,12 @@
       >
         <ThemeToggle />
         <WindowControls placement="actions" />
+        <IconButton
+          v-if="workspaceSlug"
+          :icon="ui.isFocusSidebarOpen ? iconKey.sidebarOpen : iconKey.sidebarClose"
+          :aria-label="ui.isFocusSidebarOpen ? 'Close right sidebar' : 'Open right sidebar'"
+          @click="toggleFocusSidebar"
+        />
 
         <!-- Theme switching is handled directly in the title bar. -->
         <!-- <IconButton
@@ -142,7 +148,7 @@ const goHome = () => {
   if (slug) router.push(`/${slug}`);
 };
 
-const { ui, toggleSidebar } = useUIState();
+const { ui, toggleSidebar, toggleFocusSidebar } = useUIState();
 const isNavigatingToNewMemo = ref(false);
 
 const workspaceMenuItems: ComputedRef<DropdownMenuItem[][]> = computed(() => [
