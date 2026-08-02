@@ -430,6 +430,37 @@ pub const MIGRATIONS: &[(&str, &str)] = &[
         ON milestone_memo(memo_id);
         ",
     ),
+    (
+        "20260802_replace_focus_memo_with_focus_daily_state",
+        "CREATE TABLE IF NOT EXISTS focus_daily_state (
+            id INTEGER PRIMARY KEY,
+            workspace_id INTEGER NOT NULL,
+            memo_id INTEGER NOT NULL,
+            done_on TEXT NOT NULL CHECK(done_on GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (workspace_id, memo_id, done_on),
+            FOREIGN KEY (memo_id) REFERENCES memo(id) ON DELETE CASCADE,
+            FOREIGN KEY (workspace_id) REFERENCES workspace(id) ON DELETE CASCADE
+        );
+
+        INSERT OR IGNORE INTO focus_daily_state (workspace_id, memo_id, done_on, created_at, updated_at)
+        SELECT workspace_id, memo_id, done_for_today_on, created_at, updated_at
+        FROM focus_memo
+        WHERE done_for_today_on GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]';
+
+        CREATE INDEX IF NOT EXISTS idx_focus_daily_state_workspace_done
+        ON focus_daily_state(workspace_id, done_on);
+
+        CREATE TRIGGER IF NOT EXISTS trigger_focus_daily_state_updated_at AFTER UPDATE ON focus_daily_state
+        BEGIN
+            UPDATE focus_daily_state SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+
+        DROP TRIGGER IF EXISTS trigger_focus_memo_updated_at;
+        DROP TABLE IF EXISTS focus_memo;
+        ",
+    ),
 ];
 
 pub fn apply_migrations(conn: &Connection) -> Result<(), String> {

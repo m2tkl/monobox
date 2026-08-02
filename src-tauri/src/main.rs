@@ -130,12 +130,10 @@ fn main() {
             commands::file::update_file_note,
             commands::file::link_file_to_memo,
             commands::file::list_files_for_memo,
-            // Focus Memo
-            commands::focus_memo::list_focus_memos,
-            commands::focus_memo::add_focus_memo,
-            commands::focus_memo::delete_focus_memo,
-            commands::focus_memo::mark_focus_memo_done_for_today,
-            commands::focus_memo::clear_focus_memo_done_for_today,
+            // Focus Daily State
+            commands::focus_daily_state::list_focus_daily_states,
+            commands::focus_daily_state::mark_focus_done_for_today,
+            commands::focus_daily_state::clear_focus_done_for_today,
             // Calendar
             commands::calendar_day::list_calendar_days,
             commands::calendar_day::list_calendar_memo_dates,

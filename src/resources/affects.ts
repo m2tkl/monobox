@@ -86,8 +86,8 @@ const affectRules: ReadonlyArray<ChangeRule> = [
   defineAffects<Extract<ChangeRef, { type: 'bookmarkCollectionChanged' }>>('bookmarkCollectionChanged').resource(
     change => resourceRefs.bookmarkCollection(change.workspaceSlug),
   ),
-  defineAffects<Extract<ChangeRef, { type: 'focusMemoCollectionChanged' }>>('focusMemoCollectionChanged').resource(
-    change => resourceRefs.focusMemoCollection(change.workspaceSlug),
+  defineAffects<Extract<ChangeRef, { type: 'focusDailyStateCollectionChanged' }>>('focusDailyStateCollectionChanged').resource(
+    change => resourceRefs.focusDailyStateCollection(change.workspaceSlug),
   ),
   defineAffects<Extract<ChangeRef, { type: 'calendarDayCollectionChanged' }>>('calendarDayCollectionChanged').resource(
     change => resourceRefs.calendarDayCollection(change.workspaceSlug),

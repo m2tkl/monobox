@@ -3,7 +3,7 @@ import { bookmarkCommand } from './commands/bookmark';
 import { calendarDayCommand } from './commands/calendarDay';
 import { configCommand } from './commands/config';
 import { fileCommand } from './commands/file';
-import { focusMemoCommand } from './commands/focusMemo';
+import { focusDailyStateCommand } from './commands/focusDailyState';
 import { htmlExportCommand } from './commands/htmlExport';
 import { kanbanCommand } from './commands/kanban';
 import { kanbanAssignmentCommand } from './commands/kanbanAssignment';
@@ -19,7 +19,7 @@ export const command = {
   asset: assetCommand,
   config: configCommand,
   file: fileCommand,
-  focusMemo: focusMemoCommand,
+  focusDailyState: focusDailyStateCommand,
   htmlExport: htmlExportCommand,
   workspace: workspaceCommand,
   memo: memoCommand,

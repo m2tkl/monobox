@@ -1,9 +1,8 @@
-export type FocusMemo = {
+export type FocusDailyState = {
   id: number;
   workspace_id: number;
   memo_id: number;
-  order_index: number;
-  done_for_today_on?: string | null;
+  done_on: string;
   created_at: string;
   updated_at: string;
 };

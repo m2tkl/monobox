@@ -1,7 +1,7 @@
 pub mod bookmark;
 pub mod calendar_day;
 pub mod file;
-pub mod focus_memo;
+pub mod focus_daily_state;
 pub mod kanban;
 pub mod kanban_assignment;
 pub mod kanban_status;

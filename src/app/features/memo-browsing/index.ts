@@ -1,6 +1,6 @@
 export {
   useBookmarkListReadModel,
-  useFocusMemoListReadModel,
+  useFocusDailyStateReadModel,
   useGlobalStatusBoardReadModel,
   useTodayCalendarMemoListReadModel,
   useWorkspaceMemosReadModel,

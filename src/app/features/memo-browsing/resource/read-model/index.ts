@@ -7,7 +7,7 @@ import { defineReadModel } from '~/resource-runtime/read-model';
 import { useQuery } from '~/resource-runtime/useQuery';
 import { workspaceBookmarksQuery } from '~/resources/bookmark/queries';
 import { workspaceCalendarDaysQuery } from '~/resources/calendar-day/queries';
-import { workspaceFocusMemosQuery } from '~/resources/focus-memo/queries';
+import { workspaceFocusDailyStatesQuery } from '~/resources/focus-daily-state/queries';
 import { workspaceKanbansQuery } from '~/resources/kanban/queries';
 import { kanbanAssignmentItemsQuery } from '~/resources/kanban-assignment/queries';
 import { workspaceKanbanStatusesQuery } from '~/resources/kanban-status/queries';
@@ -43,18 +43,17 @@ export type BookmarkListReadModel = {
   };
 };
 
-export type FocusMemoListItem = MemoIndexItem & {
-  focusMemoId: number;
+export type FocusDailyStateListItem = MemoIndexItem & {
+  focusDailyStateId: number;
   linkCount: number;
   orderIndex: number;
-  doneForTodayOn: string | null | undefined;
+  doneOn: string;
 };
 
-export type FocusMemoListReadModel = {
+export type FocusDailyStateReadModel = {
   data: {
-    items: FocusMemoListItem[];
-    activeItems: FocusMemoListItem[];
-    doneTodayItems: FocusMemoListItem[];
+    items: FocusDailyStateListItem[];
+    doneTodayItems: FocusDailyStateListItem[];
   };
   flags: {
     isLoading: boolean;
@@ -179,7 +178,7 @@ export function useBookmarkListReadModel() {
   });
 }
 
-export function useFocusMemoListReadModel() {
+export function useFocusDailyStateReadModel() {
   const route = useRoute();
   const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 
@@ -187,7 +186,7 @@ export function useFocusMemoListReadModel() {
     workspaceSlug,
   });
 
-  const { snapshot: focusMemosSnap } = useQuery(workspaceFocusMemosQuery, {
+  const { snapshot: focusDailyStatesSnap } = useQuery(workspaceFocusDailyStatesQuery, {
     workspaceSlug,
   });
 
@@ -197,10 +196,10 @@ export function useFocusMemoListReadModel() {
 
   const today = new Date().toLocaleDateString('sv-SE');
 
-  const items = computed<FocusMemoListItem[]>(() => {
-    const focusMemos = focusMemosSnap.value.current ?? [];
+  const items = computed<FocusDailyStateListItem[]>(() => {
+    const focusDailyStates = focusDailyStatesSnap.value.current ?? [];
     const memos = memosSnap.value.current ?? [];
-    if (focusMemos.length === 0 || memos.length === 0) return [];
+    if (focusDailyStates.length === 0 || memos.length === 0) return [];
 
     const counts = new Map(
       (memoLinkCountsSnap.value.current ?? []).map(item => [
@@ -213,32 +212,30 @@ export function useFocusMemoListReadModel() {
     );
     const memosById = new Map(memos.map(memo => [memo.id, memo]));
 
-    return focusMemos
-      .map((focusMemo) => {
-        const memo = memosById.get(focusMemo.memo_id);
+    return focusDailyStates
+      .map((focusDailyState, index) => {
+        const memo = memosById.get(focusDailyState.memo_id);
         if (!memo) return null;
 
         return {
           ...memo,
-          focusMemoId: focusMemo.id,
+          focusDailyStateId: focusDailyState.id,
           linkCount: (counts.get(memo.id)?.directLinkCount ?? 0) + (counts.get(memo.id)?.backlinkCount ?? 0),
-          orderIndex: focusMemo.order_index,
-          doneForTodayOn: focusMemo.done_for_today_on,
+          orderIndex: index,
+          doneOn: focusDailyState.done_on,
         };
       })
-      .filter((memo): memo is FocusMemoListItem => memo !== null);
+      .filter((memo): memo is FocusDailyStateListItem => memo !== null);
   });
 
-  const activeItems = computed(() => items.value.filter(item => item.doneForTodayOn !== today));
-  const doneTodayItems = computed(() => items.value.filter(item => item.doneForTodayOn === today));
+  const doneTodayItems = computed(() => items.value.filter(item => item.doneOn === today));
 
-  return defineReadModel<FocusMemoListReadModel['data']>({
+  return defineReadModel<FocusDailyStateReadModel['data']>({
     data: computed(() => ({
       items: items.value,
-      activeItems: activeItems.value,
       doneTodayItems: doneTodayItems.value,
     })),
-    snapshots: [focusMemosSnap, memosSnap, memoLinkCountsSnap],
+    snapshots: [focusDailyStatesSnap, memosSnap, memoLinkCountsSnap],
   });
 }
 
