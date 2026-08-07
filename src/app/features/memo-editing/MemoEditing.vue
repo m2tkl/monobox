@@ -36,7 +36,6 @@
                     {{ memoStatusBadge.label }}
                   </UBadge>
                 </div>
-
               </template>
 
               <template #toolbar="{ editor: _editor }">
@@ -562,10 +561,10 @@ import type { LocationQueryRaw } from 'vue-router';
 import type { InboxFileItem, ManagedFileListItem } from '~/models/file';
 import type { MemoTemplateIndexItem } from '~/models/memoTemplate';
 
-import AppDialog from '~/app/elements/overlays/AppDialog.vue';
 import AppInput from '~/app/elements/AppInput.vue';
 import AppSelect from '~/app/elements/AppSelect.vue';
 import IconButton from '~/app/elements/IconButton.vue';
+import AppDialog from '~/app/elements/overlays/AppDialog.vue';
 import { buildExtensions, CodeBlockComponent, dispatchEditorMsg, EditorAction, TableComponent, type SelectionCopyFormat } from '~/app/features/editor';
 import { useCurrentMemoReadModel } from '~/app/features/memo-editing/resource/read-model';
 import { loadMemoTemplates } from '~/app/features/memo-templates';
@@ -582,7 +581,6 @@ import { buildMemoTitleFromSlug, encodeForSlug } from '~/utils/slug';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const { ui } = useUIState();
 const { workspaceSlug, memoSlug } = useMemoRouteTarget(route);
 const selectionCopyFormat = ref<SelectionCopyFormat>('html');
 const buttonSelectionCopyFormat = computed<SelectionCopyFormat>(() =>
