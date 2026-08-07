@@ -2,7 +2,10 @@
   <aside
     v-if="workspaceSlug"
     class="focus-sidebar border-left"
-    :class="{ 'focus-sidebar--open': isOpen }"
+    :class="{
+      'focus-sidebar--open': props.isOpen,
+      'focus-sidebar--floating': props.floating,
+    }"
     aria-label="Focus"
   >
     <div class="focus-sidebar-header">
@@ -15,11 +18,6 @@
       </div>
       <div class="focus-sidebar-actions">
         <span class="focus-sidebar-count">{{ activeItems.length }}</span>
-        <IconButton
-          :icon="iconKey.close"
-          aria-label="Close Focus sidebar"
-          @click="$emit('close')"
-        />
       </div>
     </div>
 
@@ -35,22 +33,91 @@
         class="focus-sidebar-list"
       >
         <li
-          v-for="memo in visibleItems"
+          v-for="memo in visibleActiveItems"
           :key="memo.id"
           class="focus-sidebar-row"
-          :class="{ 'focus-sidebar-row--done': isDoneToday(memo.slug_title) }"
+          :class="{
+            'focus-sidebar-row--active': memo.slug_title === currentMemoSlug,
+          }"
         >
-          <MemoLinkRow
-            :to="`/${workspaceSlug}/${memo.slug_title}`"
-            :memo-title="memo.title"
-            :active="memo.slug_title === currentMemoSlug"
-            @click="closeAfterNavigation"
-          />
           <IconButton
-            :icon="isDoneToday(memo.slug_title) ? iconKey.renew : iconKey.success"
-            :aria-label="isDoneToday(memo.slug_title) ? 'Undo done for today' : 'Done for today'"
+            :icon="iconKey.success"
+            aria-label="Done for today"
+            class="focus-sidebar-row-action"
             @click="toggleDoneForToday(memo.slug_title)"
           />
+          <NuxtLink
+            :to="`/${workspaceSlug}/${memo.slug_title}`"
+            class="focus-sidebar-row-link"
+            @click="closeAfterNavigation"
+          >
+            <span class="focus-sidebar-row-title">
+              {{ getMemoTitleParts(memo.title).memoTitle }}
+            </span>
+            <span
+              v-if="getMemoTitleParts(memo.title).context"
+              class="focus-sidebar-row-context"
+            >
+              @{{ getMemoTitleParts(memo.title).context }}
+            </span>
+          </NuxtLink>
+          <span
+            v-if="getTaskSummary(memo.slug_title).total > 0"
+            class="focus-sidebar-task-summary"
+          >
+            <UIcon
+              v-if="getTaskSummary(memo.slug_title).checked === getTaskSummary(memo.slug_title).total"
+              :name="iconKey.success"
+            />
+            <template v-else>
+              {{ getTaskSummary(memo.slug_title).checked }}/{{ getTaskSummary(memo.slug_title).total }}
+            </template>
+          </span>
+        </li>
+        <li
+          v-if="visibleDoneItems.length > 0"
+          class="focus-sidebar-done-separator"
+          aria-hidden="true"
+        />
+        <li
+          v-for="memo in visibleDoneItems"
+          :key="memo.id"
+          class="focus-sidebar-row focus-sidebar-row--done"
+          :class="{ 'focus-sidebar-row--active': memo.slug_title === currentMemoSlug }"
+        >
+          <IconButton
+            :icon="iconKey.renew"
+            aria-label="Undo done for today"
+            class="focus-sidebar-row-action"
+            @click="toggleDoneForToday(memo.slug_title)"
+          />
+          <NuxtLink
+            :to="`/${workspaceSlug}/${memo.slug_title}`"
+            class="focus-sidebar-row-link"
+            @click="closeAfterNavigation"
+          >
+            <span class="focus-sidebar-row-title">
+              {{ getMemoTitleParts(memo.title).memoTitle }}
+            </span>
+            <span
+              v-if="getMemoTitleParts(memo.title).context"
+              class="focus-sidebar-row-context"
+            >
+              @{{ getMemoTitleParts(memo.title).context }}
+            </span>
+          </NuxtLink>
+          <span
+            v-if="getTaskSummary(memo.slug_title).total > 0"
+            class="focus-sidebar-task-summary"
+          >
+            <UIcon
+              v-if="getTaskSummary(memo.slug_title).checked === getTaskSummary(memo.slug_title).total"
+              :name="iconKey.success"
+            />
+            <template v-else>
+              {{ getTaskSummary(memo.slug_title).checked }}/{{ getTaskSummary(memo.slug_title).total }}
+            </template>
+          </span>
         </li>
       </ul>
 
@@ -67,22 +134,16 @@
 </template>
 
 <script setup lang="ts">
-import { mergeUniqueMemoItems } from './focusMemoUtils';
+import type { JSONContent } from '@tiptap/core';
 
-import type { MemoIndexItem } from '~/models/memo';
-
-import MemoLinkRow from '~/app/scaffold/SidebarMenu/MemoLinkRow.vue';
-import { useFocusDailyStateReadModel, useGlobalStatusBoardReadModel, useTodayCalendarMemoListReadModel } from '~/app/features/memo-browsing';
+import { EditorQuery } from '~/app/features/editor';
+import { useFocusListReadModel } from '~/app/features/memo-browsing';
 import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
-type FocusDisplayItem = MemoIndexItem & {
-  linkCount: number;
-  orderIndex: number;
-};
-
-defineProps<{
+const props = defineProps<{
+  floating?: boolean;
   isOpen: boolean;
 }>();
 
@@ -93,29 +154,28 @@ const emit = defineEmits<{
 const route = useRoute();
 const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
 const currentMemoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
-const globalStatusVM = useGlobalStatusBoardReadModel();
-const focusDailyStateVM = useFocusDailyStateReadModel();
-const todayCalendarMemoVM = useTodayCalendarMemoListReadModel();
-const doneTodayItems = computed(() => focusDailyStateVM.value.data.doneTodayItems);
-const doneTodayMemoSlugs = computed(() => new Set(doneTodayItems.value.map(memo => memo.slug_title)));
-const focusItems = computed<FocusDisplayItem[]>(() => {
-  const nowMemoSlugs = new Set(globalStatusVM.value.data.nowItems.map(memo => memo.slug_title));
-  const statusItems = globalStatusVM.value.data.nowItems;
-  const calendarItems = todayCalendarMemoVM.value.data.items
-    .filter(memo => !nowMemoSlugs.has(memo.slug_title))
-    .map(memo => ({
-      ...memo,
-      orderIndex: statusItems.length + memo.orderIndex,
-    }));
-
-  return mergeUniqueMemoItems<FocusDisplayItem>(statusItems, calendarItems);
-});
-const activeItems = computed(() => focusItems.value.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)));
+const focusListVM = useFocusListReadModel();
+const focusItems = computed(() => focusListVM.value.data.items);
+const activeItems = computed(() => focusListVM.value.data.activeItems);
+const doneTodayMemoSlugs = computed(() => focusListVM.value.data.doneTodayMemoSlugs);
 const isExpanded = ref(false);
 const visibleItemLimit = 8;
-const visibleItems = computed(() => isExpanded.value ? focusItems.value : focusItems.value.slice(0, visibleItemLimit));
+const doneItems = computed(() => focusItems.value.filter(memo => isDoneToday(memo.slug_title)));
+const orderedItems = computed(() => [...activeItems.value, ...doneItems.value]);
+const visibleItems = computed(() => isExpanded.value ? orderedItems.value : orderedItems.value.slice(0, visibleItemLimit));
+const visibleActiveItems = computed(() => visibleItems.value.filter(memo => !isDoneToday(memo.slug_title)));
+const visibleDoneItems = computed(() => visibleItems.value.filter(memo => isDoneToday(memo.slug_title)));
+const emptyTaskSummary: EditorQuery.TaskSummary = { checked: 0, total: 0 };
+const taskSummaryCache = new Map<string, EditorQuery.TaskSummary>();
+const taskSummariesByMemoSlug = ref<Record<string, EditorQuery.TaskSummary>>({});
 
 const isDoneToday = (memoSlug: string) => doneTodayMemoSlugs.value.has(memoSlug);
+const getTaskSummary = (memoSlug: string) => taskSummariesByMemoSlug.value[memoSlug] ?? emptyTaskSummary;
+const getMemoTitleParts = (title: string): { memoTitle: string; context: string } => {
+  const parts = title.split('/');
+  const memoTitle = parts.pop() ?? title;
+  return { memoTitle, context: parts.join('/') };
+};
 
 const toggleDoneForToday = async (memoSlug: string) => {
   if (!workspaceSlug.value) return;
@@ -127,10 +187,49 @@ const toggleDoneForToday = async (memoSlug: string) => {
 };
 
 const closeAfterNavigation = () => {
-  if (window.innerWidth < 1280) {
+  if (props.floating) {
     emit('close');
   }
 };
+
+let taskSummaryRequestId = 0;
+
+watch([workspaceSlug, visibleItems], async ([nextWorkspaceSlug, nextVisibleItems]) => {
+  const requestId = ++taskSummaryRequestId;
+  if (!nextWorkspaceSlug || nextVisibleItems.length === 0) {
+    taskSummariesByMemoSlug.value = {};
+    return;
+  }
+
+  const summaries = await Promise.all(
+    nextVisibleItems.map(async (memo) => {
+      const cacheKey = `${nextWorkspaceSlug}/${memo.slug_title}/${memo.modified_at}`;
+      const cached = taskSummaryCache.get(cacheKey);
+      if (cached) {
+        return [memo.slug_title, cached] as const;
+      }
+
+      try {
+        const detail = await command.memo.get({
+          workspaceSlugName: nextWorkspaceSlug,
+          memoSlugTitle: memo.slug_title,
+        });
+        const summary = EditorQuery.summarizeTaskItems(JSON.parse(detail.content) as JSONContent);
+        taskSummaryCache.set(cacheKey, summary);
+        return [memo.slug_title, summary] as const;
+      }
+      catch {
+        return [memo.slug_title, emptyTaskSummary] as const;
+      }
+    }),
+  );
+
+  if (requestId !== taskSummaryRequestId) {
+    return;
+  }
+
+  taskSummariesByMemoSlug.value = Object.fromEntries(summaries);
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -143,14 +242,12 @@ const closeAfterNavigation = () => {
 }
 
 .focus-sidebar--open {
-  position: fixed;
-  top: var(--app-titlebar-height);
-  right: 0;
-  bottom: 0;
-  z-index: 1110;
   display: block;
-  height: auto;
-  box-shadow: -16px 0 48px rgb(15 23 42 / 0.16);
+  height: 100%;
+}
+
+.focus-sidebar--floating.focus-sidebar--open {
+  box-shadow: none;
 }
 
 .focus-sidebar-header {
@@ -229,17 +326,78 @@ const closeAfterNavigation = () => {
 
 .focus-sidebar-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 1.75rem;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.125rem;
   border-radius: 0.375rem;
+  padding: 0.0625rem;
+  transition: background-color 0.18s ease;
 }
 
-.focus-sidebar-row--done :deep(.sidebar-link) {
+.focus-sidebar-row:hover,
+.focus-sidebar-row--active {
+  background: var(--color-surface-hover);
+}
+
+.focus-sidebar-done-separator {
+  height: 1px;
+  margin: 0.375rem 0.25rem;
+  background: var(--color-border-light);
+}
+
+.focus-sidebar-row-action {
+  align-self: center;
+}
+
+.focus-sidebar-row-link {
+  display: flex;
+  min-width: 0;
+  min-height: 1.75rem;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 0.25rem;
+  padding: 0.1875rem 0.125rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.focus-sidebar-row-link:hover,
+.focus-sidebar-row--active .focus-sidebar-row-link {
+  color: var(--color-text-primary);
+}
+
+.focus-sidebar-row-title,
+.focus-sidebar-row-context {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-sidebar-row-context {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.focus-sidebar-task-summary {
+  display: inline-flex;
+  min-width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  padding-right: 0.25rem;
+}
+
+.focus-sidebar-row--done .focus-sidebar-row-link {
   color: var(--color-text-muted);
 }
 
-.focus-sidebar-row--done :deep(.sidebar-link span) {
+.focus-sidebar-row--done .focus-sidebar-row-title {
   text-decoration: line-through;
 }
 
@@ -258,14 +416,5 @@ const closeAfterNavigation = () => {
 .focus-sidebar-more:hover {
   background: var(--color-surface-hover);
   color: var(--color-text-primary);
-}
-
-@media (min-width: 1280px) {
-  .focus-sidebar--open {
-    position: static;
-    display: block;
-    height: 100%;
-    box-shadow: none;
-  }
 }
 </style>

@@ -99,7 +99,6 @@
         class="titlebar-actions"
         data-tauri-drag-region
       >
-        <ThemeToggle />
         <WindowControls placement="actions" />
         <IconButton
           v-if="workspaceSlug"
@@ -108,7 +107,6 @@
           @click="toggleFocusSidebar"
         />
 
-        <!-- Theme switching is handled directly in the title bar. -->
         <!-- <IconButton
           :icon="iconKey.setting"
           @click="goToSetting"
@@ -124,7 +122,6 @@
 import type { DropdownMenuItem } from '@nuxt/ui';
 
 import IconButton from '~/app/elements/IconButton.vue';
-import ThemeToggle from '~/app/scaffold/ThemeToggle.vue';
 import { useTitleBarWorkspace } from '~/app/scaffold/useTitleBarWorkspace';
 import WindowControls from '~/app/scaffold/WindowControls.vue';
 

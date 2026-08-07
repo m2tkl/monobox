@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mergeUniqueMemoItems } from './focusMemoUtils';
+import { mergeUniqueMemoItems } from './memoListUtils';
 
 describe('mergeUniqueMemoItems', () => {
   it('keeps status items first and removes calendar duplicates', () => {

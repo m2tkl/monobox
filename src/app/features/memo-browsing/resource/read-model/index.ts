@@ -1,5 +1,7 @@
 import { computed } from 'vue';
 
+import { mergeUniqueMemoItems } from './memoListUtils';
+
 import type { MemoIndexItem } from '~/models/memo';
 
 import { useRoute } from '#imports';
@@ -54,6 +56,25 @@ export type FocusDailyStateReadModel = {
   data: {
     items: FocusDailyStateListItem[];
     doneTodayItems: FocusDailyStateListItem[];
+    doneTodayMemoSlugs: ReadonlySet<string>;
+  };
+  flags: {
+    isLoading: boolean;
+    isStale: boolean;
+    hasError: boolean;
+  };
+};
+
+export type FocusListItem = MemoIndexItem & {
+  linkCount: number;
+  orderIndex: number;
+};
+
+export type FocusListReadModel = {
+  data: {
+    items: FocusListItem[];
+    activeItems: FocusListItem[];
+    doneTodayMemoSlugs: ReadonlySet<string>;
   };
   flags: {
     isLoading: boolean;
@@ -229,14 +250,57 @@ export function useFocusDailyStateReadModel() {
   });
 
   const doneTodayItems = computed(() => items.value.filter(item => item.doneOn === today));
+  const doneTodayMemoSlugs = computed(() => new Set(doneTodayItems.value.map(item => item.slug_title)));
 
   return defineReadModel<FocusDailyStateReadModel['data']>({
     data: computed(() => ({
       items: items.value,
       doneTodayItems: doneTodayItems.value,
+      doneTodayMemoSlugs: doneTodayMemoSlugs.value,
     })),
     snapshots: [focusDailyStatesSnap, memosSnap, memoLinkCountsSnap],
   });
+}
+
+export function useFocusListReadModel() {
+  const globalStatusVM = useGlobalStatusBoardReadModel();
+  const focusDailyStateVM = useFocusDailyStateReadModel();
+  const todayCalendarMemoVM = useTodayCalendarMemoListReadModel();
+
+  const items = computed<FocusListItem[]>(() => {
+    const statusItems = globalStatusVM.value.data.nowItems;
+    const nowMemoSlugs = new Set(statusItems.map(memo => memo.slug_title));
+    const calendarItems = todayCalendarMemoVM.value.data.items
+      .filter(memo => !nowMemoSlugs.has(memo.slug_title))
+      .map(memo => ({
+        ...memo,
+        orderIndex: statusItems.length + memo.orderIndex,
+      }));
+
+    return mergeUniqueMemoItems<FocusListItem>(statusItems, calendarItems);
+  });
+
+  const doneTodayMemoSlugs = computed(() => focusDailyStateVM.value.data.doneTodayMemoSlugs);
+  const activeItems = computed(() => items.value.filter(memo => !doneTodayMemoSlugs.value.has(memo.slug_title)));
+
+  return computed<FocusListReadModel>(() => ({
+    data: {
+      items: items.value,
+      activeItems: activeItems.value,
+      doneTodayMemoSlugs: doneTodayMemoSlugs.value,
+    },
+    flags: {
+      isLoading: globalStatusVM.value.flags.isLoading
+        || focusDailyStateVM.value.flags.isLoading
+        || todayCalendarMemoVM.value.flags.isLoading,
+      isStale: globalStatusVM.value.flags.isStale
+        || focusDailyStateVM.value.flags.isStale
+        || todayCalendarMemoVM.value.flags.isStale,
+      hasError: globalStatusVM.value.flags.hasError
+        || focusDailyStateVM.value.flags.hasError
+        || todayCalendarMemoVM.value.flags.hasError,
+    },
+  }));
 }
 
 export function useTodayCalendarMemoListReadModel() {

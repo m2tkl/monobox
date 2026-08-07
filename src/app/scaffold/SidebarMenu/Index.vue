@@ -184,73 +184,41 @@
         v-if="workspaceSlug"
         class="border-top pt-2"
       >
-        <NuxtLink
-          :to="`/_setting?workspace=${workspaceSlug}`"
-          class="sidebar-action sidebar-link"
-        >
-          <UIcon
-            :name="iconKey.setting"
-            class="shrink-0"
-          />
-          <span class="sidebar-action-label">Settings</span>
-        </NuxtLink>
+        <div class="sidebar-footer-actions">
+          <NuxtLink
+            :to="`/_setting?workspace=${workspaceSlug}`"
+            class="sidebar-action sidebar-link"
+          >
+            <UIcon
+              :name="iconKey.setting"
+              class="shrink-0"
+            />
+            <span class="sidebar-action-label">Settings</span>
+          </NuxtLink>
+          <ThemeToggle />
+        </div>
       </div>
     </div>
   </div>
 
-  <Teleport to="body">
-    <div
-      v-if="activeStatusPreview"
-      class="kanban-status-preview"
-      :style="{
-        left: `${previewLeft}px`,
-        top: `${previewTop}px`,
-      }"
-      @mouseenter="clearStatusPreviewHideTimer"
-      @mouseleave="scheduleStatusPreviewHide(activeStatusPreview.id)"
-      @focusin="clearStatusPreviewHideTimer"
-      @focusout="scheduleStatusPreviewHide(activeStatusPreview.id)"
-    >
-      <div class="kanban-status-preview__header">
-        <span class="kanban-status-preview__title">{{ activeStatusPreview.name }}</span>
-        <span class="kanban-status-preview__count">{{ activeStatusPreview.count }}</span>
-      </div>
-      <ul
-        v-if="getStatusPreviewItems(activeStatusPreview.id).length > 0"
-        class="kanban-status-preview__list"
-      >
-        <li
-          v-for="item in getStatusPreviewItems(activeStatusPreview.id)"
-          :key="item.id"
-        >
-          <MemoLinkRow
-            :to="`/${workspaceSlug}/${item.slug_title}`"
-            :memo-title="item.title"
-            :count="item.linkCount"
-            :active="activeMemoSlug === item.slug_title"
-          />
-        </li>
-      </ul>
-      <p
-        v-else
-        class="kanban-status-preview__empty"
-      >
-        No memos
-      </p>
-      <NuxtLink
-        v-if="activeStatusPreview.count > statusPreviewLimit"
-        :to="`/${workspaceSlug}?status=${encodeURIComponent(activeStatusPreview.name)}`"
-        class="kanban-status-preview__more sidebar-link"
-      >
-        Show all {{ activeStatusPreview.count }}
-      </NuxtLink>
-    </div>
-  </Teleport>
+  <KanbanStatusPreview
+    v-if="activeStatusPreview && workspaceSlug"
+    :active-memo-slug="activeMemoSlug"
+    :item-limit="statusPreviewLimit"
+    :items="activeStatusPreviewItems"
+    :left="previewLeft"
+    :status="activeStatusPreview"
+    :top="previewTop"
+    :workspace-slug="workspaceSlug"
+    @keep-open="clearStatusPreviewHideTimer"
+    @schedule-close="scheduleStatusPreviewHide(activeStatusPreview.id)"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 
+import KanbanStatusPreview from './KanbanStatusPreview.vue';
 import MemoLinkRow from './MemoLinkRow.vue';
 import NewMemoActions from './NewMemoActions.vue';
 
@@ -258,6 +226,7 @@ import type { GlobalStatusMemoListItem } from '~/app/features/memo-browsing/reso
 
 import { useBookmarkListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
 import { SearchPalette } from '~/app/features/search';
+import ThemeToggle from '~/app/scaffold/ThemeToggle.vue';
 import { command } from '~/resources/command';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
@@ -341,6 +310,10 @@ const openSearchPalette = () => {
 const getStatusPreviewItems = (statusId: number) => {
   return statusPreviewItemsById.value.get(statusId)?.slice(0, statusPreviewLimit) ?? [];
 };
+const activeStatusPreviewItems = computed(() => {
+  if (activeStatusPreview.value === null) return [];
+  return getStatusPreviewItems(activeStatusPreview.value.id);
+});
 
 const showStatusPreview = (event: MouseEvent | FocusEvent, statusId: number) => {
   clearStatusPreviewHideTimer();
@@ -552,70 +525,6 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
   position: relative;
 }
 
-.kanban-status-preview {
-  position: fixed;
-  z-index: 1300;
-  width: min(22rem, calc(100vw - var(--app-sidebar-width) - 1rem));
-  max-height: min(23rem, calc(100vh - 1.5rem));
-  overflow-y: auto;
-  border: 1px solid var(--color-border-light);
-  border-radius: 0.5rem;
-  background-color: var(--color-background);
-  box-shadow: 0 18px 42px rgb(15 23 42 / 0.18);
-  padding: 0.5rem;
-}
-
-.kanban-status-preview__header {
-  display: flex;
-  min-height: 1.75rem;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0 0.25rem 0.375rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.kanban-status-preview__title {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--color-text-primary);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.kanban-status-preview__count {
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
-}
-
-.kanban-status-preview__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding-top: 0.375rem;
-}
-
-.kanban-status-preview__empty {
-  margin: 0;
-  padding: 0.75rem 0.25rem 0.375rem;
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
-}
-
-.kanban-status-preview__more {
-  display: block;
-  margin-top: 0.375rem;
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.5rem;
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
 .sidebar-link-list--bookmarks {
   gap: 0;
   margin-top: 0.125rem;
@@ -630,6 +539,12 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
   border-radius: 0.375rem;
   padding: 0.1875rem 0.5rem;
   font-size: 0.875rem;
+}
+
+.sidebar-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .sidebar-action-label {
