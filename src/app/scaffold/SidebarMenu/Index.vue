@@ -85,6 +85,7 @@
 
         <section
           v-if="workspaceSlug && globalStatuses.length > 0"
+          ref="kanbanSectionRef"
           class="sidebar-section"
         >
           <NuxtLink
@@ -113,6 +114,7 @@
               :key="status.id"
               class="kanban-status-preview-anchor"
               @mouseenter="showStatusPreview($event, status.id)"
+              @mousemove="updateStatusPreviewAim($event, status.id)"
               @focusin="showStatusPreview($event, status.id)"
               @mouseleave="scheduleStatusPreviewHide(status.id)"
               @focusout="scheduleStatusPreviewHide(status.id)"
@@ -210,8 +212,8 @@
     :status="activeStatusPreview"
     :top="previewTop"
     :workspace-slug="workspaceSlug"
-    @keep-open="clearStatusPreviewHideTimer"
-    @schedule-close="scheduleStatusPreviewHide(activeStatusPreview.id)"
+    @keep-open="keepStatusPreviewOpen"
+    @schedule-close="scheduleStatusPreviewClose(activeStatusPreview.id)"
   />
 </template>
 
@@ -227,10 +229,16 @@ import type { GlobalStatusMemoListItem } from '~/app/features/memo-browsing/reso
 import { useBookmarkListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
 import { SearchPalette } from '~/app/features/search';
 import ThemeToggle from '~/app/scaffold/ThemeToggle.vue';
+import { useSafeTriangle } from '~/composables/useSafeTriangle';
 import { command } from '~/resources/command';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
+
+const emit = defineEmits<{
+  'floating-preview-enter': [];
+  'floating-preview-leave': [];
+}>();
 
 const route = useRoute();
 const router = useRouter();
@@ -263,11 +271,14 @@ const draggedMemoSlug = ref<string | null>(null);
 const dropMemoId = ref<number | null>(null);
 const dropPosition = ref<'before' | 'after' | null>(null);
 const isReordering = ref(false);
+const kanbanSectionRef = ref<HTMLElement | null>(null);
 const hoveredStatusId = ref<number | null>(null);
 const previewTop = ref(0);
 const previewLeft = ref(0);
 const statusPreviewLimit = 8;
+const statusPreviewHideDelay = 280;
 let statusPreviewHideTimer: number | null = null;
+const statusPreviewSafeTriangle = useSafeTriangle();
 
 const activeStatusPreview = computed(() => {
   if (hoveredStatusId.value === null) return null;
@@ -324,11 +335,60 @@ const showStatusPreview = (event: MouseEvent | FocusEvent, statusId: number) => 
   }
 
   const rect = target.getBoundingClientRect();
-  const preferredTop = rect.top - 0.5 * 16;
-  const maxTop = window.innerHeight - 24 * 16;
+  const sectionRect = kanbanSectionRef.value?.getBoundingClientRect();
+  const preferredTop = (sectionRect?.top ?? rect.top) - 0.5 * 16;
+  const maxTop = window.innerHeight - 30 * 16;
   previewTop.value = Math.max(0.75 * 16, Math.min(preferredTop, maxTop));
-  previewLeft.value = rect.right + 8;
+  previewLeft.value = rect.right - 1;
+
+  if (hoveredStatusId.value === null || event.type === 'focusin') {
+    hoveredStatusId.value = statusId;
+    return;
+  }
+
+  if (hoveredStatusId.value === statusId) {
+    return;
+  }
+
+  if (isPointerAimingAtStatusPreview(event)) {
+    return;
+  }
+
   hoveredStatusId.value = statusId;
+};
+
+const updateStatusPreviewAim = (event: MouseEvent, statusId: number) => {
+  statusPreviewSafeTriangle.trackPointer(event);
+
+  if (hoveredStatusId.value === null || hoveredStatusId.value === statusId) {
+    return;
+  }
+
+  if (isPointerAimingAtStatusPreview(event)) {
+    return;
+  }
+
+  hoveredStatusId.value = statusId;
+};
+
+const isPointerAimingAtStatusPreview = (event: MouseEvent | FocusEvent) => {
+  if (!(event instanceof MouseEvent)) return false;
+  if (hoveredStatusId.value === null) return false;
+
+  const previewHeight = getStatusPreviewHeight();
+  return statusPreviewSafeTriangle.isAimingAt(event, {
+    left: previewLeft.value,
+    top: previewTop.value,
+    bottom: previewTop.value + previewHeight,
+  });
+};
+
+const getStatusPreviewHeight = () => {
+  const titlebarHeightRaw = getComputedStyle(document.documentElement)
+    .getPropertyValue('--app-titlebar-height')
+    .trim();
+  const titlebarHeight = Number.parseFloat(titlebarHeightRaw) || 0;
+  return Math.min(30 * 16, window.innerHeight - titlebarHeight - 1.5 * 16);
 };
 
 const clearStatusPreviewHideTimer = () => {
@@ -338,6 +398,16 @@ const clearStatusPreviewHideTimer = () => {
   }
 };
 
+const keepStatusPreviewOpen = () => {
+  clearStatusPreviewHideTimer();
+  emit('floating-preview-enter');
+};
+
+const scheduleStatusPreviewClose = (statusId: number) => {
+  scheduleStatusPreviewHide(statusId);
+  emit('floating-preview-leave');
+};
+
 const scheduleStatusPreviewHide = (statusId: number) => {
   clearStatusPreviewHideTimer();
   statusPreviewHideTimer = window.setTimeout(() => {
@@ -345,12 +415,20 @@ const scheduleStatusPreviewHide = (statusId: number) => {
       hoveredStatusId.value = null;
     }
     statusPreviewHideTimer = null;
-  }, 120);
+  }, statusPreviewHideDelay);
 };
 
 watch(() => route.fullPath, () => {
   clearStatusPreviewHideTimer();
   hoveredStatusId.value = null;
+  statusPreviewSafeTriangle.reset();
+  emit('floating-preview-leave');
+});
+
+onUnmounted(() => {
+  clearStatusPreviewHideTimer();
+  statusPreviewSafeTriangle.reset();
+  emit('floating-preview-leave');
 });
 
 const showRandomMemo = async () => {

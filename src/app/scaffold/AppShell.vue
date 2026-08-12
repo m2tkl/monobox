@@ -20,9 +20,13 @@
           v-if="isFloatingSidebarVisible"
           class="floating-sidebar border-right h-full"
           @mouseenter="openFloatingSidebar"
-          @mouseleave="closeFloatingSidebar"
+          @mouseleave="scheduleFloatingSidebarClose"
         >
-          <SidebarMenu :is-open="true" />
+          <SidebarMenu
+            :is-open="true"
+            @floating-preview-enter="keepFloatingSidebarOpenForPreview"
+            @floating-preview-leave="releaseFloatingSidebarPreview"
+          />
         </aside>
       </Transition>
 
@@ -72,20 +76,46 @@ import SidebarMenu from '~/app/scaffold/SidebarMenu/Index.vue';
 
 const { ui } = useUIState();
 const isFloatingSidebarVisible = ref(false);
+const isFloatingSidebarPreviewActive = ref(false);
 const isFloatingFocusSidebarVisible = ref(false);
 let rightFocusSidebarMediaQuery: MediaQueryList | null = null;
 let didInitializeRightFocusSidebar = false;
+let floatingSidebarCloseTimer: number | null = null;
+
+const clearFloatingSidebarCloseTimer = () => {
+  if (floatingSidebarCloseTimer !== null) {
+    window.clearTimeout(floatingSidebarCloseTimer);
+    floatingSidebarCloseTimer = null;
+  }
+};
 
 const openFloatingSidebar = () => {
   if (ui.value.isSidebarOpen) {
     return;
   }
 
+  clearFloatingSidebarCloseTimer();
   isFloatingSidebarVisible.value = true;
 };
 
-const closeFloatingSidebar = () => {
-  isFloatingSidebarVisible.value = false;
+const scheduleFloatingSidebarClose = () => {
+  clearFloatingSidebarCloseTimer();
+  floatingSidebarCloseTimer = window.setTimeout(() => {
+    if (!isFloatingSidebarPreviewActive.value) {
+      isFloatingSidebarVisible.value = false;
+    }
+    floatingSidebarCloseTimer = null;
+  }, 180);
+};
+
+const keepFloatingSidebarOpenForPreview = () => {
+  isFloatingSidebarPreviewActive.value = true;
+  openFloatingSidebar();
+};
+
+const releaseFloatingSidebarPreview = () => {
+  isFloatingSidebarPreviewActive.value = false;
+  scheduleFloatingSidebarClose();
 };
 
 const openFloatingFocusSidebar = () => {
@@ -114,6 +144,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearFloatingSidebarCloseTimer();
   rightFocusSidebarMediaQuery = null;
 });
 </script>

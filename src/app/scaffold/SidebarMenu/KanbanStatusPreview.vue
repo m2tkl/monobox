@@ -11,39 +11,43 @@
       @focusin="$emit('keep-open')"
       @focusout="$emit('schedule-close')"
     >
-      <div class="kanban-status-preview__header">
-        <span class="kanban-status-preview__title">{{ status.name }}</span>
-        <span class="kanban-status-preview__count">{{ status.count }}</span>
+      <div class="kanban-status-preview__panel">
+        <div class="kanban-status-preview__header">
+          <span class="kanban-status-preview__title">{{ status.name }}</span>
+          <span class="kanban-status-preview__count">{{ status.count }}</span>
+        </div>
+        <div class="kanban-status-preview__content">
+          <ul
+            v-if="items.length > 0"
+            class="kanban-status-preview__list"
+          >
+            <li
+              v-for="item in items"
+              :key="item.id"
+            >
+              <MemoLinkRow
+                :to="`/${workspaceSlug}/${item.slug_title}`"
+                :memo-title="item.title"
+                :count="item.linkCount"
+                :active="activeMemoSlug === item.slug_title"
+              />
+            </li>
+          </ul>
+          <p
+            v-else
+            class="kanban-status-preview__empty"
+          >
+            No memos
+          </p>
+          <NuxtLink
+            v-if="status.count > itemLimit"
+            :to="`/${workspaceSlug}?status=${encodeURIComponent(status.name)}`"
+            class="kanban-status-preview__more sidebar-link"
+          >
+            Show all {{ status.count }}
+          </NuxtLink>
+        </div>
       </div>
-      <ul
-        v-if="items.length > 0"
-        class="kanban-status-preview__list"
-      >
-        <li
-          v-for="item in items"
-          :key="item.id"
-        >
-          <MemoLinkRow
-            :to="`/${workspaceSlug}/${item.slug_title}`"
-            :memo-title="item.title"
-            :count="item.linkCount"
-            :active="activeMemoSlug === item.slug_title"
-          />
-        </li>
-      </ul>
-      <p
-        v-else
-        class="kanban-status-preview__empty"
-      >
-        No memos
-      </p>
-      <NuxtLink
-        v-if="status.count > itemLimit"
-        :to="`/${workspaceSlug}?status=${encodeURIComponent(status.name)}`"
-        class="kanban-status-preview__more sidebar-link"
-      >
-        Show all {{ status.count }}
-      </NuxtLink>
     </div>
   </Teleport>
 </template>
@@ -73,11 +77,33 @@ defineEmits<{
 .kanban-status-preview {
   position: fixed;
   z-index: 1300;
-  width: min(22rem, calc(100vw - var(--app-sidebar-width) - 1rem));
-  max-height: min(23rem, calc(100vh - 1.5rem));
-  overflow-y: auto;
+  width: min(24rem, calc(100vw - var(--app-sidebar-width) - 0.75rem));
+  height: min(30rem, calc(100vh - var(--app-titlebar-height) - 1.5rem));
+  padding-left: 0.625rem;
+}
+
+.kanban-status-preview::before {
+  position: absolute;
+  top: 0.125rem;
+  bottom: 0.125rem;
+  left: 0;
+  width: 0.625rem;
+  border-block: 1px solid color-mix(in srgb, var(--color-border-light) 68%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-surface-hover) 58%, transparent),
+    color-mix(in srgb, var(--color-background) 82%, transparent)
+  );
+  content: "";
+}
+
+.kanban-status-preview__panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
   border: 1px solid var(--color-border-light);
-  border-radius: 0.5rem;
+  border-radius: 0 0.5rem 0.5rem 0;
   background-color: var(--color-background);
   box-shadow: 0 18px 42px rgb(15 23 42 / 0.18);
   padding: 0.5rem;
@@ -86,11 +112,18 @@ defineEmits<{
 .kanban-status-preview__header {
   display: flex;
   min-height: 1.75rem;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0 0.25rem 0.375rem;
   border-bottom: 1px solid var(--color-border-light);
+  padding: 0 0.25rem 0.5rem;
+}
+
+.kanban-status-preview__content {
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 0.375rem;
 }
 
 .kanban-status-preview__title {
@@ -114,7 +147,6 @@ defineEmits<{
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  padding-top: 0.375rem;
 }
 
 .kanban-status-preview__empty {
