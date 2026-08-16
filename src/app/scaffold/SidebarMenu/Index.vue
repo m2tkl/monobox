@@ -279,6 +279,7 @@ const statusPreviewLimit = 8;
 const statusPreviewHideDelay = 280;
 let statusPreviewHideTimer: number | null = null;
 const statusPreviewSafeTriangle = useSafeTriangle();
+let activeMainStatusAimSourceId: number | null = null;
 
 const activeStatusPreview = computed(() => {
   if (hoveredStatusId.value === null) return null;
@@ -326,6 +327,11 @@ const activeStatusPreviewItems = computed(() => {
   return getStatusPreviewItems(activeStatusPreview.value.id);
 });
 
+const isActiveMainStatus = (statusId: number) => {
+  const status = globalStatuses.value.find(item => item.id === statusId);
+  return !!status && activeStatusName.value === status.name;
+};
+
 const showStatusPreview = (event: MouseEvent | FocusEvent, statusId: number) => {
   clearStatusPreviewHideTimer();
   const target = event.currentTarget;
@@ -341,7 +347,18 @@ const showStatusPreview = (event: MouseEvent | FocusEvent, statusId: number) => 
   previewTop.value = Math.max(0.75 * 16, Math.min(preferredTop, maxTop));
   previewLeft.value = rect.right - 1;
 
+  if (isActiveMainStatus(statusId)) {
+    hoveredStatusId.value = null;
+    activeMainStatusAimSourceId = statusId;
+    return;
+  }
+
+  if (isPointerAimingAtActiveMainPanel(event)) {
+    return;
+  }
+
   if (hoveredStatusId.value === null || event.type === 'focusin') {
+    activeMainStatusAimSourceId = null;
     hoveredStatusId.value = statusId;
     return;
   }
@@ -354,13 +371,29 @@ const showStatusPreview = (event: MouseEvent | FocusEvent, statusId: number) => 
     return;
   }
 
+  activeMainStatusAimSourceId = null;
   hoveredStatusId.value = statusId;
 };
 
 const updateStatusPreviewAim = (event: MouseEvent, statusId: number) => {
   statusPreviewSafeTriangle.trackPointer(event);
+  if (isActiveMainStatus(statusId)) {
+    hoveredStatusId.value = null;
+    activeMainStatusAimSourceId = statusId;
+    return;
+  }
 
-  if (hoveredStatusId.value === null || hoveredStatusId.value === statusId) {
+  if (isPointerAimingAtActiveMainPanel(event)) {
+    return;
+  }
+
+  if (hoveredStatusId.value === null) {
+    activeMainStatusAimSourceId = null;
+    hoveredStatusId.value = statusId;
+    return;
+  }
+
+  if (hoveredStatusId.value === statusId) {
     return;
   }
 
@@ -368,7 +401,21 @@ const updateStatusPreviewAim = (event: MouseEvent, statusId: number) => {
     return;
   }
 
+  activeMainStatusAimSourceId = null;
   hoveredStatusId.value = statusId;
+};
+
+const isPointerAimingAtActiveMainPanel = (event: MouseEvent | FocusEvent) => {
+  if (!(event instanceof MouseEvent)) return false;
+  if (!activeStatusName.value) return false;
+  if (activeMainStatusAimSourceId === null) return false;
+  if (!isActiveMainStatus(activeMainStatusAimSourceId)) return false;
+
+  return statusPreviewSafeTriangle.isAimingAt(event, {
+    left: previewLeft.value,
+    top: 0,
+    bottom: window.innerHeight,
+  });
 };
 
 const isPointerAimingAtStatusPreview = (event: MouseEvent | FocusEvent) => {
@@ -421,12 +468,14 @@ const scheduleStatusPreviewHide = (statusId: number) => {
 watch(() => route.fullPath, () => {
   clearStatusPreviewHideTimer();
   hoveredStatusId.value = null;
+  activeMainStatusAimSourceId = null;
   statusPreviewSafeTriangle.reset();
   emit('floating-preview-leave');
 });
 
 onUnmounted(() => {
   clearStatusPreviewHideTimer();
+  activeMainStatusAimSourceId = null;
   statusPreviewSafeTriangle.reset();
   emit('floating-preview-leave');
 });
