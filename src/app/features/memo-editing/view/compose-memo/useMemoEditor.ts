@@ -16,6 +16,7 @@ import {
   EditorQuery,
   EditorSelector,
 } from '~/app/features/editor';
+import { shouldSkipMemoDirty } from '~/app/features/editor/core/transaction';
 import { getMemoLinkOpenIntent } from '~/app/features/memo-editing/memoLinkOpenIntent';
 import { decodeHeadingHash } from '~/app/features/memo-editing/view/navigate-memo/headingLink';
 import { fileCommand } from '~/resources/file/commands';
@@ -524,7 +525,9 @@ export function useMemoEditor(
       });
       if (!transaction.docChanged) return;
 
-      options.onChanged?.('content');
+      if (!shouldSkipMemoDirty(transaction)) {
+        options.onChanged?.('content');
+      }
       EditorAction.applyTargetBlankToExternalLinks(_editor);
       const linksChanged = await updateLinks(transaction);
       if (linksChanged) {
