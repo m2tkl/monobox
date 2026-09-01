@@ -5,6 +5,7 @@
     style="color: var(--color-text-primary)"
     contenteditable="true"
     @input="onInput"
+    @paste="onPaste"
     @compositionstart="onCompositionStart"
     @compositionend="onCompositionEnd"
   >
@@ -55,6 +56,41 @@ const onInput = () => {
     title.value = el.innerText.trim();
   }
 };
+
+const onPaste = (event: ClipboardEvent) => {
+  event.preventDefault();
+
+  const plainText = event.clipboardData?.getData('text/plain') ?? '';
+  insertPlainTextAtSelection(plainText);
+  onInput();
+};
+
+function insertPlainTextAtSelection(text: string) {
+  const el = titleFieldRef.value;
+  if (!el) return;
+
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) {
+    el.append(document.createTextNode(text));
+    return;
+  }
+
+  const range = selection.getRangeAt(0);
+  if (!el.contains(range.commonAncestorContainer)) {
+    el.append(document.createTextNode(text));
+    return;
+  }
+
+  range.deleteContents();
+
+  const textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+  range.setStartAfter(textNode);
+  range.collapse(true);
+
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
 
 function focusAndSelectAll() {
   const el = titleFieldRef.value;
