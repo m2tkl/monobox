@@ -1,12 +1,12 @@
 import type { Transaction } from '@tiptap/pm/state';
 
-const skipMemoDirtyMetaKey = 'monobox:skipMemoDirty';
+const editorHydrationMetaKey = 'monobox:editorHydration';
 
-export function markSkipMemoDirty(transaction: Transaction) {
-  transaction.setMeta(skipMemoDirtyMetaKey, true);
+export function markEditorHydration(transaction: Transaction) {
+  transaction.setMeta(editorHydrationMetaKey, true);
   return transaction;
 }
 
-export function shouldSkipMemoDirty(transaction: Transaction) {
-  return transaction.getMeta(skipMemoDirtyMetaKey) === true;
+export function isEditorHydration(transaction: Transaction) {
+  return transaction.getMeta(editorHydrationMetaKey) === true;
 }

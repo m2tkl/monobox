@@ -80,7 +80,7 @@ import type { LanguageFn } from 'lowlight';
 
 <script lang="ts" setup>
 import IconButton from '~/app/elements/IconButton.vue';
-import { markSkipMemoDirty } from '~/app/features/editor/core/transaction';
+import { markEditorHydration } from '~/app/features/editor/core/transaction';
 
 defineComponent({
   props: nodeViewProps,
@@ -121,7 +121,7 @@ function updateAttributesSilently(attributes: Record<string, unknown>) {
     }
 
     tr.setMeta('addToHistory', false);
-    markSkipMemoDirty(tr);
+    markEditorHydration(tr);
     tr.setNodeMarkup(pos, undefined, {
       ...props.node.attrs,
       ...attributes,
