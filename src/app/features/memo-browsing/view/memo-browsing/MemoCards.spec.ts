@@ -12,7 +12,8 @@ const memo = {
   slug_title: 'focus-item',
   title: 'Focus item',
   description: 'Description',
-  thumbnail_image: null,
+  created_at: '2026-10-16T00:00:00Z',
+  updated_at: '2026-10-16T00:00:00Z',
   modified_at: '2026-10-16T00:00:00Z',
 };
 const doneMemo = {

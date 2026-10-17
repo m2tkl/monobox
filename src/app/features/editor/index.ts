@@ -28,6 +28,7 @@ export { default as CodeBlockComponent } from './nodeviews/CodeBlock';
 export { default as TableComponent } from './nodeviews/Table';
 export type { EditorMsg as EditorMsgType } from './core/command';
 export type { EditorCommandHandler, EditorCommandHandlerMap } from './core/command';
+export type { SelectionCopyFormat } from './extensions/selection-copy';
 export { createEditorDispatcher, dispatchEditorMsg } from './core/command';
 export * as CustomExtension from './extensions';
 

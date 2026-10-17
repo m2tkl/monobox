@@ -1026,6 +1026,8 @@ const handleUnsavedNavigationDialogOpen = (open: boolean) => {
   resolveUnsavedNavigationChoice('cancel');
 };
 
+const isMemoClean = () => memoState.value.type === 'clean';
+
 const confirmUnsavedNavigation = async (to: { path: string }, from: { path: string }) => {
   if (to.path === from.path || memoState.value.type !== 'dirty') {
     return true;
@@ -1043,7 +1045,7 @@ const confirmUnsavedNavigation = async (to: { path: string }, from: { path: stri
   isSavingBeforeNavigation.value = true;
   try {
     await dispatchMemoEvent({ type: 'memo/save-requested', payload: { mode: 'navigation' } });
-    const saved = memoState.value.type === 'clean';
+    const saved = isMemoClean();
     closeUnsavedNavigationDialog();
     return saved;
   }
