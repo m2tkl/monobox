@@ -43,6 +43,18 @@ describe('memo editing machine', () => {
     });
   });
 
+  it('announces deletion success without prescribing a route', () => {
+    const result = apply(
+      { type: 'deleting', returnState: { type: 'clean' } },
+      { type: 'memo/delete-succeeded' },
+    );
+
+    expect(result).toEqual({
+      state: { type: 'clean' },
+      effects: [{ type: 'effect/notify-delete-succeeded' }],
+    });
+  });
+
   it('emits explicit save success effects from saving state', () => {
     const result = apply(
       { type: 'saving', mode: 'explicit' },

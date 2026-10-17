@@ -1,24 +1,14 @@
 <template>
-  <AppButton
-    class="theme-toggle"
+  <IconButton
     :icon="currentTheme.config.icon"
-    variant="ghost"
-    color="neutral"
-    size="sm"
-    square
+    aria-label="Change theme"
     :title="`Current: ${currentTheme.config.name}. Click to cycle themes.`"
     @click="nextTheme"
   />
 </template>
 
 <script setup lang="ts">
+import IconButton from '~/app/elements/IconButton.vue';
+
 const { currentTheme, nextTheme } = useTheme();
 </script>
-
-<style scoped>
-.theme-toggle {
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-}
-</style>

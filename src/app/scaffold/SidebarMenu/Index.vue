@@ -3,192 +3,66 @@
     v-if="isOpen"
     class="size-full"
   >
-    <div class="flex h-full flex-col px-3 py-2">
+    <div class="flex h-full flex-col px-2 py-1">
       <div class="min-h-0 flex-1 overflow-y-auto">
-        <div class="sidebar-primary-action">
-          <NewMemoActions />
-        </div>
-        <div
+        <WorkspaceSwitcher />
+
+        <nav
           v-if="workspaceSlug"
-          class="sidebar-action-grid"
+          class="sidebar-primary-nav"
+          aria-label="Workspace views"
         >
-          <AppTooltip text="Quick open">
-            <button
-              type="button"
-              class="sidebar-icon-action sidebar-link"
-              aria-label="Quick open"
-              @click="openSearchPalette"
-            >
-              <UIcon
-                :name="iconKey.search"
-                class="sidebar-icon-action__icon"
-              />
-            </button>
-          </AppTooltip>
-          <SearchPalette
-            ref="searchPaletteRef"
-            :workspace-slug="workspaceSlug"
-            :memos="workspaceMemos"
-            type="search"
-            shortcut-symbol="k"
-          />
-          <AppTooltip text="Full search">
-            <NuxtLink
-              :to="`/${workspaceSlug}/_search`"
-              class="sidebar-icon-action sidebar-link"
-              aria-label="Full search"
-            >
-              <UIcon
-                :name="iconKey.fullSearch"
-                class="sidebar-icon-action__icon"
-              />
-            </NuxtLink>
-          </AppTooltip>
-          <AppTooltip text="Random memo">
-            <button
-              type="button"
-              class="sidebar-icon-action sidebar-link"
-              aria-label="Random memo"
-              @click="showRandomMemo"
-            >
-              <UIcon
-                :name="iconKey.shuffle"
-                class="sidebar-icon-action__icon"
-              />
-            </button>
-          </AppTooltip>
-          <AppTooltip text="Files">
-            <NuxtLink
-              :to="`/${workspaceSlug}/_files`"
-              class="sidebar-icon-action sidebar-link"
-              aria-label="Files"
-            >
-              <UIcon
-                :name="iconKey.documentAttachment"
-                class="sidebar-icon-action__icon"
-              />
-            </NuxtLink>
-          </AppTooltip>
-          <AppTooltip text="Calendar">
-            <NuxtLink
-              :to="`/${workspaceSlug}/_calendar`"
-              class="sidebar-icon-action sidebar-link"
-              aria-label="Calendar"
-            >
-              <UIcon
-                :name="iconKey.calendar"
-                class="sidebar-icon-action__icon"
-              />
-            </NuxtLink>
-          </AppTooltip>
-        </div>
-
-        <section
-          v-if="workspaceSlug && globalStatuses.length > 0"
-          ref="kanbanSectionRef"
-          class="sidebar-section"
-        >
-          <NuxtLink
-            :to="`/${workspaceSlug}/_kanban`"
-            class="sidebar-section-link"
-            :class="{ 'sidebar-section-link--active': isKanbanViewActive }"
-            active-class="sidebar-section-link--active"
-            exact-active-class="sidebar-section-link--active"
-            aria-label="Open Kanban view"
+          <div
+            v-for="action in orderedActions"
+            :key="action.key"
+            draggable="true"
+            class="sidebar-primary-item"
+            :class="{
+              'is-dragging': draggedActionKey === action.key,
+              'drop-before': dropActionKey === action.key && dropPosition === 'before',
+              'drop-after': dropActionKey === action.key && dropPosition === 'after',
+            }"
+            @dragstart="onActionDragStart(action.key)"
+            @dragover.prevent="onActionDragOver($event, action.key)"
+            @drop.prevent="onActionDrop(action.key)"
+            @dragend="clearActionDragState"
           >
-            <span class="sidebar-section-link__label">
-              <UIcon
-                :name="iconKey.kanban"
-                class="sidebar-section-link__icon"
-              />
-              <span>Kanban</span>
-            </span>
-            <UIcon
-              :name="iconKey.arrowRight"
-              class="sidebar-section-link__arrow"
-            />
-          </NuxtLink>
-          <ul class="sidebar-link-list sidebar-link-list--status">
-            <li
-              v-for="status in globalStatuses"
-              :key="status.id"
-              class="kanban-status-preview-anchor"
-              @mouseenter="showStatusPreview($event, status.id)"
-              @mousemove="updateStatusPreviewAim($event, status.id)"
-              @focusin="showStatusPreview($event, status.id)"
-              @mouseleave="scheduleStatusPreviewHide(status.id)"
-              @focusout="scheduleStatusPreviewHide(status.id)"
+            <AppButton
+              :to="getTabPageLocation(workspaceSlug, action.page)"
+              :icon="action.icon"
+              :label="action.label"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              block
+              class="sidebar-primary-link"
+              :class="{ 'sidebar-primary-link--active': isWorkspaceViewActive(action.page) }"
+              :aria-label="action.key === 'focus' ? `Focus (${activeFocusCount})` : action.label"
+              @click.prevent="openWorkspaceView(action.page)"
             >
-              <MemoLinkRow
-                :to="`/${workspaceSlug}?status=${encodeURIComponent(status.name)}`"
-                :memo-title="status.name"
-                :count="status.count"
-                :active="activeStatusName === status.name"
-              />
-            </li>
-          </ul>
-        </section>
+              <template
+                v-if="action.key === 'focus'"
+                #trailing
+              >
+                <span class="sidebar-primary-count">{{ activeFocusCount }}</span>
+              </template>
+            </AppButton>
+          </div>
+        </nav>
 
-        <!-- Bookmark section -->
-        <section
-          v-if="bookmarks.length > 0"
-          class="sidebar-section"
-        >
-          <NuxtLink
-            :to="{ path: `/${workspaceSlug}`, query: { bookmarked: 'true' } }"
-            class="sidebar-section-link"
-            :class="{ 'sidebar-section-link--active': isBookmarksViewActive }"
-            active-class=""
-            exact-active-class=""
-            aria-label="Open bookmarked memos"
-          >
-            <span class="sidebar-section-link__label">
-              <UIcon
-                :name="iconKey.bookmarkFilled"
-                class="sidebar-section-link__icon"
-              />
-              <span>Bookmarks</span>
-            </span>
-            <UIcon
-              :name="iconKey.arrowRight"
-              class="sidebar-section-link__arrow"
-            />
-          </NuxtLink>
-
-          <ul class="sidebar-link-list sidebar-link-list--bookmarks">
-            <li
-              v-for="memo in bookmarks"
-              :key="memo.id"
-              draggable="true"
-              class="bookmark-row"
-              :class="{
-                'is-dragging': draggedMemoId === memo.id,
-                'drop-before': dropMemoId === memo.id && dropPosition === 'before',
-                'drop-after': dropMemoId === memo.id && dropPosition === 'after',
-              }"
-              @dragstart="onBookmarkDragStart(memo.id)"
-              @dragover.prevent="onBookmarkDragOver($event, memo.id)"
-              @drop.prevent="onBookmarkDrop(memo.slug_title)"
-              @dragend="clearDragState"
-            >
-              <MemoLinkRow
-                :to="`/${workspaceSlug}/${memo.slug_title}`"
-                :memo-title="memo.title"
-                :count="memo.linkCount"
-                :active="activeMemoSlug === memo.slug_title"
-              />
-            </li>
-          </ul>
-        </section>
+        <OpenPagesList
+          v-if="workspaceSlug"
+          :workspace-slug="workspaceSlug"
+        />
       </div>
 
       <div
         v-if="workspaceSlug"
-        class="border-top pt-2"
+        class="sidebar-footer border-top pt-2 pb-2"
       >
         <div class="sidebar-footer-actions">
           <NuxtLink
-            :to="`/_setting?workspace=${workspaceSlug}`"
+            :to="{ path: '/_setting', query: { workspace: workspaceSlug } }"
             class="sidebar-action sidebar-link"
           >
             <UIcon
@@ -202,470 +76,166 @@
       </div>
     </div>
   </div>
-
-  <KanbanStatusPreview
-    v-if="activeStatusPreview && workspaceSlug"
-    :active-memo-slug="activeMemoSlug"
-    :item-limit="statusPreviewLimit"
-    :items="activeStatusPreviewItems"
-    :left="previewLeft"
-    :status="activeStatusPreview"
-    :top="previewTop"
-    :workspace-slug="workspaceSlug"
-    @keep-open="keepStatusPreviewOpen"
-    @schedule-close="scheduleStatusPreviewClose(activeStatusPreview.id)"
-  />
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import {
+  DEFAULT_SIDEBAR_ACTION_ORDER,
+  parseSidebarActionOrder,
+  reorderSidebarActions,
+  SIDEBAR_ACTION_ORDER_STORAGE_KEY,
+  type SidebarActionKey,
+} from './sidebarActionOrder';
+import WorkspaceSwitcher from './WorkspaceSwitcher.vue';
 
-import KanbanStatusPreview from './KanbanStatusPreview.vue';
-import MemoLinkRow from './MemoLinkRow.vue';
-import NewMemoActions from './NewMemoActions.vue';
+import type { TabPage } from '~/app/features/open-pages/openPages';
 
-import type { GlobalStatusMemoListItem } from '~/app/features/memo-browsing/resource/read-model';
-
-import { useBookmarkListReadModel, useGlobalStatusBoardReadModel, useWorkspaceMemosReadModel } from '~/app/features/memo-browsing';
-import { SearchPalette } from '~/app/features/search';
+import AppButton from '~/app/elements/AppButton.vue';
+import { useFocusListReadModel } from '~/app/features/memo-browsing';
+import { OpenPagesList } from '~/app/features/open-pages';
+import {
+  BOOKMARKS_PAGE,
+  CALENDAR_PAGE,
+  FILES_PAGE,
+  FOCUS_PAGE,
+  getTabPageLocation,
+  KANBAN_PAGE,
+} from '~/app/features/open-pages/openPages';
 import ThemeToggle from '~/app/scaffold/ThemeToggle.vue';
-import { useSafeTriangle } from '~/composables/useSafeTriangle';
-import { command } from '~/resources/command';
-import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
+import { iconKey } from '~/utils/icon';
+import { getEncodedWorkspaceSlugFromPath } from '~/utils/route';
 
 defineProps<{ isOpen: boolean }>();
 
-const emit = defineEmits<{
+defineEmits<{
   'floating-preview-enter': [];
   'floating-preview-leave': [];
 }>();
 
 const route = useRoute();
 const router = useRouter();
-
-const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route));
-
-const bookmarkVM = useBookmarkListReadModel();
-const workspaceMemosVM = useWorkspaceMemosReadModel();
-const globalStatusVM = useGlobalStatusBoardReadModel();
-const bookmarks = computed(() => bookmarkVM.value.data.items);
-const workspaceMemos = computed(() => workspaceMemosVM.value.data.items);
-const globalStatuses = computed(() => globalStatusVM.value.data.statuses);
-const globalStatusItems = computed(() => globalStatusVM.value.data.assignedItems);
-const activeMemoSlug = computed(() => getEncodedMemoSlugFromPath(route) || '');
-const activeStatusName = computed(() => {
-  if (route.path !== `/${workspaceSlug.value}`) return '';
-  const raw = route.query.status;
-  if (Array.isArray(raw)) return raw[0] ?? '';
-  return typeof raw === 'string' ? raw : '';
-});
-const isKanbanViewActive = computed(() => route.path === `/${workspaceSlug.value}/_kanban`);
-const isBookmarksViewActive = computed(() => {
-  if (route.path !== `/${workspaceSlug.value}`) return false;
-  const raw = route.query.bookmarked;
-  return Array.isArray(raw) ? raw[0] === 'true' : raw === 'true';
-});
-const searchPaletteRef = ref<InstanceType<typeof SearchPalette> | null>(null);
-const draggedMemoId = ref<number | null>(null);
-const draggedMemoSlug = ref<string | null>(null);
-const dropMemoId = ref<number | null>(null);
+const focusListVM = useFocusListReadModel();
+const workspaceSlug = computed(() => getEncodedWorkspaceSlugFromPath(route) || '');
+const activeFocusCount = computed(() => focusListVM.value.data.activeItems.length);
+const actionOrder = ref<SidebarActionKey[]>([...DEFAULT_SIDEBAR_ACTION_ORDER]);
+const actionOrderReady = ref(false);
+const draggedActionKey = ref<SidebarActionKey | null>(null);
+const dropActionKey = ref<SidebarActionKey | null>(null);
 const dropPosition = ref<'before' | 'after' | null>(null);
-const isReordering = ref(false);
-const kanbanSectionRef = ref<HTMLElement | null>(null);
-const hoveredStatusId = ref<number | null>(null);
-const previewTop = ref(0);
-const previewLeft = ref(0);
-const statusPreviewLimit = 8;
-const statusPreviewHideDelay = 280;
-let statusPreviewHideTimer: number | null = null;
-const statusPreviewSafeTriangle = useSafeTriangle();
-let activeMainStatusAimSourceId: number | null = null;
+const actions: Record<SidebarActionKey, { key: SidebarActionKey; label: string; icon: string; page: TabPage }> = {
+  focus: { key: 'focus', label: 'Focus', icon: iconKey.focus, page: FOCUS_PAGE },
+  bookmarks: { key: 'bookmarks', label: 'Bookmarks', icon: iconKey.bookmark, page: BOOKMARKS_PAGE },
+  kanban: { key: 'kanban', label: 'Kanban', icon: iconKey.kanban, page: KANBAN_PAGE },
+  files: { key: 'files', label: 'Files', icon: iconKey.folder, page: FILES_PAGE },
+  calendar: { key: 'calendar', label: 'Calendar', icon: iconKey.calendar, page: CALENDAR_PAGE },
+};
+const orderedActions = computed(() => actionOrder.value.map(key => actions[key]));
 
-const activeStatusPreview = computed(() => {
-  if (hoveredStatusId.value === null) return null;
-  return globalStatuses.value.find(status => status.id === hoveredStatusId.value) ?? null;
-});
+const isWorkspaceViewActive = (page: TabPage) => (
+  route.path === `/${workspaceSlug.value}${page.routePath}`
+);
 
-const statusPreviewItemsById = computed(() => {
-  const itemsByStatusId = new Map<number, GlobalStatusMemoListItem[]>();
+const openWorkspaceView = async (page: TabPage) => {
+  if (!workspaceSlug.value) return;
 
-  for (const item of globalStatusItems.value) {
-    if (item.kanbanStatusId === null) continue;
-    const items = itemsByStatusId.get(item.kanbanStatusId) ?? [];
-    items.push(item);
-    itemsByStatusId.set(item.kanbanStatusId, items);
-  }
+  await router.replace(getTabPageLocation(workspaceSlug.value, page));
+};
 
-  for (const items of itemsByStatusId.values()) {
-    items.sort((a, b) => {
-      const positionA = a.position ?? Number.POSITIVE_INFINITY;
-      const positionB = b.position ?? Number.POSITIVE_INFINITY;
-      if (positionA !== positionB) return positionA - positionB;
-      return a.orderIndex - b.orderIndex;
-    });
-  }
-
-  return itemsByStatusId;
-});
-
-const clearDragState = () => {
-  draggedMemoId.value = null;
-  draggedMemoSlug.value = null;
-  dropMemoId.value = null;
+const clearActionDragState = () => {
+  draggedActionKey.value = null;
+  dropActionKey.value = null;
   dropPosition.value = null;
 };
 
-const openSearchPalette = () => {
-  searchPaletteRef.value?.openCommandPalette();
+const onActionDragStart = (key: SidebarActionKey) => {
+  draggedActionKey.value = key;
 };
 
-const getStatusPreviewItems = (statusId: number) => {
-  return statusPreviewItemsById.value.get(statusId)?.slice(0, statusPreviewLimit) ?? [];
-};
-const activeStatusPreviewItems = computed(() => {
-  if (activeStatusPreview.value === null) return [];
-  return getStatusPreviewItems(activeStatusPreview.value.id);
-});
-
-const isActiveMainStatus = (statusId: number) => {
-  const status = globalStatuses.value.find(item => item.id === statusId);
-  return !!status && activeStatusName.value === status.name;
-};
-
-const showStatusPreview = (event: MouseEvent | FocusEvent, statusId: number) => {
-  clearStatusPreviewHideTimer();
-  const target = event.currentTarget;
-  if (!(target instanceof HTMLElement)) {
-    hoveredStatusId.value = statusId;
-    return;
-  }
-
-  const rect = target.getBoundingClientRect();
-  const sectionRect = kanbanSectionRef.value?.getBoundingClientRect();
-  const preferredTop = (sectionRect?.top ?? rect.top) - 0.5 * 16;
-  const maxTop = window.innerHeight - 30 * 16;
-  previewTop.value = Math.max(0.75 * 16, Math.min(preferredTop, maxTop));
-  previewLeft.value = rect.right - 1;
-
-  if (isActiveMainStatus(statusId)) {
-    hoveredStatusId.value = null;
-    activeMainStatusAimSourceId = statusId;
-    return;
-  }
-
-  if (isPointerAimingAtActiveMainPanel(event)) {
-    return;
-  }
-
-  if (hoveredStatusId.value === null || event.type === 'focusin') {
-    activeMainStatusAimSourceId = null;
-    hoveredStatusId.value = statusId;
-    return;
-  }
-
-  if (hoveredStatusId.value === statusId) {
-    return;
-  }
-
-  if (isPointerAimingAtStatusPreview(event)) {
-    return;
-  }
-
-  activeMainStatusAimSourceId = null;
-  hoveredStatusId.value = statusId;
-};
-
-const updateStatusPreviewAim = (event: MouseEvent, statusId: number) => {
-  statusPreviewSafeTriangle.trackPointer(event);
-  if (isActiveMainStatus(statusId)) {
-    hoveredStatusId.value = null;
-    activeMainStatusAimSourceId = statusId;
-    return;
-  }
-
-  if (isPointerAimingAtActiveMainPanel(event)) {
-    return;
-  }
-
-  if (hoveredStatusId.value === null) {
-    activeMainStatusAimSourceId = null;
-    hoveredStatusId.value = statusId;
-    return;
-  }
-
-  if (hoveredStatusId.value === statusId) {
-    return;
-  }
-
-  if (isPointerAimingAtStatusPreview(event)) {
-    return;
-  }
-
-  activeMainStatusAimSourceId = null;
-  hoveredStatusId.value = statusId;
-};
-
-const isPointerAimingAtActiveMainPanel = (event: MouseEvent | FocusEvent) => {
-  if (!(event instanceof MouseEvent)) return false;
-  if (!activeStatusName.value) return false;
-  if (activeMainStatusAimSourceId === null) return false;
-  if (!isActiveMainStatus(activeMainStatusAimSourceId)) return false;
-
-  return statusPreviewSafeTriangle.isAimingAt(event, {
-    left: previewLeft.value,
-    top: 0,
-    bottom: window.innerHeight,
-  });
-};
-
-const isPointerAimingAtStatusPreview = (event: MouseEvent | FocusEvent) => {
-  if (!(event instanceof MouseEvent)) return false;
-  if (hoveredStatusId.value === null) return false;
-
-  const previewHeight = getStatusPreviewHeight();
-  return statusPreviewSafeTriangle.isAimingAt(event, {
-    left: previewLeft.value,
-    top: previewTop.value,
-    bottom: previewTop.value + previewHeight,
-  });
-};
-
-const getStatusPreviewHeight = () => {
-  const titlebarHeightRaw = getComputedStyle(document.documentElement)
-    .getPropertyValue('--app-titlebar-height')
-    .trim();
-  const titlebarHeight = Number.parseFloat(titlebarHeightRaw) || 0;
-  return Math.min(30 * 16, window.innerHeight - titlebarHeight - 1.5 * 16);
-};
-
-const clearStatusPreviewHideTimer = () => {
-  if (statusPreviewHideTimer !== null) {
-    window.clearTimeout(statusPreviewHideTimer);
-    statusPreviewHideTimer = null;
-  }
-};
-
-const keepStatusPreviewOpen = () => {
-  clearStatusPreviewHideTimer();
-  emit('floating-preview-enter');
-};
-
-const scheduleStatusPreviewClose = (statusId: number) => {
-  scheduleStatusPreviewHide(statusId);
-  emit('floating-preview-leave');
-};
-
-const scheduleStatusPreviewHide = (statusId: number) => {
-  clearStatusPreviewHideTimer();
-  statusPreviewHideTimer = window.setTimeout(() => {
-    if (hoveredStatusId.value === statusId) {
-      hoveredStatusId.value = null;
-    }
-    statusPreviewHideTimer = null;
-  }, statusPreviewHideDelay);
-};
-
-watch(() => route.fullPath, () => {
-  clearStatusPreviewHideTimer();
-  hoveredStatusId.value = null;
-  activeMainStatusAimSourceId = null;
-  statusPreviewSafeTriangle.reset();
-  emit('floating-preview-leave');
-});
-
-onUnmounted(() => {
-  clearStatusPreviewHideTimer();
-  activeMainStatusAimSourceId = null;
-  statusPreviewSafeTriangle.reset();
-  emit('floating-preview-leave');
-});
-
-const showRandomMemo = async () => {
-  if (!workspaceSlug.value || workspaceMemos.value.length === 0) {
-    return;
-  }
-
-  const randomMemo = workspaceMemos.value[Math.floor(Math.random() * workspaceMemos.value.length)];
-  if (!randomMemo) {
-    return;
-  }
-
-  await router.push(`/${workspaceSlug.value}/${randomMemo.slug_title}`);
-};
-
-const onBookmarkDragStart = (memoId: number) => {
-  const memo = bookmarks.value.find(item => item.id === memoId);
-  if (!memo || isReordering.value) {
-    return;
-  }
-
-  draggedMemoId.value = memoId;
-  draggedMemoSlug.value = memo.slug_title;
-};
-
-const onBookmarkDragOver = (event: DragEvent, memoId: number) => {
-  if (draggedMemoId.value === null || draggedMemoId.value === memoId || isReordering.value) {
-    return;
-  }
-
+const onActionDragOver = (event: DragEvent, key: SidebarActionKey) => {
+  if (!draggedActionKey.value || draggedActionKey.value === key) return;
   const element = event.currentTarget as HTMLElement | null;
-  if (!element) {
-    return;
-  }
+  if (!element) return;
 
   const rect = element.getBoundingClientRect();
-  const nextPosition = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
-  dropMemoId.value = memoId;
-  dropPosition.value = nextPosition;
+  dropActionKey.value = key;
+  dropPosition.value = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
 };
 
-const onBookmarkDrop = async (targetMemoSlug: string) => {
-  if (
-    !workspaceSlug.value
-    || !draggedMemoSlug.value
-    || dropMemoId.value === null
-    || dropPosition.value === null
-    || isReordering.value
-  ) {
-    clearDragState();
+const onActionDrop = (targetKey: SidebarActionKey) => {
+  if (!draggedActionKey.value || !dropPosition.value) {
+    clearActionDragState();
     return;
   }
 
-  if (draggedMemoSlug.value === targetMemoSlug) {
-    clearDragState();
-    return;
-  }
-
-  isReordering.value = true;
-  try {
-    await command.bookmark.reorder(
-      workspaceSlug.value,
-      draggedMemoSlug.value,
-      targetMemoSlug,
-      dropPosition.value,
-    );
-  }
-  finally {
-    isReordering.value = false;
-    clearDragState();
-  }
+  actionOrder.value = reorderSidebarActions(
+    actionOrder.value,
+    draggedActionKey.value,
+    targetKey,
+    dropPosition.value,
+  );
+  clearActionDragState();
 };
+
+onMounted(() => {
+  const storedOrder = typeof localStorage === 'undefined'
+    ? null
+    : localStorage.getItem(SIDEBAR_ACTION_ORDER_STORAGE_KEY);
+  actionOrder.value = parseSidebarActionOrder(storedOrder);
+  actionOrderReady.value = true;
+});
+
+watch(actionOrder, (order) => {
+  if (actionOrderReady.value && typeof localStorage !== 'undefined') {
+    localStorage.setItem(SIDEBAR_ACTION_ORDER_STORAGE_KEY, JSON.stringify(order));
+  }
+}, { deep: true });
 </script>
 
 <style scoped>
-.sidebar {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.3s ease;
-  transform: translateX(-100%);
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.sidebar::-webkit-scrollbar {
-  display: none;
-}
-
-.sidebar.is-open {
-  transform: translateX(0);
-}
-
-.bookmark-row {
-  border-top: 1px solid transparent;
-  border-bottom: 1px solid transparent;
-}
-
-.bookmark-row.is-dragging {
-  opacity: 0.5;
-}
-
-.bookmark-row.drop-before {
-  border-top-color: var(--color-primary);
-}
-
-.bookmark-row.drop-after {
-  border-bottom-color: var(--color-primary);
-}
-
-.sidebar-section {
-  margin-top: 0.75rem;
-  border-top: 1px solid var(--color-border-light);
-  padding-top: 0.5rem;
-  padding-bottom: 0.25rem;
-}
-
-.sidebar-section:first-of-type {
-  margin-top: 0;
-}
-
-.sidebar-section-link {
-  display: flex;
-  min-height: 2rem;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  transition: background-color 0.18s ease, color 0.18s ease;
-}
-
-.sidebar-section-link:hover,
-.sidebar-section-link--active {
-  background-color: var(--color-surface-hover);
-  color: var(--color-text-primary);
-}
-
-.sidebar-section-link__label {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.sidebar-section-link__icon,
-.sidebar-section-link__arrow {
-  width: 0.875rem;
-  height: 0.875rem;
-  flex-shrink: 0;
-}
-
-.sidebar-section-link__arrow {
-  opacity: 0.7;
-}
-
-.sidebar-link-list {
+.sidebar-primary-nav {
   display: flex;
   flex-direction: column;
-}
-
-.sidebar-link-list--status {
   gap: 0.125rem;
-  margin-top: 0.125rem;
+  border-bottom: 1px solid var(--color-border-light);
+  margin-bottom: 0.25rem;
+  padding: 0.375rem 0 0.625rem;
 }
 
-.kanban-status-preview-anchor {
+.sidebar-primary-item {
   position: relative;
 }
 
-.sidebar-link-list--bookmarks {
-  gap: 0;
-  margin-top: 0.125rem;
+.sidebar-primary-item.is-dragging {
+  opacity: 0.5;
 }
 
-.sidebar-action {
-  display: flex;
-  width: 100%;
-  min-height: 1.75rem;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 0.375rem;
-  padding: 0.1875rem 0.5rem;
-  font-size: 0.875rem;
+.sidebar-primary-item.drop-before {
+  box-shadow: inset 0 2px 0 var(--color-primary);
+}
+
+.sidebar-primary-item.drop-after {
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+:deep(.sidebar-primary-link) {
+  justify-content: flex-start;
+  min-height: 2rem;
+  padding-inline: 0.5rem;
+}
+
+:deep(.sidebar-primary-link--active),
+:deep(.sidebar-primary-link--active:hover) {
+  background: var(--color-sidebar-item-active);
+  color: var(--color-text-primary);
+}
+
+.sidebar-primary-count {
+  margin-left: auto;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .sidebar-footer-actions {
@@ -674,34 +244,14 @@ const onBookmarkDrop = async (targetMemoSlug: string) => {
   gap: 0.25rem;
 }
 
-.sidebar-action-label {
-  line-height: 1;
-}
-
-.sidebar-primary-action {
-  padding-top: 0.375rem;
-  padding-bottom: 0.5rem;
-}
-
-.sidebar-action-grid {
+.sidebar-action {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  padding-bottom: 0.5rem;
-}
-
-.sidebar-icon-action {
-  display: inline-flex;
-  width: 2rem;
-  height: 2rem;
+  min-height: 1.75rem;
+  flex: 1;
   align-items: center;
-  justify-content: center;
+  gap: 0.5rem;
   border-radius: 0.375rem;
-}
-
-.sidebar-icon-action__icon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
+  padding: 0.1875rem 0.5rem;
+  font-size: 0.875rem;
 }
 </style>

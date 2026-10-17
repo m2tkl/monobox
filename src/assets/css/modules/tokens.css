@@ -66,6 +66,8 @@
   --color-hover-bg: #f1f5f9;                  /* Hover background */
   --color-active-bg: #e2e8f0;                 /* Active background */
   --color-selected-bg: var(--color-border-muted); /* Selected background */
+  --color-sidebar-item-hover: color-mix(in srgb, var(--color-surface-elevated) 50%, transparent);
+  --color-sidebar-item-active: var(--color-surface-elevated);
 
   /* Special Colors */
   --color-modal-overlay: #e2e8f0bf;           /* Modal overlay (existing) */

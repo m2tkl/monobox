@@ -200,10 +200,6 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
         });
         return {};
       }
-      case 'effect/replace-workspace-route': {
-        options.router.replace(`/${options.workspaceSlug.value}`);
-        return {};
-      }
       default:
         return {};
     }

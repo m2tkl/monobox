@@ -1,5 +1,6 @@
 export const iconKey = {
   success: 'carbon:checkmark-outline',
+  task: 'carbon:task',
   failed: 'carbon:warning-alt',
   toc: 'carbon:table-of-contents',
   add: 'carbon:add-large',
@@ -34,11 +35,14 @@ export const iconKey = {
 
   bookmark: 'carbon:bookmark',
   bookmarkFilled: 'carbon:bookmark-filled',
+  favorite: 'carbon:star',
+  favoriteFilled: 'carbon:star-filled',
   focus: 'carbon:pin',
   focusFilled: 'carbon:pin-filled',
   recent: 'carbon:recently-viewed',
   switch: 'carbon:arrows-horizontal',
   database: 'carbon:db2-database',
+  inbox: 'carbon:inbox',
   folder: 'carbon:folder',
   documentAttachment: 'carbon:document-attachment',
   calendar: 'carbon:calendar',

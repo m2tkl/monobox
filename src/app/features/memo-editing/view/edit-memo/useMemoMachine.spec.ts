@@ -211,7 +211,7 @@ describe('useMemoMachine', () => {
       memoSlug: 'memo',
     });
     expect(machine.state.value).toEqual({ type: 'clean' });
-    expect(routerReplace).toHaveBeenCalledWith('/workspace');
+    expect(routerReplace).not.toHaveBeenCalled();
     expect(toastAdd).toHaveBeenCalledWith({
       title: 'Delete memo successfully.',
       icon: 'success',

@@ -10,17 +10,16 @@
       'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm': true,
     }"
   >
-    <span class="min-w-0 flex-1">
-      <span class="block truncate">
-        {{ memoTitleWithContext.memoTitle }}
-        <span v-if="external">[external]</span>
-      </span>
-      <span
-        v-if="memoTitleWithContext.context"
-        class="memo-link-description block truncate text-xs"
-      >
-        @{{ memoTitleWithContext.context }}
-      </span>
+    <span class="sidebar-memo-link__main">
+      <AppIcon
+        v-if="icon"
+        :name="icon"
+        class="sidebar-memo-link__icon"
+      />
+      <SidebarMemoLabel
+        :title="memoTitle"
+        :external="external"
+      />
     </span>
     <span
       v-if="count !== undefined"
@@ -30,21 +29,32 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+import SidebarMemoLabel from './SidebarMemoLabel.vue';
+
+import AppIcon from '~/app/elements/AppIcon.vue';
+
+defineProps<{
   to: string;
   memoTitle: string;
+  icon?: string;
   active?: boolean;
   external?: boolean;
   count?: number;
 }>();
-
-const memoTitleWithContext = computed(() => {
-  return extractsTitleParts(props.memoTitle);
-});
-
-function extractsTitleParts(title: string): { memoTitle: string; context: string } {
-  const parts = title.split('/');
-  const memoTitle = parts.pop() ?? title;
-  return { memoTitle, context: parts.join('/') };
-}
 </script>
+
+<style scoped>
+.sidebar-memo-link__main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-memo-link__icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+</style>

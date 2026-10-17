@@ -42,18 +42,19 @@
 }
 
 .sidebar-link:hover {
-  background-color: var(--color-surface-muted);
-  color: var(--color-link-sidebar-hover);
+  background-color: var(--color-sidebar-item-hover);
+  color: var(--color-text-primary);
 }
 
 .sidebar-link.is-active {
-  background-color: var(--color-surface-muted);
+  background-color: var(--color-sidebar-item-active);
   color: var(--color-text-primary);
   font-weight: bold;
 }
 
 .sidebar-link.is-active:hover {
-  color: var(--color-link-sidebar-hover);
+  background-color: var(--color-sidebar-item-active);
+  color: var(--color-text-primary);
 }
 
 .sidebar-heading {
@@ -71,7 +72,7 @@
 
 /* Card utilities */
 .card-interactive {
-  transition: all 0.2s ease;
+  transition: none;
   background-color: var(--color-card-bg);
   border: none;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);

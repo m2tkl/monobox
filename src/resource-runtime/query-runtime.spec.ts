@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { publishResourceChanges, registerActiveQuery } from './query-runtime';
+import {
+  observeResourceChanges,
+  publishResourceChanges,
+  registerActiveQuery,
+} from './query-runtime';
 
 import { changeRefs } from '~/resources/changes';
 import { resourceRefs } from '~/resources/refs';
@@ -51,5 +55,16 @@ describe('query-runtime', () => {
 
     expect(refetchMemoCollection).toHaveBeenCalledTimes(1);
     expect(refetchMemo).toHaveBeenCalledTimes(1);
+  });
+
+  it('publishes change facts to local observers', async () => {
+    const observer = vi.fn();
+    const stopObserving = observeResourceChanges(observer);
+    const change = changeRefs.memoDeleted('alpha', 'memo-a');
+
+    await publishResourceChanges([change]);
+
+    expect(observer).toHaveBeenCalledWith([change]);
+    stopObserving();
   });
 });

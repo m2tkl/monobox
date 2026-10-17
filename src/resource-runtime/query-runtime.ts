@@ -11,6 +11,15 @@ type ActiveQuery = {
 };
 
 const activeQueries = new Map<string, Set<ActiveQuery>>();
+type ResourceChangeObserver = (
+  changes: ReadonlyArray<ChangeRef>,
+) => Promise<unknown> | undefined;
+const resourceChangeObservers = new Set<ResourceChangeObserver>();
+
+export function observeResourceChanges(observer: ResourceChangeObserver): () => void {
+  resourceChangeObservers.add(observer);
+  return () => resourceChangeObservers.delete(observer);
+}
 
 export function registerActiveQuery(query: {
   resources: ReadonlyArray<ResourceRef>;
@@ -57,6 +66,15 @@ export async function publishResourceChanges(
   const impactedResources = resolveAffectedResources(changes);
   const tasks: Array<Promise<unknown>> = [];
   const scheduled = new Set<ActiveQuery>();
+
+  for (const observer of resourceChangeObservers) {
+    try {
+      tasks.push(Promise.resolve(observer(changes)));
+    }
+    catch (error) {
+      tasks.push(Promise.reject(error));
+    }
+  }
 
   for (const resource of impactedResources) {
     const queries = activeQueries.get(serializeResourceRef(resource));

@@ -66,6 +66,9 @@ export default defineNuxtConfig({
     clientBundle: {
       icons: [
         'carbon:checkmark-outline',
+        'carbon:task',
+        'carbon:star',
+        'carbon:star-filled',
         'carbon:warning-alt',
         'carbon:table-of-contents',
         'carbon:add-large',
@@ -98,6 +101,7 @@ export default defineNuxtConfig({
         'carbon:recently-viewed',
         'carbon:arrows-horizontal',
         'carbon:db2-database',
+        'carbon:inbox',
         'carbon:chevron-down',
         'carbon:home',
         'carbon:copy',

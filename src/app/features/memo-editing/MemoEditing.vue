@@ -102,16 +102,6 @@
                 </div>
 
                 <div class="memo-action-group">
-                  <UTooltip text="Bookmark">
-                    <IconButton
-                      :icon="memoVM.data.isBookmarked ? iconKey.bookmarkFilled : iconKey.bookmark"
-                      aria-label="Bookmark"
-                      @click="() => void dispatchAction({ type: 'action/toggle-bookmark' })"
-                    />
-                  </UTooltip>
-                </div>
-
-                <div class="memo-action-group">
                   <UDropdownMenu
                     :items="contextMenuItems"
                   >

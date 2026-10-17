@@ -1,7 +1,9 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
+import type { PaletteSearchMode } from './usePaletteSearchSources';
 import type { Editor } from '@tiptap/core';
-import type { MemoIndexItem } from '~/models/memo';
+import type { ManagedFileListItem } from '~/models/file';
+import type { MemoIndexItem, MemoSearchItem } from '~/models/memo';
 
 import * as EditorAction from '~/app/features/editor/core/action';
 import * as EditorQuery from '~/app/features/editor/core/query';
@@ -17,6 +19,12 @@ type Command = {
   tag: string;
   title?: string;
   slug?: string;
+  description?: string;
+};
+
+export type SearchNavigationTarget = {
+  memoSlug: string;
+  title: string;
 };
 
 type Commands = {
@@ -49,6 +57,11 @@ export type UseSearchPaletteOptions = {
   currentMemoTitle?: Ref<string | undefined>;
   editor?: Ref<Editor | undefined>;
   shortcutSymbol: Ref<string>;
+  onNavigate?: (target: SearchNavigationTarget) => void;
+  mode?: Ref<PaletteSearchMode>;
+  fullTextResults?: Ref<MemoSearchItem[]>;
+  files?: Ref<ManagedFileListItem[]>;
+  onOpenFile?: (fileId: string, title: string) => Promise<boolean>;
 };
 
 export const useSearchPalette = (options: UseSearchPaletteOptions) => {
@@ -71,6 +84,26 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
 
   const commandPaletteItems = computed<Commands[]>(() => {
     if (!options.memos?.value) return [];
+
+    if (options.type.value === 'search' && options.mode?.value === 'files') {
+      return [{
+        id: 'files', label: 'Files',
+        items: (options.files?.value ?? []).map(file => ({
+          label: file.display_name, title: file.display_name, slug: file.id, tag: 'file',
+        })),
+      }];
+    }
+
+    if (options.type.value === 'search' && options.mode?.value === 'full-text') {
+      const results = searchTerm.value.trim() ? options.fullTextResults?.value ?? [] : options.memos.value;
+      return [{
+        id: 'full-text', label: 'Full-text results', ignoreFilter: true,
+        items: results.map(memo => ({
+          label: memo.title, title: memo.title, slug: memo.slug_title, tag: 'existing',
+          description: ('snippet' in memo ? memo.snippet : '') || memo.description || '',
+        })),
+      }];
+    }
 
     const existingMemos = options.memos.value
       .toSorted()
@@ -125,6 +158,16 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
       return;
     }
 
+    if (option.tag === 'file' && option.slug) {
+      const opened = await options.onOpenFile?.(option.slug, option.label);
+      if (opened === false) {
+        selected.value = [];
+        return;
+      }
+      closeCommandPalette([isSearchPaletteOpen]);
+      return;
+    }
+
     let linkMemoSlug = option.slug || encodeForSlug(option.label);
     let linkMemoTitle = option.label;
 
@@ -156,6 +199,10 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     logger.log('onSearchPaletteSelect() end.');
 
     if (options.type.value === 'search') {
+      options.onNavigate?.({
+        memoSlug: linkMemoSlug,
+        title: linkMemoTitle,
+      });
       router.push({
         path: `/${options.workspaceSlug.value}/${linkMemoSlug}`,
         query: option.tag === 'new' ? { created: CREATED_QUERY_SOURCE_NAMED } : undefined,
@@ -163,8 +210,29 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     }
   }
 
+  function onSearchModeKeydown(event: KeyboardEvent) {
+    if (options.type.value !== 'search' || !options.mode || !isSearchPaletteOpen.value) return;
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+    if (event.isComposing || event.keyCode === 229 || imeCommitEnterGuard.isComposing.value) return;
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (searchTerm.value.length > 0 || event.target.value.length > 0) return;
+
+    const modes: PaletteSearchMode[] = ['memos', 'full-text', 'files'];
+    const index = modes.indexOf(options.mode.value);
+    const offset = event.key === 'ArrowRight' ? 1 : -1;
+    const nextMode = modes[(index + offset + modes.length) % modes.length];
+    if (!nextMode) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    options.mode.value = nextMode;
+    selected.value = [];
+  }
+
   function openCommandPalette(initialTerm: string = '') {
     logger.log('openCommandPalette() start.');
+    if (options.mode) options.mode.value = 'memos';
     isSearchPaletteOpen.value = true;
     selected.value = [];
 
@@ -234,6 +302,7 @@ export const useSearchPalette = (options: UseSearchPaletteOptions) => {
     commandPaletteItems,
     // actions
     onSearchPaletteSelect,
+    onSearchModeKeydown,
     openCommandPalette,
     closeCommandPalette,
   };

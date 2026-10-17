@@ -8,7 +8,7 @@
       class="w-full"
     >
       <AppButton
-        class="flex-1 justify-start"
+        class="sidebar-link flex-1 justify-start"
         :icon="iconKey.add"
         :loading="isNavigating"
         color="neutral"
@@ -27,6 +27,7 @@
         }"
       >
         <AppButton
+          class="sidebar-link"
           variant="outline"
           color="neutral"
           :icon="iconKey.chevronDown"

@@ -13,6 +13,13 @@
     :block="block"
   >
     <slot />
+
+    <template
+      v-if="$slots.trailing"
+      #trailing
+    >
+      <slot name="trailing" />
+    </template>
   </UButton>
 </template>
 

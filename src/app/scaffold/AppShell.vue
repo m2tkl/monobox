@@ -37,33 +37,6 @@
           </main>
         </div>
       </div>
-
-      <FocusSidebar
-        :is-open="ui.isFocusSidebarOpen"
-        @close="ui.isFocusSidebarOpen = false"
-      />
-
-      <div
-        v-if="!ui.isFocusSidebarOpen"
-        class="focus-sidebar-hover-zone"
-        aria-hidden="true"
-        @mouseenter="openFloatingFocusSidebar"
-      />
-
-      <Transition name="floating-focus-sidebar">
-        <aside
-          v-if="isFloatingFocusSidebarVisible"
-          class="floating-focus-sidebar border-left h-full"
-          @mouseenter="openFloatingFocusSidebar"
-          @mouseleave="closeFloatingFocusSidebar"
-        >
-          <FocusSidebar
-            :is-open="true"
-            floating
-            @close="closeFloatingFocusSidebar"
-          />
-        </aside>
-      </Transition>
     </div>
 
     <slot name="actions" />
@@ -71,15 +44,13 @@
 </template>
 
 <script setup lang="ts">
-import { FocusSidebar } from '~/app/features/focus-memo';
+import { useOpenPageTracking } from '~/app/features/open-pages';
 import SidebarMenu from '~/app/scaffold/SidebarMenu/Index.vue';
 
 const { ui } = useUIState();
+useOpenPageTracking();
 const isFloatingSidebarVisible = ref(false);
 const isFloatingSidebarPreviewActive = ref(false);
-const isFloatingFocusSidebarVisible = ref(false);
-let rightFocusSidebarMediaQuery: MediaQueryList | null = null;
-let didInitializeRightFocusSidebar = false;
 let floatingSidebarCloseTimer: number | null = null;
 
 const clearFloatingSidebarCloseTimer = () => {
@@ -118,34 +89,8 @@ const releaseFloatingSidebarPreview = () => {
   scheduleFloatingSidebarClose();
 };
 
-const openFloatingFocusSidebar = () => {
-  if (ui.value.isFocusSidebarOpen) {
-    return;
-  }
-
-  isFloatingFocusSidebarVisible.value = true;
-};
-
-const closeFloatingFocusSidebar = () => {
-  isFloatingFocusSidebarVisible.value = false;
-};
-
-const syncRightFocusSidebarVisibility = () => {
-  if (didInitializeRightFocusSidebar) return;
-  if (rightFocusSidebarMediaQuery?.matches) {
-    ui.value.isFocusSidebarOpen = true;
-  }
-  didInitializeRightFocusSidebar = true;
-};
-
-onMounted(() => {
-  rightFocusSidebarMediaQuery = window.matchMedia('(min-width: 1280px)');
-  syncRightFocusSidebarVisibility();
-});
-
 onUnmounted(() => {
   clearFloatingSidebarCloseTimer();
-  rightFocusSidebarMediaQuery = null;
 });
 </script>
 
@@ -159,15 +104,6 @@ onUnmounted(() => {
   position: fixed;
   top: var(--app-titlebar-height);
   left: 0;
-  bottom: 0;
-  width: 14px;
-  z-index: 40;
-}
-
-.focus-sidebar-hover-zone {
-  position: fixed;
-  top: var(--app-titlebar-height);
-  right: 0;
   bottom: 0;
   width: 14px;
   z-index: 40;
@@ -189,21 +125,8 @@ onUnmounted(() => {
   box-shadow: 0 16px 48px rgb(15 23 42 / 0.16);
 }
 
-.floating-focus-sidebar {
-  position: fixed;
-  top: var(--app-titlebar-height);
-  right: 0;
-  bottom: 0;
-  width: 280px;
-  z-index: 1100;
-  background-color: var(--color-background);
-  box-shadow: -16px 0 48px rgb(15 23 42 / 0.16);
-}
-
 .floating-sidebar-enter-active,
-.floating-sidebar-leave-active,
-.floating-focus-sidebar-enter-active,
-.floating-focus-sidebar-leave-active {
+.floating-sidebar-leave-active {
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
@@ -217,18 +140,6 @@ onUnmounted(() => {
 
 .floating-sidebar-enter-to,
 .floating-sidebar-leave-from {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.floating-focus-sidebar-enter-from,
-.floating-focus-sidebar-leave-to {
-  opacity: 0;
-  transform: translateX(12px);
-}
-
-.floating-focus-sidebar-enter-to,
-.floating-focus-sidebar-leave-from {
   opacity: 1;
   transform: translateX(0);
 }

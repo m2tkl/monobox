@@ -115,6 +115,89 @@ describe('useSearchPalette', () => {
     wrapper.unmount();
   });
 
+  it('preserves the query across modes and keeps body matches without a create option', () => {
+    const mode = ref<'memos' | 'full-text' | 'files'>('memos');
+    const { wrapper, palette } = mountPalette([makeMemo()], 'body match', {
+      mode,
+      fullTextResults: ref([makeMemo({ title: 'Different title' })]),
+      files: ref([{ id: 'file-1', type: 'local_file', display_name: 'Report.pdf', imported_at: '', related_memo_count: 0 }]),
+    });
+    mode.value = 'full-text';
+    expect(palette.commandPaletteItems.value).toMatchObject([{
+      id: 'full-text', ignoreFilter: true, items: [{ title: 'Different title', tag: 'existing' }],
+    }]);
+    mode.value = 'files';
+    expect(palette.commandPaletteItems.value[0]?.items[0]).toMatchObject({ title: 'Report.pdf', tag: 'file' });
+    expect(palette.searchTerm.value).toBe('body match');
+    wrapper.unmount();
+  });
+
+  it('opens a file without creating a memo or navigating to a memo route', async () => {
+    const onOpenFile = vi.fn(async () => true);
+    const { wrapper, palette } = mountPalette([], '', { onOpenFile });
+    await palette.onSearchPaletteSelect({ tag: 'file', slug: 'file-1', label: 'Report.pdf' });
+    expect(onOpenFile).toHaveBeenCalledWith('file-1', 'Report.pdf');
+    expect(createMemo).not.toHaveBeenCalled();
+    expect(routerPush).not.toHaveBeenCalled();
+    expect(palette.isSearchPaletteOpen.value).toBe(false);
+    wrapper.unmount();
+  });
+
+  it('cycles modes with empty-input arrows without moving focus', () => {
+    const mode = ref<'memos' | 'full-text' | 'files'>('memos');
+    const { wrapper, palette } = mountPalette([], '', { mode });
+    const input = document.createElement('input');
+    document.body.append(input);
+    input.focus();
+    input.addEventListener('keydown', palette.onSearchModeKeydown);
+    const right = new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true });
+    input.dispatchEvent(right);
+    expect(mode.value).toBe('full-text');
+    expect(right.defaultPrevented).toBe(true);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(mode.value).toBe('memos');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(mode.value).toBe('files');
+    expect(document.activeElement).toBe(input);
+    input.remove();
+    wrapper.unmount();
+  });
+
+  it('leaves arrows native after typing, during IME, or with modifiers; re-enables after clearing', () => {
+    const mode = ref<'memos' | 'full-text' | 'files'>('memos');
+    const { wrapper, palette } = mountPalette([], '', { mode });
+    const input = document.createElement('input');
+    input.addEventListener('keydown', palette.onSearchModeKeydown);
+    const press = (extra: KeyboardEventInit = {}) => {
+      const event = new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true, ...extra });
+      input.dispatchEvent(event);
+      return event;
+    };
+    input.value = 'memo';
+    expect(press().defaultPrevented).toBe(false);
+    input.value = '';
+    palette.searchTerm.value = 'memo';
+    expect(press().defaultPrevented).toBe(false);
+    palette.searchTerm.value = '';
+    expect(press({ isComposing: true }).defaultPrevented).toBe(false);
+    expect(press({ shiftKey: true }).defaultPrevented).toBe(false);
+    expect(mode.value).toBe('memos');
+    expect(press().defaultPrevented).toBe(true);
+    expect(mode.value).toBe('full-text');
+    wrapper.unmount();
+  });
+
+  it('resets the search mode every time the palette is opened', () => {
+    const mode = ref<'memos' | 'full-text' | 'files'>('files');
+    const { wrapper, palette } = mountPalette([], '', { mode });
+    expect(mode.value).toBe('memos');
+    mode.value = 'full-text';
+    palette.closeCommandPalette([palette.isSearchPaletteOpen]);
+    palette.openCommandPalette();
+    expect(mode.value).toBe('memos');
+    wrapper.unmount();
+  });
+
   it('does not show the create option for an exact existing title', () => {
     const { wrapper, palette } = mountPalette([
       makeMemo({ id: 1, title: 'Alpha', slug_title: 'alpha' }),
@@ -188,7 +271,8 @@ describe('useSearchPalette', () => {
   });
 
   it('routes with the created flag after creating a memo from the search palette', async () => {
-    const { wrapper, palette } = mountPalette([], 'Gamma');
+    const onNavigate = vi.fn();
+    const { wrapper, palette } = mountPalette([], 'Gamma', { onNavigate });
 
     await palette.onSearchPaletteSelect({
       label: 'Gamma',
@@ -203,6 +287,10 @@ describe('useSearchPalette', () => {
     expect(routerPush).toHaveBeenCalledWith({
       path: '/workspace/gamma',
       query: { created: 'named' },
+    });
+    expect(onNavigate).toHaveBeenCalledWith({
+      memoSlug: 'gamma',
+      title: 'Gamma',
     });
     expect(publishResourceChanges).toHaveBeenCalledWith([
       { type: 'memoCreated', workspaceSlug: 'workspace', memoSlug: 'gamma' },

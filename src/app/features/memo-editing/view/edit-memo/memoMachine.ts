@@ -30,8 +30,7 @@ export type MemoEffect =
   | { type: 'effect/confirm-delete' }
   | { type: 'effect/delete-memo' }
   | { type: 'effect/notify-delete-succeeded' }
-  | { type: 'effect/notify-delete-failed' }
-  | { type: 'effect/replace-workspace-route' };
+  | { type: 'effect/notify-delete-failed' };
 
 export type ApplyResult = {
   state: MemoState;
@@ -161,7 +160,6 @@ const transitions: TransitionMap = {
       state: cleanState,
       effects: [
         { type: 'effect/notify-delete-succeeded' },
-        { type: 'effect/replace-workspace-route' },
       ],
     }),
     'memo/delete-failed': ({ state }) => ({

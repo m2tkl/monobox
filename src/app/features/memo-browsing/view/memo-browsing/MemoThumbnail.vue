@@ -9,7 +9,10 @@
   >
     <template #header>
       <div class="flex items-start gap-2">
-        <h3 class="min-w-0 flex-1 truncate-multiline text-sm font-semibold memo-link-title">
+        <h3
+          class="min-w-0 flex-1 truncate-multiline text-sm font-semibold memo-link-title"
+          :class="{ 'memo-link-title--reserve-top-right-action': reserveTopRightAction }"
+        >
           {{ title }}
         </h3>
         <UIcon
@@ -54,10 +57,19 @@ defineProps<{
   description: string | undefined | null;
   thumbnailImage: string | undefined | null;
   isBookmarked?: boolean;
+  reserveTopRightAction?: boolean;
 }>();
 </script>
 
 <style scoped>
+.memo-link-title--reserve-top-right-action {
+  padding-right: 1.75rem;
+}
+
+.memo-link-title--reserve-top-right-action + .bookmark-icon {
+  margin-right: 1.75rem;
+}
+
 .bookmark-icon {
   color: var(--color-primary);
   font-size: 1rem;

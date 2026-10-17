@@ -1,8 +1,9 @@
 <template>
   <aside
     v-if="workspaceSlug"
-    class="focus-sidebar border-left"
+    class="focus-sidebar"
     :class="{
+      'border-left': !props.floating,
       'focus-sidebar--open': props.isOpen,
       'focus-sidebar--floating': props.floating,
     }"
@@ -11,13 +12,10 @@
     <div class="focus-sidebar-header">
       <div class="focus-sidebar-title">
         <UIcon
-          :name="iconKey.focusFilled"
+          :name="iconKey.task"
           class="focus-sidebar-title__icon"
         />
         <h2>Focus</h2>
-      </div>
-      <div class="focus-sidebar-actions">
-        <span class="focus-sidebar-count">{{ activeItems.length }}</span>
       </div>
     </div>
 
@@ -247,7 +245,15 @@ watch([workspaceSlug, visibleItems], async ([nextWorkspaceSlug, nextVisibleItems
 }
 
 .focus-sidebar--floating.focus-sidebar--open {
-  box-shadow: none;
+  width: 20rem;
+  height: auto;
+  max-height: calc(100vh - var(--app-titlebar-height) - 1rem);
+  overflow: hidden;
+  background: transparent;
+}
+
+.focus-sidebar--floating .focus-sidebar-body {
+  max-height: calc(100vh - var(--app-titlebar-height) - var(--memo-editor-toolbar-height, 2.5rem) - 1rem);
 }
 
 .focus-sidebar-header {
@@ -283,25 +289,6 @@ watch([workspaceSlug, visibleItems], async ([nextWorkspaceSlug, nextVisibleItems
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
-}
-
-.focus-sidebar-count {
-  min-width: 1.375rem;
-  border-radius: 999px;
-  padding: 0.0625rem 0.375rem;
-  color: white;
-  background: var(--color-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.25;
-  text-align: center;
-}
-
-.focus-sidebar-actions {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 0.25rem;
 }
 
 .focus-sidebar-body {

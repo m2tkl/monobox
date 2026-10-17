@@ -1,0 +1,1 @@
+export const MEMO_BROWSING_PAGE_SIZE = 64;
