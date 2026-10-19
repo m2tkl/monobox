@@ -530,20 +530,23 @@ import { useMemoEditorInteractions } from './view/compose-memo/useMemoEditorInte
 import ContextView from './view/context-view/ContextView.vue';
 import { openContextWindow } from './view/context-view/openContextWindow';
 import DeleteMemoDialog from './view/edit-memo/DeleteMemoDialog.vue';
+import { useMemoDraft } from './view/edit-memo/useMemoDraft';
 import { useMemoEditingActions } from './view/edit-memo/useMemoEditingActions';
 import { useMemoMachine } from './view/edit-memo/useMemoMachine';
 import { useMemoRouteTarget } from './view/edit-memo/useMemoRouteTarget';
 import { useMemoTitleBackfill } from './view/edit-memo/useMemoTitleBackfill';
+import { useUnsavedMemoNavigation } from './view/edit-memo/useUnsavedMemoNavigation';
 import MemoLinkCardView from './view/navigate-memo/MemoLinkCardView/Index.vue';
 import OutlinePanel from './view/navigate-memo/OutlinePanel.vue';
 import { useMemoEditingKanban } from './view/organize-memo/memoEditingKanban';
+import { useMemoCalendarDates } from './view/organize-memo/useMemoCalendarDates';
 import ExportDialogToSelectTargets from './view/share-memo/ExportDialogToSelectTargets.vue';
 import { useMemoExport } from './view/share-memo/memoExport';
 import { clearNewMemoTemplateQuery } from './view/start-memo-from-template/clearNewMemoTemplateQuery';
 import { useTemplateApply } from './view/start-memo-from-template/useTemplateApply';
 import { useTemplateStartIntent } from './view/start-memo-from-template/useTemplateStartIntent';
-import { getLocalDateString } from '../workspace-calendar/calendarUtils';
 
+import type { MemoSnapshot } from './memoSnapshot';
 import type { DeleteMemoDialogHandle } from './view/edit-memo/useMemoMachine';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { NodeViewProps } from '@tiptap/vue-3';
@@ -561,7 +564,6 @@ import { loadMemoTemplates } from '~/app/features/memo-templates';
 import { SearchPalette } from '~/app/features/search';
 import { command } from '~/external/tauri/command';
 import { useQuery } from '~/resource-runtime/useQuery';
-import { calendarDayCommand } from '~/resources/calendar-day/commands';
 import { fileCommand } from '~/resources/file/commands';
 import { memoDetailQuery } from '~/resources/memo/queries';
 import { AppError } from '~/utils/error';
@@ -700,39 +702,21 @@ const resolvedCurrentMemo = computed(() => {
   }
   return memo;
 });
-const memoCalendarDate = ref(getLocalDateString());
+const {
+  memoCalendarDate,
+  isCalendarDateUpdating,
+  currentMemoCalendarDates,
+  canAddMemoCalendarDate,
+  loadMemoCalendarDates,
+  addMemoCalendarDate,
+  removeMemoCalendarDate,
+} = useMemoCalendarDates({
+  workspaceSlug,
+  memo: computed(() => memoVM.value.data.memo),
+  toast,
+});
 const isMemoCalendarDialogOpen = ref(false);
-const isCalendarDateUpdating = ref(false);
-const currentMemoCalendarDates = ref<string[]>([]);
 const memoCalendarInitialFocusEl = ref<HTMLDivElement | null>(null);
-const loadMemoCalendarDates = async () => {
-  const memo = memoVM.value.data.memo;
-  if (!memo) {
-    currentMemoCalendarDates.value = [];
-    return;
-  }
-
-  try {
-    currentMemoCalendarDates.value = await calendarDayCommand.listMemoDates({
-      workspaceSlugName: workspaceSlug.value,
-      memoSlugTitle: memo.slug_title,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to load memo dates.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-};
-const canAddMemoCalendarDate = computed(() =>
-  !!memoVM.value.data.memo
-  && /^\d{4}-\d{2}-\d{2}$/.test(String(memoCalendarDate.value))
-  && !currentMemoCalendarDates.value.includes(String(memoCalendarDate.value))
-  && !isCalendarDateUpdating.value,
-);
 
 const openMemoCalendarDialog = async () => {
   isMemoCalendarDialogOpen.value = true;
@@ -746,85 +730,7 @@ const preventMemoCalendarAutoFocus = (event: Event) => {
   });
 };
 
-const addMemoCalendarDate = async () => {
-  const memo = memoVM.value.data.memo;
-  if (!memo || !canAddMemoCalendarDate.value) return;
-
-  try {
-    isCalendarDateUpdating.value = true;
-    await calendarDayCommand.addMemo({
-      workspaceSlugName: workspaceSlug.value,
-      date: String(memoCalendarDate.value),
-      memoSlugTitle: memo.slug_title,
-    });
-    await loadMemoCalendarDates();
-    toast.add({
-      title: 'Added memo date.',
-      duration: 1200,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to add memo date.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-  finally {
-    isCalendarDateUpdating.value = false;
-  }
-};
-
-const removeMemoCalendarDate = async (date: string) => {
-  const memo = memoVM.value.data.memo;
-  if (!memo) return;
-
-  try {
-    isCalendarDateUpdating.value = true;
-    await calendarDayCommand.removeMemo({
-      workspaceSlugName: workspaceSlug.value,
-      date,
-      memoSlugTitle: memo.slug_title,
-    });
-    await loadMemoCalendarDates();
-    toast.add({
-      title: 'Removed memo date.',
-      duration: 1200,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to remove memo date.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-  finally {
-    isCalendarDateUpdating.value = false;
-  }
-};
-
-watch(() => memoVM.value.data.memo?.slug_title ?? null, () => {
-  memoCalendarDate.value = getLocalDateString();
-  void loadMemoCalendarDates();
-});
-
 await loadMemoCalendarDates();
-
-type MemoSnapshot = {
-  title: string;
-  content: string;
-};
-
-const lastSavedSnapshot = ref<MemoSnapshot>({
-  title: resolvedCurrentMemo.value.title,
-  content: resolvedCurrentMemo.value.content,
-});
-const isApplyingExternalSnapshot = ref(false);
 
 const getCurrentSnapshot = (): MemoSnapshot => {
   const currentContent = editor.value ? JSON.stringify(editor.value.getJSON()) : resolvedCurrentMemo.value.content;
@@ -834,11 +740,20 @@ const getCurrentSnapshot = (): MemoSnapshot => {
   };
 };
 
-const computeDirty = () => {
-  const current = getCurrentSnapshot();
-  return current.title !== lastSavedSnapshot.value.title
-    || current.content !== lastSavedSnapshot.value.content;
-};
+const {
+  computeDirty,
+  isApplyingExternalSnapshot,
+  recordSavedSnapshot,
+  receiveExternalSnapshot,
+} = useMemoDraft({
+  initial: resolvedCurrentMemo.value,
+  getCurrentSnapshot,
+  applyExternalSnapshot: (snapshot) => {
+    const content = JSON.parse(snapshot.content);
+    editor.value?.commands.setContent(content, false);
+    memoTitle.value = snapshot.title;
+  },
+});
 
 const deleteMemoDialogRef = ref<DeleteMemoDialogHandle | null>(null);
 const hasMemo = computed(() => memoVM.value.data.memo != null);
@@ -980,79 +895,20 @@ const { state: memoState, dispatch: dispatchMemoEvent } = useMemoMachine({
   headImageRef,
   deleteDialogRef: deleteMemoDialogRef,
   getCurrentSnapshot,
-  onSnapshotSaved: (snapshot) => {
-    lastSavedSnapshot.value = snapshot;
-  },
+  onSnapshotSaved: recordSavedSnapshot,
   logger,
 });
 
-type UnsavedNavigationChoice = 'save' | 'discard' | 'cancel';
-
-const isUnsavedNavigationDialogOpen = ref(false);
-const isSavingBeforeNavigation = ref(false);
-const pendingUnsavedNavigationChoice = ref<((choice: UnsavedNavigationChoice) => void) | null>(null);
-
-const closeUnsavedNavigationDialog = () => {
-  isUnsavedNavigationDialogOpen.value = false;
-  pendingUnsavedNavigationChoice.value = null;
-};
-
-const requestUnsavedNavigationChoice = () =>
-  new Promise<UnsavedNavigationChoice>((resolve) => {
-    pendingUnsavedNavigationChoice.value = resolve;
-    isUnsavedNavigationDialogOpen.value = true;
-  });
-
-const resolveUnsavedNavigationChoice = (choice: UnsavedNavigationChoice) => {
-  const resolve = pendingUnsavedNavigationChoice.value;
-  pendingUnsavedNavigationChoice.value = null;
-  resolve?.(choice);
-
-  if (choice !== 'save') {
-    closeUnsavedNavigationDialog();
-  }
-};
-
-const handleUnsavedNavigationDialogOpen = (open: boolean) => {
-  if (open) {
-    isUnsavedNavigationDialogOpen.value = true;
-    return;
-  }
-  if (isSavingBeforeNavigation.value) {
-    isUnsavedNavigationDialogOpen.value = true;
-    return;
-  }
-
-  resolveUnsavedNavigationChoice('cancel');
-};
-
-const isMemoClean = () => memoState.value.type === 'clean';
-
-const confirmUnsavedNavigation = async (to: { path: string }, from: { path: string }) => {
-  if (to.path === from.path || memoState.value.type !== 'dirty') {
-    return true;
-  }
-
-  const choice = await requestUnsavedNavigationChoice();
-
-  if (choice === 'discard') {
-    return true;
-  }
-  if (choice === 'cancel') {
-    return false;
-  }
-
-  isSavingBeforeNavigation.value = true;
-  try {
-    await dispatchMemoEvent({ type: 'memo/save-requested', payload: { mode: 'navigation' } });
-    const saved = isMemoClean();
-    closeUnsavedNavigationDialog();
-    return saved;
-  }
-  finally {
-    isSavingBeforeNavigation.value = false;
-  }
-};
+const {
+  isUnsavedNavigationDialogOpen,
+  isSavingBeforeNavigation,
+  resolveUnsavedNavigationChoice,
+  handleUnsavedNavigationDialogOpen,
+  confirmUnsavedNavigation,
+} = useUnsavedMemoNavigation({
+  state: memoState,
+  save: () => dispatchMemoEvent({ type: 'memo/save-requested', payload: { mode: 'navigation' } }),
+});
 
 onBeforeRouteLeave(confirmUnsavedNavigation);
 onBeforeRouteUpdate(confirmUnsavedNavigation);
@@ -1065,6 +921,8 @@ const memoStatusBadge = computed(() => {
       return { label: 'Saving...', color: 'info' as const };
     case 'deleting':
       return { label: 'Deleting...', color: 'neutral' as const };
+    case 'deleted':
+      return { label: 'Deleted', color: 'neutral' as const };
     case 'clean':
     default:
       return { label: 'Saved', color: 'success' as const };
@@ -1079,39 +937,11 @@ watch(memoTitle, () => {
 });
 
 watch(() => memoVM.value.data.memo, (memo) => {
-  if (!memo || memoState.value.type !== 'clean') {
-    return;
-  }
-
-  const nextSnapshot = {
-    title: memo.title,
-    content: memo.content,
-  };
-  if (
-    nextSnapshot.title === lastSavedSnapshot.value.title
-    && nextSnapshot.content === lastSavedSnapshot.value.content
-  ) {
-    return;
-  }
-
-  const currentEditor = editor.value;
-  if (!currentEditor) {
-    lastSavedSnapshot.value = nextSnapshot;
-    memoTitle.value = nextSnapshot.title;
-    return;
-  }
-
-  try {
-    isApplyingExternalSnapshot.value = true;
-    lastSavedSnapshot.value = nextSnapshot;
-    memoTitle.value = nextSnapshot.title;
-    currentEditor.commands.setContent(JSON.parse(nextSnapshot.content), false);
-  }
-  finally {
-    nextTick(() => {
-      isApplyingExternalSnapshot.value = false;
-    });
-  }
+  if (!memo || memoState.value.type === 'deleted') return;
+  receiveExternalSnapshot(
+    { title: memo.title, content: memo.content },
+    memoState.value.type === 'saving' || memoState.value.type === 'deleting',
+  );
 });
 
 // Focus the title after mount/template-start timing settles.

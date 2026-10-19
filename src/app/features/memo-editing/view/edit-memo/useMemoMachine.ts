@@ -1,6 +1,7 @@
-import { ref } from 'vue';
+import { onScopeDispose, ref, watch } from 'vue';
 
 import { apply, type MemoEffect, type MemoEvent, type MemoSaveMode, type MemoState } from './memoMachine';
+import { sameMemoSnapshot, type MemoSnapshot } from '../../memoSnapshot';
 import { deleteMemo as executeDeleteMemo } from '../../resource/command/deleteMemo';
 import { saveMemo as executeSaveMemo } from '../../resource/command/saveMemo';
 import { syncMemoLinks } from '../../resource/command/syncMemoLinks';
@@ -9,13 +10,10 @@ import type { Editor } from '@tiptap/core';
 import type { Ref } from 'vue';
 import type { Router } from 'vue-router';
 
+import { observeResourceChanges } from '~/resource-runtime/query-runtime';
+
 export type DeleteMemoDialogHandle = {
   confirm: () => Promise<boolean>;
-};
-
-type MemoSnapshot = {
-  title: string;
-  content: string;
 };
 
 type UseMemoMachineDeps = {
@@ -45,6 +43,11 @@ type Result<T = undefined> =
 
 export function useMemoMachine(options: UseMemoMachineDeps) {
   const state = ref<MemoState>(options.initialState);
+  // A successful rename can precede navigation while newer edits remain unsaved.
+  let persistedMemoSlug = options.memoSlug.value;
+  watch([options.workspaceSlug, options.memoSlug], () => {
+    persistedMemoSlug = options.memoSlug.value;
+  });
   const toast = useToast();
   const logger = useConsoleLogger('memo-editing/useMemoMachine');
 
@@ -82,7 +85,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
     try {
       await executeDeleteMemo({
         workspaceSlug: options.workspaceSlug.value,
-        memoSlug: options.memoSlug.value,
+        memoSlug: persistedMemoSlug,
       });
       return { ok: true, data: undefined };
     }
@@ -92,7 +95,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
     }
   };
 
-  const saveMemo = async (mode: MemoSaveMode): Promise<Result<{ memoSlug: string }>> => {
+  const saveMemo = async (mode: MemoSaveMode): Promise<Result<{ memoSlug: string; snapshot: MemoSnapshot }>> => {
     const editor = options.editor.value;
 
     try {
@@ -113,7 +116,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
       const saved = await executeSaveMemo(
         {
           workspaceSlug: options.workspaceSlug.value,
-          memoSlug: options.memoSlug.value,
+          memoSlug: persistedMemoSlug,
         },
         editor,
         options.memoTitle.value,
@@ -121,7 +124,8 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
         options.route.hash,
       );
 
-      return { ok: true, data: { memoSlug: saved.memoSlug } };
+      persistedMemoSlug = saved.memoSlug;
+      return { ok: true, data: saved };
     }
     catch (error) {
       if (mode !== 'auto') {
@@ -135,7 +139,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
     try {
       await syncMemoLinks({
         workspaceSlug: options.workspaceSlug.value,
-        memoSlug: options.memoSlug.value,
+        memoSlug: persistedMemoSlug,
       }, added, deleted);
       return { ok: true, data: undefined };
     }
@@ -149,7 +153,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
       case 'effect/save-memo': {
         const result = await saveMemo(effect.mode);
         return result.ok
-          ? { nextEvent: { type: 'memo/save-succeeded', payload: { memoSlug: result.data.memoSlug } } }
+          ? { nextEvent: { type: 'memo/save-succeeded', payload: { ...result.data, dirty: !sameMemoSnapshot(options.getCurrentSnapshot(), result.data.snapshot) } } }
           : { nextEvent: { type: 'memo/save-failed', payload: { error: result.error } } };
       }
       case 'effect/sync-links': {
@@ -159,7 +163,7 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
           : {};
       }
       case 'effect/snapshot-saved': {
-        options.onSnapshotSaved(options.getCurrentSnapshot());
+        options.onSnapshotSaved(effect.snapshot);
         return {};
       }
       case 'effect/notify-save-failed': {
@@ -204,6 +208,18 @@ export function useMemoMachine(options: UseMemoMachineDeps) {
         return {};
     }
   };
+
+  // Deletion is already committed when this fact is published. Observe it
+  // before the router evaluates guards for open-page reconciliation.
+  const stopObserving = observeResourceChanges((changes) => {
+    if (changes.some(change => change.type === 'memoDeleted'
+      && change.workspaceSlug === options.workspaceSlug.value
+      && change.memoSlug === persistedMemoSlug)) {
+      void dispatch({ type: 'memo/deleted' });
+    }
+    return undefined;
+  });
+  onScopeDispose(stopObserving);
 
   return {
     state,

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { apply, type MemoState } from './memoMachine';
 
 describe('memo editing machine', () => {
+  const snapshot = { title: 'Saved', content: '{}' };
   it('starts an explicit save from dirty state', () => {
     const result = apply(
       { type: 'dirty' },
@@ -50,7 +51,7 @@ describe('memo editing machine', () => {
     );
 
     expect(result).toEqual({
-      state: { type: 'clean' },
+      state: { type: 'deleted' },
       effects: [{ type: 'effect/notify-delete-succeeded' }],
     });
   });
@@ -58,13 +59,13 @@ describe('memo editing machine', () => {
   it('emits explicit save success effects from saving state', () => {
     const result = apply(
       { type: 'saving', mode: 'explicit' },
-      { type: 'memo/save-succeeded', payload: { memoSlug: 'saved-slug' } },
+      { type: 'memo/save-succeeded', payload: { memoSlug: 'saved-slug', snapshot, dirty: false } },
     );
 
     expect(result).toEqual({
       state: { type: 'clean' },
       effects: [
-        { type: 'effect/snapshot-saved' },
+        { type: 'effect/snapshot-saved', snapshot },
         { type: 'effect/replace-memo-route', memoSlug: 'saved-slug' },
       ],
     });
@@ -73,13 +74,13 @@ describe('memo editing machine', () => {
   it('does not replace the current route after navigation save succeeds', () => {
     const result = apply(
       { type: 'saving', mode: 'navigation' },
-      { type: 'memo/save-succeeded', payload: { memoSlug: 'saved-slug' } },
+      { type: 'memo/save-succeeded', payload: { memoSlug: 'saved-slug', snapshot, dirty: false } },
     );
 
     expect(result).toEqual({
       state: { type: 'clean' },
       effects: [
-        { type: 'effect/snapshot-saved' },
+        { type: 'effect/snapshot-saved', snapshot },
       ],
     });
   });

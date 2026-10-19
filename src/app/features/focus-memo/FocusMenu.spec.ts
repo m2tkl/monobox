@@ -24,7 +24,7 @@ const focusList = computed(() => ({
   },
 }));
 
-vi.mock('~/app/features/memo-browsing', () => ({
+vi.mock('./resource/read-model', () => ({
   useFocusListReadModel: () => focusList,
 }));
 

@@ -47,17 +47,21 @@ describe('saveMemo', () => {
       getText: () => 'memo text',
     } as Editor;
 
-    await saveMemo(
+    const result = await saveMemo(
       {
         workspaceSlug: 'workspace',
         memoSlug: 'old-slug',
       },
       editor,
-      'New title',
+      '  New title  ',
       '',
       '#hash',
     );
 
+    expect(result).toEqual({
+      memoSlug: 'new-title',
+      snapshot: { title: 'New title', content: JSON.stringify({ type: 'doc' }) },
+    });
     expect(save).toHaveBeenCalledWith({
       workspaceSlug: 'workspace',
       memoSlug: 'old-slug',

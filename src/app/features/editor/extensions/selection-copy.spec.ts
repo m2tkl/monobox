@@ -1,11 +1,16 @@
 import { Editor } from '@tiptap/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { serializeSelectionToMarkdown, type SelectionCopyFormat } from './selection-copy';
 import { buildExtensions } from '../index';
 
+const editors: Editor[] = [];
+afterEach(() => {
+  editors.splice(0).forEach(editor => editor.destroy());
+});
+
 function createEditor(format: () => SelectionCopyFormat = () => 'html') {
-  return new Editor({
+  const editor = new Editor({
     extensions: buildExtensions({
       CodeBlockComponent: {} as never,
       getSelectionCopyFormat: format,
@@ -15,6 +20,8 @@ function createEditor(format: () => SelectionCopyFormat = () => 'html') {
       <p><strong>Hello</strong> world</p>
     `,
   });
+  editors.push(editor);
+  return editor;
 }
 
 function createCopyEvent() {

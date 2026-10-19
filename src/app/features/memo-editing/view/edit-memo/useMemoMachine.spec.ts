@@ -102,12 +102,13 @@ describe('useMemoMachine', () => {
       deleteDialogRef,
       onSnapshotSaved,
       getCurrentSnapshot,
+      memoTitle,
     };
   };
 
   it('redispatches a save request after syncing links', async () => {
     syncMemoLinks.mockResolvedValue(undefined);
-    saveMemo.mockResolvedValue({ memoSlug: 'saved-memo' });
+    saveMemo.mockResolvedValue({ memoSlug: 'saved-memo', snapshot: { title: 'Memo title', content: JSON.stringify({ type: 'doc' }) } });
 
     const { wrapper, machine, onSnapshotSaved } = mountMachine({ initialState: 'dirty' });
 
@@ -140,8 +141,36 @@ describe('useMemoMachine', () => {
     wrapper.unmount();
   });
 
+  it('keeps edits made during saving dirty and records only the saved content', async () => {
+    let finish!: (result: unknown) => void;
+    saveMemo.mockImplementationOnce(() => new Promise((resolve) => {
+      finish = resolve;
+    }));
+    const { wrapper, machine, memoTitle, onSnapshotSaved } = mountMachine({ initialState: 'dirty' });
+    const pending = machine.dispatch({ type: 'memo/save-requested', payload: { mode: 'navigation' } });
+    memoTitle.value = 'Edited while saving';
+    await machine.dispatch({ type: 'memo/title-updated', payload: { dirty: true } });
+    const snapshot = { title: 'Memo title', content: JSON.stringify({ type: 'doc' }) };
+    finish({ memoSlug: 'saved-memo', snapshot });
+    await pending;
+    expect(onSnapshotSaved).toHaveBeenCalledWith(snapshot);
+    expect(machine.state.value).toEqual({ type: 'dirty' });
+    expect(routerReplace).not.toHaveBeenCalled();
+    saveMemo.mockResolvedValueOnce({
+      memoSlug: 'edited-while-saving',
+      snapshot: { title: memoTitle.value, content: snapshot.content },
+    });
+    await machine.dispatch({ type: 'memo/save-requested', payload: { mode: 'explicit' } });
+    expect(saveMemo).toHaveBeenLastCalledWith(
+      { workspaceSlug: 'workspace', memoSlug: 'saved-memo' },
+      expect.any(Object), 'Edited while saving', '', '#section',
+    );
+    expect(machine.state.value).toEqual({ type: 'clean' });
+    wrapper.unmount();
+  });
+
   it('completes an explicit save without a success toast', async () => {
-    saveMemo.mockResolvedValue({ memoSlug: 'saved-memo' });
+    saveMemo.mockResolvedValue({ memoSlug: 'saved-memo', snapshot: { title: 'Memo title', content: JSON.stringify({ type: 'doc' }) } });
 
     const { wrapper, machine } = mountMachine({ initialState: 'dirty' });
 
@@ -157,7 +186,7 @@ describe('useMemoMachine', () => {
   });
 
   it('saves for navigation without replacing the current memo route', async () => {
-    saveMemo.mockResolvedValue({ memoSlug: 'saved-memo' });
+    saveMemo.mockResolvedValue({ memoSlug: 'saved-memo', snapshot: { title: 'Memo title', content: JSON.stringify({ type: 'doc' }) } });
 
     const { wrapper, machine, onSnapshotSaved } = mountMachine({ initialState: 'dirty' });
 
@@ -210,7 +239,7 @@ describe('useMemoMachine', () => {
       workspaceSlug: 'workspace',
       memoSlug: 'memo',
     });
-    expect(machine.state.value).toEqual({ type: 'clean' });
+    expect(machine.state.value).toEqual({ type: 'deleted' });
     expect(routerReplace).not.toHaveBeenCalled();
     expect(toastAdd).toHaveBeenCalledWith({
       title: 'Delete memo successfully.',

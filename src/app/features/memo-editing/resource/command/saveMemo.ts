@@ -1,3 +1,4 @@
+import type { MemoSnapshot } from '../../memoSnapshot';
 import type { Editor } from '@tiptap/core';
 
 import { publishResourceChanges } from '~/resource-runtime/query-runtime';
@@ -10,6 +11,7 @@ type SaveMemoTarget = {
 };
 
 type SaveMemoResult = {
+  snapshot: MemoSnapshot;
   memoSlug: string;
 };
 
@@ -52,5 +54,6 @@ export async function saveMemo(
 
   return {
     memoSlug: newSlugTitle,
+    snapshot: { title: newContent.title, content: newContent.content },
   };
 }

@@ -29,9 +29,9 @@
 
 <script setup lang="ts">
 import FocusSidebar from './FocusSidebar.vue';
+import { useFocusListReadModel } from './resource/read-model';
 
 import AppPopover from '~/app/elements/overlays/AppPopover.vue';
-import { useFocusListReadModel } from '~/app/features/memo-browsing';
 import { iconKey } from '~/utils/icon';
 
 const isOpen = ref(false);

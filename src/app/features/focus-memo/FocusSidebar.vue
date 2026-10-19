@@ -132,10 +132,11 @@
 </template>
 
 <script setup lang="ts">
+import { useFocusListReadModel } from './resource/read-model';
+
 import type { JSONContent } from '@tiptap/core';
 
 import { EditorQuery } from '~/app/features/editor';
-import { useFocusListReadModel } from '~/app/features/memo-browsing';
 import { command } from '~/resources/command';
 import { iconKey } from '~/utils/icon';
 import { getEncodedMemoSlugFromPath, getEncodedWorkspaceSlugFromPath } from '~/utils/route';
