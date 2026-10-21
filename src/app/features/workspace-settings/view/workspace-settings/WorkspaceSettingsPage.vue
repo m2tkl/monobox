@@ -507,6 +507,7 @@ import { computed, ref } from 'vue';
 
 import ShortcutBuilder from './ShortcutBuilder.vue';
 import { useWorkspaceSettings } from './useWorkspaceSettings';
+import { useAppSettings } from '../app-settings/useAppSettings';
 
 import AppButton from '~/app/elements/AppButton.vue';
 import AppCard from '~/app/elements/AppCard.vue';
@@ -518,9 +519,6 @@ import LoadingSpinner from '~/app/elements/status/LoadingSpinner.vue';
 import { MemoTemplateManager } from '~/app/features/memo-templates';
 import { StoragePathsForm } from '~/app/features/storage-settings';
 import KanbanStatusManager from '~/app/features/workspace-kanban/view/workspace-kanban/KanbanStatusManager.vue';
-import { command } from '~/external/tauri/command';
-import { publishResourceChanges } from '~/resource-runtime/query-runtime';
-import { changeRefs } from '~/resources/changes';
 import { loadGlobalStatusKanban } from '~/resources/kanban/globalStatus';
 import { iconKey } from '~/utils/icon';
 
@@ -565,35 +563,46 @@ const {
   router,
   toast,
 });
-const mcpServerInfo = ref<Awaited<ReturnType<typeof command.config.mcpServerInfo>> | null>(null);
-const mcpServerRestartRequired = ref(false);
-const savedWindowOpacity = ref(1);
-const windowOpacity = ref(1);
-const isWindowOpacitySaving = ref(false);
-const savedFocusAppShortcut = ref('');
-const savedNewMemoShortcut = ref('');
-const focusAppShortcut = ref('');
-const newMemoShortcut = ref('');
-const isGlobalShortcutSaving = ref(false);
-const savedInboxIgnoreFileNames = ref<string[]>([]);
-const inboxIgnoreFileNamesText = ref('');
-const isInboxIgnoreSaving = ref(false);
-const savedSelectionCopyFormat = ref('html');
-const selectionCopyFormat = ref('html');
-const isSelectionCopyFormatSaving = ref(false);
+const appSettings = useAppSettings(toast);
+const {
+  windowOpacity,
+  isWindowOpacitySaving,
+  windowOpacityPercent,
+  isWindowOpacityDirty,
+  applyWindowOpacity,
+  saveWindowOpacity,
+} = appSettings.appearance;
+const {
+  focusAppShortcut,
+  newMemoShortcut,
+  isGlobalShortcutSaving,
+  isGlobalShortcutDirty,
+  saveGlobalShortcuts,
+} = appSettings.shortcuts;
+const {
+  selectionCopyFormat,
+  isSelectionCopyFormatSaving,
+  selectionCopyFormatOptions,
+  isSelectionCopyFormatDirty,
+  saveSelectionCopyFormat,
+} = appSettings.editor;
+const {
+  inboxIgnoreFileNamesText,
+  isInboxIgnoreSaving,
+  isInboxIgnoreDirty,
+  saveInboxIgnoreFileNames,
+} = appSettings.files;
+const {
+  mcpServerInfo,
+  mcpServerRestartRequired,
+  mcpServerStatus,
+  loadMcpServerInfo,
+  copyMcpServerUrl,
+  regenerateMcpServerUrl,
+} = appSettings.mcp;
+
 const statusKanbanId = ref<number | null>(null);
 const isStatusBoardLoading = ref(false);
-const selectionCopyFormatOptions = [
-  { label: 'HTML', value: 'html' },
-  { label: 'Markdown', value: 'markdown' },
-];
-const mcpServerStatus = computed(() => {
-  if (!mcpServerInfo.value) return 'Unavailable';
-  if (mcpServerRestartRequired.value) return 'Pending restart';
-  if (!mcpServerInfo.value.setup_complete) return 'Setup incomplete';
-  if (!mcpServerInfo.value.enabled) return 'Disabled';
-  return 'Running inside this app';
-});
 const settingGroups = computed<SettingsNavGroup[]>(() => [
   {
     label: 'App',
@@ -629,226 +638,6 @@ const activePanelItem = computed(() => {
 });
 const activePanelLabel = computed(() => activePanelItem.value.item?.label ?? 'Settings');
 const activePanelGroupLabel = computed(() => activePanelItem.value.group?.label ?? 'App');
-const windowOpacityPercent = computed(() => Math.round(windowOpacity.value * 100));
-const isWindowOpacityDirty = computed(() => (
-  Math.abs(windowOpacity.value - savedWindowOpacity.value) > 0.001
-));
-const isGlobalShortcutDirty = computed(() => (
-  focusAppShortcut.value.trim() !== savedFocusAppShortcut.value
-  || newMemoShortcut.value.trim() !== savedNewMemoShortcut.value
-));
-const isInboxIgnoreDirty = computed(() => (
-  normalizeInboxIgnoreFileNames(inboxIgnoreFileNamesText.value).join('\n')
-  !== savedInboxIgnoreFileNames.value.join('\n')
-));
-const isSelectionCopyFormatDirty = computed(() => (
-  normalizeSelectionCopyFormat(selectionCopyFormat.value) !== savedSelectionCopyFormat.value
-));
-
-const applyWindowOpacity = (opacity: number) => {
-  document.documentElement.style.setProperty('--app-window-opacity', String(opacity));
-};
-
-const loadMcpServerInfo = async () => {
-  try {
-    mcpServerInfo.value = await command.config.mcpServerInfo();
-    mcpServerRestartRequired.value = false;
-  }
-  catch (error) {
-    console.error(error);
-    mcpServerInfo.value = null;
-  }
-};
-
-const copyMcpServerUrl = async () => {
-  if (!mcpServerInfo.value) return;
-
-  try {
-    await navigator.clipboard.writeText(mcpServerInfo.value.url);
-    toast.add({
-      title: 'Copied MCP URL.',
-      duration: 1200,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to copy MCP URL.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-};
-
-const regenerateMcpServerUrl = async () => {
-  try {
-    mcpServerInfo.value = await command.config.regenerateMcpServerToken();
-    mcpServerRestartRequired.value = true;
-    toast.add({
-      title: 'Generated a new MCP URL.',
-      description: 'Restart monobox, then update Codex to the new URL.',
-      duration: 2500,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to regenerate MCP URL.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-};
-
-const loadAppAppearance = async () => {
-  try {
-    const config = await command.config.get();
-    savedWindowOpacity.value = config.app_window_opacity;
-    windowOpacity.value = config.app_window_opacity;
-    savedFocusAppShortcut.value = config.focus_app_shortcut;
-    focusAppShortcut.value = config.focus_app_shortcut;
-    savedNewMemoShortcut.value = config.new_memo_shortcut;
-    newMemoShortcut.value = config.new_memo_shortcut;
-    savedInboxIgnoreFileNames.value = normalizeInboxIgnoreFileNames(config.inbox_ignore_file_names);
-    inboxIgnoreFileNamesText.value = savedInboxIgnoreFileNames.value.join('\n');
-    savedSelectionCopyFormat.value = normalizeSelectionCopyFormat(config.selection_copy_format);
-    selectionCopyFormat.value = savedSelectionCopyFormat.value;
-    applyWindowOpacity(config.app_window_opacity);
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to load appearance settings.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-};
-
-const saveWindowOpacity = async () => {
-  try {
-    isWindowOpacitySaving.value = true;
-    const config = await command.config.setAppWindowOpacity(windowOpacity.value);
-    savedWindowOpacity.value = config.app_window_opacity;
-    windowOpacity.value = config.app_window_opacity;
-    applyWindowOpacity(config.app_window_opacity);
-    toast.add({
-      title: 'Saved window opacity.',
-      duration: 1200,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to save window opacity.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-  finally {
-    isWindowOpacitySaving.value = false;
-  }
-};
-
-const normalizeSelectionCopyFormat = (value: string | number | null | undefined) => (
-  value === 'markdown' ? 'markdown' : 'html'
-);
-
-const saveSelectionCopyFormat = async () => {
-  try {
-    isSelectionCopyFormatSaving.value = true;
-    const format = normalizeSelectionCopyFormat(selectionCopyFormat.value);
-    const config = await command.config.setSelectionCopyFormat(format);
-    savedSelectionCopyFormat.value = normalizeSelectionCopyFormat(config.selection_copy_format);
-    selectionCopyFormat.value = savedSelectionCopyFormat.value;
-    toast.add({
-      title: 'Saved copy format.',
-      duration: 1200,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to save copy format.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-  finally {
-    isSelectionCopyFormatSaving.value = false;
-  }
-};
-
-const saveGlobalShortcuts = async () => {
-  try {
-    isGlobalShortcutSaving.value = true;
-    const config = await command.config.setGlobalShortcuts({
-      focusAppShortcut: focusAppShortcut.value,
-      newMemoShortcut: newMemoShortcut.value,
-    });
-    savedFocusAppShortcut.value = config.focus_app_shortcut;
-    focusAppShortcut.value = config.focus_app_shortcut;
-    savedNewMemoShortcut.value = config.new_memo_shortcut;
-    newMemoShortcut.value = config.new_memo_shortcut;
-    toast.add({
-      title: 'Saved global shortcuts.',
-      duration: 1200,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to save global shortcuts.',
-      description: shortcutErrorMessage(error),
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-  finally {
-    isGlobalShortcutSaving.value = false;
-  }
-};
-
-const normalizeInboxIgnoreFileNames = (value: string | string[]) => {
-  const lines = Array.isArray(value) ? value : value.split('\n');
-  const names = lines
-    .map(name => name.trim())
-    .filter(Boolean);
-  return Array.from(new Map(names.map(name => [name.toLowerCase(), name])).values())
-    .sort((a, b) => a.localeCompare(b));
-};
-
-const saveInboxIgnoreFileNames = async () => {
-  try {
-    isInboxIgnoreSaving.value = true;
-    const fileNames = normalizeInboxIgnoreFileNames(inboxIgnoreFileNamesText.value);
-    const config = await command.config.setInboxIgnoreFileNames(fileNames);
-    savedInboxIgnoreFileNames.value = normalizeInboxIgnoreFileNames(config.inbox_ignore_file_names);
-    inboxIgnoreFileNamesText.value = savedInboxIgnoreFileNames.value.join('\n');
-    void publishResourceChanges([changeRefs.inboxFileCollectionChanged()]);
-    toast.add({
-      title: 'Saved file ignore list.',
-      duration: 1200,
-      icon: iconKey.success,
-    });
-  }
-  catch (error) {
-    console.error(error);
-    toast.add({
-      title: 'Failed to save file ignore list.',
-      color: 'error',
-      icon: iconKey.failed,
-    });
-  }
-  finally {
-    isInboxIgnoreSaving.value = false;
-  }
-};
 
 const loadStatusBoard = async () => {
   const slugName = currentWorkspace.value?.slug_name;
@@ -876,17 +665,11 @@ const loadStatusBoard = async () => {
   }
 };
 
-const shortcutErrorMessage = (error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  const [, detail] = message.split(':', 2);
-  return detail || message;
-};
-
 await usePageLoader(async () => {
   await Promise.all([
     loadWorkspaceSettings(),
     loadMcpServerInfo(),
-    loadAppAppearance(),
+    appSettings.loadAppSettings(),
   ]);
   await loadStatusBoard();
 });
