@@ -10,6 +10,7 @@
       <WindowControls placement="sidebar" />
 
       <div
+        v-if="workspaceSlug"
         class="titlebar-sidebar__controls"
         data-tauri-drag-region
       >
@@ -18,12 +19,7 @@
           @click="toggleSidebar"
         />
 
-        <IconButton
-          v-if="!workspaceSlug"
-          :icon="iconKey.database"
-        />
-
-        <template v-if="workspaceSlug && !ui.isSidebarOpen">
+        <template v-if="!ui.isSidebarOpen">
           <IconButton
             :icon="iconKey.add"
             :disabled="isNavigatingToNewMemo"
@@ -38,7 +34,10 @@
       class="titlebar-main"
       data-tauri-drag-region
     >
-      <div class="titlebar-home">
+      <div
+        v-if="route.path !== '/'"
+        class="titlebar-home"
+      >
         <AppButtonGroup
           class="titlebar-navigation-group"
           size="xs"
@@ -254,7 +253,10 @@ const openSearchResult = (
   destination: SearchOpenDestination,
 ) => {
   if (!workspaceSlug.value) return;
-  if (destination === 'new-tab') openPagesStore.createTab(workspaceSlug.value);
+  if (destination === 'new-tab' || standaloneWorkspaceUrl.value) {
+    openPagesStore.createTab(workspaceSlug.value, target);
+    return;
+  }
   openPagesStore.openInActiveTab(workspaceSlug.value, target);
 };
 
@@ -274,7 +276,12 @@ async function openRandomMemo() {
   const page = pickRandomMemoPage(workspaceMemos.value);
   if (!page || !workspaceSlug.value) return;
 
-  openPagesStore.openInActiveTab(workspaceSlug.value, page);
+  if (standaloneWorkspaceUrl.value) {
+    openPagesStore.createTab(workspaceSlug.value, page);
+  }
+  else {
+    openPagesStore.openInActiveTab(workspaceSlug.value, page);
+  }
   await router.push(getTabPageLocation(workspaceSlug.value, page));
 }
 

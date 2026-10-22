@@ -6,6 +6,7 @@ export type OpenTab = {
   hash: string;
   title: string;
   createdAt: number;
+  isPinned?: boolean;
 };
 
 export type TabPage = {

@@ -24,6 +24,10 @@ export function useOpenPageTracking() {
   let previousFixedWorkspaceView: TabPage | null = null;
   const stopObservingResourceChanges = observeResourceChanges(async (changes) => {
     for (const change of changes) {
+      if (change.type === 'memoRenamed') {
+        openPages.reconcileRenamedMemo(change.workspaceSlug, change.previousMemoSlug, change.memoSlug);
+        continue;
+      }
       if (change.type !== 'memoDeleted') continue;
 
       const result = openPages.reconcileDeletedMemo(change.workspaceSlug, change.memoSlug);

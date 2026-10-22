@@ -86,10 +86,32 @@ export const useOpenPagesStore = defineStore('open-pages', {
         hash: page.hash ?? '',
         title: page.title,
         createdAt: Date.now(),
+        isPinned: false,
       });
       this.histories[id] = history;
       this.activeTabIds[workspaceSlug] = id;
       return id;
+    },
+
+    pinTab(workspaceSlug: string, tabId: string) {
+      const tab = this.tabs.find(tab => tab.workspaceSlug === workspaceSlug && tab.id === tabId);
+      if (tab) tab.isPinned = true;
+    },
+
+    reconcileRenamedMemo(workspaceSlug: string, previousMemoSlug: string, memoSlug: string) {
+      const renamePage = (page: TabPage) => {
+        if (page.memoSlug === previousMemoSlug) page.memoSlug = memoSlug;
+      };
+      for (const tab of this.tabs) {
+        if (tab.workspaceSlug !== workspaceSlug) continue;
+        renamePage(tab);
+        this.histories[tab.id]?.entries.forEach(renamePage);
+      }
+      for (const closed of this.closedTabs) {
+        if (closed.tab.workspaceSlug !== workspaceSlug) continue;
+        renamePage(closed.tab);
+        closed.history.entries.forEach(renamePage);
+      }
     },
 
     openOrActivatePageTab(workspaceSlug: string, page: TabPage) {
@@ -133,9 +155,26 @@ export const useOpenPagesStore = defineStore('open-pages', {
 
     openInActiveTab(workspaceSlug: string, page: TabPage) {
       const activeTabId = this.activeTabIds[workspaceSlug];
-      const activeTab = this.tabs.find(tab => (
+      let activeTab = this.tabs.find(tab => (
         tab.id === activeTabId && tab.workspaceSlug === workspaceSlug
       ));
+
+      const samePage = (tab: OpenTab) => (
+        tab.memoSlug === page.memoSlug
+        && (tab.routePath ?? '') === (page.routePath ?? '')
+      );
+      const existingPinnedTab = this.tabs.find(tab => (
+        tab.workspaceSlug === workspaceSlug && tab.isPinned && samePage(tab)
+      ));
+      if (existingPinnedTab && (!activeTab || !samePage(activeTab))) {
+        activeTab = existingPinnedTab;
+      }
+      else if (activeTab?.isPinned && !samePage(activeTab)) {
+        return this.createTab(workspaceSlug, page);
+      }
+      if (activeTab && activeTab.id !== activeTabId) {
+        this.activate(workspaceSlug, activeTab.id);
+      }
 
       if (!activeTab) {
         const id = this.createTab(workspaceSlug);

@@ -18,6 +18,7 @@ const { openPages, routerReplace, useWorkspaceMemosReadModel } = vi.hoisted(() =
     openInActiveTab: vi.fn(),
     setActiveTabOpener: vi.fn(),
     reconcileDeletedMemo: vi.fn(),
+    reconcileRenamedMemo: vi.fn(),
   },
   routerReplace: vi.fn(async () => {}),
   useWorkspaceMemosReadModel: vi.fn(),
@@ -290,6 +291,29 @@ describe('useOpenPageTracking', () => {
       'tab-/_files/file-id',
       { memoSlug: null, routePath: '/_files', hash: '', title: 'Files' },
     );
+    wrapper.unmount();
+  });
+
+  it('projects a memoRenamed fact before tracking the new route', async () => {
+    vi.stubGlobal('useRoute', () => ({
+      fullPath: '/workspace/first',
+      path: '/workspace/first',
+      params: { workspace: 'workspace', memo: 'first' },
+      query: {},
+      hash: '',
+    }));
+    useWorkspaceMemosReadModel.mockReturnValue(computed(() => ({
+      data: { items: [{ slug_title: 'first', title: 'First page' }] },
+    })));
+    const wrapper = mount(defineComponent({
+      setup() { useOpenPageTracking(); },
+      template: '<div />',
+    }));
+
+    await publishResourceChanges([
+      changeRefs.memoRenamed('workspace', 'first', 'renamed'),
+    ], { notifyOtherWindows: false });
+    expect(openPages.reconcileRenamedMemo).toHaveBeenCalledWith('workspace', 'first', 'renamed');
     wrapper.unmount();
   });
 

@@ -34,7 +34,7 @@
               :key="workspace.id"
               class="workspace-item transition-colors duration-200"
             >
-              <NuxtLink :to="`/${workspace.slug_name}`">
+              <NuxtLink :to="getTabPageLocation(workspace.slug_name, NEW_TAB_PAGE)">
                 <div class="flex items-center justify-between px-4 py-2 hover:bg-[var(--color-surface-hover)]">
                   <span
                     class="font-bold"
@@ -103,6 +103,7 @@ import { useWorkspaceSelection } from './useWorkspaceSelection';
 
 import AppPageFrame from '~/app/elements/layout/AppPageFrame.vue';
 import AppPageHeader from '~/app/elements/layout/AppPageHeader.vue';
+import { getTabPageLocation, NEW_TAB_PAGE } from '~/app/features/open-pages/openPages';
 import { workspaceCollectionQuery } from '~/resources/workspace/queries';
 import { iconKey } from '~/utils/icon';
 

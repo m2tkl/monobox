@@ -19,13 +19,17 @@
       >
         <MemoLinkRow
           class="open-pages__tab-link"
-          :class="{ 'open-pages__tab-link--selected': activeTabId === tab.id }"
+          :class="{
+            'open-pages__tab-link--selected': activeTabId === tab.id,
+            'open-pages__tab-link--preview': !tab.isPinned,
+          }"
           :to="getTabLocation(tab)"
           :icon="getOpenPageIcon(tab)"
           :memo-title="tab.title"
           :active="activeTabId === tab.id"
           :aria-current="activeTabId === tab.id ? 'page' : undefined"
           @click.prevent="selectTab(tab.id)"
+          @dblclick.prevent="openPagesStore.pinTab(workspaceSlug, tab.id)"
         />
         <span class="open-pages__close absolute inset-y-0 right-1 flex items-center justify-center">
           <IconButton
@@ -133,6 +137,10 @@ function onDrop(targetTabId: string) {
 </script>
 
 <style scoped>
+:deep(.open-pages__tab-link--preview) {
+  font-style: italic;
+}
+
 .open-pages {
   padding: 0.25rem 0 0.75rem;
 }

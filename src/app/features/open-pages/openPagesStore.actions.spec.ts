@@ -160,3 +160,70 @@ describe('closed tab restoration', () => {
     expect(store.activeTabOpeners.work).toBeUndefined();
   });
 });
+
+describe('pinned tabs', () => {
+  beforeEach(() => setActivePinia(createPinia()));
+
+  it('opens a new tab from a pinned page without overwriting existing unpinned tabs', () => {
+    const store = useOpenPagesStore();
+    const pinned = store.createTab('work', { memoSlug: 'first', title: 'First' });
+    store.pinTab('work', pinned);
+    const preview = store.openInActiveTab('work', { memoSlug: 'second', title: 'Second' });
+    expect(preview).not.toBe(pinned);
+    store.activate('work', pinned);
+    const third = store.openInActiveTab('work', { memoSlug: 'third', title: 'Third' });
+    expect(third).not.toBe(preview);
+    expect(third).not.toBe(pinned);
+    expect(store.activeTabIds.work).toBe(third);
+    expect(store.tabs).toMatchObject([
+      { id: pinned, memoSlug: 'first', isPinned: true },
+      { id: preview, memoSlug: 'second', isPinned: false },
+      { id: third, memoSlug: 'third', isPinned: false },
+    ]);
+    expect(store.openInActiveTab('work', { memoSlug: 'first', hash: '#section', title: 'Updated' })).toBe(pinned);
+    expect(store.tabs[0]).toMatchObject({ title: 'Updated', hash: '#section', isPinned: true });
+    expect(store.tabs).toHaveLength(3);
+  });
+
+  it('preserves pinning through state restoration and closing, within its workspace', () => {
+    const store = useOpenPagesStore();
+    const id = store.createTab('work', { memoSlug: 'first', title: 'First' });
+    store.pinTab('other', id);
+    expect(store.tabs[0]?.isPinned).toBe(false);
+    store.pinTab('work', id);
+    store.pinTab('work', id);
+    store.$state = JSON.parse(JSON.stringify(store.$state));
+    store.close('work', id);
+    expect(store.restoreLastClosed('work')).toMatchObject({ id, isPinned: true });
+    store.createTab('other');
+    expect(store.openInActiveTab('other', { memoSlug: 'first', title: 'First' })).not.toBe(id);
+  });
+
+  it('opens Home separately from a pinned memo and treats legacy tabs as unpinned', () => {
+    const store = useOpenPagesStore();
+    const pinned = store.createTab('work', { memoSlug: 'memo', title: 'Memo' });
+    store.pinTab('work', pinned);
+    const home = store.resetActiveTab('work');
+    expect(home).not.toBe(pinned);
+    expect(store.tabs[0]?.memoSlug).toBe('memo');
+    const legacyTab = store.tabs.find(tab => tab.id === home)!;
+    delete legacyTab.isPinned;
+    expect(store.openInActiveTab('work', { memoSlug: 'another', title: 'Another' })).toBe(home);
+    expect(store.tabs).toHaveLength(2);
+  });
+
+  it('updates a renamed pinned memo without creating another tab', () => {
+    const store = useOpenPagesStore();
+    const id = store.createTab('work', { memoSlug: 'before', title: 'Before' });
+    store.pinTab('work', id);
+    store.reconcileRenamedMemo('work', 'before', 'after');
+    expect(store.openInActiveTab('work', { memoSlug: 'after', title: 'After' })).toBe(id);
+    expect(store.tabs).toHaveLength(1);
+    expect(store.tabs[0]).toMatchObject({ memoSlug: 'after', title: 'After', isPinned: true });
+    expect(store.histories[id]?.entries.every(page => page.memoSlug !== 'before')).toBe(true);
+    store.close('work', id);
+    store.reconcileRenamedMemo('work', 'after', 'latest');
+    expect(store.restoreLastClosed('work')).toMatchObject({ memoSlug: 'latest', isPinned: true });
+    expect(store.histories[id]?.entries[0]?.memoSlug).toBe('latest');
+  });
+});
